@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.supabase-db-password.tmp
+.supabase-creds.tmp
+docs/credentials.local.txt
+docs/api-config/SERVICES.md
+dist-electron/
+out/
+*.dmg

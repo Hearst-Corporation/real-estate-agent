@@ -1,0 +1,18 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "viz:holo-rings",
+  "kind": "html",
+  "category": "viz",
+  "title": "Anneaux holographiques 3D CSS",
+  "description": "3 anneaux CSS pure en perspective 3D + core central pulsant. Chaque ring tourne autour d'un axe différent.",
+  "params": {
+    "title": { "type": "string", "default": "Mainframe Core" },
+    "ringCount": { "type": "number", "default": 3 }
+  },
+  "tokens": ["--ct-text-strong", "--ct-text-muted", "--ct-bg-deep"],
+  "animations": ["holoSpin1", "holoSpin2", "holoSpin3", "holoPulse"],
+  "render": {
+    "html": "<div class=\"holo-container\">\n  <div class=\"holo-scene\">\n    <div class=\"holo-ring ring-1\"></div>\n    <div class=\"holo-ring ring-2\"></div>\n    <div class=\"holo-ring ring-3\"></div>\n    <div class=\"holo-ring ring-core\"></div>\n  </div>\n</div>",
+    "css": ".holo-container { display: flex; align-items: center; justify-content: center; height: 180px; perspective: 600px; }\n.holo-scene { transform-style: preserve-3d; position: relative; width: 120px; height: 120px; }\n.holo-ring { position: absolute; border: 1px solid var(--ct-text-muted); border-radius: 50%; top: 50%; left: 50%; }\n.ring-1 { width: 120px; height: 120px; margin: -60px 0 0 -60px; animation: holoSpin1 8s linear infinite; }\n.ring-2 { width: 90px; height: 90px; margin: -45px 0 0 -45px; border-color: var(--ct-text-strong); animation: holoSpin2 6s linear infinite; }\n.ring-3 { width: 60px; height: 60px; margin: -30px 0 0 -30px; animation: holoSpin3 4s linear infinite; }\n.ring-core { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--ct-text-strong); border: none; box-shadow: 0 0 12px var(--ct-text-strong); animation: holoPulse 2s ease-in-out infinite; }\n@keyframes holoSpin1 { from { transform: rotateX(60deg) rotateZ(0deg); } to { transform: rotateX(60deg) rotateZ(360deg); } }\n@keyframes holoSpin2 { from { transform: rotateY(60deg) rotateZ(0deg); } to { transform: rotateY(60deg) rotateZ(360deg); } }\n@keyframes holoSpin3 { from { transform: rotateX(60deg) rotateY(45deg) rotateZ(0deg); } to { transform: rotateX(60deg) rotateY(45deg) rotateZ(-360deg); } }\n@keyframes holoPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.6; } }"
+  }
+}

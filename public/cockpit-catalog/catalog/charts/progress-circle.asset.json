@@ -1,0 +1,21 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "chart:progress-circle",
+  "kind": "svg",
+  "category": "chart",
+  "title": "Cercle de progression",
+  "description": "Anneau SVG (radius 60) avec piste de fond et stroke-dashoffset proportionnel à la valeur. Texte central percent + label.",
+  "viewBox": "0 0 140 140",
+  "params": {
+    "title": { "type": "string", "default": "System Status" },
+    "percent": { "type": "number", "default": 78, "description": "Valeur 0-100" },
+    "label": { "type": "string", "default": "Readiness", "description": "Label sous le pourcentage" },
+    "radius": { "type": "number", "default": 60, "description": "Rayon du cercle" }
+  },
+  "tokens": ["--ct-surface-2", "--ct-text-strong", "--ct-text-primary", "--ct-text-muted"],
+  "animations": [],
+  "render": {
+    "svg": "<div class=\"circle-container\">\n  <svg class=\"circle-svg\" width=\"140\" height=\"140\" viewBox=\"0 0 140 140\">\n    <circle class=\"circle-bg\" cx=\"70\" cy=\"70\" r=\"{{radius}}\"></circle>\n    <circle class=\"circle-progress\" cx=\"70\" cy=\"70\" r=\"{{radius}}\"\n            stroke-dasharray=\"{{2 * PI * radius}}\"\n            stroke-dashoffset=\"{{2 * PI * radius * (1 - percent/100)}}\"></circle>\n  </svg>\n  <div class=\"circle-text\">\n    <span class=\"percent\">{{percent}}%</span>\n    <span class=\"label\">{{label}}</span>\n  </div>\n</div>",
+    "css": ".circle-container { position: relative; display: flex; align-items: center; justify-content: center; margin-top: auto; margin-bottom: auto; }\n.circle-svg { transform: rotate(-90deg); }\n.circle-bg { fill: none; stroke: var(--ct-surface-2); stroke-width: 8; }\n.circle-progress { fill: none; stroke: var(--ct-text-strong); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 600ms ease; }\n.circle-text { position: absolute; text-align: center; }\n.circle-text .percent { display: block; font-size: 32px; font-weight: 700; color: var(--ct-text-primary); }\n.circle-text .label { font-size: 12px; color: var(--ct-text-muted); font-weight: 500; }"
+  }
+}

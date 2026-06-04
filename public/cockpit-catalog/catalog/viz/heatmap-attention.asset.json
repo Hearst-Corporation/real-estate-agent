@@ -1,0 +1,26 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "viz:heatmap-attention",
+  "kind": "html",
+  "category": "viz",
+  "title": "Heatmap d'attention (200 cellules)",
+  "description": "Grille de cellules avec opacité aléatoire (sparse: 30% des cellules ont opacité 0.2-1.0, le reste 0-0.15) + scanner horizontal qui balaye verticalement. Ruler Q/K/V/Out en dessous.",
+  "params": {
+    "title": { "type": "string", "default": "Attention Matrix" },
+    "cells": { "type": "number", "default": 200, "description": "Nombre de cellules" },
+    "sparsity": { "type": "number", "default": 0.7, "description": "Proportion de cellules faibles (0-1)" },
+    "ruler": {
+      "type": "array",
+      "default": ["Q", "K", "V", "Out"]
+    }
+  },
+  "tokens": ["--ct-text-strong", "--ct-surface-2", "--ct-text-muted"],
+  "animations": ["scan"],
+  "render": {
+    "html": "<div class=\"heatmap-wrapper\">\n  <div class=\"matrix-container\" id=\"matrix-container\">\n    <div class=\"matrix-scanner\"></div>\n  </div>\n  <div class=\"ruler\">\n    {{#each ruler as |t|}}<span>{{t}}</span>{{/each}}\n  </div>\n</div>",
+    "css": ".heatmap-wrapper { display: flex; flex-direction: column; gap: 8px; }\n.matrix-container { display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px; aspect-ratio: 1; position: relative; overflow: hidden; }\n.matrix-cell { background: var(--ct-text-strong); border-radius: 1px; }\n.matrix-scanner { position: absolute; left: 0; right: 0; height: 2px; background: var(--ct-text-strong); box-shadow: 0 0 8px var(--ct-text-strong); animation: scan 3s ease-in-out infinite; }\n.ruler { display: flex; justify-content: space-between; font-size: 10px; color: var(--ct-text-muted); font-variant-numeric: tabular-nums; }\n@keyframes scan { 0%, 100% { top: 0%; opacity: 1; } 50% { top: 98%; opacity: 0.5; } }",
+    "canvas": {
+      "init": "function init(container, params) {\n  var cells = params.cells || 200;\n  var sparsity = params.sparsity != null ? params.sparsity : 0.7;\n  var frag = document.createDocumentFragment();\n  for (var i = 0; i < cells; i++) {\n    var cell = document.createElement('div');\n    cell.className = 'matrix-cell';\n    var opacity = Math.random() > sparsity ? (Math.random() * 0.8 + 0.2) : (Math.random() * 0.15);\n    cell.style.opacity = opacity.toFixed(2);\n    frag.appendChild(cell);\n  }\n  container.appendChild(frag);\n}"
+    }
+  }
+}

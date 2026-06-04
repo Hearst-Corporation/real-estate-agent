@@ -1,0 +1,45 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "viz:network-routing",
+  "kind": "svg",
+  "category": "viz",
+  "title": "Réseau neuronal animé",
+  "description": "Réseau 3 couches (1 input, 3 hidden, 3 output) — arêtes courbes Bézier + paquets (circles) animés via <animateMotion> sur chaque chemin.",
+  "viewBox": "0 0 300 140",
+  "params": {
+    "title": { "type": "string", "default": "Neural Routing" },
+    "edges": {
+      "type": "array",
+      "items": { "d": "string (SVG path)", "packetSize": "number", "duration": "string", "delay": "string?" },
+      "default": [
+        { "d": "M 30 70 C 80 70, 100 20, 150 20",   "packetSize": 2.5, "duration": "1.6s" },
+        { "d": "M 30 70 C 80 70, 120 70, 150 70",  "packetSize": 2,   "duration": "2.2s" },
+        { "d": "M 30 70 C 80 70, 100 120, 150 120","packetSize": 3,   "duration": "1.8s" },
+        { "d": "M 150 20 C 200 20, 220 40, 270 40","packetSize": 2,   "duration": "1.2s", "delay": "0.5s" },
+        { "d": "M 150 70 C 200 70, 220 70, 270 70","packetSize": 2,   "duration": "1.4s", "delay": "0.3s" },
+        { "d": "M 150 120 C 200 120, 220 100, 270 100", "packetSize": 0, "duration": "0s" },
+        { "d": "M 150 20 C 200 30, 230 70, 270 100", "packetSize": 0, "duration": "0s" },
+        { "d": "M 150 120 C 200 110, 230 70, 270 40", "packetSize": 0, "duration": "0s" }
+      ]
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "cx": "number", "cy": "number", "r": "number" },
+      "default": [
+        { "cx": 30,  "cy": 70,  "r": 6 },
+        { "cx": 150, "cy": 20,  "r": 5 },
+        { "cx": 150, "cy": 70,  "r": 5 },
+        { "cx": 150, "cy": 120, "r": 5 },
+        { "cx": 270, "cy": 40,  "r": 6 },
+        { "cx": 270, "cy": 70,  "r": 6 },
+        { "cx": 270, "cy": 100, "r": 6 }
+      ]
+    }
+  },
+  "tokens": ["--ct-bg-deep", "--ct-text-strong", "--ct-surface-3"],
+  "animations": [],
+  "render": {
+    "svg": "<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 300 140\" preserveAspectRatio=\"xMidYMid meet\">\n  {{#each edges as |e|}}\n    <path class=\"edge\" d=\"{{e.d}}\" />\n  {{/each}}\n  {{#each edges as |e|}}{{#if e.packetSize > 0}}\n    <circle class=\"packet\" r=\"{{e.packetSize}}\">\n      <animateMotion dur=\"{{e.duration}}\" repeatCount=\"indefinite\" {{#if e.delay}}begin=\"{{e.delay}}\"{{/if}} path=\"{{e.d}}\" />\n    </circle>\n  {{/if}}{{/each}}\n  {{#each nodes as |n|}}\n    <circle class=\"node\" cx=\"{{n.cx}}\" cy=\"{{n.cy}}\" r=\"{{n.r}}\" />\n  {{/each}}\n</svg>",
+    "css": ".network-container { width: 100%; height: 140px; position: relative; }\n.node { fill: var(--ct-bg-deep); stroke: var(--ct-text-strong); stroke-width: 1.5; }\n.edge { fill: none; stroke: var(--ct-surface-3); stroke-width: 1; }\n.packet { fill: var(--ct-text-strong); filter: drop-shadow(0 0 2px var(--ct-text-strong)); }"
+  }
+}

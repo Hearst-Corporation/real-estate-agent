@@ -1,0 +1,27 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "viz:iso-cubes-grid",
+  "kind": "html",
+  "category": "viz",
+  "title": "Grille de cubes isométriques",
+  "description": "Grille 4×4 (16 cubes) en projection isométrique CSS pure — chaque cube a 3 faces (top, left, right) et une hauteur custom via --h, plus un délai d'animation --delay.",
+  "params": {
+    "title": { "type": "string", "default": "Spatial Memory" },
+    "cubes": {
+      "type": "array",
+      "items": { "h": "string (ex '40px')", "delay": "string (ex '0.0s')" },
+      "default": [
+        { "h": "40px", "delay": "0.0s" }, { "h": "20px", "delay": "0.2s" }, { "h": "60px", "delay": "0.4s" }, { "h": "30px", "delay": "0.6s" },
+        { "h": "50px", "delay": "0.2s" }, { "h": "80px", "delay": "0.4s" }, { "h": "20px", "delay": "0.6s" }, { "h": "40px", "delay": "0.8s" },
+        { "h": "30px", "delay": "0.4s" }, { "h": "20px", "delay": "0.6s" }, { "h": "70px", "delay": "0.8s" }, { "h": "50px", "delay": "1.0s" },
+        { "h": "60px", "delay": "0.6s" }, { "h": "40px", "delay": "0.8s" }, { "h": "30px", "delay": "1.0s" }, { "h": "20px", "delay": "1.2s" }
+      ]
+    }
+  },
+  "tokens": ["--ct-text-strong", "--ct-text-muted", "--ct-surface-2", "--ct-surface-3", "--ct-bg-deep"],
+  "animations": ["cubeRise"],
+  "render": {
+    "html": "<div class=\"iso-container\">\n  <div class=\"iso-grid\">\n    {{#each cubes as |c|}}\n      <div class=\"cube\" style=\"--h: {{c.h}}; --delay: {{c.delay}}\">\n        <div class=\"cube-face cube-top\"></div>\n        <div class=\"cube-face cube-left\"></div>\n        <div class=\"cube-face cube-right\"></div>\n      </div>\n    {{/each}}\n  </div>\n</div>",
+    "css": ".iso-container { display: flex; align-items: center; justify-content: center; height: 180px; }\n.iso-grid { display: grid; grid-template-columns: repeat(4, 24px); transform: rotateX(60deg) rotateZ(-45deg); transform-style: preserve-3d; }\n.cube { position: relative; width: 24px; height: 24px; transform-style: preserve-3d; animation: cubeRise 3s ease-in-out infinite alternate; animation-delay: var(--delay); }\n.cube-face { position: absolute; box-sizing: border-box; }\n.cube-top { width: 24px; height: 24px; background: var(--ct-text-muted); border: 1px solid var(--ct-bg-deep); transform: translateZ(var(--h)); }\n.cube-left { width: 24px; height: var(--h); background: var(--ct-surface-3); border: 1px solid var(--ct-bg-deep); transform-origin: bottom; transform: rotateX(-90deg) translateY(0px); top: 100%; }\n.cube-right { width: var(--h); height: 24px; background: var(--ct-surface-2); border: 1px solid var(--ct-bg-deep); transform-origin: left; transform: rotateY(90deg); left: 100%; top: 0; }\n@keyframes cubeRise { 0% { transform: translateZ(-10px); } 100% { transform: translateZ(10px); } }"
+  }
+}

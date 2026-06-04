@@ -1,0 +1,25 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "viz:particle-swarm",
+  "kind": "canvas",
+  "category": "viz",
+  "title": "Particules connectées",
+  "description": "N particules en mouvement avec rebond sur les bords + lignes reliant chaque paire à distance < threshold (opacité proportionnelle à 1 - d/threshold).",
+  "params": {
+    "title": { "type": "string", "default": "Quantum Swarm" },
+    "particles": { "type": "number", "default": 60 },
+    "linkDistance": { "type": "number", "default": 50, "description": "Distance max pour tracer une connexion" },
+    "speed": { "type": "number", "default": 1.0, "description": "Multiplicateur de vélocité" }
+  },
+  "tokens": ["--ct-text-strong"],
+  "animations": [],
+  "render": {
+    "html": "<div class=\"ct-card\" data-asset=\"viz:particle-swarm\">\n  <div class=\"ct-card-header\"><span class=\"ct-card-title\">{{title}}</span></div>\n  <div class=\"canvas-container\"><canvas id=\"swarmCanvas\" width=\"300\" height=\"180\"></canvas></div>\n</div>",
+    "css": ".canvas-container { width: 100%; aspect-ratio: 5/3; }\n.canvas-container canvas { display: block; width: 100%; height: 100%; }",
+    "canvas": {
+      "width": 300,
+      "height": 180,
+      "init": "function init(canvas, params) {\n  var ctx = canvas.getContext('2d');\n  var W = canvas.width, H = canvas.height;\n  var N = params.particles || 60;\n  var LD = params.linkDistance || 50;\n  var SP = params.speed || 1.0;\n  var color = getComputedStyle(canvas).getPropertyValue('--ct-text-strong').trim() || '#ffffff';\n  var ps = [];\n  for (var i = 0; i < N; i++) {\n    ps.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * SP, vy: (Math.random() - 0.5) * SP });\n  }\n  function draw() {\n    ctx.clearRect(0, 0, W, H);\n    ps.forEach(function(p) {\n      p.x += p.vx; p.y += p.vy;\n      if (p.x < 0 || p.x > W) p.vx *= -1;\n      if (p.y < 0 || p.y > H) p.vy *= -1;\n    });\n    ctx.lineWidth = 0.5;\n    for (var i = 0; i < ps.length; i++) {\n      for (var j = i + 1; j < ps.length; j++) {\n        var dx = ps[i].x - ps[j].x, dy = ps[i].y - ps[j].y;\n        var d = Math.sqrt(dx * dx + dy * dy);\n        if (d < LD) {\n          ctx.beginPath();\n          ctx.moveTo(ps[i].x, ps[i].y);\n          ctx.lineTo(ps[j].x, ps[j].y);\n          ctx.globalAlpha = 1 - d / LD;\n          ctx.strokeStyle = color;\n          ctx.stroke();\n        }\n      }\n    }\n    ctx.globalAlpha = 0.8;\n    ps.forEach(function(p) {\n      ctx.beginPath();\n      ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);\n      ctx.fillStyle = color;\n      ctx.fill();\n    });\n    ctx.globalAlpha = 1;\n    requestAnimationFrame(draw);\n  }\n  draw();\n}"
+    }
+  }
+}

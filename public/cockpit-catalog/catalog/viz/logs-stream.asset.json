@@ -1,0 +1,33 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "viz:logs-stream",
+  "kind": "html",
+  "category": "viz",
+  "title": "Flux de logs défilant",
+  "description": "Conteneur monospace avec lignes de log timestampées — chaque ligne a un tag highlight (INIT/LOAD/SYNC/EVAL/ATTN/GEN) + texte + curseur clignotant optionnel. Le conteneur peut scroller automatiquement.",
+  "params": {
+    "title": { "type": "string", "default": "Inference Stream" },
+    "lines": {
+      "type": "array",
+      "items": { "time": "string", "tag": "string", "text": "string", "cursor": "boolean?" },
+      "default": [
+        { "time": "14:32:01.001", "tag": "INIT", "text": "Context window allocated (128k)" },
+        { "time": "14:32:01.045", "tag": "LOAD", "text": "Weights loaded into VRAM [0/4]" },
+        { "time": "14:32:01.120", "tag": "LOAD", "text": "Weights loaded into VRAM [1/4]" },
+        { "time": "14:32:01.195", "tag": "LOAD", "text": "Weights loaded into VRAM [2/4]" },
+        { "time": "14:32:01.280", "tag": "LOAD", "text": "Weights loaded into VRAM [3/4]" },
+        { "time": "14:32:01.355", "tag": "LOAD", "text": "Weights loaded into VRAM [4/4]" },
+        { "time": "14:32:01.402", "tag": "SYNC", "text": "CUDA streams synchronized" },
+        { "time": "14:32:01.550", "tag": "EVAL", "text": "Forward pass started..." },
+        { "time": "14:32:01.890", "tag": "ATTN", "text": "Flash attention mask computed" },
+        { "time": "14:32:02.105", "tag": "GEN",  "text": "Token generation active", "cursor": true }
+      ]
+    }
+  },
+  "tokens": ["--ct-text-muted", "--ct-text-strong", "--ct-surface-2", "--ct-bg-deep"],
+  "animations": ["blink", "logScroll"],
+  "render": {
+    "html": "<div class=\"logs-container\">\n  <div class=\"logs-stream\">\n    {{#each lines as |line|}}\n      <div class=\"log-line\">[{{line.time}}] <span class=\"log-highlight\">{{line.tag}}</span> {{line.text}}{{#if line.cursor}} <span class=\"cursor-blink\"></span>{{/if}}</div>\n    {{/each}}\n  </div>\n</div>",
+    "css": ".logs-container { background: var(--ct-bg-deep); border: 1px solid var(--ct-surface-2); border-radius: 4px; padding: 8px; height: 180px; overflow: hidden; font-family: ui-monospace, monospace; font-size: 11px; color: var(--ct-text-muted); }\n.logs-stream { animation: logScroll 30s linear infinite; }\n.log-line { padding: 2px 0; white-space: nowrap; }\n.log-highlight { color: var(--ct-text-strong); font-weight: 600; }\n.cursor-blink { display: inline-block; width: 6px; height: 10px; background: var(--ct-text-strong); animation: blink 1s steps(1) infinite; vertical-align: middle; }\n@keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }\n@keyframes logScroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }"
+  }
+}

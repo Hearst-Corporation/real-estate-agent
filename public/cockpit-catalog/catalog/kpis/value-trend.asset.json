@@ -1,0 +1,21 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "kpi:value-trend",
+  "kind": "html",
+  "category": "kpi",
+  "title": "KPI valeur + tendance",
+  "description": "Indicateur synthétique : grosse valeur + flèche de tendance (↗ / ↘) + libellé de comparaison.",
+  "params": {
+    "title": { "type": "string", "default": "Missions actives" },
+    "value": { "type": "string", "default": "12", "description": "Valeur principale (peut inclure unité, ex: '142 ms')" },
+    "delta": { "type": "string", "default": "+2", "description": "Variation (signe + ou -)" },
+    "direction": { "enum": ["up", "down"], "default": "up", "description": "↗ pour up, ↘ pour down" },
+    "context": { "type": "string", "default": "vs. semaine dernière", "description": "Période de référence" }
+  },
+  "tokens": ["--ct-text-primary", "--ct-text-muted", "--ct-text-strong"],
+  "animations": [],
+  "render": {
+    "html": "<div class=\"kpi-trend-card\">\n  <div class=\"kpi-trend-value\">{{value}}</div>\n  <div class=\"kpi-trend-meta\">\n    <span class=\"kpi-trend-arrow\">{{delta}} {{#if direction == 'up'}}↗{{else}}↘{{/if}}</span>\n    <span>{{context}}</span>\n  </div>\n</div>",
+    "css": ".kpi-trend-card { display: flex; flex-direction: column; gap: 8px; }\n.kpi-trend-value { font-size: 32px; font-weight: 700; color: var(--ct-text-primary); font-variant-numeric: tabular-nums; }\n.kpi-trend-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ct-text-muted); }\n.kpi-trend-arrow { color: var(--ct-text-strong); font-weight: 600; }"
+  }
+}

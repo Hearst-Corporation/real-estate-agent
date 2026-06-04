@@ -1,0 +1,31 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "chart:dashed-bars",
+  "kind": "html",
+  "category": "chart",
+  "title": "Barres pointillées label+value+%",
+  "description": "Liste verticale d'items — chaque item = en-tête (label + valeur) + piste pointillée + remplissage proportionnel.",
+  "params": {
+    "title": { "type": "string", "default": "Distribution" },
+    "items": {
+      "type": "array",
+      "items": {
+        "label": "string",
+        "value": "string",
+        "percent": "number (0-100)"
+      },
+      "default": [
+        { "label": "America", "value": "1,124", "percent": 85 },
+        { "label": "Europe", "value": "958", "percent": 65 },
+        { "label": "Asia-Pacific", "value": "765", "percent": 50 }
+      ],
+      "description": "Liste des barres à afficher"
+    }
+  },
+  "tokens": ["--ct-text-primary", "--ct-text-muted", "--ct-text-strong", "--ct-surface-2", "--ct-surface-3"],
+  "animations": [],
+  "render": {
+    "html": "<div class=\"dashed-list\">\n  {{#each items as |item|}}\n    <div class=\"dashed-item\">\n      <div class=\"dashed-header\"><span>{{item.label}}</span><span>{{item.value}}</span></div>\n      <div class=\"dashed-track\"><div class=\"dashed-fill\" style=\"width: {{item.percent}}%;\"></div></div>\n    </div>\n  {{/each}}\n</div>",
+    "css": ".dashed-list { display: flex; flex-direction: column; gap: 20px; }\n.dashed-item { display: block; }\n.dashed-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; color: var(--ct-text-muted); }\n.dashed-header span:last-child { color: var(--ct-text-strong); font-weight: 600; }\n.dashed-track { height: 6px; background: var(--ct-surface-2); border-radius: 3px; overflow: hidden; }\n.dashed-fill { height: 100%; background: repeating-linear-gradient(90deg, var(--ct-text-strong) 0 4px, transparent 4px 8px); border-radius: 3px; }"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "viz:dna-helix",
+  "kind": "canvas",
+  "category": "viz",
+  "title": "Hélice ADN animée",
+  "description": "20 paires de bases — chaque ligne d'échelle relie deux brins en rotation sinusoïdale. La paire dominante (côté avant) est rendue à pleine opacité, l'autre estompée.",
+  "params": {
+    "title": { "type": "string", "default": "Biometric Helix" },
+    "pairs": { "type": "number", "default": 20 },
+    "speed": { "type": "number", "default": 0.04 },
+    "amplitude": { "type": "number", "default": 40 }
+  },
+  "tokens": ["--ct-text-strong"],
+  "animations": [],
+  "render": {
+    "html": "<div class=\"ct-card\" data-asset=\"viz:dna-helix\">\n  <div class=\"ct-card-header\"><span class=\"ct-card-title\">{{title}}</span></div>\n  <div class=\"canvas-container\"><canvas id=\"dnaCanvas\" width=\"300\" height=\"180\"></canvas></div>\n</div>",
+    "css": ".canvas-container { width: 100%; aspect-ratio: 5/3; }\n.canvas-container canvas { display: block; width: 100%; height: 100%; }",
+    "canvas": {
+      "width": 300,
+      "height": 180,
+      "init": "function init(canvas, params) {\n  var ctx = canvas.getContext('2d');\n  var pairs = params.pairs || 20;\n  var speed = params.speed || 0.04;\n  var amp = params.amplitude || 40;\n  var color = getComputedStyle(canvas).getPropertyValue('--ct-text-strong').trim() || '#ffffff';\n  function hexToRgba(h, a) {\n    h = h.replace('#','');\n    if (h.length === 3) h = h.split('').map(function(c){return c+c;}).join('');\n    var r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);\n    return 'rgba('+r+','+g+','+b+','+a+')';\n  }\n  var t = 0;\n  function draw() {\n    ctx.clearRect(0, 0, 300, 180);\n    t += speed;\n    for (var i = 0; i < pairs; i++) {\n      var y = i * 8 + 15;\n      var phase = i * 0.4 + t;\n      var xOff = Math.sin(phase) * amp;\n      var s1 = Math.cos(phase) * 2 + 3;\n      var s2 = Math.cos(phase + Math.PI) * 2 + 3;\n      var x1 = 150 + xOff, x2 = 150 - xOff;\n      ctx.beginPath();\n      ctx.moveTo(x1, y); ctx.lineTo(x2, y);\n      ctx.strokeStyle = hexToRgba(color, 0.15);\n      ctx.stroke();\n      if (Math.cos(phase) > 0) {\n        ctx.beginPath(); ctx.arc(x2, y, Math.max(0.5, s2), 0, Math.PI * 2); ctx.fillStyle = hexToRgba(color, 0.2); ctx.fill();\n        ctx.beginPath(); ctx.arc(x1, y, Math.max(0.5, s1), 0, Math.PI * 2); ctx.fillStyle = hexToRgba(color, 0.9); ctx.fill();\n      } else {\n        ctx.beginPath(); ctx.arc(x1, y, Math.max(0.5, s1), 0, Math.PI * 2); ctx.fillStyle = hexToRgba(color, 0.2); ctx.fill();\n        ctx.beginPath(); ctx.arc(x2, y, Math.max(0.5, s2), 0, Math.PI * 2); ctx.fillStyle = hexToRgba(color, 0.9); ctx.fill();\n      }\n    }\n    requestAnimationFrame(draw);\n  }\n  draw();\n}"
+    }
+  }
+}

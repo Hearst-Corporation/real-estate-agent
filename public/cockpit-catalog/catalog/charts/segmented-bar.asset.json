@@ -1,0 +1,41 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "chart:segmented-bar",
+  "kind": "html",
+  "category": "chart",
+  "title": "Barre segmentée d'occupation",
+  "description": "Barre horizontale divisée en N cellules égales — chacune active ou inactive — utile pour exprimer un taux d'occupation discret (ex: 9/10 = 99.5%).",
+  "params": {
+    "segments": {
+      "type": "number",
+      "default": 10,
+      "description": "Nombre total de cellules"
+    },
+    "active": {
+      "type": "number",
+      "default": 9,
+      "description": "Nombre de cellules actives (les autres reçoivent la classe .inactive)"
+    },
+    "value": {
+      "type": "string",
+      "default": "99.5%",
+      "description": "Valeur principale affichée dans l'en-tête KPI"
+    },
+    "trend": {
+      "type": "string",
+      "default": "8.4% ↗",
+      "description": "Badge de tendance"
+    },
+    "title": {
+      "type": "string",
+      "default": "Data Volume",
+      "description": "Titre de la carte"
+    }
+  },
+  "tokens": ["--ct-text-strong", "--ct-surface-3"],
+  "animations": [],
+  "render": {
+    "html": "<div class=\"kpi-segmented\">\n  <div class=\"value-header\">\n    <div class=\"kpi-value\">{{value}}</div>\n    <span class=\"badge-trend\">{{trend}}</span>\n  </div>\n  <div class=\"segmented-bar\">\n    {{#each segments as |i|}}\n      <div class=\"segment {{#if i >= active}}inactive{{/if}}\"></div>\n    {{/each}}\n  </div>\n</div>",
+    "css": ".kpi-segmented { display: flex; flex-direction: column; gap: 12px; }\n.value-header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }\n.kpi-value { font-size: 28px; font-weight: 700; color: var(--ct-text-strong); letter-spacing: -0.02em; }\n.badge-trend { font-size: 11px; font-weight: 600; color: var(--ct-accent-strong); padding: 3px 8px; background: var(--ct-accent-soft); border-radius: 10px; border: 1px solid var(--ct-border-accent); white-space: nowrap; }\n.segmented-bar { display: flex; gap: 4px; height: 48px; }\n.segment { flex: 1; background-color: var(--ct-text-strong); border-radius: 2px; }\n.segment.inactive { background-color: var(--ct-surface-3); }"
+  }
+}

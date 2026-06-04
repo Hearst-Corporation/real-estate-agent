@@ -1,0 +1,36 @@
+{
+  "$schema": "./_schema/asset.v1.json",
+  "version": "0.1.0",
+  "updated": "2026-05-20",
+  "source": "cockpit-platform.html",
+  "assets": [
+    { "id": "chart:segmented-bar",   "category": "chart", "kind": "html",   "path": "charts/segmented-bar.asset.json",   "title": "Barre segmentée d'occupation" },
+    { "id": "chart:dashed-bars",     "category": "chart", "kind": "html",   "path": "charts/dashed-bars.asset.json",     "title": "Barres pointillées label+value+%" },
+    { "id": "chart:progress-circle", "category": "chart", "kind": "svg",    "path": "charts/progress-circle.asset.json", "title": "Cercle de progression" },
+    { "id": "chart:histogram",       "category": "chart", "kind": "html",   "path": "charts/histogram.asset.json",       "title": "Histogramme dark/light variants" },
+    { "id": "chart:sparkline-area",  "category": "chart", "kind": "svg",    "path": "charts/sparkline-area.asset.json",  "title": "Sparkline aire + crosshair" },
+    { "id": "chart:storage-bar",     "category": "chart", "kind": "html",   "path": "charts/storage-bar.asset.json",     "title": "Barre stockage multi-segments + légende" },
+    { "id": "chart:radar-hexagon",   "category": "chart", "kind": "svg",    "path": "charts/radar-hexagon.asset.json",   "title": "Radar 6 axes" },
+    { "id": "chart:activity-feed",   "category": "chart", "kind": "html",   "path": "charts/activity-feed.asset.json",   "title": "Flux d'activité avec statuts" },
+
+    { "id": "kpi:value-trend",       "category": "kpi",   "kind": "html",   "path": "kpis/value-trend.asset.json",       "title": "KPI valeur + tendance" },
+
+    { "id": "viz:spinner-radar",     "category": "viz",   "kind": "svg",    "path": "viz/spinner-radar.asset.json",      "title": "Spinner radar animé" },
+    { "id": "viz:heatmap-attention", "category": "viz",   "kind": "html",   "path": "viz/heatmap-attention.asset.json",  "title": "Heatmap d'attention (200 cellules)" },
+    { "id": "viz:network-routing",   "category": "viz",   "kind": "svg",    "path": "viz/network-routing.asset.json",    "title": "Réseau neuronal animé" },
+    { "id": "viz:logs-stream",       "category": "viz",   "kind": "html",   "path": "viz/logs-stream.asset.json",        "title": "Flux de logs défilant" },
+    { "id": "viz:globe-canvas",      "category": "viz",   "kind": "canvas", "path": "viz/globe-canvas.asset.json",       "title": "Globe 3D canvas" },
+    { "id": "viz:particle-swarm",    "category": "viz",   "kind": "canvas", "path": "viz/particle-swarm.asset.json",     "title": "Particules connectées" },
+    { "id": "viz:holo-rings",        "category": "viz",   "kind": "html",   "path": "viz/holo-rings.asset.json",         "title": "Anneaux holographiques 3D CSS" },
+    { "id": "viz:iso-cubes-grid",    "category": "viz",   "kind": "html",   "path": "viz/iso-cubes-grid.asset.json",     "title": "Grille de cubes isométriques" },
+    { "id": "viz:event-horizon",     "category": "viz",   "kind": "canvas", "path": "viz/event-horizon.asset.json",      "title": "Trou noir / event horizon" },
+    { "id": "viz:topo-mesh",         "category": "viz",   "kind": "canvas", "path": "viz/topo-mesh.asset.json",          "title": "Maillage topographique" },
+    { "id": "viz:dna-helix",         "category": "viz",   "kind": "canvas", "path": "viz/dna-helix.asset.json",          "title": "Hélice ADN animée" },
+    { "id": "viz:tesseract",         "category": "viz",   "kind": "html",   "path": "viz/tesseract.asset.json",          "title": "Tesseract CSS 3D" },
+
+    { "id": "stream:agent-pulse",   "category": "stream", "kind": "stream", "path": "streams/agent-pulse.asset.json",   "title": "Agent Pulse" },
+    { "id": "stream:counter-live",  "category": "stream", "kind": "stream", "path": "streams/counter-live.asset.json",  "title": "Counter Live" },
+    { "id": "stream:price-ticker",  "category": "stream", "kind": "stream", "path": "streams/price-ticker.asset.json",  "title": "Price Ticker" }
+  ],
+  "counts": { "chart": 8, "kpi": 1, "viz": 12, "stream": 3, "total": 24 }
+}

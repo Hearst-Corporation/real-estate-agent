@@ -1,0 +1,29 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "chart:radar-hexagon",
+  "kind": "svg",
+  "category": "chart",
+  "title": "Radar 6 axes",
+  "description": "Radar SVG sur 6 axes — 3 grilles hexagonales concentriques (rayons 60/40/20) + 6 axes + polygone de zone + 6 points.",
+  "viewBox": "0 0 160 160",
+  "params": {
+    "title": { "type": "string", "default": "Model Capabilities" },
+    "axes": {
+      "type": "number",
+      "default": 6,
+      "description": "Nombre d'axes (figé à 6 dans le template hexagone)"
+    },
+    "values": {
+      "type": "array",
+      "items": "number (0-50)",
+      "default": [50, 35, 45, 35, 20, 40],
+      "description": "Valeurs de 0 à 50 (rayon max). Ordre = haut, haut-droite, bas-droite, bas, bas-gauche, haut-gauche"
+    }
+  },
+  "tokens": ["--ct-surface-2", "--ct-text-strong", "--ct-bg-deep"],
+  "animations": [],
+  "render": {
+    "svg": "<svg width=\"160\" height=\"160\" viewBox=\"0 0 160 160\">\n  <g transform=\"translate(80, 80)\">\n    <polygon class=\"radar-grid\" points=\"0,-60 52,-30 52,30 0,60 -52,30 -52,-30\" />\n    <polygon class=\"radar-grid\" points=\"0,-40 34.6,-20 34.6,20 0,40 -34.6,20 -34.6,-20\" />\n    <polygon class=\"radar-grid\" points=\"0,-20 17.3,-10 17.3,10 0,20 -17.3,10 -17.3,-10\" />\n    <line class=\"radar-axis\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"-60\" />\n    <line class=\"radar-axis\" x1=\"0\" y1=\"0\" x2=\"52\" y2=\"-30\" />\n    <line class=\"radar-axis\" x1=\"0\" y1=\"0\" x2=\"52\" y2=\"30\" />\n    <line class=\"radar-axis\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"60\" />\n    <line class=\"radar-axis\" x1=\"0\" y1=\"0\" x2=\"-52\" y2=\"30\" />\n    <line class=\"radar-axis\" x1=\"0\" y1=\"0\" x2=\"-52\" y2=\"-30\" />\n    <polygon class=\"radar-area\" points=\"{{polygonFromValues values}}\" />\n    {{#each pointsFromValues values as |p|}}\n      <circle class=\"radar-point\" cx=\"{{p.x}}\" cy=\"{{p.y}}\" r=\"3\" />\n    {{/each}}\n  </g>\n</svg>",
+    "css": ".radar-container { display: flex; align-items: center; justify-content: center; margin-top: auto; margin-bottom: auto; }\n.radar-grid { fill: none; stroke: var(--ct-surface-2); stroke-width: 1; }\n.radar-axis { stroke: var(--ct-surface-2); stroke-width: 1; stroke-dasharray: 2 2; }\n.radar-area { fill: var(--ct-text-strong); fill-opacity: 0.15; stroke: var(--ct-text-strong); stroke-width: 1.5; }\n.radar-point { fill: var(--ct-text-strong); stroke: var(--ct-bg-deep); stroke-width: 1.5; }"
+  }
+}

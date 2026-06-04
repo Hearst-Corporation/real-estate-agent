@@ -1,0 +1,40 @@
+{
+  "$schema": "https://hearst.app/schemas/asset.v1.json",
+  "id": "stream:counter-live",
+  "kind": "stream",
+  "category": "stream",
+  "title": "Counter Live",
+  "description": "Compteur qui s'incrémente à chaque message temps réel. Idéal pour KPI live : visiteurs en ligne, missions en cours, événements reçus.",
+  "viewBox": "0 0 240 120",
+  "params": {
+    "source": {
+      "type": "string",
+      "description": "URL de la source : ws://, sse://, http://…, ou mock:counter",
+      "default": "mock:counter"
+    },
+    "label": {
+      "type": "string",
+      "description": "Label affiché sous le chiffre (uppercase auto)",
+      "default": "EN LIGNE"
+    },
+    "initial": {
+      "type": "number",
+      "description": "Valeur initiale avant le premier message",
+      "default": 0
+    }
+  },
+  "render": {
+    "html": "<div class=\"ct-counter-live\" data-source=\"{{source}}\" data-initial=\"{{initial}}\">\n  <div class=\"ct-counter-dot\"></div>\n  <div class=\"ct-counter-value\">{{initial}}</div>\n  <div class=\"ct-counter-label\">{{label}}</div>\n</div>",
+    "css": ".ct-counter-live{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:24px 32px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:16px;backdrop-filter:blur(24px) saturate(150%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),0 20px 60px -24px rgba(0,0,0,0.65);position:relative;min-width:180px;}.ct-counter-dot{width:8px;height:8px;border-radius:50%;background:#e11d48;box-shadow:0 0 0 0 rgba(225,29,72,0.7);animation:ct-heartbeat 1.4s cubic-bezier(0.2,0.7,0.2,1) infinite;position:absolute;top:16px;right:16px;}.ct-counter-value{font-family:'Satoshi Variable',Inter,system-ui,sans-serif;font-size:56px;font-weight:800;color:#ffffff;line-height:1;letter-spacing:-2px;transition:transform 120ms cubic-bezier(0.2,0.7,0.2,1);}.ct-counter-value.ct-flash{transform:scale(1.08);color:#e11d48;}.ct-counter-label{font-family:'Satoshi Variable',Inter,system-ui,sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(245,245,245,0.48);}@keyframes ct-heartbeat{0%,100%{box-shadow:0 0 0 0 rgba(225,29,72,0.7);}50%{box-shadow:0 0 0 8px rgba(225,29,72,0);}}"
+  },
+  "tokens": [
+    "--ct-accent-strong",
+    "--ct-accent-soft",
+    "--ct-surface-1",
+    "--ct-border",
+    "--ct-text-strong",
+    "--ct-text-muted",
+    "--ct-shadow-depth"
+  ],
+  "animations": ["ct-heartbeat"]
+}

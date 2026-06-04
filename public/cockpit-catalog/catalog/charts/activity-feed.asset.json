@@ -1,0 +1,32 @@
+{
+  "$schema": "../_schema/asset.v1.json",
+  "id": "chart:activity-feed",
+  "kind": "html",
+  "category": "chart",
+  "title": "Flux d'activité avec statuts",
+  "description": "Liste verticale d'événements — chaque ligne = titre + timestamp + badge de statut (nominal/warn/ok).",
+  "params": {
+    "title": { "type": "string", "default": "Recent activity" },
+    "items": {
+      "type": "array",
+      "items": {
+        "title": "string",
+        "time": "string",
+        "status": "string (libellé badge)",
+        "type": "'nominal' | 'warn' | 'ok'"
+      },
+      "default": [
+        { "title": "Satellite SAT-07 sync complete", "time": "14:32:08.142", "status": "OK", "type": "nominal" },
+        { "title": "Ground unit GU-1284 deployed", "time": "14:32:08.091", "status": "OK", "type": "nominal" },
+        { "title": "Air asset AA-234 patrol complete", "time": "14:32:07.884", "status": "OK", "type": "nominal" },
+        { "title": "Anomaly detected sector 7-G", "time": "14:32:07.105", "status": "ALERT", "type": "warn" }
+      ]
+    }
+  },
+  "tokens": ["--ct-text-primary", "--ct-text-muted", "--ct-border-strong", "--ct-surface-2", "--ct-warning"],
+  "animations": [],
+  "render": {
+    "html": "<ul class=\"activity-list\">\n  {{#each items as |item|}}\n    <li class=\"activity-item\">\n      <div class=\"activity-info\">\n        <span class=\"activity-title\">{{item.title}}</span>\n        <span class=\"activity-time\">{{item.time}}</span>\n      </div>\n      <span class=\"status-badge {{item.type}}\">{{item.status}}</span>\n    </li>\n  {{/each}}\n</ul>",
+    "css": ".activity-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }\n.activity-item { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--ct-surface-2); }\n.activity-item:last-child { border-bottom: none; padding-bottom: 0; }\n.activity-info { display: flex; flex-direction: column; gap: 4px; }\n.activity-title { font-size: 13px; font-weight: 500; color: var(--ct-text-primary); }\n.activity-time { font-size: 11px; color: var(--ct-text-muted); font-variant-numeric: tabular-nums; }\n.status-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px; border: 1px solid; letter-spacing: 0.05em; }\n.status-badge.nominal { color: var(--ct-text-primary); border-color: var(--ct-border-strong); }\n.status-badge.warn { color: var(--ct-warning); border-color: var(--ct-warning); }"
+  }
+}

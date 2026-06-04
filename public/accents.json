@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schemas.designtokens.org/v1/tokens.json",
+  "$description": "Slot accent — injecté via data-product=\"<id>\" sur <html>. Remplace --ct-accent, --ct-accent-strong et --ct-border-accent dynamiquement.",
+  "default": {
+    "$value": "#BE123C",
+    "$type": "color",
+    "$description": "Hearst Corp neutre (Pantone 199 C) — Hub, login, fallback. Utilisé quand aucun data-product n'est défini."
+  },
+  "hive": {
+    "$value": "#2ecfc2",
+    "$type": "color",
+    "$description": "Centre nerveux — orchestrateur agentique Hearst. Turquoise cyan, override intentionnel depuis globals.css (cf. branding.ts HIVE_ACCENT)."
+  },
+  "halo": {
+    "$value": "#f59e0b",
+    "$type": "color",
+    "$description": "Studio créatif — ambre chaud. Création, génération, assets visuels."
+  },
+  "hyper": {
+    "$value": "#3b82f6",
+    "$type": "color",
+    "$description": "Exécution DeFi — steel blue. Finance décentralisée, transactions on-chain."
+  },
+  "hustle": {
+    "$value": "#10b981",
+    "$type": "color",
+    "$description": "Commerce piloté agents — emerald. Ventes, flux marchands, conversions."
+  },
+  "gold": {
+    "$value": "#d4af37",
+    "$type": "color",
+    "$description": "Variant gold — assets historiques, prestige, archives premium."
+  },
+  "cyan": {
+    "$value": "#5eead4",
+    "$type": "color",
+    "$description": "Variant cyan — assets historiques, data science, monitoring."
+  }
+}

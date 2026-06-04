@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Assets vendored + Electron CJS — hors périmètre lint.
+    "public/**",
+    "electron/**",
+    "dist-electron/**",
   ]),
 ]);
 
