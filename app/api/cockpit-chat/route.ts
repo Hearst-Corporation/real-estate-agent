@@ -8,9 +8,15 @@ import { tenantOf } from "@/lib/tenant";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const MESSAGE_MAX = 8000;
+const CHAT_TITLE_MAX = 60;
+const HISTORY_LIMIT = 40;
+const MEMORY_LIMIT = 20;
+const KIMI_MAX_TOKENS = 8192;
+
 const BodySchema = z.object({
   chatId: z.string().uuid().optional(),
-  message: z.string().min(1).max(8000),
+  message: z.string().min(1).max(MESSAGE_MAX),
 });
 
 const MEMORIZE_RE = /^\s*(?:m[ée]morise|retiens|souviens[- ]toi)\s*:?\s*(.+)/i;
@@ -51,7 +57,7 @@ export async function POST(req: Request) {
   if (!chatId) {
     const { data, error } = await sb
       .from("cockpit_chats")
-      .insert({ user_id: userId, tenant_id: tenant, title: message.slice(0, 60) })
+      .insert({ user_id: userId, tenant_id: tenant, title: message.slice(0, CHAT_TITLE_MAX) })
       .select("id")
       .single();
     if (error || !data) return NextResponse.json({ error: "chat_create_failed" }, { status: 500 });
@@ -67,14 +73,14 @@ export async function POST(req: Request) {
     .eq("chat_id", chatId)
     .eq("tenant_id", tenant)
     .order("created_at", { ascending: true })
-    .limit(40);
+    .limit(HISTORY_LIMIT);
 
   const { data: memories } = await sb
     .from("tenant_memory")
     .select("content")
     .eq("tenant_id", tenant)
     .order("created_at", { ascending: false })
-    .limit(20);
+    .limit(MEMORY_LIMIT);
 
   const memoryBlock = (memories ?? []).map((m) => `- ${m.content}`).join("\n");
   const system =
@@ -97,7 +103,7 @@ export async function POST(req: Request) {
     stream: true,
     // kimi-k2.6 est un modèle à raisonnement : il faut un budget large pour que la
     // réponse (`content`) arrive après le raisonnement (`reasoning_content`).
-    max_tokens: 8192,
+    max_tokens: KIMI_MAX_TOKENS,
     messages,
   });
 

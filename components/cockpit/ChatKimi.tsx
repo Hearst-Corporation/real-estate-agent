@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { UI } from "@/lib/ui-strings";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -77,25 +78,27 @@ export function ChatKimi() {
 
   return (
     <div className="ct-chat">
-      <div className="ct-chat-status">Kimi K2.6</div>
+      <div className="ct-chat-status">{UI.chat.status}</div>
       <div className="ct-chat-messages" ref={scrollRef}>
         {messages.length === 0 ? (
-          <p className="ct-placeholder">Pose une question, ou « mémorise : … » pour enregistrer un fait du tenant.</p>
+          <p className="ct-placeholder">{UI.chat.empty}</p>
         ) : null}
         {messages.map((m, idx) => (
           <div key={idx} className={`ct-chat-msg ${m.role}`}>
-            <div className="ct-chat-msg-avatar">{m.role === "user" ? "VO" : "KI"}</div>
+            <div className="ct-chat-msg-avatar">
+              {m.role === "user" ? UI.chat.userAvatar : UI.chat.assistantAvatar}
+            </div>
             <div className="ct-chat-msg-bubble">
               {m.content ? renderLight(m.content) : <span className="ct-placeholder">…</span>}
             </div>
           </div>
         ))}
-        {error ? <p className="ct-error">Erreur : {error}</p> : null}
+        {error ? <p className="ct-error">{UI.chat.errorPrefix} : {error}</p> : null}
       </div>
       <div className="ct-chat-input-wrap">
         <input
           className="ct-chat-input"
-          placeholder="Message à Kimi…"
+          placeholder={UI.chat.placeholder}
           value={input}
           disabled={busy}
           onChange={(e) => setInput(e.target.value)}

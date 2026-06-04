@@ -1,5 +1,7 @@
 "use client";
 
+import { UI } from "@/lib/ui-strings";
+
 export function LogoutButton({ variant = "full" }: { variant?: "icon" | "full" }) {
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -8,7 +10,7 @@ export function LogoutButton({ variant = "full" }: { variant?: "icon" | "full" }
 
   if (variant === "icon") {
     return (
-      <button type="button" className="ct-rail-action" title="Se déconnecter" aria-label="Se déconnecter" onClick={logout}>
+      <button type="button" className="ct-rail-action" title={UI.logout} aria-label={UI.logout} onClick={logout}>
         ⎋
       </button>
     );
@@ -16,7 +18,7 @@ export function LogoutButton({ variant = "full" }: { variant?: "icon" | "full" }
 
   return (
     <button type="button" className="ct-logout-full" onClick={logout}>
-      Se déconnecter
+      {UI.logout}
     </button>
   );
 }

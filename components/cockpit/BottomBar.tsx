@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { UI } from "@/lib/ui-strings";
 
 const SEGMENTS = [
-  { href: "/", label: "Dashboard" },
-  { href: "/profile", label: "Profil" },
+  { href: "/", label: UI.nav.dashboard },
+  { href: "/profile", label: UI.nav.profile },
 ];
 
 export function BottomBar() {
@@ -13,7 +14,7 @@ export function BottomBar() {
   return (
     <div className="ct-bottom-bar">
       <div className="ct-bottom-bar-inner">
-        <span className="ct-bottom-label">Real estate Agent</span>
+        <span className="ct-bottom-label">{UI.app.name}</span>
         <div className="ct-seg-track">
           {SEGMENTS.map((s) => {
             const active = s.href === "/" ? pathname === "/" : pathname.startsWith(s.href);

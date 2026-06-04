@@ -2,16 +2,10 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-
-const ERROR_MESSAGES: Record<string, string> = {
-  invalid_credentials: "Email ou mot de passe incorrect.",
-  invalid_body: "Formulaire invalide.",
-  supabase_not_configured: "Backend indisponible. Réessaie dans 1 min.",
-  jwt_not_configured: "Backend mal configuré (JWT).",
-  rate_limited: "Trop de tentatives. Réessaie dans 1 min.",
-};
+import { UI } from "@/lib/ui-strings";
 
 export default function LoginForm() {
+  const t = UI.login;
   const next = useSearchParams().get("next") ?? "/";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,22 +24,22 @@ export default function LoginForm() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(ERROR_MESSAGES[body.error] ?? "Erreur de connexion.");
+        setError(t.errors[body.error] ?? t.errors.generic);
         return;
       }
       const data = await res.json();
       window.location.href = data.redirect ?? "/"; // top-level nav pour que le cookie suive
     } catch {
-      setError("Erreur réseau.");
+      setError(t.errors.network);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <form onSubmit={submit} className="ct-form">
       <label className="ct-field">
-        <span className="ct-field-label">Email</span>
+        <span className="ct-field-label">{t.emailLabel}</span>
         <input
           className="ct-field-input"
           type="email"
@@ -56,7 +50,7 @@ export default function LoginForm() {
         />
       </label>
       <label className="ct-field">
-        <span className="ct-field-label">Mot de passe</span>
+        <span className="ct-field-label">{t.passwordLabel}</span>
         <input
           className="ct-field-input"
           type="password"
@@ -67,8 +61,8 @@ export default function LoginForm() {
         />
       </label>
       {error ? <p className="ct-error">{error}</p> : null}
-      <button type="submit" disabled={busy} className="ct-seg-btn primary" style={{ marginTop: "4px", padding: "11px 16px" }}>
-        {busy ? "Connexion…" : "Se connecter"}
+      <button type="submit" disabled={busy} className="ct-seg-btn primary ct-btn-block">
+        {busy ? t.submitBusy : t.submit}
       </button>
     </form>
   );

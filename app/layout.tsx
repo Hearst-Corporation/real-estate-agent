@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./cockpit.css";
+import { UI } from "@/lib/ui-strings";
 
 export const metadata: Metadata = {
-  title: "Real estate Agent",
-  description: "Real estate Agent — Cockpit",
+  title: UI.app.name,
+  description: UI.app.description,
 };
 
 export default function RootLayout({
