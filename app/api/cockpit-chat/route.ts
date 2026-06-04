@@ -95,68 +95,25 @@ export async function POST(req: Request) {
   const completion = await kimi.chat.completions.create({
     model: KIMI_MODEL,
     stream: true,
+    // kimi-k2.6 est un modèle à raisonnement : il faut un budget large pour que la
+    // réponse (`content`) arrive après le raisonnement (`reasoning_content`).
+    max_tokens: 8192,
     messages,
   });
 
   const encoder = new TextEncoder();
   let assistantFull = "";
-  // Machine à états pour retirer les blocs <think>…</think> du flux content.
-  let inThink = false;
-  let buffer = "";
-  const OPEN = "<think>";
-  const CLOSE = "</think>";
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
         for await (const chunk of completion) {
+          // Le raisonnement arrive dans delta.reasoning_content (champ séparé) → ignoré.
+          // On ne stream que la réponse finale (delta.content).
           const delta = chunk.choices?.[0]?.delta?.content ?? "";
           if (!delta) continue;
-          buffer += delta;
-
-          // Tant qu'on peut trancher une balise complète, on traite.
-          // On garde une marge (longueur de la plus longue balise - 1) pour les balises coupées.
-          while (true) {
-            if (!inThink) {
-              const idx = buffer.indexOf(OPEN);
-              if (idx === -1) {
-                const safe = buffer.length - (CLOSE.length - 1);
-                if (safe > 0) {
-                  const emit = buffer.slice(0, safe);
-                  buffer = buffer.slice(safe);
-                  if (emit) {
-                    assistantFull += emit;
-                    controller.enqueue(encoder.encode(emit));
-                  }
-                }
-                break;
-              } else {
-                const emit = buffer.slice(0, idx);
-                if (emit) {
-                  assistantFull += emit;
-                  controller.enqueue(encoder.encode(emit));
-                }
-                buffer = buffer.slice(idx + OPEN.length);
-                inThink = true;
-              }
-            } else {
-              const idx = buffer.indexOf(CLOSE);
-              if (idx === -1) {
-                // Rester en think, conserver une marge pour une balise coupée
-                const keep = CLOSE.length - 1;
-                if (buffer.length > keep) buffer = buffer.slice(buffer.length - keep);
-                break;
-              } else {
-                buffer = buffer.slice(idx + CLOSE.length);
-                inThink = false;
-              }
-            }
-          }
-        }
-        // Flush le reste hors think
-        if (!inThink && buffer) {
-          assistantFull += buffer;
-          controller.enqueue(encoder.encode(buffer));
+          assistantFull += delta;
+          controller.enqueue(encoder.encode(delta));
         }
       } catch {
         controller.enqueue(encoder.encode("\n[Erreur de génération]"));
