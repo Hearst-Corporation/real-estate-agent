@@ -71,13 +71,3 @@ export const PropertyDataSchema = z.object({
 });
 
 export type PropertyDataInput = z.infer<typeof PropertyDataSchema>;
-
-// ─── ToolInput schema ─────────────────────────────────────────────────────────
-
-export const ToolInputSchema = PropertyDataSchema.extend({
-  to_confirm: z.array(z.string().max(120)).max(60).optional(),
-  current_block: z.number().int().min(1).max(9).optional(),
-  suggestions: z.array(z.string().max(60)).max(12).optional(),
-}).strict();
-
-export type ToolInput = z.infer<typeof ToolInputSchema>;

@@ -265,9 +265,6 @@ export const BLOCKS: Block[] = [
   },
 ];
 
-/** Nombre total de blocs d'entretien — conservé comme catalogue de sujets. */
-export const TOTAL_BLOCKS = BLOCKS.length;
-
 // ─── Boîtes de sélection (options finies par champ) ───────────────────────────
 
 const OUI_NON: string[] = ['Oui', 'Non', 'Je ne sais pas'];
@@ -277,7 +274,7 @@ const OUI_NON: string[] = ['Oui', 'Non', 'Je ne sais pas'];
  * déterministe quand l'agent n'émet pas lui-même `suggestions`.
  * Les libellés sont en clair (l'agent re-mappe vers l'enum côté outil).
  */
-export const FIELD_OPTIONS: Partial<Record<keyof PropertyData, string[]>> = {
+const FIELD_OPTIONS: Partial<Record<keyof PropertyData, string[]>> = {
   type_bien: ['Appartement', 'Maison', 'Immeuble', 'Local commercial', 'Terrain', 'Autre'],
   exposition: ['Sud', 'Nord', 'Est', 'Ouest', 'Sud-est', 'Sud-ouest', 'Nord-est', 'Nord-ouest', 'Traversant', 'Je ne sais pas'],
   etat_general: ['À rénover', 'Rafraîchissement', 'Bon état', 'Rénové récemment', 'Neuf'],
@@ -299,17 +296,11 @@ export const FIELD_OPTIONS: Partial<Record<keyof PropertyData, string[]>> = {
 // ─── Modèle de COUVERTURE (flow adaptatif, 1 passe) ───────────────────────────
 //
 // Remplace la progression « 9 blocs confirmés » par une couverture de champs :
-//   - CRITICAL_FIELDS : strictement nécessaires au calcul → débloquent "Générer".
+//   - essentiels (type de bien, surface, localisation) → débloquent "Générer"
+//     (cf. canGenerate ci-dessous).
 //   - PRIORITY_FIELDS : champs à fort impact, dans l'ordre de collecte. L'agent
 //     suit cet ordre ; les chips déterministes en dérivent → chips TOUJOURS
 //     alignés sur la question réellement posée.
-
-/** Champs sans lesquels la valorisation ne peut pas tourner. */
-export const CRITICAL_FIELDS: (keyof PropertyData)[] = [
-  'type_bien',
-  'surface_habitable_m2',
-  'ville',
-];
 
 /**
  * Champs à fort impact, dans l'ordre de priorité de collecte (label = focus
@@ -420,7 +411,7 @@ export function inferCriticalFromText(
 }
 
 /** Premier champ prioritaire encore NON traité (focus courant). null si tout est couvert. */
-export function nextFocusField(
+function nextFocusField(
   property: PropertyData,
   fieldStatus: FieldStatusMap
 ): keyof PropertyData | null {

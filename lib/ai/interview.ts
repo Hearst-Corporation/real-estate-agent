@@ -23,11 +23,6 @@ import { trace } from "@/lib/providers/langfuse";
 // tronquer le JSON (une troncature perdrait les données du tour).
 const INTERVIEW_MAX_TOKENS = 2048;
 
-export function anthropicIsConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY || process.env.HYPERCLI_API_KEY);
-}
-
-/** True si au moins un provider LLM est disponible pour l'entretien. */
 /** True si le modèle d'entretien passe par le client OpenAI-compatible (Moonshot/Hypercli). */
 function usesKimiPath(model: string): boolean {
   return (
@@ -53,7 +48,7 @@ export const INTERVIEW_MODEL =
   process.env.INTERVIEW_MODEL || "claude-opus-4-8";
 
 /** Renvoie un client Anthropic (chemin Anthropic uniquement). */
-export function getInterviewClient(): Anthropic {
+function getInterviewClient(): Anthropic {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 }
 
@@ -450,54 +445,6 @@ async function _streamAnthropicTurn(params: {
     toolInput: toolUseBlock ? toolUseBlock.input : null,
     stopReason,
   };
-}
-
-// ─── Legacy Anthropic helpers (kept for backward compat) ─────────────────────
-
-interface RunInterviewTurnParams {
-  client: Anthropic;
-  system: string;
-  history: Message[];
-  stateHeader: string;
-  userMessage: string;
-}
-
-/**
- * @deprecated Utiliser streamInterviewTurn à la place.
- * Conservé pour la compatibilité avec d'anciens appelants éventuels.
- */
-export function runInterviewTurn({
-  client,
-  system,
-  history,
-  stateHeader,
-  userMessage,
-}: RunInterviewTurnParams) {
-  const messages: Anthropic.MessageParam[] = [
-    ...history.map((m) => ({
-      role: m.role,
-      content: m.content,
-    })),
-    {
-      role: "user" as const,
-      content: stateHeader ? `${stateHeader}\n\n${userMessage}` : userMessage,
-    },
-  ];
-
-  return client.messages.stream({
-    model: INTERVIEW_MODEL,
-    max_tokens: INTERVIEW_MAX_TOKENS,
-    system: [
-      {
-        type: "text",
-        text: system,
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    tools: [recordPropertyDataTool],
-    tool_choice: { type: "auto" },
-    messages,
-  });
 }
 
 // ─── Merge tool input ─────────────────────────────────────────────────────────
