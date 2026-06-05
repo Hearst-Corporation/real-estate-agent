@@ -19,16 +19,10 @@ import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
-import { r2IsConfigured, putObject, getObject, publicUrl } from "@/lib/storage/r2";
+import { r2IsConfigured, getObject } from "@/lib/storage/r2";
 import { rateLimit } from "@/lib/ratelimit";
 import { captureFatal } from "@/lib/server/observe";
-import type {
-  Estimation,
-  PropertyData,
-  FieldStatusMap,
-  MarketAnalysis,
-  Valuation,
-} from "@/lib/estimation/types";
+import { renderAndCacheEstimationPdf } from "@/lib/brochure/generate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -98,47 +92,9 @@ export async function GET(
     }
   }
 
-  // ── Reconstruct Estimation (snake_case row → camelCase) ───────────────────
-  const estimation: Estimation = {
-    id: row.id,
-    userId: row.user_id ?? "",
-    tenantId: row.tenant_id,
-    status: row.status as Estimation["status"],
-    property: (row.property ?? {}) as PropertyData,
-    fieldStatus: (row.field_status ?? {}) as FieldStatusMap,
-    market: (row.market ?? null) as MarketAnalysis | null,
-    valuation: row.valuation as Valuation,
-    saleStrategies: Array.isArray(row.sale_strategies)
-      ? (row.sale_strategies as string[])
-      : null,
-    branding: (row.branding ?? null) as Record<string, unknown> | null,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render + cache (helper partagé avec le job Inngest A5b) ───────────────
   try {
-    const { renderBrochureHtml } = await import("@/lib/brochure/render-html");
-    const { renderEstimationPdf } = await import("@/lib/brochure/pdf");
-    const html      = renderBrochureHtml(estimation);
-    const pdfBuffer = await renderEstimationPdf(html);
-
-    // ── Upload to R2 (best-effort — n'échoue pas la route si R2 KO) ─────────
-    if (r2IsConfigured()) {
-      const key       = `estimations/${id}/avis-${Date.now()}.pdf`;
-      const pdfUrl    = publicUrl(key);
-      const nowIso    = new Date().toISOString();
-      try {
-        await putObject(key, pdfBuffer as Buffer, "application/pdf");
-        await sb
-          .from("estimations")
-          .update({ pdf_key: key, pdf_url: pdfUrl, pdf_generated_at: nowIso })
-          .eq("id", id);
-      } catch (err) {
-        console.warn("[pdf/route] R2 upload/DB update failed (non-fatal):", err);
-      }
-    }
-
+    const pdfBuffer = await renderAndCacheEstimationPdf(sb, row);
     return new Response(pdfBuffer as unknown as BodyInit, {
       headers: {
         "Content-Type": "application/pdf",

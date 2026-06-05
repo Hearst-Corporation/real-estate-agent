@@ -131,6 +131,7 @@ export type Database = {
           market_value: number | null
           pdf_generated_at: string | null
           pdf_key: string | null
+          pdf_status: string | null
           pdf_url: string | null
           postal_code: string | null
           property: Json
@@ -161,6 +162,7 @@ export type Database = {
           market_value?: number | null
           pdf_generated_at?: string | null
           pdf_key?: string | null
+          pdf_status?: string | null
           pdf_url?: string | null
           postal_code?: string | null
           property?: Json
@@ -191,6 +193,7 @@ export type Database = {
           market_value?: number | null
           pdf_generated_at?: string | null
           pdf_key?: string | null
+          pdf_status?: string | null
           pdf_url?: string | null
           postal_code?: string | null
           property?: Json
