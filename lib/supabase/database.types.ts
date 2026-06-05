@@ -214,8 +214,13 @@ export type Database = {
         Row: {
           budget_max: number | null
           budget_min: number | null
+          consent_at: string | null
+          consent_source: string | null
           created_at: string
           email: string | null
+          enriched_at: string | null
+          enriched_data: Json | null
+          enriched_source: string | null
           full_name: string
           id: string
           kind: string
@@ -225,14 +230,20 @@ export type Database = {
           source: string | null
           status: string
           tenant_id: string
+          type_personne: string
           updated_at: string
           user_id: string | null
         }
         Insert: {
           budget_max?: number | null
           budget_min?: number | null
+          consent_at?: string | null
+          consent_source?: string | null
           created_at?: string
           email?: string | null
+          enriched_at?: string | null
+          enriched_data?: Json | null
+          enriched_source?: string | null
           full_name: string
           id?: string
           kind?: string
@@ -242,14 +253,20 @@ export type Database = {
           source?: string | null
           status?: string
           tenant_id?: string
+          type_personne?: string
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           budget_max?: number | null
           budget_min?: number | null
+          consent_at?: string | null
+          consent_source?: string | null
           created_at?: string
           email?: string | null
+          enriched_at?: string | null
+          enriched_data?: Json | null
+          enriched_source?: string | null
           full_name?: string
           id?: string
           kind?: string
@@ -259,6 +276,7 @@ export type Database = {
           source?: string | null
           status?: string
           tenant_id?: string
+          type_personne?: string
           updated_at?: string
           user_id?: string | null
         }

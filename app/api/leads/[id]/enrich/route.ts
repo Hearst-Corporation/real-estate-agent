@@ -9,9 +9,9 @@
  * - champ `consent` absent du body → 400 invalid_body
  * - `consent` présent mais !== true (ex : false) → 403 consent_required
  *
- * NOTE : Cette première version ne persiste pas le résultat en base.
- * Pas de colonne dédiée garantie sur la table `leads` à ce stade.
- * Le client reçoit les données enrichies et gère lui-même le stockage.
+ * Persistance + audit RGPD : le résultat et le consentement sont stockés en base
+ * (enriched_*, consent_*). Un enrichissement récent court-circuite tout appel
+ * provider (cache + économie de coût).
  */
 
 import { NextResponse } from "next/server";
@@ -26,9 +26,13 @@ import {
   pdlIsConfigured,
   pdlEnrich,
 } from "@/lib/providers";
+import type { Json } from "@/lib/supabase/database.types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Un enrichissement de moins de 30 jours est réutilisé tel quel (pas de ré-appel payant).
+const ENRICH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -89,7 +93,7 @@ export async function POST(
   // Charge le lead — ownership = user_id + tenant_id (même pattern que partout)
   const { data: lead, error: leadError } = await sb
     .from("leads")
-    .select("id, full_name, email")
+    .select("id, full_name, email, enriched_at, enriched_source, enriched_data")
     .eq("id", id)
     .eq("user_id", claims.sub)
     .eq("tenant_id", tenantOf(claims))
@@ -97,6 +101,19 @@ export async function POST(
 
   if (leadError || !lead) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
+
+  // Court-circuit : enrichissement récent déjà en base → on le réutilise (coût/cache)
+  if (lead.enriched_at && lead.enriched_data) {
+    const ageMs = Date.now() - new Date(lead.enriched_at).getTime();
+    if (ageMs < ENRICH_TTL_MS) {
+      return NextResponse.json({
+        enriched: true,
+        source: lead.enriched_source,
+        data: lead.enriched_data,
+        cached: true,
+      });
+    }
   }
 
   // Un email est requis pour interroger Apollo / PDL dans ce flow
@@ -146,6 +163,24 @@ export async function POST(
     return NextResponse.json({ enriched: false, source: null });
   }
 
-  // Résultat disponible — retourné au client, non persisté (voir NOTE en tête de fichier)
-  return NextResponse.json({ enriched: true, source, data });
+  // Persistance + audit consentement (best-effort : ne perd pas le résultat client)
+  const nowIso = new Date().toISOString();
+  try {
+    await sb
+      .from("leads")
+      .update({
+        enriched_at: nowIso,
+        enriched_source: source,
+        enriched_data: data as Json,
+        consent_at: nowIso,
+        consent_source: claims.email ?? "api",
+      })
+      .eq("id", id)
+      .eq("user_id", claims.sub)
+      .eq("tenant_id", tenantOf(claims));
+  } catch (err) {
+    console.warn("[enrich] persistance non-fatale échouée:", err);
+  }
+
+  return NextResponse.json({ enriched: true, source, data, cached: false });
 }
