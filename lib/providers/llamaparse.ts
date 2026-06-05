@@ -23,10 +23,14 @@ export function llamaParseIsConfigured(): boolean {
 export async function parseDocument(
   file: Buffer | Uint8Array,
   filename: string,
+  opts: { maxPolls?: number } = {},
 ): Promise<string> {
   if (!llamaParseIsConfigured()) throw new ProviderUnavailableError("llamaparse");
   const key = process.env.LLAMA_CLOUD_API_KEY!;
   const auth = { Authorization: `Bearer ${key}` };
+  // Cap de poll (défaut 30 ≈ 60 s) — les routes serverless plafonnent à 60 s,
+  // donc un caller peut réduire (ex 22 ≈ 44 s) pour rester sous la limite.
+  const maxPolls = opts.maxPolls ?? MAX_POLLS;
 
   // 1. Upload
   const form = new FormData();
@@ -37,16 +41,18 @@ export async function parseDocument(
     body: form,
   });
 
-  // 2. Poll
-  for (let i = 0; i < MAX_POLLS; i++) {
+  // 2. Poll (throw si non terminé dans le budget → pas de fetch d'un job inachevé)
+  let done = false;
+  for (let i = 0; i < maxPolls; i++) {
     const status = await fetchJson<{ status: string }>(
       `${BASE}/job/${upload.id}`,
       { headers: auth },
     );
-    if (status.status === "SUCCESS") break;
+    if (status.status === "SUCCESS") { done = true; break; }
     if (status.status === "ERROR") throw new Error(`LlamaParse job ${upload.id} a échoué`);
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
   }
+  if (!done) throw new Error(`LlamaParse job ${upload.id}: délai dépassé`);
 
   // 3. Result (markdown)
   const result = await fetchJson<{ markdown: string }>(
