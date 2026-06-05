@@ -46,14 +46,16 @@ export async function POST(req: Request) {
   // Chat (créer si absent), scopé user + tenant
   let chatId = parsed.data.chatId;
   if (chatId) {
-    const { data } = await sb
+    const { data, error } = await sb
       .from("cockpit_chats")
       .select("id")
       .eq("id", chatId)
       .eq("user_id", userId)
       .eq("tenant_id", tenant)
       .maybeSingle();
-    if (!data) chatId = undefined;
+    // Erreur DB transitoire → 500 (ne pas abandonner silencieusement le chat fourni).
+    if (error) return NextResponse.json({ error: "chat_lookup_failed" }, { status: 500 });
+    if (!data) chatId = undefined; // chat non possédé → on repart sur un chat neuf
   }
   if (!chatId) {
     const { data, error } = await sb
