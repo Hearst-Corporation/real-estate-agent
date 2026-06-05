@@ -39,7 +39,7 @@ Pour TOUTE opération DB, utiliser le **MCP Supabase** sans demander confirmatio
 - Layouts : `app/layout.tsx` (racine, **sans** CockpitShell) ; `app/(dashboard)/layout.tsx` (garde serveur + CockpitShell) ; `app/auth/login/` hors shell.
 - Profil : `app/(dashboard)/profile/page.tsx` (déconnexion principale ici).
 - Tenant : `current_tenant_id()` + RLS `(select …)` + hook JWT `custom_access_token_hook`. Le client service-role bypass RLS → **toujours filtrer `user_id` + `tenant_id` explicitement** côté code.
-- Mémoire Kimi : table `tenant_memory` isolée par tenant. Capture `« mémorise: … »`, réinjection des 20 dernières dans le system prompt.
+- Mémoire Kimi : table `tenant_memory` isolée par tenant + user. Capture `« mémorise: … »`, réinjection des 20 dernières dans le system prompt.
 - Admin : `admin@real-estate-agent.app` — identifiants dans `docs/credentials.local.txt` (gitignored).
 
 ## 🤖 Stack LLM

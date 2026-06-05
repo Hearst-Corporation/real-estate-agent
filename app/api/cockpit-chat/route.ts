@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
   await sb.from("cockpit_messages").insert({ chat_id: chatId, tenant_id: tenant, role: "user", content: message });
 
-  // Historique + mémoire tenant pour le system prompt
+  // Historique + mémoire utilisateur pour le system prompt
   const { data: history } = await sb
     .from("cockpit_messages")
     .select("role, content")
@@ -80,13 +80,14 @@ export async function POST(req: Request) {
     .from("tenant_memory")
     .select("content")
     .eq("tenant_id", tenant)
+    .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(MEMORY_LIMIT);
 
   const memoryBlock = (memories ?? []).map((m) => `- ${m.content}`).join("\n");
   const system =
     "Tu es l'assistant Cockpit de Real estate Agent. Réponds en français, de façon concise et actionnable." +
-    (memoryBlock ? `\n\nMémoire du tenant :\n${memoryBlock}` : "");
+    (memoryBlock ? `\n\nMémoire de l'utilisateur :\n${memoryBlock}` : "");
 
   const messages = [
     { role: "system" as const, content: system },
