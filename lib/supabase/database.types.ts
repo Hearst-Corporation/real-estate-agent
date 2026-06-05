@@ -138,6 +138,7 @@ export type Database = {
           property_type: string | null
           recommended_price: number | null
           sale_strategies: Json | null
+          sources_snapshot: Json | null
           status: string
           surface: number | null
           surface_carrez_m2: number | null
@@ -167,6 +168,7 @@ export type Database = {
           property_type?: string | null
           recommended_price?: number | null
           sale_strategies?: Json | null
+          sources_snapshot?: Json | null
           status?: string
           surface?: number | null
           surface_carrez_m2?: number | null
@@ -196,6 +198,7 @@ export type Database = {
           property_type?: string | null
           recommended_price?: number | null
           sale_strategies?: Json | null
+          sources_snapshot?: Json | null
           status?: string
           surface?: number | null
           surface_carrez_m2?: number | null

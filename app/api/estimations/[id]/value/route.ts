@@ -26,6 +26,7 @@ import { buildComparables } from '@/lib/estimation/comparables';
 import { fetchDpeForAddress } from '@/lib/estimation/ademe';
 import { computeValuation } from '@/lib/estimation/valuation';
 import { fetchListingComparables } from '@/lib/estimation/listings';
+import { buildSourcesSnapshot } from '@/lib/estimation/snapshot';
 import type { PropertyData, MarketAnalysis } from '@/lib/estimation/types';
 import type { Json } from '@/lib/supabase/database.types';
 
@@ -108,9 +109,14 @@ export async function POST(
             confidence: 'indicative',
           });
           const saleStrategies = buildSaleStrategies(0);
+          const degradedSnapshot = buildSourcesSnapshot(
+            { adresse, geo: null },
+            new Date().toISOString(),
+          );
           await sb.from('estimations').update({
             valuation: degradedValuation as unknown as Json,
             sale_strategies: saleStrategies as unknown as Json,
+            sources_snapshot: degradedSnapshot as unknown as Json,
             status: 'ready',
             updated_at: new Date().toISOString(),
           }).eq('id', id);
@@ -204,6 +210,20 @@ export async function POST(
           fetched_at: new Date().toISOString(),
         };
 
+        // ── Snapshot sources (auditabilité, capé, inclus dans l'update) ──
+        const sourcesSnapshot = buildSourcesSnapshot(
+          {
+            adresse,
+            geo,
+            parcelle,
+            sections,
+            mutations,
+            dpeClasse: resolvedDpeClasse ?? null,
+            listings: listingComparables,
+          },
+          market.fetched_at,
+        );
+
         // ── Persist ───────────────────────────────────────────────────
         await sb
           .from('estimations')
@@ -211,6 +231,7 @@ export async function POST(
             market: market as unknown as Json,
             valuation: valuation as unknown as Json,
             sale_strategies: saleStrategies as unknown as Json,
+            sources_snapshot: sourcesSnapshot as unknown as Json,
             market_value: valuation.marketValue || null,
             recommended_price: valuation.recommendedListingPrice || null,
             surface: property.surface_habitable_m2 ?? property.surface_carrez_m2 ?? null,
