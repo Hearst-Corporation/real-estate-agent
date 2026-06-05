@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "public/**",
     "electron/**",
     "dist-electron/**",
+    // Worktrees agents — hors périmètre lint.
+    ".claude/worktrees/**",
   ]),
 ]);
 
