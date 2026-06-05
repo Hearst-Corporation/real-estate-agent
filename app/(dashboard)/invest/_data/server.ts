@@ -21,6 +21,13 @@ import {
   type DealViewerCtx,
 } from "@/lib/invest/deal";
 import { dealBadges, type DealCardData } from "@/components/invest";
+import { getHoldings, supabaseLedgerStore, type Holding } from "@/lib/invest/ledger";
+import {
+  supabaseClosingStore,
+  evaluateConditions,
+  hasValidCloseApproval,
+  type ConditionsSnapshot,
+} from "@/lib/invest/closing";
 
 /** Source des données affichées (pour le bandeau "démo"). */
 export type DataSource = "db" | "demo";
@@ -144,5 +151,138 @@ export async function fetchDealBySlug(slug: string): Promise<DealDetailView | nu
     return await getDealBySlug(supabaseDealStore(), ctx, slug);
   } catch {
     return null;
+  }
+}
+
+// ─── CLOSING (Epic 1.4) : état de la saga DvP pour le back-office opérateur ────
+
+/** Ligne de condition suspensive exposée à l'écran de closing. */
+export interface ClosingConditionView {
+  code: string;
+  label: string;
+  isMet: boolean;
+  metAt: string | null;
+}
+
+/** Dernier run de réconciliation DEEP↔chaîne (vue écran). */
+export interface ReconciliationRunView {
+  result: string;
+  triggeredPause: boolean;
+  finishedAt: string | null;
+}
+
+/** État agrégé du closing d'un deal (RSC). */
+export interface ClosingStateView {
+  authorized: boolean;
+  configured: boolean;
+  found: boolean;
+  dealId: string;
+  dealName: string;
+  dealSlug: string;
+  dealStatus: string;
+  /** Conditions suspensives + synthèse. */
+  conditions: ClosingConditionView[];
+  conditionsSnapshot: ConditionsSnapshot;
+  /** Garde 4-eyes `deal_close` satisfaite ? */
+  fourEyesApproved: boolean;
+  /** Souscriptions financées (séquestre) en attente de closing. */
+  fundedCount: number;
+  /** Registre DEEP (holdings) en lecture (source de vérité). */
+  holdings: Holding[];
+  /** Dernière passe de réconciliation. */
+  lastReconciliation: ReconciliationRunView | null;
+}
+
+const EMPTY_SNAPSHOT: ConditionsSnapshot = { allMet: false, unmet: [], total: 0 };
+
+/**
+ * Agrège l'état de closing d'un deal pour l'écran opérateur (RSC, lecture seule) :
+ * conditions suspensives, garde 4-eyes, holdings DEEP (vérité), dernier run de
+ * réconciliation. Garde back-office (operator/admin/compliance). Filtrage tenant (I9).
+ */
+export async function fetchClosingState(dealId: string): Promise<ClosingStateView> {
+  const base: ClosingStateView = {
+    authorized: false,
+    configured: false,
+    found: false,
+    dealId,
+    dealName: "",
+    dealSlug: "",
+    dealStatus: "",
+    conditions: [],
+    conditionsSnapshot: EMPTY_SNAPSHOT,
+    fourEyesApproved: false,
+    fundedCount: 0,
+    holdings: [],
+    lastReconciliation: null,
+  };
+
+  const sb = getSupabaseAdmin();
+  if (!sb) return base;
+  base.configured = true;
+
+  const claims = await getSession();
+  if (!claims) return base;
+  const isOperator =
+    claims.role === "admin" ||
+    claims.role === "operator" ||
+    claims.role === "compliance" ||
+    claims.scope.includes("admin") ||
+    claims.scope.includes("operator");
+  if (!isOperator) return base;
+  base.authorized = true;
+
+  try {
+    const tenantId = tenantOf(claims);
+
+    const { data: deal } = await sb
+      .from("inv_deals")
+      .select("id, name, slug, status")
+      .eq("tenant_id", tenantId)
+      .eq("id", dealId)
+      .maybeSingle();
+    if (!deal) return base;
+    const d = deal as { id: string; name: string; slug: string; status: string };
+    base.found = true;
+    base.dealName = d.name;
+    base.dealSlug = d.slug;
+    base.dealStatus = d.status;
+
+    const closingStore = supabaseClosingStore();
+    const [condRows, approvals, funded, holdings] = await Promise.all([
+      sb
+        .from("inv_deal_closing_conditions")
+        .select("code, label, is_met, met_at")
+        .eq("tenant_id", tenantId)
+        .eq("deal_id", dealId),
+      closingStore.listCloseApprovals(tenantId, dealId),
+      closingStore.listFundedSubscriptions(tenantId, dealId),
+      getHoldings(supabaseLedgerStore(), dealId, tenantId),
+    ]);
+
+    const rows =
+      (condRows.data as { code: string; label: string; is_met: boolean; met_at: string | null }[] | null) ?? [];
+    base.conditions = rows.map((c) => ({ code: c.code, label: c.label, isMet: c.is_met, metAt: c.met_at }));
+    base.conditionsSnapshot = evaluateConditions(rows.map((c) => ({ code: c.code, is_met: c.is_met })));
+    base.fourEyesApproved = hasValidCloseApproval(approvals);
+    base.fundedCount = funded.length;
+    base.holdings = holdings;
+
+    const { data: run } = await sb
+      .from("inv_reconciliation_runs")
+      .select("result, triggered_pause, finished_at")
+      .eq("tenant_id", tenantId)
+      .eq("deal_id", dealId)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (run) {
+      const r = run as { result: string; triggered_pause: boolean; finished_at: string | null };
+      base.lastReconciliation = { result: r.result, triggeredPause: r.triggered_pause, finishedAt: r.finished_at };
+    }
+
+    return base;
+  } catch {
+    return base;
   }
 }

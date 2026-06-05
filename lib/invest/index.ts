@@ -35,6 +35,7 @@ export * as investSubscription from "./subscription";
 export * as investLedger from "./ledger";
 export * as investSettlement from "./settlement";
 export * as investTokenization from "./tokenization";
+export * as investClosing from "./closing";
 export * as investDistribution from "./distribution";
 export * as investCompliance from "./compliance";
 export * as investSecondary from "./secondary";

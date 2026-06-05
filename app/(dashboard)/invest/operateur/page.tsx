@@ -121,6 +121,8 @@ export default async function OperateurPage() {
                         </td>
                         <td style={{ padding: "var(--ct-space-2xs)", textAlign: "right" }}>
                           <Link href={`/invest/${d.slug}`}>Voir la fiche</Link>
+                          {" · "}
+                          <Link href={`/invest/operateur/${d.id}/closing`}>Closing</Link>
                         </td>
                       </tr>
                     );

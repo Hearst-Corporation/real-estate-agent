@@ -658,6 +658,84 @@ export type Database = {
           },
         ]
       }
+      inv_chain_events: {
+        Row: {
+          block_number: number | null
+          bond_tranche_id: string | null
+          chain: string | null
+          chain_id: number | null
+          confirmations: number
+          contract_address: string | null
+          created_at: string
+          deal_id: string | null
+          event_name: string
+          from_wallet: string | null
+          id: string
+          log_index: number
+          observed_at: string
+          payload: Json | null
+          tenant_id: string
+          to_wallet: string | null
+          tx_hash: string
+          units: number | null
+        }
+        Insert: {
+          block_number?: number | null
+          bond_tranche_id?: string | null
+          chain?: string | null
+          chain_id?: number | null
+          confirmations?: number
+          contract_address?: string | null
+          created_at?: string
+          deal_id?: string | null
+          event_name: string
+          from_wallet?: string | null
+          id?: string
+          log_index?: number
+          observed_at?: string
+          payload?: Json | null
+          tenant_id?: string
+          to_wallet?: string | null
+          tx_hash: string
+          units?: number | null
+        }
+        Update: {
+          block_number?: number | null
+          bond_tranche_id?: string | null
+          chain?: string | null
+          chain_id?: number | null
+          confirmations?: number
+          contract_address?: string | null
+          created_at?: string
+          deal_id?: string | null
+          event_name?: string
+          from_wallet?: string | null
+          id?: string
+          log_index?: number
+          observed_at?: string
+          payload?: Json | null
+          tenant_id?: string
+          to_wallet?: string | null
+          tx_hash?: string
+          units?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_chain_events_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_chain_events_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inv_deal_closing_conditions: {
         Row: {
           code: string
@@ -3064,4 +3142,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
