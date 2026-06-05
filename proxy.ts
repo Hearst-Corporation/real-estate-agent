@@ -11,6 +11,8 @@ const OPEN_ROUTES = [
 
 function isOpen(pathname: string): boolean {
   if (pathname.startsWith("/auth/")) return true; // /auth/login & co
+  if (pathname.startsWith("/brochure/")) return true; // partage signé — token = autorisation
+  if (pathname.startsWith("/api/brochure/")) return true; // PDF brochure public signé
   return OPEN_ROUTES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 

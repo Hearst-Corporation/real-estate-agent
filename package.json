@@ -17,13 +17,22 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
+    "@composio/core": "^0.10.0",
+    "@sentry/nextjs": "^10.56.0",
+    "@sparticuz/chromium": "^133.0.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.107.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
+    "aws4fetch": "^1.0.20",
     "jose": "^6.2.3",
+    "langfuse": "^3.38.20",
     "next": "16.2.7",
     "openai": "^6.42.0",
+    "playwright-core": "1.60.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "resend": "^6.12.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {

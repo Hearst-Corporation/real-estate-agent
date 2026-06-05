@@ -21,15 +21,31 @@ export function Card({ title, children }: { title?: string; children: ReactNode 
   );
 }
 
-export function KpiGrid({ children }: { children: ReactNode }) {
-  return <div className="ct-kpi-grid">{children}</div>;
+export function KpiGrid({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={`ct-kpi-grid${className ? ` ${className}` : ""}`}>{children}</div>;
 }
 
-export function KpiCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+export function KpiCard({
+  label,
+  value,
+  accent,
+  className,
+  children,
+}: {
+  label?: string;
+  value?: string;
+  accent?: boolean;
+  className?: string;
+  children?: ReactNode;
+}) {
   return (
-    <div className={`ct-kpi-card${accent ? " accent" : ""}`}>
-      <div className="ct-kpi-label">{label}</div>
-      <div className="ct-kpi-value">{value}</div>
+    <div className={`ct-kpi-card${accent ? " accent" : ""}${className ? ` ${className}` : ""}`}>
+      {children ?? (
+        <>
+          <div className="ct-kpi-label">{label}</div>
+          <div className="ct-kpi-value">{value}</div>
+        </>
+      )}
     </div>
   );
 }

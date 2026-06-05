@@ -46,3 +46,6 @@ docs/api-config/SERVICES.md
 dist-electron/
 out/
 *.dmg
+
+# claude code session artifacts
+.claude/scheduled_tasks.lock
