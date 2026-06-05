@@ -26,9 +26,18 @@ export function anthropicIsConfigured(): boolean {
 }
 
 /** True si au moins un provider LLM est disponible pour l'entretien. */
+/** True si le modèle d'entretien passe par le client OpenAI-compatible (Moonshot/Hypercli). */
+function usesKimiPath(model: string): boolean {
+  return (
+    model.startsWith("kimi") ||
+    model.startsWith("moonshot") ||
+    !process.env.ANTHROPIC_API_KEY
+  );
+}
+
 export function interviewIsConfigured(): boolean {
   const model = process.env.INTERVIEW_MODEL ?? "";
-  if (model.startsWith("kimi") || !process.env.ANTHROPIC_API_KEY) {
+  if (usesKimiPath(model)) {
     // Chemin Kimi/OpenAI — requiert MOONSHOT_API_KEY ou HYPERCLI_API_KEY
     return Boolean(
       process.env.MOONSHOT_API_KEY || process.env.HYPERCLI_API_KEY
@@ -72,6 +81,15 @@ export function buildSystemPrompt(): string {
 5. **Appeler l'outil à chaque tour** où une information a été apprise, même partielle.
 6. **INTERDIT D'ESTIMER dans ce chat** : tu ne dois JAMAIS produire une estimation de prix, une fourchette de valeur, un prix au m², ni aucune indication chiffrée sur la valeur du bien — même si le vendeur te le demande explicitement. Réponds : "L'estimation sera générée automatiquement une fois l'entretien complet, via le bouton dédié." Ton rôle ici est uniquement de collecter les données.
 7. **Progression bloc par bloc** : respecte l'ordre des 9 blocs. Ne saute pas de bloc, mais tu peux regrouper des questions proches.
+8. **RÉPONSES RAPIDES** : à chaque tour où tu poses une question fermée ou semi-ouverte (type de bien, oui/non, exposition, état, DPE, occupation…), remplis \`suggestions[]\` dans \`record_property_data\` avec 2 à 6 réponses courtes (1-3 mots) que le vendeur peut cliquer directement. Exemples : type de bien → ["Appartement","Maison","Terrain","Local commercial"] ; ascenseur → ["Oui","Non"] ; DPE → ["A","B","C","D","E","F","G","Je ne sais pas"]. N'émets PAS \`suggestions\` pour les questions purement libres (adresse exacte, commentaires).
+
+## MISE EN FORME DES MESSAGES (lecture aérée)
+
+- **Une phrase d'intro courte** (1 ligne max), puis tes questions en **liste numérotée**, une question par ligne. Jamais de pavé de texte dense.
+- Mets en **gras** le mot-clé de chaque question (ex : "1. **Type de bien** : appartement, maison… ?").
+- Sépare les sections par une **ligne vide** (intro / questions / note).
+- Pour un récapitulatif de bloc : titre court, puis **liste à puces** (\`- \`) des infos collectées, une par ligne.
+- Phrases brèves. Pas de paragraphe de plus de 2 lignes. Évite les longues explications — va à l'essentiel.
 
 ## LES 9 BLOCS D'ENTRETIEN
 
@@ -95,6 +113,8 @@ interface StreamInterviewTurnParams {
   stateHeader: string;
   userMessage: string;
   onText: (delta: string) => void;
+  /** Raisonnement du modèle (canal `reasoning_content` de Kimi) — feedback live. */
+  onReasoning?: (delta: string) => void;
 }
 
 interface StreamInterviewTurnResult {
@@ -117,10 +137,9 @@ interface StreamInterviewTurnResult {
 export async function streamInterviewTurn(
   params: StreamInterviewTurnParams
 ): Promise<StreamInterviewTurnResult> {
-  const { system, history, stateHeader, userMessage, onText } = params;
+  const { system, history, stateHeader, userMessage, onText, onReasoning } = params;
   const model = process.env.INTERVIEW_MODEL ?? INTERVIEW_MODEL;
-  const useKimi =
-    model.startsWith("kimi") || !process.env.ANTHROPIC_API_KEY;
+  const useKimi = usesKimiPath(model);
 
   // Observabilité Langfuse — no-op si non configuré, jamais bloquant.
   let t: { end: (output: unknown) => void } = { end: () => {} };
@@ -137,7 +156,7 @@ export async function streamInterviewTurn(
   let result: StreamInterviewTurnResult | null = null;
   try {
     if (useKimi) {
-      result = await _streamKimiTurn({ system, history, stateHeader, userMessage, onText, model });
+      result = await _streamKimiTurn({ system, history, stateHeader, userMessage, onText, onReasoning, model });
     } else {
       result = await _streamAnthropicTurn({ system, history, stateHeader, userMessage, onText });
     }
@@ -169,9 +188,10 @@ async function _streamKimiTurn(params: {
   stateHeader: string;
   userMessage: string;
   onText: (delta: string) => void;
+  onReasoning?: (delta: string) => void;
   model: string;
 }): Promise<StreamInterviewTurnResult> {
-  const { system, history, stateHeader, userMessage, onText, model } = params;
+  const { system, history, stateHeader, userMessage, onText, onReasoning, model } = params;
 
   const userContent = stateHeader
     ? `${stateHeader}\n\n${userMessage}`
@@ -199,6 +219,13 @@ async function _streamKimiTurn(params: {
   for await (const chunk of completion) {
     const choice = chunk.choices?.[0];
     if (!choice) continue;
+
+    // Reasoning delta (canal séparé de Kimi) — feedback live, non persisté.
+    const reasoningDelta =
+      (choice.delta as { reasoning_content?: string })?.reasoning_content ?? "";
+    if (reasoningDelta && onReasoning) {
+      onReasoning(reasoningDelta);
+    }
 
     // Text delta
     const textDelta = choice.delta?.content ?? "";
@@ -374,7 +401,7 @@ export function mergeToolInput(
   const newFieldStatus: FieldStatusMap = { ...fieldStatus };
 
   // Clés à ignorer lors de l'assign sur property
-  const META_KEYS = new Set<string>(["to_confirm", "current_block"]);
+  const META_KEYS = new Set<string>(["to_confirm", "current_block", "suggestions"]);
 
   for (const [key, value] of Object.entries(input)) {
     if (META_KEYS.has(key)) continue;

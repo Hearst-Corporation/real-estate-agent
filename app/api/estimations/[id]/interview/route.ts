@@ -124,6 +124,15 @@ export async function POST(
 
   const userMessage = parsed.data.message;
 
+  // Load history AVANT d'insérer le message courant (sinon il est dupliqué :
+  // une fois dans l'historique, une fois passé en userMessage).
+  const { data: rawHistory } = await sb
+    .from("estimation_messages")
+    .select("role, content")
+    .eq("estimation_id", id)
+    .eq("tenant_id", tenant)
+    .order("created_at", { ascending: true });
+
   // Persist user message
   await sb.from("estimation_messages").insert({
     estimation_id: id,
@@ -133,21 +142,18 @@ export async function POST(
     content: userMessage,
   });
 
-  // Load history (ordered)
-  const { data: rawHistory } = await sb
-    .from("estimation_messages")
-    .select("role, content")
-    .eq("estimation_id", id)
-    .eq("tenant_id", tenant)
-    .order("created_at", { ascending: true });
-
+  // Plafond d'historique : au-delà, le prefill explose (latence + coût) et le
+  // modèle re-raisonne sur tout. L'état (bloc, champs, fiche) est porté par le
+  // stateHeader + la fiche persistée, donc les anciens tours sont redondants.
+  const MAX_HISTORY_MESSAGES = 12;
   const history = (rawHistory ?? [])
     .filter((m) => m.role === "user" || m.role === "assistant")
     .filter((m) => m.content !== null)
     .map((m) => ({
       role: m.role as "user" | "assistant",
       content: m.content as string,
-    }));
+    }))
+    .slice(-MAX_HISTORY_MESSAGES);
 
   // State
   const property = (estimation.property ?? {}) as PropertyData;
@@ -179,6 +185,10 @@ export async function POST(
           onText: (delta) => {
             assistantText += delta;
             enqueueFrame({ type: "text", delta });
+          },
+          onReasoning: (delta) => {
+            // Raisonnement live (non persisté) — feedback « réflexion… ».
+            enqueueFrame({ type: "reasoning", delta });
           },
         });
 
@@ -246,12 +256,26 @@ export async function POST(
         const canGenerate = newConfirmedBlocks.length >= 9;
         const currentBlock = newConfirmedBlocks.length + 1;
 
+        // Réponses rapides proposées par l'agent (chips cliquables)
+        const rawSuggestions =
+          !isTruncated && toolInput
+            ? (toolInput as Record<string, unknown>).suggestions
+            : null;
+        const suggestions = Array.isArray(rawSuggestions)
+          ? rawSuggestions
+              .filter((s): s is string => typeof s === "string")
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0)
+              .slice(0, 8)
+          : [];
+
         enqueueFrame({
           type: "state",
           property: newProperty,
           fieldStatus: newFieldStatus,
           block: Math.min(currentBlock, 9),
           canGenerate,
+          suggestions,
         });
 
         enqueueFrame({ type: "done" });

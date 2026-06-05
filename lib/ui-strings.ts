@@ -20,6 +20,7 @@ export const UI = {
     mandates: "Mandats",
     agenda: "Agenda",
     swarms: "Swarms",
+    invest: "Invest",
     profile: "Profil",
     admin: "Admin",
   },

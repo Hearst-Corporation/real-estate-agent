@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { InterviewChat } from "./InterviewChat";
-import { FicheLive } from "./FicheLive";
-import { ValuationPanel } from "./ValuationPanel";
+import { EstimationWizard } from "./EstimationWizard";
+import { GeneratingScreen } from "./GeneratingScreen";
+import { ValuationHero } from "./ValuationHero";
+import { SidePanel } from "./SidePanel";
 import { UI } from "@/lib/ui-strings";
 import type {
   PropertyData,
@@ -13,6 +14,13 @@ import type {
 } from "@/lib/estimation/types";
 
 type Msg = { role: "user" | "assistant"; content: string };
+type Phase = "wizard" | "generating" | "ready";
+
+function resolvePhase(status: string): Phase {
+  if (status === "ready") return "ready";
+  if (status === "valuating") return "generating";
+  return "wizard";
+}
 
 type Props = {
   id: string;
@@ -21,6 +29,7 @@ type Props = {
   initialFieldStatus: FieldStatusMap;
   initialBlock: number;
   initialCanGenerate: boolean;
+  initialSuggestions?: string[];
   initialStatus: string;
   initialValuation?: Valuation | null;
   initialMarket?: MarketAnalysis | null;
@@ -33,25 +42,19 @@ export function InterviewView({
   initialFieldStatus,
   initialBlock,
   initialCanGenerate,
+  initialSuggestions,
   initialStatus,
   initialValuation,
   initialMarket,
 }: Props) {
+  const [phase, setPhase] = useState<Phase>(resolvePhase(initialStatus));
   const [property, setProperty] = useState<PropertyData>(initialProperty);
-  const [fieldStatus, setFieldStatus] =
-    useState<FieldStatusMap>(initialFieldStatus);
+  const [fieldStatus, setFieldStatus] = useState<FieldStatusMap>(initialFieldStatus);
   const [block, setBlock] = useState(initialBlock);
+  const [confirmedCount, setConfirmedCount] = useState(Math.max(0, initialBlock - 1));
   const [canGenerate, setCanGenerate] = useState(initialCanGenerate);
-
-  // Valuation state
-  const [status, setStatus] = useState(initialStatus);
-  const [valuation, setValuation] = useState<Valuation | null>(
-    initialValuation ?? null
-  );
-  const [market, setMarket] = useState<MarketAnalysis | null>(
-    initialMarket ?? null
-  );
-  const [generating, setGenerating] = useState(false);
+  const [valuation, setValuation] = useState<Valuation | null>(initialValuation ?? null);
+  const [market, setMarket] = useState<MarketAnalysis | null>(initialMarket ?? null);
   const [progressStep, setProgressStep] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
@@ -59,17 +62,18 @@ export function InterviewView({
     p: PropertyData,
     fs: FieldStatusMap,
     b: number,
-    cg: boolean
+    cg: boolean,
+    confirmed: number
   ) {
     setProperty(p);
     setFieldStatus(fs);
     setBlock(b);
     setCanGenerate(cg);
+    setConfirmedCount(confirmed);
   }
 
   async function handleGenerate() {
-    if (generating) return;
-    setGenerating(true);
+    setPhase("generating");
     setGenerateError(null);
     setProgressStep(UI.estimations.generating);
 
@@ -115,13 +119,12 @@ export function InterviewView({
             if (frame.type === "progress") {
               setProgressStep(frame.step);
             } else if (frame.type === "error") {
-              // Non-fatal error from pipeline — keep going but show the message
               setGenerateError(frame.message);
             } else if (frame.type === "done") {
               setValuation(frame.valuation);
               setMarket(frame.market);
-              setStatus("ready");
               setProgressStep(null);
+              setPhase("ready");
             }
           } catch (e) {
             if (e instanceof SyntaxError) continue;
@@ -132,40 +135,62 @@ export function InterviewView({
     } catch (err) {
       setGenerateError(err instanceof Error ? err.message : UI.common.error);
       setProgressStep(null);
-    } finally {
-      setGenerating(false);
+      setPhase("wizard");
     }
   }
 
-  const isReady = status === "ready";
-
-  return (
-    <div className="est-grid-escape">
-    <div className="est-grid">
-      <div className="est-grid-chat">
-        <InterviewChat
+  // ── Phase 1 : Wizard ──────────────────────────────────────────────────────
+  if (phase === "wizard") {
+    return (
+      <div className="est-phase fill">
+        <EstimationWizard
           id={id}
           initialMessages={initialMessages}
           initialBlock={block}
+          initialConfirmedCount={confirmedCount}
           initialCanGenerate={canGenerate}
-          generating={generating}
-          progressStep={progressStep}
+          initialSuggestions={initialSuggestions ?? []}
           generateError={generateError}
           onState={handleState}
           onGenerate={handleGenerate}
         />
       </div>
-      <div className="est-grid-fiche">
-        <FicheLive
-          property={property}
-          fieldStatus={fieldStatus}
-          block={block}
-        />
-        {isReady && valuation ? (
-          <ValuationPanel id={id} valuation={valuation} market={market} />
-        ) : null}
+    );
+  }
+
+  // ── Phase 2 : Generating ──────────────────────────────────────────────────
+  if (phase === "generating") {
+    return (
+      <div className="est-phase fill">
+        <GeneratingScreen currentStep={progressStep} />
       </div>
-    </div>
+    );
+  }
+
+  // ── Phase 3 : Ready ───────────────────────────────────────────────────────
+  return (
+    <div className="est-phase">
+      <div className="est-ready">
+        <div className="est-ready-left">
+          {valuation ? (
+            <ValuationHero id={id} valuation={valuation} />
+          ) : (
+            <p className="ct-placeholder">{UI.common.error}</p>
+          )}
+        </div>
+        <div className="est-ready-right">
+          {valuation ? (
+            <SidePanel
+              id={id}
+              valuation={valuation}
+              market={market}
+              property={property}
+              fieldStatus={fieldStatus}
+              confirmedCount={confirmedCount}
+            />
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

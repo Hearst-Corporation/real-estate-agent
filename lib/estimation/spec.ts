@@ -268,6 +268,19 @@ export const BLOCKS: Block[] = [
 /** Nombre total de blocs d'entretien — source unique pour les barres de progression. */
 export const TOTAL_BLOCKS = BLOCKS.length;
 
+/** Label humain de chaque bloc pour le stepper wizard. */
+export const BLOCK_LABELS: Record<number, string> = {
+  1: 'Identification du bien',
+  2: 'Surfaces & configuration',
+  3: 'Confort intérieur',
+  4: 'Annexes & stationnement',
+  5: 'État & qualité',
+  6: 'Copropriété',
+  7: 'Prestations & distinctifs',
+  8: 'Contexte de la vente',
+  9: 'Commentaires',
+};
+
 // ─── Recap fields (ordered) ───────────────────────────────────────────────────
 
 export const RECAP_FIELDS: { field: keyof PropertyData; label: string }[] = [

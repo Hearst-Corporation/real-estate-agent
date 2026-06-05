@@ -251,6 +251,12 @@ export const recordPropertyDataTool = {
         maximum: 9,
         description: "Index du bloc d'interview en cours (1–9)",
       },
+      suggestions: {
+        type: 'array',
+        items: { type: 'string' },
+        description:
+          "2 à 6 réponses rapides cliquables proposées au vendeur pour la dernière question posée (ex: pour le type de bien → ['Appartement','Maison','Terrain']). Réponses COURTES (1-3 mots). Émets-les à CHAQUE tour où une question fermée ou semi-ouverte est posée. Omets ce champ si la question est purement libre (adresse, commentaires).",
+      },
     },
     additionalProperties: false,
   },
