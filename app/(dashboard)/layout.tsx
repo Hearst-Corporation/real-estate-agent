@@ -7,5 +7,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const claims = await getSession();
   if (!claims) redirect("/auth/login");
 
-  return <CockpitShell userEmail={claims.email ?? undefined}>{children}</CockpitShell>;
+  return (
+    <CockpitShell userEmail={claims.email ?? undefined} isAdmin={claims.role === "admin"}>
+      {children}
+    </CockpitShell>
+  );
 }

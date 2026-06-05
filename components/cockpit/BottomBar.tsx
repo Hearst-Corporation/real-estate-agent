@@ -14,14 +14,17 @@ const SEGMENTS = [
   { href: "/profile", label: UI.nav.profile },
 ];
 
-export function BottomBar() {
+const ADMIN_SEGMENT = { href: "/admin", label: UI.nav.admin };
+
+export function BottomBar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
+  const segments = isAdmin ? [...SEGMENTS, ADMIN_SEGMENT] : SEGMENTS;
   return (
     <div className="ct-bottom-bar">
       <div className="ct-bottom-bar-inner">
         <span className="ct-bottom-label">{UI.app.name}</span>
         <div className="ct-seg-track">
-          {SEGMENTS.map((s) => {
+          {segments.map((s) => {
             const active =
               s.href === "/" ? pathname === "/" : pathname === s.href || pathname.startsWith(s.href + "/");
             return (

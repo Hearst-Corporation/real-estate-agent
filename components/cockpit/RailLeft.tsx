@@ -5,7 +5,7 @@ import { UI } from "@/lib/ui-strings";
 
 const INITIALS_LEN = 2;
 
-export function RailLeft({ userEmail }: { userEmail?: string }) {
+export function RailLeft({ userEmail, isAdmin = false }: { userEmail?: string; isAdmin?: boolean }) {
   const initials = (userEmail ?? "?").slice(0, INITIALS_LEN).toUpperCase();
   return (
     <nav className="ct-rail-left" aria-label={UI.nav.home}>
@@ -54,6 +54,16 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
         >
           M
         </Link>
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="ct-rail-action"
+            title={UI.nav.admin}
+            aria-label={UI.nav.admin}
+          >
+            A
+          </Link>
+        )}
       </div>
 
       <div className="ct-spacer" />
