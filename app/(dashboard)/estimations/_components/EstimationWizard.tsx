@@ -3,10 +3,25 @@
 import { useEffect, useRef, useState } from "react";
 import { WizardStepper } from "./WizardStepper";
 import { UI } from "@/lib/ui-strings";
-import { TOTAL_BLOCKS } from "@/lib/estimation/spec";
+import { RECAP_FIELDS } from "@/lib/estimation/spec";
+import type { Coverage } from "@/lib/estimation/spec";
 import type { PropertyData, FieldStatusMap } from "@/lib/estimation/types";
 
-type Msg = { role: "user" | "assistant"; content: string };
+/** Trace d'activité de l'agent pour un tour : sa réflexion + ce qu'il a fait. */
+type AgentActivity = { reasoning: string; events: string[] };
+type Msg = { role: "user" | "assistant"; content: string; activity?: AgentActivity };
+
+/** field → libellé FR (pour nommer les données enregistrées dans l'activité). */
+const FIELD_LABELS: Partial<Record<keyof PropertyData, string>> = Object.fromEntries(
+  RECAP_FIELDS.map(({ field, label }) => [field, label])
+);
+
+/** Normalise une valeur de champ pour comparer deux snapshots. */
+function normValue(v: PropertyData[keyof PropertyData]): string {
+  if (v == null) return "";
+  if (Array.isArray(v)) return v.join(",");
+  return String(v);
+}
 
 /** Inline : gras (**…**) + code (`…`). */
 function renderInline(text: string): React.ReactNode[] {
@@ -114,17 +129,19 @@ function renderBlocks(text: string): React.ReactNode {
 type Props = {
   id: string;
   initialMessages: Msg[];
-  initialBlock: number;
-  initialConfirmedCount: number;
+  initialCoverage: Coverage;
   initialCanGenerate: boolean;
   initialSuggestions: string[];
+  initialNextLabel: string | null;
+  initialProperty: PropertyData;
+  initialFieldStatus: FieldStatusMap;
   generateError: string | null;
   onState: (
     property: PropertyData,
     fieldStatus: FieldStatusMap,
-    block: number,
+    coverage: Coverage,
     canGenerate: boolean,
-    confirmedCount: number
+    nextLabel: string | null
   ) => void;
   onGenerate: () => void;
 };
@@ -132,10 +149,12 @@ type Props = {
 export function EstimationWizard({
   id,
   initialMessages,
-  initialBlock,
-  initialConfirmedCount,
+  initialCoverage,
   initialCanGenerate,
   initialSuggestions,
+  initialNextLabel,
+  initialProperty,
+  initialFieldStatus,
   generateError,
   onState,
   onGenerate,
@@ -143,14 +162,18 @@ export function EstimationWizard({
   const [messages, setMessages] = useState<Msg[]>(initialMessages);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [block, setBlock] = useState(initialBlock);
-  const [confirmedCount, setConfirmedCount] = useState(initialConfirmedCount);
+  const [coverage, setCoverage] = useState<Coverage>(initialCoverage);
+  const [nextLabel, setNextLabel] = useState<string | null>(initialNextLabel);
   const [canGenerate, setCanGenerate] = useState(initialCanGenerate);
   const [suggestions, setSuggestions] = useState<string[]>(initialSuggestions);
   const [thinking, setThinking] = useState(false);
+  const [liveReasoning, setLiveReasoning] = useState("");
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Snapshots pour differ ce que l'agent enregistre à chaque tour.
+  const propRef = useRef<PropertyData>(initialProperty);
+  const fsRef = useRef<FieldStatusMap>(initialFieldStatus);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -166,6 +189,7 @@ export function EstimationWizard({
     setInput("");
     setSuggestions([]);
     setThinking(false);
+    setLiveReasoning("");
     setMessages((m) => [
       ...m,
       { role: "user", content: text },
@@ -189,6 +213,7 @@ export function EstimationWizard({
       const decoder = new TextDecoder();
       let buffer = "";
       let assistantAcc = "";
+      let reasoningAcc = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -210,29 +235,70 @@ export function EstimationWizard({
                   type: "state";
                   property: PropertyData;
                   fieldStatus: FieldStatusMap;
-                  block: number;
+                  coverage: Coverage;
                   canGenerate: boolean;
                   suggestions?: string[];
+                  nextLabel?: string | null;
                 }
               | { type: "done" }
               | { type: "error"; message: string };
 
             if (frame.type === "reasoning") {
               setThinking(true);
+              reasoningAcc += frame.delta;
+              setLiveReasoning(reasoningAcc);
             } else if (frame.type === "text") {
               setThinking(false);
               assistantAcc += frame.delta;
               const acc = assistantAcc;
+              const reasoningSoFar = reasoningAcc;
               setMessages((m) => {
                 const copy = [...m];
-                copy[copy.length - 1] = { role: "assistant", content: acc };
+                const prev = copy[copy.length - 1];
+                copy[copy.length - 1] = {
+                  ...prev,
+                  role: "assistant",
+                  content: acc,
+                  activity: reasoningSoFar
+                    ? { reasoning: reasoningSoFar, events: prev.activity?.events ?? [] }
+                    : prev.activity,
+                };
                 return copy;
               });
             } else if (frame.type === "state") {
               setThinking(false);
-              const newConfirmed = Math.max(0, frame.block - 1);
-              setBlock(frame.block);
-              setConfirmedCount(newConfirmed);
+
+              // Diff : quelles données l'agent a-t-il enregistrées ce tour ?
+              const events: string[] = [];
+              for (const { field, label } of RECAP_FIELDS) {
+                const after = normValue(frame.property[field]);
+                const before = normValue(propRef.current[field]);
+                if (after && after !== before) {
+                  events.push(`${FIELD_LABELS[field] ?? label} enregistré`);
+                }
+              }
+              if (frame.coverage.collected > coverage.collected) {
+                events.push(
+                  `${frame.coverage.collected}/${frame.coverage.total} infos clés réunies`
+                );
+              }
+              propRef.current = frame.property;
+              fsRef.current = frame.fieldStatus;
+
+              const reasoningSoFar = reasoningAcc;
+              setMessages((m) => {
+                const copy = [...m];
+                const prev = copy[copy.length - 1];
+                copy[copy.length - 1] = {
+                  ...prev,
+                  activity: { reasoning: reasoningSoFar, events },
+                };
+                return copy;
+              });
+
+              const nl = frame.nextLabel ?? null;
+              setCoverage(frame.coverage);
+              setNextLabel(nl);
               setCanGenerate(frame.canGenerate);
               setSuggestions(
                 Array.isArray(frame.suggestions) ? frame.suggestions : []
@@ -240,9 +306,9 @@ export function EstimationWizard({
               onState(
                 frame.property,
                 frame.fieldStatus,
-                frame.block,
+                frame.coverage,
                 frame.canGenerate,
-                newConfirmed
+                nl
               );
             } else if (frame.type === "error") {
               throw new Error(frame.message);
@@ -253,26 +319,45 @@ export function EstimationWizard({
           }
         }
       }
+
+      // Garde-fou : un tour sans texte (l'agent n'a émis qu'un tool_call)
+      // laisserait une bulle vide en chargement perpétuel. On comble.
+      if (!assistantAcc.trim()) {
+        setMessages((m) => {
+          const copy = [...m];
+          const prev = copy[copy.length - 1];
+          if (prev?.role === "assistant" && !prev.content) {
+            copy[copy.length - 1] = { ...prev, content: "C'est noté. 👍" };
+          }
+          return copy;
+        });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : UI.common.error);
       setMessages((m) => m.slice(0, -1));
     } finally {
       setBusy(false);
       setThinking(false);
+      setLiveReasoning("");
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }
 
-  const progressPct = Math.round(
-    (Math.min(confirmedCount, TOTAL_BLOCKS) / TOTAL_BLOCKS) * 100
-  );
+  const progressPct =
+    coverage.total > 0
+      ? Math.round((coverage.collected / coverage.total) * 100)
+      : 0;
   const isEmpty = messages.length === 0;
 
   return (
     <div className="est-wizard">
       {/* ── Header sticky : stepper + barre ── */}
       <div className="est-wizard-head">
-        <WizardStepper block={block} confirmedCount={confirmedCount} />
+        <WizardStepper
+          coverage={coverage}
+          nextLabel={nextLabel}
+          canGenerate={canGenerate}
+        />
         <div className="est-wizard-progress-track">
           <div
             className="est-wizard-progress-fill"
@@ -293,33 +378,74 @@ export function EstimationWizard({
               disabled={busy}
               onClick={() => send("Bonjour, commençons l'entretien.")}
             >
-              Démarrer l'entretien
+              Démarrer l&apos;entretien
             </button>
           </div>
         ) : (
-          messages.map((m, idx) => (
+          messages.map((m, idx) => {
+            const isLast = idx === messages.length - 1;
+            const act = m.activity;
+            const hasActivity = Boolean(act && (act.reasoning || act.events.length));
+            return (
             <div key={idx} className={`est-wizard-msg ${m.role}`}>
               {m.role === "assistant" && (
                 <div className="est-wizard-msg-avatar">
                   {UI.chat.assistantAvatar}
                 </div>
               )}
-              <div className="est-wizard-msg-bubble">
-                {m.content ? (
-                  renderBlocks(m.content)
-                ) : thinking && idx === messages.length - 1 ? (
-                  <span className="est-wizard-thinking">
-                    <span className="est-wizard-thinking-dot" />
-                    Réflexion…
-                  </span>
-                ) : (
-                  <span className="est-wizard-typing">
-                    <span /><span /><span />
-                  </span>
+              <div className="est-wizard-msg-col">
+                <div className="est-wizard-msg-bubble">
+                  {m.content ? (
+                    renderBlocks(m.content)
+                  ) : thinking && isLast ? (
+                    liveReasoning ? (
+                      <span className="est-wizard-reasoning-live">
+                        <span className="est-wizard-thinking-dot" />
+                        {liveReasoning}
+                      </span>
+                    ) : (
+                      <span className="est-wizard-thinking">
+                        <span className="est-wizard-thinking-dot" />
+                        Réflexion…
+                      </span>
+                    )
+                  ) : (
+                    <span className="est-wizard-typing">
+                      <span /><span /><span />
+                    </span>
+                  )}
+                </div>
+
+                {m.role === "assistant" && hasActivity && (
+                  <details className="est-agent-activity">
+                    <summary>
+                      <span className="est-agent-activity-icon">⚡</span>
+                      Activité de l&apos;agent
+                      {act!.events.length > 0 && (
+                        <span className="est-agent-activity-count">
+                          {act!.events.length}
+                        </span>
+                      )}
+                    </summary>
+                    <div className="est-agent-activity-body">
+                      {act!.events.map((e, i) => (
+                        <div key={i} className="est-agent-event">
+                          <span className="est-agent-event-check">✓</span> {e}
+                        </div>
+                      ))}
+                      {act!.reasoning && (
+                        <div className="est-agent-reasoning">
+                          <div className="est-agent-reasoning-title">Réflexion</div>
+                          {act!.reasoning}
+                        </div>
+                      )}
+                    </div>
+                  </details>
                 )}
               </div>
             </div>
-          ))
+            );
+          })
         )}
         {error ? (
           <p className="ct-error est-wizard-error">

@@ -1,4 +1,4 @@
-import type { PropertyData } from './types';
+import type { PropertyData, FieldStatusMap } from './types';
 
 // ─── Block definition ─────────────────────────────────────────────────────────
 
@@ -265,21 +265,197 @@ export const BLOCKS: Block[] = [
   },
 ];
 
-/** Nombre total de blocs d'entretien — source unique pour les barres de progression. */
+/** Nombre total de blocs d'entretien — conservé comme catalogue de sujets. */
 export const TOTAL_BLOCKS = BLOCKS.length;
 
-/** Label humain de chaque bloc pour le stepper wizard. */
-export const BLOCK_LABELS: Record<number, string> = {
-  1: 'Identification du bien',
-  2: 'Surfaces & configuration',
-  3: 'Confort intérieur',
-  4: 'Annexes & stationnement',
-  5: 'État & qualité',
-  6: 'Copropriété',
-  7: 'Prestations & distinctifs',
-  8: 'Contexte de la vente',
-  9: 'Commentaires',
+// ─── Boîtes de sélection (options finies par champ) ───────────────────────────
+
+const OUI_NON: string[] = ['Oui', 'Non', 'Je ne sais pas'];
+
+/**
+ * Options cliquables pour les champs à réponse FINIE. Sert au fallback
+ * déterministe quand l'agent n'émet pas lui-même `suggestions`.
+ * Les libellés sont en clair (l'agent re-mappe vers l'enum côté outil).
+ */
+export const FIELD_OPTIONS: Partial<Record<keyof PropertyData, string[]>> = {
+  type_bien: ['Appartement', 'Maison', 'Immeuble', 'Local commercial', 'Terrain', 'Autre'],
+  exposition: ['Sud', 'Nord', 'Est', 'Ouest', 'Sud-est', 'Sud-ouest', 'Nord-est', 'Nord-ouest', 'Traversant', 'Je ne sais pas'],
+  etat_general: ['À rénover', 'Rafraîchissement', 'Bon état', 'Rénové récemment', 'Neuf'],
+  qualite_renovation: ['Superficielle', 'Structurelle', 'Je ne sais pas'],
+  dpe_classe: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'Pas encore réalisé'],
+  ges_classe: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'Pas encore réalisé'],
+  stationnement: ['Aucun', 'Place extérieure', 'Place sous-sol', 'Box', 'Garage', 'Plusieurs'],
+  occupation: ['Libre', 'Loué', 'Résidence principale'],
+  ascenseur: OUI_NON,
+  cave: OUI_NON,
+  meuble: OUI_NON,
+  meuble_inclus: OUI_NON,
+  travaux_votes: OUI_NON,
+  surface_carrez_confirmee: OUI_NON,
+  delai_souhaite: ['Moins de 3 mois', '3 à 6 mois', '6 à 12 mois', 'Pas pressé'],
+  motif_vente: ["Achat d'un autre bien", 'Succession', 'Mutation', 'Investissement', 'Séparation', 'Autre'],
 };
+
+// ─── Modèle de COUVERTURE (flow adaptatif, 1 passe) ───────────────────────────
+//
+// Remplace la progression « 9 blocs confirmés » par une couverture de champs :
+//   - CRITICAL_FIELDS : strictement nécessaires au calcul → débloquent "Générer".
+//   - PRIORITY_FIELDS : champs à fort impact, dans l'ordre de collecte. L'agent
+//     suit cet ordre ; les chips déterministes en dérivent → chips TOUJOURS
+//     alignés sur la question réellement posée.
+
+/** Champs sans lesquels la valorisation ne peut pas tourner. */
+export const CRITICAL_FIELDS: (keyof PropertyData)[] = [
+  'type_bien',
+  'surface_habitable_m2',
+  'ville',
+];
+
+/**
+ * Champs à fort impact, dans l'ordre de priorité de collecte (label = focus
+ * affiché dans le stepper). Sert à la fois à la barre de progression « infos
+ * clés » et au choix déterministe des chips.
+ */
+export const PRIORITY_FIELDS: { field: keyof PropertyData; label: string }[] = [
+  { field: 'type_bien', label: 'Type de bien' },
+  { field: 'adresse', label: 'Adresse' },
+  { field: 'ville', label: 'Ville / code postal' },
+  { field: 'surface_habitable_m2', label: 'Surface habitable' },
+  { field: 'nombre_pieces', label: 'Nombre de pièces' },
+  { field: 'nombre_chambres', label: 'Chambres' },
+  { field: 'etage', label: 'Étage' },
+  { field: 'etat_general', label: 'État général' },
+  { field: 'dpe_classe', label: 'Classe DPE' },
+  { field: 'exposition', label: 'Exposition' },
+  { field: 'ascenseur', label: 'Ascenseur' },
+  { field: 'stationnement', label: 'Stationnement' },
+  { field: 'terrasse_balcon_m2', label: 'Terrasse / balcon' },
+  { field: 'occupation', label: 'Occupation' },
+];
+
+/** Nombre d'infos clés suivies — source unique des barres de progression. */
+export const TOTAL_KEY_FIELDS = PRIORITY_FIELDS.length;
+
+function isFilled(property: PropertyData, f: keyof PropertyData): boolean {
+  const v = property[f];
+  return Array.isArray(v) ? v.length > 0 : v != null && v !== '';
+}
+
+/** Un champ est « traité » s'il est renseigné OU explicitement à confirmer. */
+function isAddressed(
+  property: PropertyData,
+  fieldStatus: FieldStatusMap,
+  f: keyof PropertyData
+): boolean {
+  return isFilled(property, f) || fieldStatus[f] === 'to_confirm';
+}
+
+export type Coverage = { collected: number; total: number };
+
+/** Couverture des infos clés (traitées = renseignées ou à confirmer). */
+export function coverageOf(
+  property: PropertyData,
+  fieldStatus: FieldStatusMap
+): Coverage {
+  const collected = PRIORITY_FIELDS.filter(({ field }) =>
+    isAddressed(property, fieldStatus, field)
+  ).length;
+  return { collected, total: TOTAL_KEY_FIELDS };
+}
+
+/**
+ * Génération possible dès que les 3 essentiels sont là : type de bien, surface,
+ * et UNE localisation (ville OU adresse — le géocodeur sait partir de l'une ou
+ * l'autre). Localisation assouplie pour ne pas bloquer quand le modèle a capté
+ * l'adresse mais pas la ville (ou inversement).
+ */
+export function canGenerate(property: PropertyData): boolean {
+  const hasLocation = isFilled(property, 'ville') || isFilled(property, 'adresse');
+  return (
+    isFilled(property, 'type_bien') &&
+    isFilled(property, 'surface_habitable_m2') &&
+    hasLocation
+  );
+}
+
+/**
+ * BACKSTOP déterministe : l'extraction LLM rate parfois un champ critique
+ * pourtant explicite dans le message du vendeur (type de bien, surface). On
+ * comble UNIQUEMENT les champs encore vides à partir d'un scan haute-confiance
+ * du texte — jamais d'écrasement d'une valeur déjà fournie par le modèle.
+ */
+const TYPE_PATTERNS: { re: RegExp; value: PropertyData['type_bien'] }[] = [
+  { re: /\b(appartements?|apparts?|studios?|lofts?|duplex|triplex|t[1-6]|f[1-6])\b/i, value: 'appartement' },
+  { re: /\b(maisons?|villas?|pavillons?|long[èe]res?|mas|bastides?|fermettes?)\b/i, value: 'maison' },
+  { re: /\bimmeubles?\b/i, value: 'immeuble' },
+  { re: /\b(local\s+commercial|locaux\s+commerciaux|commerces?|boutiques?|bureaux?)\b/i, value: 'local_commercial' },
+  { re: /\bterrains?\b/i, value: 'terrain' },
+];
+
+export function inferCriticalFromText(
+  text: string,
+  property: PropertyData
+): Partial<PropertyData> {
+  const out: Partial<PropertyData> = {};
+
+  if (!isFilled(property, 'type_bien')) {
+    for (const { re, value } of TYPE_PATTERNS) {
+      if (re.test(text)) {
+        out.type_bien = value;
+        break;
+      }
+    }
+  }
+
+  if (!isFilled(property, 'surface_habitable_m2')) {
+    // « 75 m² », « 80m2 », « 90 mètres carrés » — premier nombre plausible.
+    const m = text.match(/(\d{1,4})(?:[.,]\d+)?\s*(?:m²|m2|m\b|mètres?\s*carr[ée]s?)/i);
+    if (m) {
+      const n = Number(m[1]);
+      if (n >= 5 && n <= 100000) out.surface_habitable_m2 = n;
+    }
+  }
+
+  return out;
+}
+
+/** Premier champ prioritaire encore NON traité (focus courant). null si tout est couvert. */
+export function nextFocusField(
+  property: PropertyData,
+  fieldStatus: FieldStatusMap
+): keyof PropertyData | null {
+  return (
+    PRIORITY_FIELDS.find(({ field }) => !isAddressed(property, fieldStatus, field))
+      ?.field ?? null
+  );
+}
+
+/** Label humain du focus courant (sous-titre du stepper). */
+export function nextFocusLabel(
+  property: PropertyData,
+  fieldStatus: FieldStatusMap
+): string | null {
+  const f = nextFocusField(property, fieldStatus);
+  if (!f) return null;
+  return PRIORITY_FIELDS.find((p) => p.field === f)?.label ?? null;
+}
+
+/**
+ * Chips déterministes alignés sur la question : options du PREMIER champ
+ * prioritaire non traité. Si ce champ est une saisie libre (adresse, surface…),
+ * on renvoie [] — pas de chips pour une question ouverte. L'agent posant les
+ * questions dans le MÊME ordre de priorité, les chips collent à ce qu'il demande.
+ */
+export function nextSuggestions(
+  property: PropertyData,
+  fieldStatus: FieldStatusMap
+): string[] {
+  for (const { field } of PRIORITY_FIELDS) {
+    if (isAddressed(property, fieldStatus, field)) continue;
+    return FIELD_OPTIONS[field] ?? [];
+  }
+  return [];
+}
 
 // ─── Recap fields (ordered) ───────────────────────────────────────────────────
 

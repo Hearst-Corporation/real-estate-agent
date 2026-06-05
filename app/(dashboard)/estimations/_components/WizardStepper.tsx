@@ -1,36 +1,42 @@
 "use client";
 
-import { TOTAL_BLOCKS, BLOCK_LABELS } from "@/lib/estimation/spec";
+import { UI } from "@/lib/ui-strings";
+import type { Coverage } from "@/lib/estimation/spec";
 
 type Props = {
-  block: number;
-  confirmedCount: number;
+  coverage: Coverage;
+  nextLabel: string | null;
+  canGenerate: boolean;
 };
 
-export function WizardStepper({ block, confirmedCount }: Props) {
-  const currentLabel = BLOCK_LABELS[Math.min(block, TOTAL_BLOCKS)] ?? "";
+export function WizardStepper({ coverage, nextLabel, canGenerate }: Props) {
+  const { collected, total } = coverage;
+  const focus = canGenerate
+    ? UI.estimations.readyToGenerate
+    : nextLabel
+      ? UI.estimations.nextInfo(nextLabel)
+      : UI.estimations.allKeyInfo;
 
   return (
     <div className="est-wizard-stepper">
       <div className="est-stepper-dots">
-        {Array.from({ length: TOTAL_BLOCKS }, (_, i) => {
-          const idx = i + 1;
-          const confirmed = idx <= confirmedCount;
-          const current = idx === block && idx > confirmedCount;
+        {Array.from({ length: total }, (_, i) => {
+          const filled = i < collected;
+          const current = i === collected && !canGenerate;
           return (
             <span
-              key={idx}
-              className={`est-stepper-dot${confirmed ? " confirmed" : ""}${current ? " current" : ""}`}
-              aria-label={`Bloc ${idx}`}
+              key={i}
+              className={`est-stepper-dot${filled ? " confirmed" : ""}${current ? " current" : ""}`}
+              aria-label={`Info clé ${i + 1}`}
             />
           );
         })}
       </div>
       <div className="est-stepper-meta">
         <span className="est-stepper-count">
-          {Math.min(confirmedCount, TOTAL_BLOCKS)}/{TOTAL_BLOCKS} blocs
+          {UI.estimations.keyInfoProgress(Math.min(collected, total), total)}
         </span>
-        <span className="est-stepper-label">{currentLabel}</span>
+        <span className="est-stepper-label">{focus}</span>
       </div>
     </div>
   );

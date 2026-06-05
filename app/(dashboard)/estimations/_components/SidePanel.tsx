@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { UI } from "@/lib/ui-strings";
-import { TOTAL_BLOCKS, RECAP_FIELDS } from "@/lib/estimation/spec";
+import { RECAP_FIELDS } from "@/lib/estimation/spec";
+import type { Coverage } from "@/lib/estimation/spec";
 import type { Valuation, MarketAnalysis, ListingsFetchSource, PropertyData, FieldStatusMap } from "@/lib/estimation/types";
-import SwarmContextualPanel from "@/components/swarms/SwarmContextualPanel";
 
 type Props = {
   id: string;
@@ -12,7 +12,7 @@ type Props = {
   market: MarketAnalysis | null;
   property: PropertyData;
   fieldStatus: FieldStatusMap;
-  confirmedCount: number;
+  coverage: Coverage;
 };
 
 const fmt = new Intl.NumberFormat("fr-FR", {
@@ -48,7 +48,7 @@ function formatValue(v: PropertyData[keyof PropertyData]): string | null {
   return null;
 }
 
-export function SidePanel({ id, valuation, market: marketProp, property, fieldStatus, confirmedCount }: Props) {
+export function SidePanel({ id, valuation, market: marketProp, property, fieldStatus, coverage }: Props) {
   const [marketLoading, setMarketLoading] = useState(false);
   const [marketLoaded, setMarketLoaded] = useState(false);
   const [market, setMarket] = useState<MarketContextData | null>(null);
@@ -95,7 +95,8 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
         >
           <span>Fiche bien</span>
           <span className="est-side-stepper">
-            {"●".repeat(Math.min(confirmedCount, TOTAL_BLOCKS))}{"○".repeat(Math.max(0, TOTAL_BLOCKS - confirmedCount))}
+            {"●".repeat(Math.min(coverage.collected, coverage.total))}
+            {"○".repeat(Math.max(0, coverage.total - coverage.collected))}
           </span>
           <span className="est-side-chevron">{ficheOpen ? "▲" : "▼"}</span>
         </button>
@@ -252,17 +253,6 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
           </div>
         </div>
       )}
-
-      {/* ── Swarm Bienici contextuel ── */}
-      <div className="est-side-section">
-        <div className="est-side-header static">
-          <span>{UI.swarms.contextualTitle}</span>
-        </div>
-        <div className="est-side-body">
-          <p className="ct-placeholder ct-mb-sm">{UI.swarms.contextualHint}</p>
-          <SwarmContextualPanel estimationId={id} />
-        </div>
-      </div>
     </div>
   );
 }

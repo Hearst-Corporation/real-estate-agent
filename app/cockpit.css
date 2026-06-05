@@ -1941,6 +1941,110 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
   50% { opacity: 1; transform: scale(1.1); }
 }
 
+/* Réflexion en direct (texte du raisonnement qui défile dans la bulle) */
+.est-wizard-reasoning-live {
+  display: block;
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ct-text-muted);
+  max-height: 96px;
+  overflow: hidden;
+  position: relative;
+}
+.est-wizard-reasoning-live .est-wizard-thinking-dot {
+  display: inline-block;
+  margin-right: var(--ct-space-xs);
+  vertical-align: middle;
+}
+
+/* Colonne bulle + activité (sous chaque réponse de l'agent) */
+.est-wizard-msg-col {
+  display: flex; flex-direction: column; gap: var(--ct-space-2xs);
+  min-width: 0; max-width: 78%; align-items: flex-start;
+}
+.est-wizard-msg.user .est-wizard-msg-col { align-items: flex-end; }
+.est-wizard-msg-col .est-wizard-msg-bubble { max-width: 100%; }
+
+/* Dépliant « Activité de l'agent » */
+.est-agent-activity {
+  align-self: flex-start;
+  max-width: 100%;
+  font-size: 12px;
+  border: 1px solid var(--ct-border-soft);
+  border-radius: var(--ct-radius-md);
+  background: var(--ct-surface-1);
+  overflow: hidden;
+}
+.est-agent-activity > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-xs);
+  padding: var(--ct-space-xs) var(--ct-space-sm);
+  cursor: pointer;
+  color: var(--ct-text-muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  list-style: none;
+  user-select: none;
+}
+.est-agent-activity > summary::-webkit-details-marker { display: none; }
+.est-agent-activity > summary:hover { color: var(--ct-text-primary); }
+.est-agent-activity-icon { color: var(--ct-accent); }
+.est-agent-activity-count {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--ct-accent-soft);
+  border: 1px solid var(--ct-border-accent);
+  color: var(--ct-text-strong);
+  font-size: 10px;
+  font-weight: 700;
+}
+.est-agent-activity-body {
+  padding: var(--ct-space-xs) var(--ct-space-sm) var(--ct-space-sm);
+  border-top: 1px solid var(--ct-border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-2xs);
+}
+.est-agent-event {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ct-space-xs);
+  color: var(--ct-text-body);
+  font-size: 12px;
+}
+.est-agent-event-check { color: var(--ct-success); font-weight: 700; flex-shrink: 0; }
+.est-agent-reasoning {
+  margin-top: var(--ct-space-2xs);
+  padding: var(--ct-space-xs) var(--ct-space-sm);
+  border-radius: var(--ct-radius-sm);
+  background: var(--ct-surface-2);
+  color: var(--ct-text-muted);
+  font-size: 11.5px;
+  font-style: italic;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.est-agent-reasoning-title {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ct-text-faint);
+  margin-bottom: var(--ct-space-2xs);
+}
+
 .est-wizard-error { margin: 0; }
 
 /* Footer input */
@@ -2109,7 +2213,7 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 .est-ready {
   display: flex;
   flex-direction: row;
-  gap: var(--ct-space-xl);
+  gap: var(--ct-space-lg);
   align-items: flex-start;
   width: 100%;
   max-width: 1100px;
@@ -2121,8 +2225,10 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
   position: sticky;
   top: 0;
 }
+/* Largeur en % du conteneur (pas vw) → s'adapte à l'espace réel, qui dépend
+   du rail chat ouvert/fermé. Reste 2 colonnes bien au-delà de la zone étroite. */
 .est-ready-right {
-  flex: 0 0 clamp(300px, 34vw, 420px);
+  flex: 0 0 clamp(280px, 36%, 400px);
   min-width: 0;
 }
 
@@ -2274,7 +2380,7 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 /* ════════════════════════════════
    RESPONSIVE
    ════════════════════════════════ */
-@media (max-width: 999px) {
+@media (max-width: 720px) {
   .est-ready {
     flex-direction: column;
     gap: var(--ct-space-lg);

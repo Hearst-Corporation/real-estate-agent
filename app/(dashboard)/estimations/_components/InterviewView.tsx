@@ -6,6 +6,7 @@ import { GeneratingScreen } from "./GeneratingScreen";
 import { ValuationHero } from "./ValuationHero";
 import { SidePanel } from "./SidePanel";
 import { UI } from "@/lib/ui-strings";
+import type { Coverage } from "@/lib/estimation/spec";
 import type {
   PropertyData,
   FieldStatusMap,
@@ -27,9 +28,10 @@ type Props = {
   initialMessages: Msg[];
   initialProperty: PropertyData;
   initialFieldStatus: FieldStatusMap;
-  initialBlock: number;
+  initialCoverage: Coverage;
   initialCanGenerate: boolean;
   initialSuggestions?: string[];
+  initialNextLabel?: string | null;
   initialStatus: string;
   initialValuation?: Valuation | null;
   initialMarket?: MarketAnalysis | null;
@@ -40,9 +42,10 @@ export function InterviewView({
   initialMessages,
   initialProperty,
   initialFieldStatus,
-  initialBlock,
+  initialCoverage,
   initialCanGenerate,
   initialSuggestions,
+  initialNextLabel,
   initialStatus,
   initialValuation,
   initialMarket,
@@ -50,8 +53,8 @@ export function InterviewView({
   const [phase, setPhase] = useState<Phase>(resolvePhase(initialStatus));
   const [property, setProperty] = useState<PropertyData>(initialProperty);
   const [fieldStatus, setFieldStatus] = useState<FieldStatusMap>(initialFieldStatus);
-  const [block, setBlock] = useState(initialBlock);
-  const [confirmedCount, setConfirmedCount] = useState(Math.max(0, initialBlock - 1));
+  const [coverage, setCoverage] = useState<Coverage>(initialCoverage);
+  const [nextLabel, setNextLabel] = useState<string | null>(initialNextLabel ?? null);
   const [canGenerate, setCanGenerate] = useState(initialCanGenerate);
   const [valuation, setValuation] = useState<Valuation | null>(initialValuation ?? null);
   const [market, setMarket] = useState<MarketAnalysis | null>(initialMarket ?? null);
@@ -61,15 +64,15 @@ export function InterviewView({
   function handleState(
     p: PropertyData,
     fs: FieldStatusMap,
-    b: number,
+    cov: Coverage,
     cg: boolean,
-    confirmed: number
+    nl: string | null
   ) {
     setProperty(p);
     setFieldStatus(fs);
-    setBlock(b);
+    setCoverage(cov);
     setCanGenerate(cg);
-    setConfirmedCount(confirmed);
+    setNextLabel(nl);
   }
 
   async function handleGenerate() {
@@ -146,10 +149,12 @@ export function InterviewView({
         <EstimationWizard
           id={id}
           initialMessages={initialMessages}
-          initialBlock={block}
-          initialConfirmedCount={confirmedCount}
+          initialCoverage={coverage}
           initialCanGenerate={canGenerate}
           initialSuggestions={initialSuggestions ?? []}
+          initialNextLabel={nextLabel}
+          initialProperty={property}
+          initialFieldStatus={fieldStatus}
           generateError={generateError}
           onState={handleState}
           onGenerate={handleGenerate}
@@ -186,7 +191,7 @@ export function InterviewView({
               market={market}
               property={property}
               fieldStatus={fieldStatus}
-              confirmedCount={confirmedCount}
+              coverage={coverage}
             />
           ) : null}
         </div>

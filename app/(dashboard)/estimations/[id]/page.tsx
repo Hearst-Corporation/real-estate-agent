@@ -1,9 +1,14 @@
 import { notFound } from "next/navigation";
-import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
+import {
+  coverageOf,
+  canGenerate as canGenerateFromFields,
+  nextSuggestions,
+  nextFocusLabel,
+} from "@/lib/estimation/spec";
 import { InterviewView } from "@/app/(dashboard)/estimations/_components/InterviewView";
 import type {
   PropertyData,
@@ -51,25 +56,28 @@ export default async function EstimationDetailPage({
       content: m.content as string,
     }));
 
-  // Suggestions du dernier tour assistant (persistées dans tool_input) —
-  // permet de restaurer les boutons cliquables après un reload.
+  const initialProperty = (estimation.property ?? {}) as PropertyData;
+  const initialFieldStatus = (estimation.field_status ?? {}) as FieldStatusMap;
+
+  const initialCoverage = coverageOf(initialProperty, initialFieldStatus);
+  const initialCanGenerate = canGenerateFromFields(initialProperty);
+  const initialNextLabel = nextFocusLabel(initialProperty, initialFieldStatus);
+
+  // Suggestions du dernier tour assistant (persistées dans tool_input) ;
+  // sinon fallback déterministe aligné sur le prochain champ prioritaire →
+  // boîtes restaurées au reload même quand l'agent n'en avait pas émis.
   const lastAssistant = [...(rawMessages ?? [])]
     .reverse()
     .find((m) => m.role === "assistant" && m.tool_input != null);
   const rawSuggestions = (lastAssistant?.tool_input as { suggestions?: unknown } | null)
     ?.suggestions;
-  const initialSuggestions = Array.isArray(rawSuggestions)
-    ? rawSuggestions.filter((s): s is string => typeof s === "string").slice(0, 8)
+  const persistedSuggestions = Array.isArray(rawSuggestions)
+    ? rawSuggestions.filter((s): s is string => typeof s === "string").slice(0, 12)
     : [];
-
-  const initialProperty = (estimation.property ?? {}) as PropertyData;
-  const initialFieldStatus = (estimation.field_status ?? {}) as FieldStatusMap;
-  const confirmedBlocks = Array.isArray(estimation.confirmed_blocks)
-    ? (estimation.confirmed_blocks as number[])
-    : [];
-
-  const initialBlock = Math.min(confirmedBlocks.length + 1, 9);
-  const initialCanGenerate = confirmedBlocks.length >= 9;
+  const initialSuggestions =
+    persistedSuggestions.length > 0
+      ? persistedSuggestions
+      : nextSuggestions(initialProperty, initialFieldStatus);
 
   const initialValuation = (estimation.valuation ?? null) as Valuation | null;
   const initialMarket = (estimation.market ?? null) as MarketAnalysis | null;
@@ -80,9 +88,10 @@ export default async function EstimationDetailPage({
       initialMessages={initialMessages}
       initialProperty={initialProperty}
       initialFieldStatus={initialFieldStatus}
-      initialBlock={initialBlock}
+      initialCoverage={initialCoverage}
       initialCanGenerate={initialCanGenerate}
       initialSuggestions={initialSuggestions}
+      initialNextLabel={initialNextLabel}
       initialStatus={estimation.status}
       initialValuation={initialValuation}
       initialMarket={initialMarket}

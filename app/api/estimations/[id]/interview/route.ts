@@ -19,6 +19,13 @@ import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
+import {
+  coverageOf,
+  canGenerate as canGenerateFromFields,
+  nextSuggestions,
+  nextFocusLabel,
+  inferCriticalFromText,
+} from "@/lib/estimation/spec";
 import { rateLimit } from "@/lib/ratelimit";
 import {
   interviewIsConfigured,
@@ -40,25 +47,19 @@ const BodySchema = z.object({
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildStateHeader(
-  confirmedBlocks: number[],
   fieldStatus: FieldStatusMap,
   property: PropertyData
 ): string {
-  const currentBlock = (confirmedBlocks.length + 1).toString();
-
-  const emptyFields = (Object.keys(property) as (keyof PropertyData)[]).filter(
-    (k) => {
-      const v = property[k];
-      if (Array.isArray(v)) return v.length === 0;
-      return v === null || v === undefined;
-    }
-  );
-
+  const cov = coverageOf(property, fieldStatus);
+  const focus = nextFocusLabel(property, fieldStatus);
   const toConfirmCount = Object.values(fieldStatus).filter(
     (s) => s === "to_confirm"
   ).length;
+  const ready = canGenerateFromFields(property);
 
-  return `[ÉTAT: bloc=${currentBlock}; champs vides=${emptyFields.length}; à confirmer global=${toConfirmCount}]`;
+  // Donne au modèle l'état réel pour qu'il ne redemande pas et enchaîne sur le
+  // prochain champ prioritaire (ou conclue par le récap final).
+  return `[ÉTAT: infos clés ${cov.collected}/${cov.total}; prochaine priorité=${focus ?? "—"}; à confirmer=${toConfirmCount}; essentiels réunis=${ready ? "oui" : "non"}]`;
 }
 
 function extractPropertyRow(property: PropertyData) {
@@ -158,11 +159,8 @@ export async function POST(
   // State
   const property = (estimation.property ?? {}) as PropertyData;
   const fieldStatus = (estimation.field_status ?? {}) as FieldStatusMap;
-  const confirmedBlocks = Array.isArray(estimation.confirmed_blocks)
-    ? (estimation.confirmed_blocks as number[])
-    : [];
 
-  const stateHeader = buildStateHeader(confirmedBlocks, fieldStatus, property);
+  const stateHeader = buildStateHeader(fieldStatus, property);
   const system = buildSystemPrompt();
 
   const encoder = new TextEncoder();
@@ -198,25 +196,21 @@ export async function POST(
 
         let newProperty = { ...property };
         let newFieldStatus = { ...fieldStatus };
-        let newConfirmedBlocks = [...confirmedBlocks];
 
         if (!isTruncated && toolInput !== null) {
           const merged = mergeToolInput(newProperty, newFieldStatus, toolInput);
           newProperty = merged.property;
           newFieldStatus = merged.fieldStatus;
+        }
 
-          // Advance confirmed block if current_block provided
-          const currentBlock =
-            typeof (toolInput as Record<string, unknown>)?.current_block ===
-            "number"
-              ? ((toolInput as Record<string, unknown>).current_block as number)
-              : null;
-
-          if (
-            currentBlock !== null &&
-            !newConfirmedBlocks.includes(currentBlock)
-          ) {
-            newConfirmedBlocks = [...newConfirmedBlocks, currentBlock];
+        // Backstop déterministe : comble les champs CRITIQUES (type de bien,
+        // surface) que le modèle aurait oubliés alors qu'ils sont explicites
+        // dans le message du vendeur. N'écrase jamais une valeur déjà extraite.
+        if (!isTruncated) {
+          const inferred = inferCriticalFromText(userMessage, newProperty);
+          for (const [k, v] of Object.entries(inferred)) {
+            (newProperty as Record<string, unknown>)[k] = v;
+            (newFieldStatus as Record<string, string>)[k] = "answered";
           }
         }
 
@@ -243,7 +237,6 @@ export async function POST(
               .update({
                 property: newProperty as unknown as import("@/lib/supabase/database.types").Json,
                 field_status: newFieldStatus as unknown as import("@/lib/supabase/database.types").Json,
-                confirmed_blocks: newConfirmedBlocks as unknown as import("@/lib/supabase/database.types").Json,
                 status: "interviewing",
                 ...promotedCols,
                 updated_at: new Date().toISOString(),
@@ -252,30 +245,42 @@ export async function POST(
           }
         }
 
-        // canGenerate: all 9 blocks confirmed
-        const canGenerate = newConfirmedBlocks.length >= 9;
-        const currentBlock = newConfirmedBlocks.length + 1;
+        // Génération débloquée dès que les champs CRITIQUES sont réunis
+        // (type de bien, surface, localisation). Cohérent avec le SSR de
+        // la page détail — plus de désaccord 8 vs 9 blocs.
+        const coverage = coverageOf(newProperty, newFieldStatus);
+        const canGenerate = canGenerateFromFields(newProperty);
+        const nextLabel = nextFocusLabel(newProperty, newFieldStatus);
 
         // Réponses rapides proposées par l'agent (chips cliquables)
         const rawSuggestions =
           !isTruncated && toolInput
             ? (toolInput as Record<string, unknown>).suggestions
             : null;
-        const suggestions = Array.isArray(rawSuggestions)
+        const agentSuggestions = Array.isArray(rawSuggestions)
           ? rawSuggestions
               .filter((s): s is string => typeof s === "string")
               .map((s) => s.trim())
               .filter((s) => s.length > 0)
-              .slice(0, 8)
+              .slice(0, 12)
           : [];
+
+        // Fallback déterministe ALIGNÉ : options du 1er champ prioritaire non
+        // traité. L'agent posant ses questions dans le même ordre de priorité,
+        // les chips collent à la question affichée.
+        const suggestions =
+          agentSuggestions.length > 0
+            ? agentSuggestions
+            : nextSuggestions(newProperty, newFieldStatus);
 
         enqueueFrame({
           type: "state",
           property: newProperty,
           fieldStatus: newFieldStatus,
-          block: Math.min(currentBlock, 9),
+          coverage,
           canGenerate,
           suggestions,
+          nextLabel,
         });
 
         enqueueFrame({ type: "done" });
