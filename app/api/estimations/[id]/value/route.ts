@@ -17,6 +17,7 @@ import { getSupabaseAdmin } from '@/lib/server/supabase';
 import { tenantOf } from '@/lib/tenant';
 import { loadOwnedEstimation } from '@/lib/estimation/owned';
 import { rateLimit } from '@/lib/ratelimit';
+import { captureFatal } from '@/lib/server/observe';
 import { geocode } from '@/lib/estimation/geocode';
 import { resolveParcelle } from '@/lib/estimation/cadastre';
 import { candidateSections } from '@/lib/estimation/sections';
@@ -222,6 +223,9 @@ export async function POST(
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'pipeline_error';
         console.error('[value/route] pipeline error:', err);
+        // Le 200 (stream) est déjà parti : pas de 500 HTTP, mais l'exception
+        // pipeline reste fatale → on la capture quand même.
+        captureFatal(err, 'estimations/[id]/value');
         try {
           controller.enqueue(
             encoder.encode(JSON.stringify({ type: 'error', message: msg }) + '\n'),

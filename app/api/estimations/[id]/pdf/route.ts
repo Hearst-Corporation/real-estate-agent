@@ -21,6 +21,7 @@ import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import { r2IsConfigured, putObject, getObject, publicUrl } from "@/lib/storage/r2";
 import { rateLimit } from "@/lib/ratelimit";
+import { captureFatal } from "@/lib/server/observe";
 import type {
   Estimation,
   PropertyData,
@@ -149,6 +150,7 @@ export async function GET(
   } catch (err) {
     const message = err instanceof Error ? err.message : "render_error";
     console.error("[pdf/route] render error:", err);
+    captureFatal(err, "estimations/[id]/pdf");
     return Response.json({ error: message }, { status: 500 });
   }
 }
