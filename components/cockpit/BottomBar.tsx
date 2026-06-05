@@ -11,6 +11,7 @@ const SEGMENTS = [
   { href: "/leads", label: UI.nav.leads },
   { href: "/visits", label: UI.nav.visits },
   { href: "/mandates", label: UI.nav.mandates },
+  { href: "/swarms", label: UI.nav.swarms },
   { href: "/profile", label: UI.nav.profile },
 ];
 

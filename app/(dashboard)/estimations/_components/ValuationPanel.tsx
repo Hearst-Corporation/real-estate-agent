@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { UI } from "@/lib/ui-strings";
 import type { Valuation, MarketAnalysis, ListingsFetchSource } from "@/lib/estimation/types";
+import SwarmContextualPanel from "@/components/swarms/SwarmContextualPanel";
 
 type Props = {
   id: string;
@@ -201,6 +202,7 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
           {listings.length === 0 ? (
             <p className="ct-placeholder">{UI.estimations.listingComparablesEmpty}</p>
           ) : (
+            <div className="est-listing-table-wrap">
             <table className="est-listing-table">
               <thead>
                 <tr>
@@ -246,9 +248,19 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}
+
+      {/* ── Swarm Bienici contextuel ── */}
+      <div className="ct-card est-valuation-block">
+        <p className="ct-card-title">Analyse IA — MySwarms</p>
+        <p className="ct-placeholder" style={{ marginBottom: "var(--ct-space-sm)" }}>
+          Lance un swarm Bienici pour enrichir l&apos;analyse de marché avec des données en temps réel.
+        </p>
+        <SwarmContextualPanel estimationId={id} />
+      </div>
 
       {/* ── Actions ── */}
       <div className="est-valuation-actions">

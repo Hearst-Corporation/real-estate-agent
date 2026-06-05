@@ -19,6 +19,7 @@ export const UI = {
     visits: "Visites",
     mandates: "Mandats",
     agenda: "Agenda",
+    swarms: "Swarms",
     profile: "Profil",
     admin: "Admin",
   },
