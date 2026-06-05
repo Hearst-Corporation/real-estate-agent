@@ -213,6 +213,2396 @@ export type Database = {
         }
         Relationships: []
       }
+      inv_approvals: {
+        Row: {
+          action: string
+          approver_1: string | null
+          approver_1_at: string | null
+          approver_2: string | null
+          approver_2_at: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          status: string
+          subject_id: string
+          subject_type: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          approver_1?: string | null
+          approver_1_at?: string | null
+          approver_2?: string | null
+          approver_2_at?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          status?: string
+          subject_id: string
+          subject_type: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          approver_1?: string | null
+          approver_1_at?: string | null
+          approver_2?: string | null
+          approver_2_at?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          status?: string
+          subject_id?: string
+          subject_type?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inv_audit_log: {
+        Row: {
+          action: string
+          actor_role: string
+          actor_user_id: string | null
+          after_state: Json | null
+          before_state: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          ip_address: unknown
+          metadata: Json
+          prev_hash: string | null
+          record_hash: string
+          request_id: string | null
+          seq: number
+          tenant_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_role?: string
+          actor_user_id?: string | null
+          after_state?: Json | null
+          before_state?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          prev_hash?: string | null
+          record_hash: string
+          request_id?: string | null
+          seq: number
+          tenant_id?: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_role?: string
+          actor_user_id?: string | null
+          after_state?: Json | null
+          before_state?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          prev_hash?: string | null
+          record_hash?: string
+          request_id?: string | null
+          seq?: number
+          tenant_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      inv_bond_register: {
+        Row: {
+          bond_tranche_id: string | null
+          created_at: string
+          deal_id: string
+          holder_user_id: string | null
+          id: string
+          inscribed_at: string | null
+          nominal_eur: number
+          rank: string
+          rate_or_index: string | null
+          state: string
+          subscription_id: string | null
+          tenant_id: string
+          units: number
+          updated_at: string
+        }
+        Insert: {
+          bond_tranche_id?: string | null
+          created_at?: string
+          deal_id: string
+          holder_user_id?: string | null
+          id?: string
+          inscribed_at?: string | null
+          nominal_eur: number
+          rank?: string
+          rate_or_index?: string | null
+          state?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          units: number
+          updated_at?: string
+        }
+        Update: {
+          bond_tranche_id?: string | null
+          created_at?: string
+          deal_id?: string
+          holder_user_id?: string | null
+          id?: string
+          inscribed_at?: string | null
+          nominal_eur?: number
+          rank?: string
+          rate_or_index?: string | null
+          state?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          units?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_bond_register_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_bond_register_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_bond_register_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "inv_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_bond_tranches: {
+        Row: {
+          chain: string | null
+          chain_id: number | null
+          compliance_address: string | null
+          coupon_frequency: string
+          coupon_rate_pct: number | null
+          created_at: string
+          deal_id: string
+          deep_register_ref: string | null
+          deep_registered_at: string | null
+          excluded_countries: string[]
+          id: string
+          identity_registry_address: string | null
+          is_variable_return: boolean
+          isin: string | null
+          lock_up_until: string | null
+          maturity_date: string | null
+          name: string
+          nominal_unit_eur: number
+          redemption_trigger: string
+          seniority: string
+          spv_id: string
+          status: string
+          tenant_id: string
+          token_contract_address: string | null
+          token_decimals: number
+          token_standard: string
+          total_nominal_eur: number
+          units_issued: number
+          units_total: number
+          updated_at: string
+          waterfall_rank: number
+        }
+        Insert: {
+          chain?: string | null
+          chain_id?: number | null
+          compliance_address?: string | null
+          coupon_frequency?: string
+          coupon_rate_pct?: number | null
+          created_at?: string
+          deal_id: string
+          deep_register_ref?: string | null
+          deep_registered_at?: string | null
+          excluded_countries?: string[]
+          id?: string
+          identity_registry_address?: string | null
+          is_variable_return?: boolean
+          isin?: string | null
+          lock_up_until?: string | null
+          maturity_date?: string | null
+          name: string
+          nominal_unit_eur?: number
+          redemption_trigger?: string
+          seniority?: string
+          spv_id: string
+          status?: string
+          tenant_id?: string
+          token_contract_address?: string | null
+          token_decimals?: number
+          token_standard?: string
+          total_nominal_eur: number
+          units_issued?: number
+          units_total: number
+          updated_at?: string
+          waterfall_rank?: number
+        }
+        Update: {
+          chain?: string | null
+          chain_id?: number | null
+          compliance_address?: string | null
+          coupon_frequency?: string
+          coupon_rate_pct?: number | null
+          created_at?: string
+          deal_id?: string
+          deep_register_ref?: string | null
+          deep_registered_at?: string | null
+          excluded_countries?: string[]
+          id?: string
+          identity_registry_address?: string | null
+          is_variable_return?: boolean
+          isin?: string | null
+          lock_up_until?: string | null
+          maturity_date?: string | null
+          name?: string
+          nominal_unit_eur?: number
+          redemption_trigger?: string
+          seniority?: string
+          spv_id?: string
+          status?: string
+          tenant_id?: string
+          token_contract_address?: string | null
+          token_decimals?: number
+          token_standard?: string
+          total_nominal_eur?: number
+          units_issued?: number
+          units_total?: number
+          updated_at?: string
+          waterfall_rank?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_bond_tranches_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_bond_tranches_spv_id_fkey"
+            columns: ["spv_id"]
+            isOneToOne: false
+            referencedRelation: "inv_spvs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_bondholder_mass: {
+        Row: {
+          bond_tranche_id: string | null
+          constituted_at: string | null
+          created_at: string
+          deal_id: string
+          id: string
+          representative_contact: string | null
+          representative_name: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          bond_tranche_id?: string | null
+          constituted_at?: string | null
+          created_at?: string
+          deal_id: string
+          id?: string
+          representative_contact?: string | null
+          representative_name?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          bond_tranche_id?: string | null
+          constituted_at?: string | null
+          created_at?: string
+          deal_id?: string
+          id?: string
+          representative_contact?: string | null
+          representative_name?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_bondholder_mass_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_bondholder_mass_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_cap_table_entries: {
+        Row: {
+          balance_units_after: number
+          bond_tranche_id: string
+          created_at: string
+          deal_id: string
+          deep_register_ref: string | null
+          entry_type: string
+          holder_profile_id: string | null
+          holder_user_id: string | null
+          id: string
+          legal_recorded_at: string
+          nominal_eur: number
+          notes: string | null
+          reconciliation_status: string
+          subscription_id: string | null
+          tenant_id: string
+          token_mint_id: string | null
+          units: number
+        }
+        Insert: {
+          balance_units_after: number
+          bond_tranche_id: string
+          created_at?: string
+          deal_id: string
+          deep_register_ref?: string | null
+          entry_type: string
+          holder_profile_id?: string | null
+          holder_user_id?: string | null
+          id?: string
+          legal_recorded_at?: string
+          nominal_eur: number
+          notes?: string | null
+          reconciliation_status?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          token_mint_id?: string | null
+          units: number
+        }
+        Update: {
+          balance_units_after?: number
+          bond_tranche_id?: string
+          created_at?: string
+          deal_id?: string
+          deep_register_ref?: string | null
+          entry_type?: string
+          holder_profile_id?: string | null
+          holder_user_id?: string | null
+          id?: string
+          legal_recorded_at?: string
+          nominal_eur?: number
+          notes?: string | null
+          reconciliation_status?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          token_mint_id?: string | null
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_inv_cap_table_token_mint"
+            columns: ["token_mint_id"]
+            isOneToOne: false
+            referencedRelation: "inv_token_mints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_cap_table_entries_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_cap_table_entries_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_cap_table_entries_holder_profile_id_fkey"
+            columns: ["holder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "inv_investor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_cap_table_entries_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "inv_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_chain_events: {
+        Row: {
+          block_number: number | null
+          bond_tranche_id: string | null
+          chain: string | null
+          chain_id: number | null
+          confirmations: number
+          contract_address: string | null
+          created_at: string
+          deal_id: string | null
+          event_name: string
+          from_wallet: string | null
+          id: string
+          log_index: number
+          observed_at: string
+          payload: Json | null
+          tenant_id: string
+          to_wallet: string | null
+          tx_hash: string
+          units: number | null
+        }
+        Insert: {
+          block_number?: number | null
+          bond_tranche_id?: string | null
+          chain?: string | null
+          chain_id?: number | null
+          confirmations?: number
+          contract_address?: string | null
+          created_at?: string
+          deal_id?: string | null
+          event_name: string
+          from_wallet?: string | null
+          id?: string
+          log_index?: number
+          observed_at?: string
+          payload?: Json | null
+          tenant_id?: string
+          to_wallet?: string | null
+          tx_hash: string
+          units?: number | null
+        }
+        Update: {
+          block_number?: number | null
+          bond_tranche_id?: string | null
+          chain?: string | null
+          chain_id?: number | null
+          confirmations?: number
+          contract_address?: string | null
+          created_at?: string
+          deal_id?: string | null
+          event_name?: string
+          from_wallet?: string | null
+          id?: string
+          log_index?: number
+          observed_at?: string
+          payload?: Json | null
+          tenant_id?: string
+          to_wallet?: string | null
+          tx_hash?: string
+          units?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_chain_events_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_chain_events_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_deal_closing_conditions: {
+        Row: {
+          code: string
+          created_at: string
+          deal_id: string
+          evidence_document_id: string | null
+          id: string
+          is_met: boolean
+          label: string
+          met_at: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          deal_id: string
+          evidence_document_id?: string | null
+          id?: string
+          is_met?: boolean
+          label: string
+          met_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          deal_id?: string
+          evidence_document_id?: string | null
+          id?: string
+          is_met?: boolean
+          label?: string
+          met_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_deal_closing_conditions_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_deal_closing_conditions_evidence_document_id_fkey"
+            columns: ["evidence_document_id"]
+            isOneToOne: false
+            referencedRelation: "inv_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_deal_milestones: {
+        Row: {
+          actual_date: string | null
+          created_at: string
+          deal_id: string
+          id: string
+          label: string
+          ltv_pct_snapshot: number | null
+          milestone_type: string
+          notes: string | null
+          planned_date: string | null
+          progress_pct: number | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          actual_date?: string | null
+          created_at?: string
+          deal_id: string
+          id?: string
+          label: string
+          ltv_pct_snapshot?: number | null
+          milestone_type?: string
+          notes?: string | null
+          planned_date?: string | null
+          progress_pct?: number | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_date?: string | null
+          created_at?: string
+          deal_id?: string
+          id?: string
+          label?: string
+          ltv_pct_snapshot?: number | null
+          milestone_type?: string
+          notes?: string | null
+          planned_date?: string | null
+          progress_pct?: number | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_deal_milestones_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_deals: {
+        Row: {
+          acquisition_price_eur: number | null
+          appraised_value_eur: number | null
+          badges: string[]
+          city: string | null
+          closed_at: string | null
+          closes_at: string | null
+          country: string
+          created_at: string
+          deal_type: string
+          duration_months: number | null
+          fees: Json | null
+          id: string
+          ltv_pct: number | null
+          max_ticket_eur: number | null
+          min_ticket_eur: number
+          name: string
+          notary_fees_eur: number | null
+          offering_regime: string
+          opens_at: string | null
+          operator_id: string
+          other_costs_eur: number | null
+          postal_code: string | null
+          raised_eur: number
+          restricted_to_sophisticated: boolean
+          risk_factors: Json | null
+          scenarios: Json | null
+          senior_debt_eur: number | null
+          settlement_currency: string
+          slug: string
+          sponsor_equity_eur: number | null
+          spv_id: string
+          stablecoin_enabled: boolean
+          status: string
+          target_irr_pct: number | null
+          target_raise_eur: number
+          tenant_id: string
+          total_project_cost_eur: number | null
+          updated_at: string
+          waterfall: Json
+          works_budget_eur: number | null
+        }
+        Insert: {
+          acquisition_price_eur?: number | null
+          appraised_value_eur?: number | null
+          badges?: string[]
+          city?: string | null
+          closed_at?: string | null
+          closes_at?: string | null
+          country?: string
+          created_at?: string
+          deal_type?: string
+          duration_months?: number | null
+          fees?: Json | null
+          id?: string
+          ltv_pct?: number | null
+          max_ticket_eur?: number | null
+          min_ticket_eur?: number
+          name: string
+          notary_fees_eur?: number | null
+          offering_regime?: string
+          opens_at?: string | null
+          operator_id: string
+          other_costs_eur?: number | null
+          postal_code?: string | null
+          raised_eur?: number
+          restricted_to_sophisticated?: boolean
+          risk_factors?: Json | null
+          scenarios?: Json | null
+          senior_debt_eur?: number | null
+          settlement_currency?: string
+          slug: string
+          sponsor_equity_eur?: number | null
+          spv_id: string
+          stablecoin_enabled?: boolean
+          status?: string
+          target_irr_pct?: number | null
+          target_raise_eur: number
+          tenant_id?: string
+          total_project_cost_eur?: number | null
+          updated_at?: string
+          waterfall?: Json
+          works_budget_eur?: number | null
+        }
+        Update: {
+          acquisition_price_eur?: number | null
+          appraised_value_eur?: number | null
+          badges?: string[]
+          city?: string | null
+          closed_at?: string | null
+          closes_at?: string | null
+          country?: string
+          created_at?: string
+          deal_type?: string
+          duration_months?: number | null
+          fees?: Json | null
+          id?: string
+          ltv_pct?: number | null
+          max_ticket_eur?: number | null
+          min_ticket_eur?: number
+          name?: string
+          notary_fees_eur?: number | null
+          offering_regime?: string
+          opens_at?: string | null
+          operator_id?: string
+          other_costs_eur?: number | null
+          postal_code?: string | null
+          raised_eur?: number
+          restricted_to_sophisticated?: boolean
+          risk_factors?: Json | null
+          scenarios?: Json | null
+          senior_debt_eur?: number | null
+          settlement_currency?: string
+          slug?: string
+          sponsor_equity_eur?: number | null
+          spv_id?: string
+          stablecoin_enabled?: boolean
+          status?: string
+          target_irr_pct?: number | null
+          target_raise_eur?: number
+          tenant_id?: string
+          total_project_cost_eur?: number | null
+          updated_at?: string
+          waterfall?: Json
+          works_budget_eur?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_deals_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "inv_operators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_deals_spv_id_fkey"
+            columns: ["spv_id"]
+            isOneToOne: true
+            referencedRelation: "inv_spvs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_deep_inscriptions: {
+        Row: {
+          bond_register_id: string
+          created_at: string
+          id: string
+          inscribed_at: string | null
+          inscription_ref: string | null
+          onchain_chain: string | null
+          onchain_contract: string | null
+          onchain_token_units: number | null
+          reconciled: boolean
+          registrar: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          bond_register_id: string
+          created_at?: string
+          id?: string
+          inscribed_at?: string | null
+          inscription_ref?: string | null
+          onchain_chain?: string | null
+          onchain_contract?: string | null
+          onchain_token_units?: number | null
+          reconciled?: boolean
+          registrar: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          bond_register_id?: string
+          created_at?: string
+          id?: string
+          inscribed_at?: string | null
+          inscription_ref?: string | null
+          onchain_chain?: string | null
+          onchain_contract?: string | null
+          onchain_token_units?: number | null
+          reconciled?: boolean
+          registrar?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_deep_inscriptions_bond_register_id_fkey"
+            columns: ["bond_register_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_register"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_distribution_payouts: {
+        Row: {
+          bond_tranche_id: string
+          created_at: string
+          currency: string
+          distribution_id: string
+          gross_amount_eur: number
+          holder_profile_id: string
+          holder_user_id: string
+          id: string
+          net_amount_eur: number
+          onchain_tx_hash: string | null
+          paid_at: string | null
+          payment_reference: string | null
+          status: string
+          tenant_id: string
+          units_held: number
+          updated_at: string
+          withholding_eur: number
+        }
+        Insert: {
+          bond_tranche_id: string
+          created_at?: string
+          currency?: string
+          distribution_id: string
+          gross_amount_eur: number
+          holder_profile_id: string
+          holder_user_id: string
+          id?: string
+          net_amount_eur: number
+          onchain_tx_hash?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          status?: string
+          tenant_id?: string
+          units_held: number
+          updated_at?: string
+          withholding_eur?: number
+        }
+        Update: {
+          bond_tranche_id?: string
+          created_at?: string
+          currency?: string
+          distribution_id?: string
+          gross_amount_eur?: number
+          holder_profile_id?: string
+          holder_user_id?: string
+          id?: string
+          net_amount_eur?: number
+          onchain_tx_hash?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          status?: string
+          tenant_id?: string
+          units_held?: number
+          updated_at?: string
+          withholding_eur?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_distribution_payouts_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_distribution_payouts_distribution_id_fkey"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "inv_distributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_distribution_payouts_holder_profile_id_fkey"
+            columns: ["holder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "inv_investor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_distributions: {
+        Row: {
+          bond_tranche_id: string
+          created_at: string
+          currency: string
+          deal_id: string
+          distribution_type: string
+          gross_amount_eur: number
+          id: string
+          notes: string | null
+          payment_date: string | null
+          period_end: string | null
+          period_start: string | null
+          record_date: string | null
+          status: string
+          tax_reportable: boolean
+          tenant_id: string
+          updated_at: string
+          waterfall_rank: number | null
+        }
+        Insert: {
+          bond_tranche_id: string
+          created_at?: string
+          currency?: string
+          deal_id: string
+          distribution_type: string
+          gross_amount_eur: number
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          record_date?: string | null
+          status?: string
+          tax_reportable?: boolean
+          tenant_id?: string
+          updated_at?: string
+          waterfall_rank?: number | null
+        }
+        Update: {
+          bond_tranche_id?: string
+          created_at?: string
+          currency?: string
+          deal_id?: string
+          distribution_type?: string
+          gross_amount_eur?: number
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          record_date?: string | null
+          status?: string
+          tax_reportable?: boolean
+          tenant_id?: string
+          updated_at?: string
+          waterfall_rank?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_distributions_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_distributions_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_documents: {
+        Row: {
+          content_sha256: string | null
+          created_at: string
+          doc_type: string
+          entity_id: string
+          entity_type: string
+          esign_envelope_id: string | null
+          id: string
+          is_signed: boolean
+          mime_type: string | null
+          signed_at: string | null
+          size_bytes: number | null
+          status: string
+          storage_key: string
+          tenant_id: string
+          title: string
+          updated_at: string
+          user_id: string | null
+          version: number
+          visibility: string
+        }
+        Insert: {
+          content_sha256?: string | null
+          created_at?: string
+          doc_type: string
+          entity_id: string
+          entity_type: string
+          esign_envelope_id?: string | null
+          id?: string
+          is_signed?: boolean
+          mime_type?: string | null
+          signed_at?: string | null
+          size_bytes?: number | null
+          status?: string
+          storage_key: string
+          tenant_id?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+          version?: number
+          visibility?: string
+        }
+        Update: {
+          content_sha256?: string | null
+          created_at?: string
+          doc_type?: string
+          entity_id?: string
+          entity_type?: string
+          esign_envelope_id?: string | null
+          id?: string
+          is_signed?: boolean
+          mime_type?: string | null
+          signed_at?: string | null
+          size_bytes?: number | null
+          status?: string
+          storage_key?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+          version?: number
+          visibility?: string
+        }
+        Relationships: []
+      }
+      inv_escrow_movements: {
+        Row: {
+          amount_eur: number
+          bank_reference: string | null
+          created_at: string
+          currency: string
+          deal_id: string
+          direction: string
+          escrow_account_ref: string
+          escrow_provider: string
+          id: string
+          movement_type: string
+          notes: string | null
+          onchain_tx_hash: string | null
+          reconciled_at: string | null
+          status: string
+          subscription_id: string
+          tenant_id: string
+          travel_rule_ok: boolean | null
+          updated_at: string
+          user_id: string
+          value_date: string | null
+        }
+        Insert: {
+          amount_eur: number
+          bank_reference?: string | null
+          created_at?: string
+          currency?: string
+          deal_id: string
+          direction: string
+          escrow_account_ref: string
+          escrow_provider: string
+          id?: string
+          movement_type: string
+          notes?: string | null
+          onchain_tx_hash?: string | null
+          reconciled_at?: string | null
+          status?: string
+          subscription_id: string
+          tenant_id?: string
+          travel_rule_ok?: boolean | null
+          updated_at?: string
+          user_id: string
+          value_date?: string | null
+        }
+        Update: {
+          amount_eur?: number
+          bank_reference?: string | null
+          created_at?: string
+          currency?: string
+          deal_id?: string
+          direction?: string
+          escrow_account_ref?: string
+          escrow_provider?: string
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          onchain_tx_hash?: string | null
+          reconciled_at?: string | null
+          status?: string
+          subscription_id?: string
+          tenant_id?: string
+          travel_rule_ok?: boolean | null
+          updated_at?: string
+          user_id?: string
+          value_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_escrow_movements_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_escrow_movements_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "inv_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_failed_operations: {
+        Row: {
+          attempts: number
+          created_at: string
+          deal_id: string | null
+          id: string
+          last_error: string | null
+          op_kind: string
+          payload: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          subscription_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          last_error?: string | null
+          op_kind: string
+          payload?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          last_error?: string | null
+          op_kind?: string
+          payload?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_failed_operations_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_failed_operations_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "inv_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_idempotency_keys: {
+        Row: {
+          body_hash: string | null
+          created_at: string
+          id: string
+          idem_key: string
+          response: Json | null
+          scope: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          body_hash?: string | null
+          created_at?: string
+          id?: string
+          idem_key: string
+          response?: Json | null
+          scope?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          body_hash?: string | null
+          created_at?: string
+          id?: string
+          idem_key?: string
+          response?: Json | null
+          scope?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      inv_investor_assessments: {
+        Row: {
+          annual_income_eur: number | null
+          classification: string | null
+          classified_at: string | null
+          created_at: string
+          expires_at: string | null
+          financial_commitments_eur: number | null
+          id: string
+          investor_profile_id: string | null
+          knowledge_passed: boolean | null
+          knowledge_score: number | null
+          liquid_assets_eur: number | null
+          net_worth_eur: number | null
+          state: string
+          tenant_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          annual_income_eur?: number | null
+          classification?: string | null
+          classified_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          financial_commitments_eur?: number | null
+          id?: string
+          investor_profile_id?: string | null
+          knowledge_passed?: boolean | null
+          knowledge_score?: number | null
+          liquid_assets_eur?: number | null
+          net_worth_eur?: number | null
+          state?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          annual_income_eur?: number | null
+          classification?: string | null
+          classified_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          financial_commitments_eur?: number | null
+          id?: string
+          investor_profile_id?: string | null
+          knowledge_passed?: boolean | null
+          knowledge_score?: number | null
+          liquid_assets_eur?: number | null
+          net_worth_eur?: number | null
+          state?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_investor_assessments_investor_profile_id_fkey"
+            columns: ["investor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "inv_investor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_investor_profiles: {
+        Row: {
+          annual_investment_cap_eur: number | null
+          appropriateness_test_at: string | null
+          appropriateness_test_passed: boolean
+          country: string
+          created_at: string
+          declared_net_worth_eur: number | null
+          full_name: string | null
+          id: string
+          investor_class: string
+          investor_kind: string
+          kyc_approved_at: string | null
+          kyc_expires_at: string | null
+          kyc_status: string
+          onchainid_address: string | null
+          risk_disclosure_accepted_at: string | null
+          status: string
+          tenant_id: string
+          tos_accepted_at: string | null
+          updated_at: string
+          user_id: string
+          wallet_address: string | null
+          wallet_kind: string
+        }
+        Insert: {
+          annual_investment_cap_eur?: number | null
+          appropriateness_test_at?: string | null
+          appropriateness_test_passed?: boolean
+          country?: string
+          created_at?: string
+          declared_net_worth_eur?: number | null
+          full_name?: string | null
+          id?: string
+          investor_class?: string
+          investor_kind?: string
+          kyc_approved_at?: string | null
+          kyc_expires_at?: string | null
+          kyc_status?: string
+          onchainid_address?: string | null
+          risk_disclosure_accepted_at?: string | null
+          status?: string
+          tenant_id?: string
+          tos_accepted_at?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_address?: string | null
+          wallet_kind?: string
+        }
+        Update: {
+          annual_investment_cap_eur?: number | null
+          appropriateness_test_at?: string | null
+          appropriateness_test_passed?: boolean
+          country?: string
+          created_at?: string
+          declared_net_worth_eur?: number | null
+          full_name?: string | null
+          id?: string
+          investor_class?: string
+          investor_kind?: string
+          kyc_approved_at?: string | null
+          kyc_expires_at?: string | null
+          kyc_status?: string
+          onchainid_address?: string | null
+          risk_disclosure_accepted_at?: string | null
+          status?: string
+          tenant_id?: string
+          tos_accepted_at?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string | null
+          wallet_kind?: string
+        }
+        Relationships: []
+      }
+      inv_kiis_documents: {
+        Row: {
+          created_at: string
+          current_version: number
+          deal_id: string
+          doc_type: string
+          id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_version?: number
+          deal_id: string
+          doc_type?: string
+          id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_version?: number
+          deal_id?: string
+          doc_type?: string
+          id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_kiis_documents_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_kiis_versions: {
+        Row: {
+          content: Json | null
+          created_at: string
+          id: string
+          kiis_document_id: string
+          pdf_sha256: string | null
+          published_at: string | null
+          review_notes: string | null
+          state: string
+          tenant_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          id?: string
+          kiis_document_id: string
+          pdf_sha256?: string | null
+          published_at?: string | null
+          review_notes?: string | null
+          state?: string
+          tenant_id?: string
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          id?: string
+          kiis_document_id?: string
+          pdf_sha256?: string | null
+          published_at?: string | null
+          review_notes?: string | null
+          state?: string
+          tenant_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_kiis_versions_kiis_document_id_fkey"
+            columns: ["kiis_document_id"]
+            isOneToOne: false
+            referencedRelation: "inv_kiis_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_kyc_cases: {
+        Row: {
+          approved_at: string | null
+          chain_screening_passed: boolean | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          investor_profile_id: string
+          level: string
+          pep_screening_passed: boolean | null
+          provider: string
+          provider_applicant_id: string | null
+          provider_check_id: string | null
+          raw_result_hash: string | null
+          rejection_reason: string | null
+          risk_score: number | null
+          sanctions_screening_passed: boolean | null
+          source_of_funds_verified: boolean
+          status: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          chain_screening_passed?: boolean | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          investor_profile_id: string
+          level?: string
+          pep_screening_passed?: boolean | null
+          provider?: string
+          provider_applicant_id?: string | null
+          provider_check_id?: string | null
+          raw_result_hash?: string | null
+          rejection_reason?: string | null
+          risk_score?: number | null
+          sanctions_screening_passed?: boolean | null
+          source_of_funds_verified?: boolean
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          chain_screening_passed?: boolean | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          investor_profile_id?: string
+          level?: string
+          pep_screening_passed?: boolean | null
+          provider?: string
+          provider_applicant_id?: string | null
+          provider_check_id?: string | null
+          raw_result_hash?: string | null
+          rejection_reason?: string | null
+          risk_score?: number | null
+          sanctions_screening_passed?: boolean | null
+          source_of_funds_verified?: boolean
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_kyc_cases_investor_profile_id_fkey"
+            columns: ["investor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "inv_investor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_operators: {
+        Row: {
+          activity_type: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          hoguet_card_ref: string | null
+          hoguet_card_t: boolean
+          id: string
+          legal_form: string
+          legal_name: string
+          notes: string | null
+          siren: string | null
+          status: string
+          tenant_id: string
+          track_record_deals: number
+          track_record_volume_eur: number
+          updated_at: string
+          user_id: string | null
+          website_url: string | null
+        }
+        Insert: {
+          activity_type?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          hoguet_card_ref?: string | null
+          hoguet_card_t?: boolean
+          id?: string
+          legal_form?: string
+          legal_name: string
+          notes?: string | null
+          siren?: string | null
+          status?: string
+          tenant_id?: string
+          track_record_deals?: number
+          track_record_volume_eur?: number
+          updated_at?: string
+          user_id?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          activity_type?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          hoguet_card_ref?: string | null
+          hoguet_card_t?: boolean
+          id?: string
+          legal_form?: string
+          legal_name?: string
+          notes?: string | null
+          siren?: string | null
+          status?: string
+          tenant_id?: string
+          track_record_deals?: number
+          track_record_volume_eur?: number
+          updated_at?: string
+          user_id?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      inv_reconciliation_runs: {
+        Row: {
+          actions: Json | null
+          bond_tranche_id: string | null
+          created_at: string
+          deal_id: string
+          drift: Json | null
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          result: string
+          started_at: string
+          status: string
+          tenant_id: string
+          triggered_pause: boolean
+        }
+        Insert: {
+          actions?: Json | null
+          bond_tranche_id?: string | null
+          created_at?: string
+          deal_id: string
+          drift?: Json | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          result?: string
+          started_at?: string
+          status?: string
+          tenant_id?: string
+          triggered_pause?: boolean
+        }
+        Update: {
+          actions?: Json | null
+          bond_tranche_id?: string | null
+          created_at?: string
+          deal_id?: string
+          drift?: Json | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          result?: string
+          started_at?: string
+          status?: string
+          tenant_id?: string
+          triggered_pause?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_reconciliation_runs_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_reconciliation_runs_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_regulatory_reports: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          id: string
+          payload: Json | null
+          period_end: string | null
+          period_start: string | null
+          report_type: string
+          state: string
+          submitted_at: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          payload?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          report_type: string
+          state?: string
+          submitted_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          payload?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          report_type?: string
+          state?: string
+          submitted_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_regulatory_reports_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "inv_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_reports: {
+        Row: {
+          created_at: string
+          deal_id: string | null
+          document_id: string | null
+          id: string
+          payload: Json | null
+          period_end: string | null
+          period_start: string | null
+          published_at: string | null
+          report_type: string
+          status: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id?: string | null
+          document_id?: string | null
+          id?: string
+          payload?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          published_at?: string | null
+          report_type: string
+          status?: string
+          tenant_id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string | null
+          document_id?: string | null
+          id?: string
+          payload?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          published_at?: string | null
+          report_type?: string
+          status?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_reports_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_reports_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "inv_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_secondary_orders: {
+        Row: {
+          bond_tranche_id: string
+          counterparty_profile_id: string | null
+          created_at: string
+          deal_id: string
+          expires_at: string | null
+          id: string
+          indicative_price_eur: number | null
+          investor_profile_id: string
+          notes: string | null
+          settled_at: string | null
+          settled_via_token_mint_id: string | null
+          side: string
+          status: string
+          tenant_id: string
+          units: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bond_tranche_id: string
+          counterparty_profile_id?: string | null
+          created_at?: string
+          deal_id: string
+          expires_at?: string | null
+          id?: string
+          indicative_price_eur?: number | null
+          investor_profile_id: string
+          notes?: string | null
+          settled_at?: string | null
+          settled_via_token_mint_id?: string | null
+          side: string
+          status?: string
+          tenant_id?: string
+          units: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bond_tranche_id?: string
+          counterparty_profile_id?: string | null
+          created_at?: string
+          deal_id?: string
+          expires_at?: string | null
+          id?: string
+          indicative_price_eur?: number | null
+          investor_profile_id?: string
+          notes?: string | null
+          settled_at?: string | null
+          settled_via_token_mint_id?: string | null
+          side?: string
+          status?: string
+          tenant_id?: string
+          units?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_secondary_orders_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_secondary_orders_counterparty_profile_id_fkey"
+            columns: ["counterparty_profile_id"]
+            isOneToOne: false
+            referencedRelation: "inv_investor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_secondary_orders_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_secondary_orders_investor_profile_id_fkey"
+            columns: ["investor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "inv_investor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_secondary_orders_settled_via_token_mint_id_fkey"
+            columns: ["settled_via_token_mint_id"]
+            isOneToOne: false
+            referencedRelation: "inv_token_mints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_signature_envelopes: {
+        Row: {
+          audit_trail: Json | null
+          created_at: string
+          doc_kind: string
+          doc_sha256: string | null
+          id: string
+          provider: string
+          provider_ref: string | null
+          sealed_at: string | null
+          signature_level: string
+          signed_at: string | null
+          state: string
+          subscription_id: string | null
+          tenant_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          audit_trail?: Json | null
+          created_at?: string
+          doc_kind: string
+          doc_sha256?: string | null
+          id?: string
+          provider?: string
+          provider_ref?: string | null
+          sealed_at?: string | null
+          signature_level?: string
+          signed_at?: string | null
+          state?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          audit_trail?: Json | null
+          created_at?: string
+          doc_kind?: string
+          doc_sha256?: string | null
+          id?: string
+          provider?: string
+          provider_ref?: string | null
+          sealed_at?: string | null
+          signature_level?: string
+          signed_at?: string | null
+          state?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_signature_envelopes_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "inv_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_spvs: {
+        Row: {
+          asset_address: string | null
+          asset_city: string | null
+          asset_postal_code: string | null
+          asset_type: string | null
+          created_at: string
+          id: string
+          incorporated_at: string | null
+          intercreditor_signed: boolean
+          legal_form: string
+          legal_name: string
+          mortgage_registered: boolean
+          notes: string | null
+          operator_id: string
+          rcs_city: string | null
+          senior_debt_amount_eur: number | null
+          senior_debt_lender: string | null
+          senior_debt_rank: number
+          share_capital_eur: number | null
+          siren: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          asset_address?: string | null
+          asset_city?: string | null
+          asset_postal_code?: string | null
+          asset_type?: string | null
+          created_at?: string
+          id?: string
+          incorporated_at?: string | null
+          intercreditor_signed?: boolean
+          legal_form?: string
+          legal_name: string
+          mortgage_registered?: boolean
+          notes?: string | null
+          operator_id: string
+          rcs_city?: string | null
+          senior_debt_amount_eur?: number | null
+          senior_debt_lender?: string | null
+          senior_debt_rank?: number
+          share_capital_eur?: number | null
+          siren?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          asset_address?: string | null
+          asset_city?: string | null
+          asset_postal_code?: string | null
+          asset_type?: string | null
+          created_at?: string
+          id?: string
+          incorporated_at?: string | null
+          intercreditor_signed?: boolean
+          legal_form?: string
+          legal_name?: string
+          mortgage_registered?: boolean
+          notes?: string | null
+          operator_id?: string
+          rcs_city?: string | null
+          senior_debt_amount_eur?: number | null
+          senior_debt_lender?: string | null
+          senior_debt_rank?: number
+          share_capital_eur?: number | null
+          siren?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_spvs_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "inv_operators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_subscriptions: {
+        Row: {
+          allocated_at: string | null
+          amount_eur: number
+          bond_tranche_id: string
+          cooling_off_ends_at: string | null
+          created_at: string
+          deal_id: string
+          esign_envelope_id: string | null
+          esign_provider: string | null
+          funded_at: string | null
+          id: string
+          investor_profile_id: string
+          minted_at: string | null
+          notes: string | null
+          refunded_at: string | null
+          reserved_at: string
+          settlement_currency: string
+          signed_at: string | null
+          status: string
+          tenant_id: string
+          unit_price_eur: number
+          units: number
+          updated_at: string
+          user_id: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          allocated_at?: string | null
+          amount_eur: number
+          bond_tranche_id: string
+          cooling_off_ends_at?: string | null
+          created_at?: string
+          deal_id: string
+          esign_envelope_id?: string | null
+          esign_provider?: string | null
+          funded_at?: string | null
+          id?: string
+          investor_profile_id: string
+          minted_at?: string | null
+          notes?: string | null
+          refunded_at?: string | null
+          reserved_at?: string
+          settlement_currency?: string
+          signed_at?: string | null
+          status?: string
+          tenant_id?: string
+          unit_price_eur: number
+          units: number
+          updated_at?: string
+          user_id: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          allocated_at?: string | null
+          amount_eur?: number
+          bond_tranche_id?: string
+          cooling_off_ends_at?: string | null
+          created_at?: string
+          deal_id?: string
+          esign_envelope_id?: string | null
+          esign_provider?: string | null
+          funded_at?: string | null
+          id?: string
+          investor_profile_id?: string
+          minted_at?: string | null
+          notes?: string | null
+          refunded_at?: string | null
+          reserved_at?: string
+          settlement_currency?: string
+          signed_at?: string | null
+          status?: string
+          tenant_id?: string
+          unit_price_eur?: number
+          units?: number
+          updated_at?: string
+          user_id?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_subscriptions_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_subscriptions_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_subscriptions_investor_profile_id_fkey"
+            columns: ["investor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "inv_investor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_tenants: {
+        Row: {
+          created_at: string
+          distribution_regime: string
+          id: string
+          legal_entity_name: string | null
+          legal_entity_siren: string | null
+          name: string
+          psfp_authorization_ref: string | null
+          settings: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          distribution_regime?: string
+          id: string
+          legal_entity_name?: string | null
+          legal_entity_siren?: string | null
+          name: string
+          psfp_authorization_ref?: string | null
+          settings?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          distribution_regime?: string
+          id?: string
+          legal_entity_name?: string | null
+          legal_entity_siren?: string | null
+          name?: string
+          psfp_authorization_ref?: string | null
+          settings?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inv_token_mints: {
+        Row: {
+          block_number: number | null
+          bond_tranche_id: string
+          cap_table_entry_id: string | null
+          chain: string
+          chain_id: number | null
+          compliance_checked: boolean
+          confirmed_at: string | null
+          contract_address: string | null
+          created_at: string
+          deal_id: string
+          error_message: string | null
+          from_wallet_address: string | null
+          holder_profile_id: string | null
+          id: string
+          log_index: number | null
+          operation: string
+          status: string
+          tenant_id: string
+          to_wallet_address: string | null
+          tx_hash: string | null
+          units: number
+          updated_at: string
+        }
+        Insert: {
+          block_number?: number | null
+          bond_tranche_id: string
+          cap_table_entry_id?: string | null
+          chain: string
+          chain_id?: number | null
+          compliance_checked?: boolean
+          confirmed_at?: string | null
+          contract_address?: string | null
+          created_at?: string
+          deal_id: string
+          error_message?: string | null
+          from_wallet_address?: string | null
+          holder_profile_id?: string | null
+          id?: string
+          log_index?: number | null
+          operation: string
+          status?: string
+          tenant_id?: string
+          to_wallet_address?: string | null
+          tx_hash?: string | null
+          units: number
+          updated_at?: string
+        }
+        Update: {
+          block_number?: number | null
+          bond_tranche_id?: string
+          cap_table_entry_id?: string | null
+          chain?: string
+          chain_id?: number | null
+          compliance_checked?: boolean
+          confirmed_at?: string | null
+          contract_address?: string | null
+          created_at?: string
+          deal_id?: string
+          error_message?: string | null
+          from_wallet_address?: string | null
+          holder_profile_id?: string | null
+          id?: string
+          log_index?: number | null
+          operation?: string
+          status?: string
+          tenant_id?: string
+          to_wallet_address?: string | null
+          tx_hash?: string | null
+          units?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_token_mints_bond_tranche_id_fkey"
+            columns: ["bond_tranche_id"]
+            isOneToOne: false
+            referencedRelation: "inv_bond_tranches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_token_mints_cap_table_entry_id_fkey"
+            columns: ["cap_table_entry_id"]
+            isOneToOne: false
+            referencedRelation: "inv_cap_table_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_token_mints_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "inv_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_token_mints_holder_profile_id_fkey"
+            columns: ["holder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "inv_investor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_travel_rule_records: {
+        Row: {
+          amount_eur: number | null
+          amount_token: number | null
+          asset: string
+          beneficiary_info: Json | null
+          casp_provider: string
+          chain: string
+          created_at: string
+          escrow_movement_id: string | null
+          id: string
+          originator_info: Json | null
+          screening_result: string | null
+          state: string
+          subscription_id: string | null
+          tenant_id: string
+          tx_hash: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_eur?: number | null
+          amount_token?: number | null
+          asset: string
+          beneficiary_info?: Json | null
+          casp_provider: string
+          chain: string
+          created_at?: string
+          escrow_movement_id?: string | null
+          id?: string
+          originator_info?: Json | null
+          screening_result?: string | null
+          state?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_eur?: number | null
+          amount_token?: number | null
+          asset?: string
+          beneficiary_info?: Json | null
+          casp_provider?: string
+          chain?: string
+          created_at?: string
+          escrow_movement_id?: string | null
+          id?: string
+          originator_info?: Json | null
+          screening_result?: string | null
+          state?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inv_travel_rule_records_escrow_movement_id_fkey"
+            columns: ["escrow_movement_id"]
+            isOneToOne: false
+            referencedRelation: "inv_escrow_movements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inv_travel_rule_records_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "inv_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inv_webhook_events: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string | null
+          id: string
+          payload: Json | null
+          processed_at: string | null
+          provider: string
+          provider_event_id: string
+          signature_valid: boolean
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          provider: string
+          provider_event_id: string
+          signature_valid?: boolean
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          provider?: string
+          provider_event_id?: string
+          signature_valid?: boolean
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           budget_max: number | null
@@ -603,6 +2993,23 @@ export type Database = {
     Functions: {
       current_tenant_id: { Args: never; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      inv_append_audit_log: {
+        Args: {
+          p_action: string
+          p_actor_role?: string
+          p_actor_user_id?: string
+          p_after?: Json
+          p_before?: Json
+          p_entity_id?: string
+          p_entity_type?: string
+          p_ip?: unknown
+          p_metadata?: Json
+          p_request_id?: string
+          p_tenant_id: string
+          p_user_agent?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
