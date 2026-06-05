@@ -1,25 +1,52 @@
 /**
  * MARKETPLACE — découverte des opportunités (étude P5, écran 5). RSC.
  *
+ * Données : `fetchOpenDeals()` lit les deals `open` en DB (service lib/invest/deal,
+ * filtrage tenant_id explicite). Si la DB est vide ou non configurée → FALLBACK
+ * `DEMO_DEALS` (moteur financier) + Banner "données de démonstration".
+ *
  * Anti-FIA matérialisé :
  *   - L2 : bandeau "l'argent ne bouge jamais avant qu'un deal soit choisi et
  *     signé". Aucun écran "alimenter mon compte".
- *   - L1 : les filtres/tri sont des critères FACTUELS (chips inertes en démo) —
- *     aucun "notre sélection", aucun "recommandé pour vous".
+ *   - L1 : les filtres/tri sont des critères FACTUELS — aucune sélection auto.
  *   - L5 : chaque TRI porte "cible · non garanti" ; disclaimer de risque en pied.
- *
- * Données de démo via le moteur financier (lib/invest/finance).
  */
 import { Eyebrow, Title, Sub } from "@/components/cockpit/primitives";
-import { DealCard, Banner } from "@/components/invest";
+import { DealCard, Banner, type DealCardData } from "@/components/invest";
 import { eur } from "@/components/invest";
 import { DEMO_DEALS } from "./_data/demo";
+import { fetchOpenDeals, toDealCardData } from "./_data/server";
 
-export default function MarketplacePage() {
-  const deals = DEMO_DEALS;
-  const dealsOuverts = deals.filter((d) => d.statusTone === "open").length;
-  const collecteTotale = deals.reduce((s, d) => s + d.collecteEur, 0);
-  const ticketMin = Math.min(...deals.map((d) => d.input.ticket_min_eur ?? 1_000));
+export const dynamic = "force-dynamic";
+
+export default async function MarketplacePage() {
+  const { source, deals: dbDeals } = await fetchOpenDeals();
+  const isDemo = source === "demo";
+
+  // Carte = données DB mappées, ou démo en fallback.
+  const cards: DealCardData[] = isDemo
+    ? DEMO_DEALS.map((d) => ({
+        slug: d.slug,
+        nom: d.input.nom,
+        localisation: d.input.localisation,
+        statusTone: d.statusTone,
+        statusLabel: d.statusLabel,
+        joursRestants: d.joursRestants,
+        badges: d.badges,
+        triCible: d.sheet.rendement_cible_irr,
+        ltv: d.sheet.metrics.ltv,
+        dureeMois: d.input.schedule.duree_mois,
+        collecteEur: d.collecteEur,
+        objectifEur: d.objectifEur,
+      }))
+    : dbDeals.map(toDealCardData);
+
+  const dealsOuverts = cards.length;
+  const collecteTotale = cards.reduce((s, d) => s + d.collecteEur, 0);
+  const ticketMin = isDemo
+    ? Math.min(...DEMO_DEALS.map((d) => d.input.ticket_min_eur ?? 1_000))
+    : Math.min(...dbDeals.map((d) => d.minTicketEur), Infinity);
+  const ticketMinAffiche = Number.isFinite(ticketMin) ? ticketMin : 1_000;
 
   const filtres = [
     "Type : Marchand de biens",
@@ -35,6 +62,15 @@ export default function MarketplacePage() {
       <Eyebrow>Invest · Opportunités</Eyebrow>
       <Title>Opportunités</Title>
       <Sub>Des obligations de SAS, deal par deal. Vous prêtez à une société — vous n’êtes pas propriétaire du bien.</Sub>
+
+      {isDemo ? (
+        <div style={{ marginBottom: "var(--ct-space-md)" }}>
+          <Banner tone="warn">
+            Données de démonstration (aucun deal ouvert en base). Les chiffres proviennent du moteur
+            financier sur des opérations fictives.
+          </Banner>
+        </div>
+      ) : null}
 
       <div style={{ marginBottom: "var(--ct-space-lg)" }}>
         <Banner tone="info">
@@ -58,7 +94,7 @@ export default function MarketplacePage() {
         </div>
         <div className="ct-kpi-card">
           <div className="ct-kpi-label">Ticket dès</div>
-          <div className="ct-kpi-value">{eur(ticketMin)}</div>
+          <div className="ct-kpi-value">{eur(ticketMinAffiche)}</div>
         </div>
       </div>
 
@@ -80,24 +116,8 @@ export default function MarketplacePage() {
       </div>
 
       <div className="inv-deal-grid">
-        {deals.map((d) => (
-          <DealCard
-            key={d.slug}
-            deal={{
-              slug: d.slug,
-              nom: d.input.nom,
-              localisation: d.input.localisation,
-              statusTone: d.statusTone,
-              statusLabel: d.statusLabel,
-              joursRestants: d.joursRestants,
-              badges: d.badges,
-              triCible: d.sheet.rendement_cible_irr,
-              ltv: d.sheet.metrics.ltv,
-              dureeMois: d.input.schedule.duree_mois,
-              collecteEur: d.collecteEur,
-              objectifEur: d.objectifEur,
-            }}
-          />
+        {cards.map((d) => (
+          <DealCard key={d.slug} deal={d} />
         ))}
       </div>
 
