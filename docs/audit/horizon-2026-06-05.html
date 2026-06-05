@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr" data-product="default">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horizon — Scan technologique 2026 · Real estate Agent</title>
+<style>
+  :root{
+    --bg:#1a0d12; --bg2:#241016; --glass:rgba(255,255,255,.04); --glass2:rgba(255,255,255,.06);
+    --bord:rgba(255,255,255,.09); --ink:#f4e9ec; --ink2:#c9aab4; --ink3:#8d6b76;
+    --accent:#9a2746; --accent2:#c8385f;
+    --p0:#e0496b; --p1:#e0a23c; --p2:#3ca7a0; --green:#2faf74;
+    --r:14px; --sp:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(160deg,var(--bg),var(--bg2));color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding:40px 28px 80px;max-width:1240px;margin:0 auto;min-height:100vh}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}
+  .sub{color:var(--ink2);font-size:14px;margin-bottom:28px}
+  .verdict{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px}
+  .kpi{background:var(--glass);border:1px solid var(--bord);border-radius:var(--r);
+    padding:16px 20px;min-width:120px;flex:1}
+  .kpi .n{font-size:30px;font-weight:700;line-height:1}
+  .kpi .l{font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
+  .kpi.p0 .n{color:var(--p0)} .kpi.p1 .n{color:var(--p1)} .kpi.p2 .n{color:var(--p2)}
+  .kpi.score .n{color:var(--accent2)}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);
+    margin:38px 0 14px;font-weight:600}
+  .heatgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .axe{background:var(--glass);border:1px solid var(--bord);border-radius:var(--r);padding:14px 16px}
+  .axe .name{font-weight:600;font-size:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden;display:flex;margin-bottom:8px}
+  .bar i{display:block;height:100%}
+  .axe .ct{font-size:12px;color:var(--ink2)}
+  .pill{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600}
+  .pill.p0{background:rgba(224,73,107,.16);color:var(--p0)}
+  .pill.p1{background:rgba(224,162,60,.16);color:var(--p1)}
+  .pill.p2{background:rgba(60,167,160,.16);color:var(--p2)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+  th{text-align:left;color:var(--ink3);font-weight:600;font-size:11px;text-transform:uppercase;
+    letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--bord)}
+  td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
+  tr:hover td{background:var(--glass)}
+  .tag{font-size:11px;padding:1px 6px;border-radius:5px;background:var(--glass2);color:var(--ink2)}
+  .verdict-go{color:var(--green);font-weight:600}
+  .verdict-eval{color:var(--p1);font-weight:600}
+  details{background:var(--glass);border:1px solid var(--bord);border-radius:var(--r);
+    margin-bottom:10px;overflow:hidden}
+  summary{padding:14px 18px;cursor:pointer;font-weight:600;font-size:14px;
+    display:flex;justify-content:space-between;align-items:center;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary .meta{font-size:12px;color:var(--ink3);font-weight:400}
+  .body{padding:0 18px 16px}
+  .pp{padding:10px 12px;border-left:3px solid var(--bord);margin:8px 0;background:rgba(0,0,0,.15);border-radius:0 8px 8px 0}
+  .pp.p0{border-color:var(--p0)} .pp.p1{border-color:var(--p1)} .pp.p2{border-color:var(--p2)}
+  .pp .t{font-weight:600;font-size:13px} .pp .d{font-size:12px;color:var(--ink2);margin-top:3px}
+  .pp .e{font-size:11px;color:var(--ink3);margin-top:4px;font-family:ui-monospace,monospace}
+  .reco{font-size:12px;color:var(--ink2);margin:5px 0;padding-left:14px;position:relative}
+  .reco::before{content:"▸";position:absolute;left:0;color:var(--accent2)}
+  .cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .col{background:var(--glass);border:1px solid var(--bord);border-radius:var(--r);padding:16px}
+  .col h3{font-size:13px;margin-bottom:10px;color:var(--accent2)}
+  .col li{font-size:12px;color:var(--ink2);margin:6px 0;list-style:none;padding-left:14px;position:relative}
+  .col li::before{content:"·";position:absolute;left:3px;color:var(--ink3)}
+  .qw{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+  .qwc{background:linear-gradient(135deg,rgba(154,39,70,.18),var(--glass));border:1px solid var(--bord);
+    border-radius:var(--r);padding:13px 15px}
+  .qwc .t{font-weight:600;font-size:13px} .qwc .m{font-size:11px;color:var(--ink2);margin-top:4px}
+  footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--bord);
+    color:var(--ink3);font-size:12px;text-align:center}
+  @media(max-width:760px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Horizon — Scan technologique 2026</h1>
+<div class="sub">Real estate Agent · stack vs état de l'art · 10 axes · read-only · 2026-06-05</div>
+
+<div class="verdict">
+  <div class="kpi score"><div class="n">6/10</div><div class="l">Maturité stack</div></div>
+  <div class="kpi p0"><div class="n">11</div><div class="l">P0 critiques</div></div>
+  <div class="kpi p1"><div class="n">26</div><div class="l">P1 importants</div></div>
+  <div class="kpi p2"><div class="n">28</div><div class="l">P2 opportunités</div></div>
+</div>
+
+<h2>Heatmap dette par axe</h2>
+<div class="heatgrid">
+  <div class="axe"><div class="name">LLM & AI Orchestration <span class="pill p1">moyen</span></div><div class="bar"><i style="width:60%;background:var(--p1)"></i></div><div class="ct">Modèles à jour, mais 0 observabilité, pas de structured output natif</div></div>
+  <div class="axe"><div class="name">Database & ORM <span class="pill p1">moyen</span></div><div class="bar"><i style="width:55%;background:var(--p1)"></i></div><div class="ct">SQL brut sans builder typé, service-role bypass RLS, index manquants</div></div>
+  <div class="axe"><div class="name">Auth & Identity <span class="pill p0">élevé</span></div><div class="bar"><i style="width:80%;background:var(--p0)"></i></div><div class="ct">Pas de MFA, sessions 30j non révocables, pas de device binding</div></div>
+  <div class="axe"><div class="name">Storage & CDN <span class="pill p1">moyen</span></div><div class="bar"><i style="width:50%;background:var(--p1)"></i></div><div class="ct">Pas de signed URLs TTL, pas de cleanup orphelins, chromium cold-start</div></div>
+  <div class="axe"><div class="name">Real-time & Collab <span class="pill p1">moyen</span></div><div class="bar"><i style="width:58%;background:var(--p1)"></i></div><div class="ct">Streaming sans reconnexion, pas d'optimistic updates (React 19)</div></div>
+  <div class="axe"><div class="name">Workflow & Jobs <span class="pill p0">élevé</span></div><div class="bar"><i style="width:72%;background:var(--p0)"></i></div><div class="ct">Appels API externes bloquants (timeout 60s), 0 retry/idempotency/cache</div></div>
+  <div class="axe"><div class="name">Observabilité <span class="pill p0">élevé</span></div><div class="bar"><i style="width:85%;background:var(--p0)"></i></div><div class="ct">Sentry/Langfuse/Axiom déclarés mais 0 installé, PII GPS loggée</div></div>
+  <div class="axe"><div class="name">Frontend & UI <span class="pill p1">moyen</span></div><div class="bar"><i style="width:52%;background:var(--p1)"></i></div><div class="ct">Stack cutting-edge sous-exploité, 0 Server Actions, a11y absente</div></div>
+  <div class="axe"><div class="name">Métier immobilier <span class="pill p0">élevé</span></div><div class="bar"><i style="width:70%;background:var(--p0)"></i></div><div class="ct">DVF retard 12m, DPE absent des comps, valo linéaire sans ML</div></div>
+  <div class="axe"><div class="name">DevEx & Build <span class="pill p0">élevé</span></div><div class="bar"><i style="width:75%;background:var(--p0)"></i></div><div class="ct">2 tests pour 82 fichiers, 0 CI/CD, pas de typecheck en build</div></div>
+</div>
+
+<h2>Quick wins (semaine 1)</h2>
+<div class="qw">
+  <div class="qwc"><div class="t">Installer Sentry + Langfuse</div><div class="m">Déjà configurés en .env, 0 dep installée → prod aveugle. Effort M, risk low</div></div>
+  <div class="qwc"><div class="t">Redactor PII sur logs GPS/adresses</div><div class="m">Coordonnées + adresses loggées en clair (RGPD). Effort S, risk low</div></div>
+  <div class="qwc"><div class="t">CI GitHub Actions (lint→tsc→test→build)</div><div class="m">0 pipeline. Bloque les merges cassés. Effort M, risk low</div></div>
+  <div class="qwc"><div class="t">Index composites DB + ENUM</div><div class="m">estimations(user_id,updated_at), messages(estimation_id,created_at). Effort XS</div></div>
+  <div class="qwc"><div class="t">Rate-limit + révocation login</div><div class="m">@upstash/ratelimit déjà présent. Brute-force ouvert. Effort S, risk low</div></div>
+  <div class="qwc"><div class="t">Retry/backoff + idempotency APIs externes</div><div class="m">DVF/cadastre/ADEME appelés en double, 0 retry. Effort S, risk low</div></div>
+  <div class="qwc"><div class="t">maxDuration + AbortController streaming</div><div class="m">/interview sans maxDuration, stream hang possible. Effort XS</div></div>
+  <div class="qwc"><div class="t">Signed URLs TTL R2 + deleteObject</div><div class="m">PDFs accessibles sans expiration, orphelins accumulés. Effort S</div></div>
+</div>
+
+<h2>Chantiers structurants</h2>
+<div class="cols">
+  <div class="col"><h3>1 · Auth hardening</h3><ul>
+    <li>MFA (TOTP/WebAuthn passkeys)</li>
+    <li>Révocation session Redis-backed + kid rotation JWT</li>
+    <li>OAuth2 (Google/MS) + audit log connexions</li>
+    <li>Évaluer Better Auth / Lucia v5</li></ul></div>
+  <div class="col"><h3>2 · Inngest + observabilité LLM</h3><ul>
+    <li>Sortir les appels DVF/ADEME du cycle HTTP (durable exec)</li>
+    <li>DLQ + retry/backoff natifs</li>
+    <li>Langfuse cost tracking par modèle/user</li>
+    <li>Structured output natif (SDK Anthropic 0.110+)</li></ul></div>
+  <div class="col"><h3>3 · Robustesse valorisation</h3><ul>
+    <li>Index INSEE/Notaires par département (vs national)</li>
+    <li>DPE rétro sur comps (loi Climat 2025+)</li>
+    <li>Outliers DBSCAN contextuels + micro-marché</li>
+    <li>ML hédonique (XGBoost) optionnel</li></ul></div>
+</div>
+
+<h2>Matrice Actuel vs Alternative 2026</h2>
+<table>
+<tr><th>Axe</th><th>Actuel</th><th>Alternative 2026</th><th>Gain</th><th>Effort</th><th>Verdict</th></tr>
+<tr><td>Observabilité</td><td>0 installé (déclaré)</td><td>Sentry + Langfuse câblés</td><td>Visibilité prod totale</td><td class="tag">M</td><td class="verdict-go">✅ installer</td></tr>
+<tr><td>Jobs</td><td>Inline HTTP (timeout)</td><td>Inngest durable exec</td><td>0 timeout, retry auto</td><td class="tag">M</td><td class="verdict-go">✅ adopter</td></tr>
+<tr><td>Auth</td><td>jose maison, pas de MFA</td><td>+MFA, +révocation, +OAuth</td><td>Surface d'attaque ÷3</td><td class="tag">L</td><td class="verdict-go">✅ durcir</td></tr>
+<tr><td>DB queries</td><td>PostgREST SQL brut</td><td>Drizzle ORM v1</td><td>Typage compile-time</td><td class="tag">M</td><td class="verdict-eval">⚠ évaluer</td></tr>
+<tr><td>Tests/CI</td><td>2 e2e, 0 CI</td><td>Vitest + GitHub Actions</td><td>Régressions captées</td><td class="tag">M</td><td class="verdict-go">✅ ajouter</td></tr>
+<tr><td>Index prix</td><td>National manuel</td><td>INSEE/Notaires par dép</td><td>-15-20% erreur régions</td><td class="tag">M</td><td class="verdict-go">✅ migrer</td></tr>
+<tr><td>Streaming</td><td>ReadableStream nu</td><td>+useOptimistic +reconnect</td><td>UX perçue ~0ms latence</td><td class="tag">M</td><td class="verdict-go">✅ améliorer</td></tr>
+<tr><td>PDF render</td><td>@sparticuz/chromium</td><td>Gotenberg API</td><td>Cold-start -2.5s</td><td class="tag">L</td><td class="verdict-eval">⚠ évaluer</td></tr>
+<tr><td>Package mgr</td><td>npm</td><td>pnpm / bun</td><td>Install -20-30%</td><td class="tag">M</td><td class="verdict-eval">⚠ optionnel</td></tr>
+<tr><td>Linter/format</td><td>ESLint 9 seul</td><td>+Biome 2</td><td>Format unifié, 1 pass</td><td class="tag">S</td><td class="verdict-eval">⚠ optionnel</td></tr>
+</table>
+
+<h2>Détail par axe</h2>
+
+<details><summary>Auth &amp; Identity <span class="meta">4 P0 · 5 P1 · risque élevé</span></summary>
+<div class="body">
+<div class="pp p0"><div class="t">Pas de MFA / 2FA</div><div class="d">Aucun TOTP/WebAuthn/passkey. Compromission mdp = takeover complet.</div><div class="e">app/auth/login/LoginForm.tsx · lib/server/auth.ts</div></div>
+<div class="pp p0"><div class="t">Session 30j sans révocation</div><div class="d">JWT vérifié à l'expiration seule, pas de blacklist. Logout efface le cookie mais le JWT reste valide si capturé.</div><div class="e">lib/server/auth-cookie.ts · app/api/auth/logout/route.ts</div></div>
+<div class="pp p0"><div class="t">JWT_SECRET unique non-rotatif</div><div class="d">Secret env unique, pas de kid. Compromission .env = tous les tokens forgés.</div><div class="e">lib/server/auth.ts:13-17</div></div>
+<div class="pp p0"><div class="t">Pas de device binding</div><div class="d">JWT volé utilisable depuis n'importe où. Pas de fingerprint/IP.</div><div class="e">SessionClaims (lib/server/auth.ts)</div></div>
+<div class="pp p1"><div class="t">Pas de rate-limit login</div><div class="d">Brute-force ouvert. @upstash/ratelimit déjà en deps mais non câblé sur /login.</div><div class="e">app/api/auth/login/route.ts</div></div>
+<div class="reco">P0 → Révocation Redis-backed + rotation kid JWT (effort S, risk low)</div>
+<div class="reco">P0 → TOTP + WebAuthn passkeys (effort L, risk high)</div>
+<div class="reco">P1 → Rate-limit + OAuth2 + audit log (effort S/M, risk low)</div>
+</div></details>
+
+<details><summary>Observabilité &amp; Monitoring <span class="meta">3 P0 · 4 P1 · risque élevé</span></summary>
+<div class="body">
+<div class="pp p0"><div class="t">Langfuse REQ en prod mais package absent</div><div class="d">Aucun coût LLM tracké (Kimi/Anthropic/OpenAI). Impossible de budgéter ou détecter les abus.</div><div class="e">package.json · app/api/cockpit-chat/route.ts</div></div>
+<div class="pp p0"><div class="t">Sentry non installé malgré DSN configuré</div><div class="d">Erreurs back-end (500, timeouts) ne remontent jamais. Production aveugle.</div><div class="e">aucun instrumentation.ts</div></div>
+<div class="pp p0"><div class="t">PII loggée sans redaction</div><div class="d">Coordonnées GPS + adresses loggées en clair → potentiellement échappées en Axiom (log drain). RGPD.</div><div class="e">geocode.ts · cadastre.ts · ademe.ts</div></div>
+<div class="pp p1"><div class="t">0 RUM, pas d'error boundary</div><div class="d">Pas de web vitals, pas d'error.tsx. Crash client non signalés.</div><div class="e">app/layout.tsx</div></div>
+<div class="reco">P0 → @sentry/nextjs + instrumentation (effort M, risk low)</div>
+<div class="reco">P0 → langfuse + wrapper LLM (effort M, risk low)</div>
+<div class="reco">P0 → PII redactor middleware (effort S, risk low)</div>
+</div></details>
+
+<details><summary>Workflow &amp; Jobs <span class="meta">2 P0 · 3 P1 · risque élevé</span></summary>
+<div class="body">
+<div class="pp p0"><div class="t">Appels API externes bloquants (timeout 60s)</div><div class="d">DVF/cadastre/ADEME/geocode appelés en synchrone dans POST /value. Une API lente → pipeline stallé → "Erreur de génération".</div><div class="e">app/api/estimations/[id]/value/route.ts:71-130</div></div>
+<div class="pp p0"><div class="t">Pas d'idempotency (coûts doublés)</div><div class="d">Chaque refresh/glitch re-appelle les APIs (DVF payant). Aucune déduplication ni cache.</div><div class="e">dvf.ts · geocode.ts · cadastre.ts</div></div>
+<div class="pp p1"><div class="t">Inngest déclaré OPT mais non installé</div><div class="d">SERVICES.md cite Inngest + credentials mais 0 dep job. Pipeline inline → ne scale pas en async.</div><div class="e">package.json (aucun inngest)</div></div>
+<div class="pp p1"><div class="t">Pas de retry/backoff (degrade silencieux)</div><div class="d">safeFetch catch → retourne vide/null → mode dégradé sans que l'user sache pourquoi.</div><div class="e">dvf.ts:88 · ademe.ts:82</div></div>
+<div class="reco">P0 → Inngest (credentials prêts) : DVF/ADEME en durable exec + DLQ (effort M)</div>
+<div class="reco">P0 → Idempotency keys + cache Redis (effort S, risk low)</div>
+<div class="reco">P1 → Backoff + jitter + Cache-Control headers (effort S/XS)</div>
+</div></details>
+
+<details><summary>Capabilités métier immobilier <span class="meta">3 P0 · 6 P1 · risque élevé</span></summary>
+<div class="body">
+<div class="pp p0"><div class="t">DVF retard 12m + index national grossier</div><div class="d">Même tick T1 2020→Q2 2026 appliqué partout. Pas de tendance locale par dép. Surestime ventes anciennes hors Paris.</div><div class="e">lib/estimation/price-index.ts:6-11</div></div>
+<div class="pp p0"><div class="t">DPE absent des comps DVF (loi Climat 2025+)</div><div class="d">DVF n'a pas le DPE des ventes passées → "D par défaut". Imprécision majeure régions à forte densité D/E. Biens G interdits 2030 non quantifiés.</div><div class="e">valuation.ts:30-52 · comparables.ts</div></div>
+<div class="pp p0"><div class="t">Pas de régression hédonique / ML</div><div class="d">Médiane + % fixes clampés ±25%. Pas de capture des interactions (DPE×étage×charges). Imprécis sur edge-cases.</div><div class="e">valuation.ts:322-326</div></div>
+<div class="pp p1"><div class="t">Outliers : P10-P90 global, pas de clustering contextuel</div><div class="d">Pas de trim par type/zone/période. Vente luxe valide écrasée.</div><div class="e">comparables.ts:118-129</div></div>
+<div class="pp p1"><div class="t">ADEME fragile, fallback silencieux</div><div class="d">Slug/champs peuvent changer sans préavis → {classe:null} silencieux → décote implicite arbitraire.</div><div class="e">ademe.ts:7-43</div></div>
+<div class="reco">P0 → Index INSEE/Notaires par dép + AR(1) (effort M)</div>
+<div class="reco">P0 → DPE rétro cross-source sur comps (effort L, risk high)</div>
+<div class="reco">P1 → DBSCAN outliers + cache ADEME + micro-marché (effort M)</div>
+</div></details>
+
+<details><summary>DevEx &amp; Build <span class="meta">2 P0 · 4 P1 · risque élevé</span></summary>
+<div class="body">
+<div class="pp p0"><div class="t">2 tests pour 82 fichiers TS</div><div class="d">Seulement smoke e2e. Auth, PDF, prompts LLM, queries Supabase : 0 test unitaire.</div><div class="e">e2e/smoke.spec.ts · electron/__tests__/smoke.spec.ts</div></div>
+<div class="pp p0"><div class="t">Pas de CI/CD</div><div class="d">Pas de .github/workflows/. Aucun lint/typecheck/test/build automatisé sur PR.</div><div class="e">.github/ absent</div></div>
+<div class="pp p1"><div class="t">Pas de typecheck en build</div><div class="d">next build ne lance pas tsc. Erreurs TS app/ captées qu'au dev/lint.</div><div class="e">package.json scripts</div></div>
+<div class="reco">P0 → GitHub Actions (lint→tsc→test→build) (effort M, risk low)</div>
+<div class="reco">P0 → Vitest sur lib/ + app/api/ (effort L)</div>
+<div class="reco">P1 → husky + lint-staged + script type-check + Biome (effort XS/S)</div>
+</div></details>
+
+<details><summary>LLM &amp; AI Orchestration <span class="meta">2 P1 · 4 P2 · risque moyen</span></summary>
+<div class="body">
+<div class="pp p1"><div class="t">Prompt caching ephemeral seul</div><div class="d">cache_control ephemeral persiste 5min seulement. System prompt recalculé chaque session.</div><div class="e">lib/ai/interview.ts:236-241</div></div>
+<div class="pp p1"><div class="t">Troncature tool_input sur max_tokens (silencieux)</div><div class="d">stopReason=length → tool_input perdu, pas de retry. État interview partiel, user non informé.</div><div class="e">lib/ai/interview.ts:201-207</div></div>
+<div class="pp p2"><div class="t">Pas de structured output natif</div><div class="d">safeParse post-hoc fragile aux JSON malformés. SDK 0.100 sans response_format json_schema.</div><div class="e">lib/estimation/schema.ts:77-80</div></div>
+<div class="pp p2"><div class="t">Cockpit chat Kimi-only sans fallback</div><div class="d">Si Kimi down, feature down. L'interview a un dual-path, pas le cockpit.</div><div class="e">app/api/cockpit-chat/route.ts:101-108</div></div>
+<div class="reco">P0 → Langfuse cost tracking (effort M, voir axe Observabilité)</div>
+<div class="reco">P1 → SDK Anthropic 0.110+ structured output + caching 24h TTL (effort M)</div>
+<div class="reco">P2 → Vision (photos bien) + ReAct loop tool feedback (effort L)</div>
+</div></details>
+
+<details><summary>Database &amp; ORM <span class="meta">5 P1 · 4 P2 · risque moyen</span></summary>
+<div class="body">
+<div class="pp p1"><div class="t">SQL brut sans builder typé</div><div class="d">30+ requêtes PostgREST .from().select().eq() — typos non détectés avant runtime.</div><div class="e">app/api/estimations/route.ts:34-38</div></div>
+<div class="pp p1"><div class="t">Index manquant messages(estimation_id, created_at)</div><div class="d">ORDER BY created_at sur index estimation_id seul → scan complet.</div><div class="e">supabase/migrations/0007_estimations.sql:99</div></div>
+<div class="pp p2"><div class="t">Service-role bypass RLS partout</div><div class="d">Toutes les routes utilisent getSupabaseAdmin(). RLS = dead code. Un .eq('tenant_id') oublié = fuite.</div><div class="e">lib/server/supabase.ts</div></div>
+<div class="reco">P1 → Index composites + denorm user_id + ENUM types (effort XS/S)</div>
+<div class="reco">P1 → Drizzle ORM v1 typé (effort M, risk medium)</div>
+<div class="reco">P2 → Migrer service-role → clients authentifiés RLS (effort L, risk high)</div>
+</div></details>
+
+<details><summary>Real-time &amp; Collaboration <span class="meta">2 P0 · 5 P1 · risque moyen</span></summary>
+<div class="body">
+<div class="pp p0"><div class="t">Pas de reconnexion sur coupure stream</div><div class="d">Réseau coupé mid-interview → message perdu + retry manuel. Pas de backoff/AbortController.</div><div class="e">InterviewChat.tsx:82-157</div></div>
+<div class="pp p0"><div class="t">0 optimistic update (React 19 useOptimistic inutilisé)</div><div class="d">UI laggy en latence haute (Electron). Pas d'append client avant confirmation serveur.</div><div class="e">InterviewChat.tsx:75-80</div></div>
+<div class="pp p1"><div class="t">Pas de maxDuration sur /interview</div><div class="d">Si LLM hang mid-stream, fetch attend indéfiniment.</div><div class="e">app/api/estimations/[id]/interview/route.ts:31-32</div></div>
+<div class="reco">P0 → Backoff + AbortController + maxDuration=45 (effort S/XS)</div>
+<div class="reco">P0 → useOptimistic interview (effort M)</div>
+<div class="reco">P1 → Supabase Realtime subscriptions multi-tab (effort M)</div>
+</div></details>
+
+<details><summary>Storage &amp; CDN <span class="meta">2 P0 (reco) · 3 P1 · risque moyen</span></summary>
+<div class="body">
+<div class="pp p1"><div class="t">Pas de signed URLs avec TTL</div><div class="d">publicUrl() sans expiration. Si bucket public, PDFs accessibles à vie sans auth.</div><div class="e">lib/storage/r2.ts:97-100</div></div>
+<div class="pp p1"><div class="t">Pas de cleanup orphelins</div><div class="d">PDFs s'accumulent quand estimations supprimées. Pas de deleteObject ni lifecycle.</div><div class="e">lib/storage/r2.ts (no deleteObject)</div></div>
+<div class="pp p1"><div class="t">Chromium cold-start serverless</div><div class="d">@sparticuz/chromium ajoute 1-3s au 1er PDF. Max 2 renders concurrents.</div><div class="e">lib/brochure/pdf.ts:18-42</div></div>
+<div class="reco">P0 → Signed URLs TTL + deleteObject + lifecycle R2 (effort S/M)</div>
+<div class="reco">P1 → Retry/backoff R2 + évaluer Gotenberg (effort S/L)</div>
+</div></details>
+
+<details><summary>Frontend &amp; UI <span class="meta">5 P1 · 4 P2 · risque moyen</span></summary>
+<div class="body">
+<div class="pp p1"><div class="t">React 19 sous-exploité</div><div class="d">useOptimistic, useActionState, Server Actions : 0 usage. Tout en fetch + useState.</div><div class="e">estimations/_components/*</div></div>
+<div class="pp p1"><div class="t">Pas de Suspense (PPR Next 16 inutilisé)</div><div class="d">1 seul Suspense. Composants lourds chargent état complet d'emblée.</div><div class="e">InterviewChat 240L · ValuationPanel 153L</div></div>
+<div class="pp p1"><div class="t">0 couverture a11y (WCAG)</div><div class="d">10 aria-label sur 1220 lignes. Pas de semantic HTML, chat sans role=log.</div><div class="e">composants Cockpit</div></div>
+<div class="reco">P0 → Server Actions + Suspense + extraire boundaries client (effort L/XL)</div>
+<div class="reco">P1 → WCAG AA + TanStack Query + tokens JSON export (effort M)</div>
+</div></details>
+
+<footer>
+Stack maturité 6/10 · 11 P0 · 26 P1 · 28 P2 · 81 fichiers TS · 2 tests · 4 commits/6mois<br>
+Généré par /status-adrien horizon · 2026-06-05 · read-only, aucune modification de code
+</footer>
+</body>
+</html>
