@@ -13,18 +13,22 @@
  *  - I1 : `allocate` (closing) précède `mint` (le miroir suit le DEEP).
  */
 
-import { NotImplementedError, InvariantViolationError } from "../shared/errors";
+import { InvariantViolationError } from "../shared/errors";
 import type { Result } from "../shared/types";
 import { ok, err } from "../shared/types";
-import { getSupabaseAdmin } from "../../server/supabase";
 import type {
-  Subscription,
   SubscriptionStatus,
   SubscriptionEvent,
   SettlementCurrency,
 } from "./types";
 
 export * from "./types";
+
+// Services DB-backed (couche I/O — Epic 1.3). La machine à états reste PURE
+// ci-dessous ; l'orchestration Supabase + ports (e-signature, escrow) vit dans
+// ./service.ts et est réexportée ici (createSoftCommit, requestSignature,
+// instructFunding, cancel, listMySubscriptions, applyEsignWebhook, applyEscrowWebhook).
+export * from "./service";
 
 /** Rails de règlement WHITELISTÉS (I6) — exclut USDT. */
 const ALLOWED_RAILS: readonly SettlementCurrency[] = ["EUR", "EURC", "EURe"];
@@ -94,32 +98,4 @@ export function isTerminal(state: SubscriptionStatus): boolean {
 /** Liste des événements applicables depuis un état (UI : actions disponibles). */
 export function availableEvents(state: SubscriptionStatus): SubscriptionEvent["type"][] {
   return Object.keys(TRANSITIONS[state]) as SubscriptionEvent["type"][];
-}
-
-// ── Services à I/O (stubs typés — Jalon 1) ──────────────────────────────────
-
-/**
- * Crée un soft-commit NON ENGAGEANT (I2/I3). Exige TOUJOURS un dealId explicite :
- * il n'existe aucun chemin de souscription « hors deal » (anti-pooling).
- */
-export async function createSoftCommit(input: {
-  dealId: string; // I2/I3 — obligatoire, jamais une cagnotte globale
-  userId: string;
-  amountEur: number;
-}): Promise<Subscription> {
-  if (!input.dealId) {
-    throw new InvariantViolationError("I3", "souscription sans dealId explicite");
-  }
-  const _db = getSupabaseAdmin(); // service-role : filtrer user_id + tenant_id (I9)
-  throw new NotImplementedError("subscription.createSoftCommit — Jalon 1");
-}
-
-/** Déclenche la signature eIDAS (délègue à ESignaturePort). */
-export async function requestSignature(_subscriptionId: string): Promise<void> {
-  throw new NotImplementedError("subscription.requestSignature — Jalon 1");
-}
-
-/** Annule / rétracte (délai de réflexion 4j ECSP → remboursement via ⑤). */
-export async function cancelOrWithdraw(_subscriptionId: string): Promise<void> {
-  throw new NotImplementedError("subscription.cancelOrWithdraw — Jalon 1");
 }

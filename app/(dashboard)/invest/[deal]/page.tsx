@@ -43,6 +43,7 @@ import {
 import type { DealSheet } from "@/lib/invest/finance";
 import { getDemoDeal, DEMO_DEALS } from "../_data/demo";
 import { fetchDealBySlug } from "../_data/server";
+import { SubscribePanel } from "./_components/SubscribePanel";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,8 @@ interface DocRow {
 
 /** View-model unifié de la fiche (DB ou démo). */
 interface FicheView {
+  /** Id DB du deal (null pour les fiches de démonstration → souscription non branchée). */
+  dealId: string | null;
   slug: string;
   nom: string;
   localisation: string;
@@ -124,6 +127,7 @@ export default async function DealDetailPage({
   if (dbDetail) {
     const ltvElevee = dbDetail.sheet.metrics.ltv > 0.7;
     view = {
+      dealId: dbDetail.deal.id,
       slug: dbDetail.deal.slug,
       nom: dbDetail.deal.name,
       localisation:
@@ -149,6 +153,7 @@ export default async function DealDetailPage({
     };
   } else if (demo) {
     view = {
+      dealId: null, // fiche de démonstration : souscription non branchée (aucune donnée réelle).
       slug: demo.slug,
       nom: demo.input.nom,
       localisation: demo.input.localisation,
@@ -257,14 +262,38 @@ export default async function DealDetailPage({
                 <span className="inv-l">Levé</span>
               </div>
             </div>
-            <button className="inv-btn-reserve" type="button">
-              Réserver ma place
-            </button>
-            <p className="inv-reserve-note">Réservation non engageante · sans versement · révocable</p>
+            {view.dealId ? null : (
+              <>
+                <button className="inv-btn-reserve" type="button" disabled>
+                  Réserver ma place
+                </button>
+                <p className="inv-reserve-note">
+                  Réservation non engageante · sans versement · révocable (fiche de démonstration)
+                </p>
+              </>
+            )}
           </div>
           <StatusPill tone={view.statusTone}>{view.statusLabel}</StatusPill>
         </div>
       </div>
+
+      {/* BLOC SOUSCRIPTION (Epic 1.3) — soft-commit → signature eIDAS → séquestre tiers.
+          Rendu uniquement pour un deal réel (DB) ; la démo affiche le bouton désactivé ci-dessus. */}
+      {view.dealId ? (
+        <div style={{ marginBottom: "var(--ct-space-lg)" }}>
+          <SubscribePanel
+            dealId={view.dealId}
+            dealName={view.nom}
+            dealOpen={view.statusTone === "open"}
+            ticketMinEur={view.ticketMinEur}
+            ticketMaxEur={view.ticketMaxEur}
+            settlementCurrency="EUR"
+            sequestreLabel={view.sequestre}
+            kycApproved={!view.kycGated}
+            spvLabel={view.sasName}
+          />
+        </div>
+      ) : null}
 
       {/* L4 — nature juridique permanente */}
       <div style={{ marginBottom: "var(--ct-space-lg)" }}>
