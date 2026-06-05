@@ -108,9 +108,9 @@ export async function generateSpec(
   description: string,
   ownerId: string
 ): Promise<ArchitectSpec> {
-  return engineFetch<ArchitectSpec>("/architect", {
+  return engineFetch<ArchitectSpec>("/swarms/architect/generate", {
     method: "POST",
-    body: JSON.stringify({ description, owner_id: ownerId }),
+    body: JSON.stringify({ prompt: description, owner_id: ownerId }),
   })
 }
 
