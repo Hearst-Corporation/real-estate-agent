@@ -122,9 +122,9 @@ export default function VisitForm({ cta }: { cta: string }) {
           />
         </label>
 
-        {error && <p className="ct-placeholder" style={{ color: "var(--ct-danger, red)" }}>{error}</p>}
+        {error && <p className="ct-error">{error}</p>}
 
-        <div style={{ display: "flex", gap: "0.5rem" }}>
+        <div className="crm-form-actions">
           <button className="ct-seg-btn primary" type="submit" disabled={loading}>
             {t.save}
           </button>

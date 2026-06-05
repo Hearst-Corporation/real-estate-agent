@@ -1,9 +1,16 @@
 import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { Funnel } from "@/components/cockpit/Funnel";
+import { Donut } from "@/components/cockpit/Donut";
+import { DataTable, type Column } from "@/components/cockpit/DataTable";
+import { StatusSelect } from "@/components/cockpit/StatusSelect";
+import { DeleteButton } from "@/components/cockpit/DeleteButton";
+import { countByStatus, ratio } from "@/lib/crm/aggregate";
+import { dateTimeFr, VISIT_STATUSES } from "@/lib/crm/format";
+import { statusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
-import VisitsList from "./_components/VisitsList";
 import VisitForm from "./_components/VisitForm";
 
 type VisitRow = {
@@ -11,9 +18,6 @@ type VisitRow = {
   status: string;
   scheduled_at: string;
   duration_min: number;
-  notes: string | null;
-  feedback: string | null;
-  lead_id: string | null;
   property_id: string;
   properties: { title: string | null; city: string | null } | null;
 };
@@ -28,7 +32,7 @@ export default async function VisitsPage() {
   if (claims && sb) {
     const { data } = await sb
       .from("visits")
-      .select("*, properties(title, city)")
+      .select("id, status, scheduled_at, duration_min, property_id, properties(title, city)")
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("scheduled_at", { ascending: true });
@@ -38,10 +42,48 @@ export default async function VisitsPage() {
   const now = new Date();
   const upcoming = visits.filter((v) => new Date(v.scheduled_at) >= now);
   const past = visits.filter((v) => new Date(v.scheduled_at) < now);
-  const done = visits.filter((v) => v.status === "realisee");
-  const noShow = visits.filter((v) => v.status === "no_show");
-  const noShowRate =
-    visits.length > 0 ? Math.round((noShow.length / visits.length) * 100) : 0;
+  const done = visits.filter((v) => v.status === "realisee").length;
+  const noShow = visits.filter((v) => v.status === "no_show").length;
+  const noShowRate = visits.length > 0 ? Math.round((noShow / visits.length) * 100) : 0;
+
+  const pipeline = countByStatus(visits, VISIT_STATUSES, t.statusLabels, (s) =>
+    statusTone("visit", s)
+  );
+  const doneRate = ratio(visits, (v) => v.status === "realisee");
+
+  const columns: Column<VisitRow>[] = [
+    {
+      key: "property",
+      header: t.table.property,
+      render: (v) => v.properties?.title ?? v.properties?.city ?? v.property_id,
+    },
+    { key: "datetime", header: t.table.datetime, render: (v) => dateTimeFr(v.scheduled_at) },
+    {
+      key: "duration",
+      header: t.table.duration,
+      align: "right",
+      render: (v) => `${v.duration_min}${t.durationUnit}`,
+    },
+    {
+      key: "status",
+      header: t.table.status,
+      render: (v) => (
+        <StatusSelect
+          endpoint={`/api/visits/${v.id}`}
+          value={v.status}
+          options={VISIT_STATUSES}
+          labels={t.statusLabels}
+          ariaLabel={t.table.status}
+        />
+      ),
+    },
+    {
+      key: "action",
+      header: t.table.action,
+      align: "right",
+      render: (v) => <DeleteButton endpoint={`/api/visits/${v.id}`} label={t.delete} confirmMessage={t.delete} />,
+    },
+  ];
 
   return (
     <>
@@ -49,30 +91,26 @@ export default async function VisitsPage() {
       <Title>{t.title}</Title>
       <Sub>{t.sub}</Sub>
 
-      <KpiGrid className="cols-4">
-        <KpiCard>
-          <div className="ct-kpi-label">{t.kpis.total}</div>
-          <div className="ct-kpi-value">{visits.length}</div>
-        </KpiCard>
-        <KpiCard>
-          <div className="ct-kpi-label">{t.kpis.upcoming}</div>
-          <div className="ct-kpi-value">{upcoming.length}</div>
-        </KpiCard>
-        <KpiCard>
-          <div className="ct-kpi-label">{t.kpis.done}</div>
-          <div className="ct-kpi-value">{done.length}</div>
-        </KpiCard>
-        <KpiCard>
-          <div className="ct-kpi-label">{t.kpis.noShow}</div>
-          <div className="ct-kpi-value">{noShowRate}%</div>
-        </KpiCard>
+      <KpiGrid>
+        <KpiCard label={t.kpis.total} value={String(visits.length)} />
+        <KpiCard label={t.kpis.upcoming} value={String(upcoming.length)} accent />
+        <KpiCard label={t.kpis.done} value={String(done)} />
+        <KpiCard label={t.kpis.noShow} value={`${noShowRate}%`} />
       </KpiGrid>
 
-      <div className="ct-mb-sm" />
+      <div className="ct-viz-row">
+        <Card title={t.charts.pipeline}>
+          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+        </Card>
+        <Card title={t.charts.doneRate}>
+          <Donut value={doneRate} sublabel={t.charts.doneRateSub} accent />
+        </Card>
+      </div>
 
-      <VisitForm cta={t.newCta} />
-
-      <div className="ct-mb-sm" />
+      <div className="crm-toolbar">
+        <span className="ct-card-title">{t.title}</span>
+        <VisitForm cta={t.newCta} />
+      </div>
 
       {visits.length === 0 ? (
         <Card>
@@ -80,17 +118,13 @@ export default async function VisitsPage() {
         </Card>
       ) : (
         <>
-          {upcoming.length > 0 && (
-            <>
-              <h3 className="ct-card-title">{t.upcoming}</h3>
-              <VisitsList visits={upcoming} statusLabels={t.statusLabels} deleteLabel={t.delete} durationUnit={t.durationUnit} />
-            </>
-          )}
+          <Card title={t.upcoming}>
+            <DataTable columns={columns} rows={upcoming} emptyLabel={t.empty} getKey={(v) => v.id} />
+          </Card>
           {past.length > 0 && (
-            <>
-              <h3 className="ct-card-title">{t.past}</h3>
-              <VisitsList visits={past} statusLabels={t.statusLabels} deleteLabel={t.delete} durationUnit={t.durationUnit} />
-            </>
+            <Card title={t.past}>
+              <DataTable columns={columns} rows={past} emptyLabel={t.empty} getKey={(v) => v.id} />
+            </Card>
           )}
         </>
       )}

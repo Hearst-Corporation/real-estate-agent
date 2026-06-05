@@ -4,65 +4,47 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
 
-type LeadFormProps =
-  | {
-      mode: "create";
-      cta: string;
-    }
-  | {
-      mode: "edit";
-      id: string;
-      initial: {
-        full_name: string;
-        email?: string | null;
-        phone?: string | null;
-        source?: string | null;
-        kind?: string | null;
-        type_personne?: string | null;
-        budget_min?: number | null;
-        budget_max?: number | null;
-        status?: string | null;
-      };
-      onClose?: () => void;
-    };
+export type LeadDefaults = {
+  full_name?: string;
+  email?: string | null;
+  phone?: string | null;
+  source?: string | null;
+  kind?: string | null;
+  type_personne?: string | null;
+  budget_min?: number | null;
+  budget_max?: number | null;
+  status?: string | null;
+};
 
-export default function LeadForm(props: LeadFormProps) {
+/** Le formulaire pur (création si pas d'`id`, édition sinon). */
+export function LeadForm({
+  id,
+  defaultValues = {},
+  onClose,
+}: {
+  id?: string;
+  defaultValues?: LeadDefaults;
+  onClose?: () => void;
+}) {
   const t = UI.leads.form;
   const router = useRouter();
+  const isEdit = Boolean(id);
 
-  const initial =
-    props.mode === "edit"
-      ? props.initial
-      : {
-          full_name: "",
-          email: "",
-          phone: "",
-          source: "",
-          kind: "acheteur",
-          type_personne: "particulier",
-          budget_min: "",
-          budget_max: "",
-          status: "nouveau",
-        };
-
-  const [open, setOpen] = useState(props.mode === "edit");
-  const [fullName, setFullName] = useState(initial.full_name ?? "");
-  const [email, setEmail] = useState(initial.email ?? "");
-  const [phone, setPhone] = useState(initial.phone ?? "");
-  const [source, setSource] = useState(initial.source ?? "");
-  const [kind, setKind] = useState(initial.kind ?? "acheteur");
+  const [fullName, setFullName] = useState(defaultValues.full_name ?? "");
+  const [email, setEmail] = useState(defaultValues.email ?? "");
+  const [phone, setPhone] = useState(defaultValues.phone ?? "");
+  const [source, setSource] = useState(defaultValues.source ?? "");
+  const [kind, setKind] = useState(defaultValues.kind ?? "acheteur");
   const [typePersonne, setTypePersonne] = useState(
-    ("type_personne" in initial && initial.type_personne) || "particulier"
+    defaultValues.type_personne ?? "particulier"
   );
   const [budgetMin, setBudgetMin] = useState(
-    initial.budget_min != null ? String(initial.budget_min) : ""
+    defaultValues.budget_min != null ? String(defaultValues.budget_min) : ""
   );
   const [budgetMax, setBudgetMax] = useState(
-    initial.budget_max != null ? String(initial.budget_max) : ""
+    defaultValues.budget_max != null ? String(defaultValues.budget_max) : ""
   );
-  const [status, setStatus] = useState(
-    "status" in initial && initial.status ? initial.status : "nouveau"
-  );
+  const [status] = useState(defaultValues.status ?? "nouveau");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,8 +69,8 @@ export default function LeadForm(props: LeadFormProps) {
       budget_max: budgetMax ? Number(budgetMax) : null,
     };
 
-    const url = props.mode === "edit" ? `/api/leads/${props.id}` : "/api/leads";
-    const method = props.mode === "edit" ? "PATCH" : "POST";
+    const url = isEdit ? `/api/leads/${id}` : "/api/leads";
+    const method = isEdit ? "PATCH" : "POST";
 
     const res = await fetch(url, {
       method,
@@ -100,34 +82,12 @@ export default function LeadForm(props: LeadFormProps) {
 
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
-      setError((json as { error?: string }).error ?? "error");
+      setError((json as { error?: string }).error ?? UI.common.error);
       return;
     }
 
-    if (props.mode === "create") {
-      setOpen(false);
-      setFullName("");
-      setEmail("");
-      setPhone("");
-      setSource("");
-      setKind("acheteur");
-      setTypePersonne("particulier");
-      setBudgetMin("");
-      setBudgetMax("");
-      setStatus("nouveau");
-    } else {
-      props.onClose?.();
-    }
-
     router.refresh();
-  }
-
-  if (props.mode === "create" && !open) {
-    return (
-      <button className="ct-seg-btn primary" onClick={() => setOpen(true)}>
-        {props.cta}
-      </button>
-    );
+    onClose?.();
   }
 
   return (
@@ -221,23 +181,39 @@ export default function LeadForm(props: LeadFormProps) {
         />
       </label>
 
-      {error && <p className="ct-placeholder" style={{ color: "var(--ct-danger, red)" }}>{error}</p>}
+      {error && <p className="ct-error">{error}</p>}
 
       <div className="crm-form-actions">
         <button className="ct-seg-btn primary" type="submit" disabled={loading}>
           {t.save}
         </button>
-        <button
-          className="ct-seg-btn"
-          type="button"
-          onClick={() => {
-            if (props.mode === "edit") props.onClose?.();
-            else setOpen(false);
-          }}
-        >
-          {t.cancel}
-        </button>
+        {onClose && (
+          <button className="ct-seg-btn" type="button" onClick={onClose}>
+            {t.cancel}
+          </button>
+        )}
       </div>
     </form>
+  );
+}
+
+/** Bouton "Nouveau lead" + modale de création (pattern .crm-form-overlay). */
+export default function LeadFormModal({ cta }: { cta: string }) {
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <button className="ct-seg-btn primary" onClick={() => setOpen(true)}>
+        {cta}
+      </button>
+    );
+  }
+
+  return (
+    <div className="crm-form-overlay">
+      <div className="crm-form-modal">
+        <LeadForm onClose={() => setOpen(false)} />
+      </div>
+    </div>
   );
 }

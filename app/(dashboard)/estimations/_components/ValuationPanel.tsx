@@ -256,7 +256,7 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
       {/* ── Swarm Bienici contextuel ── */}
       <div className="ct-card est-valuation-block">
         <p className="ct-card-title">{UI.swarms.contextualTitle}</p>
-        <p className="ct-placeholder" style={{ marginBottom: "var(--ct-space-sm)" }}>
+        <p className="ct-placeholder ct-mb-sm">
           {UI.swarms.contextualHint}
         </p>
         <SwarmContextualPanel estimationId={id} />
@@ -269,7 +269,6 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
           target="_blank"
           rel="noreferrer"
           className="ct-seg-btn primary"
-          style={{ display: "inline-block", textDecoration: "none" }}
         >
           {UI.estimations.downloadPdf}
         </a>

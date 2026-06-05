@@ -1,11 +1,17 @@
 import Link from "next/link";
 import { Eyebrow, Title, Sub, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
+import { Funnel } from "@/components/cockpit/Funnel";
+import { BarList } from "@/components/cockpit/BarList";
+import { Donut } from "@/components/cockpit/Donut";
+import { DataTable, type Column } from "@/components/cockpit/DataTable";
+import { countByStatus, topByCategory, distributeByBand, ratio } from "@/lib/crm/aggregate";
+import { eur, dateFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 
-/** Nombre d'estimations récentes affichées sur le dashboard. */
+/** Nombre d'estimations récentes affichées dans le tableau. */
 const RECENT_LIMIT = 5;
 
 /** Nombre de prochaines visites affichées dans l'activité récente. */
@@ -14,18 +20,24 @@ const VISITS_LIMIT = 5;
 /** Statuts leads considérés comme "terminés" (exclus du count actifs). */
 const LEADS_CLOSED = ["gagne", "perdu"];
 
-const eur = new Intl.NumberFormat("fr-FR", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-});
+/** Ordre canonique du cycle d'une estimation (pour le funnel). */
+const ESTIMATION_STATUSES = ["draft", "interviewing", "recap", "valuating", "ready", "archived"];
 
-const dtFmt = new Intl.DateTimeFormat("fr-FR", {
-  day: "2-digit",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-});
+/** Tonalité d'un statut d'estimation (ready = positif, archived = négatif). */
+function estimationTone(status: string): "is-positive" | "is-negative" | "is-pending" {
+  if (status === "ready") return "is-positive";
+  if (status === "archived") return "is-negative";
+  return "is-pending";
+}
+
+type EstRow = {
+  id: string;
+  status: string;
+  city: string | null;
+  property_type: string | null;
+  market_value: number | null;
+  updated_at: string;
+};
 
 type UpcomingVisit = {
   id: string;
@@ -39,10 +51,7 @@ export default async function DashboardPage() {
   const claims = await getSession();
   const sb = getSupabaseAdmin();
 
-  // ── Estimations ────────────────────────────────────────────────────────────
-  let rows: { id: string; status: string; city: string | null; property_type: string | null; market_value: number | null; updated_at: string }[] = [];
-
-  // ── CRM KPIs ───────────────────────────────────────────────────────────────
+  let rows: EstRow[] = [];
   let nbProperties = 0;
   let nbLeadsActifs = 0;
   let nbVisitesAVenir = 0;
@@ -114,7 +123,55 @@ export default async function DashboardPage() {
     upcomingVisits = (visitsUpcomingRes.data as unknown as UpcomingVisit[]) ?? [];
   }
 
+  // ── Agrégations viz (données déjà en mémoire) ──
+  const pipeline = countByStatus(rows, ESTIMATION_STATUSES, UI.estimations.status, estimationTone);
+  const byCity = topByCategory(rows, "city");
+  const byValueBand = distributeByBand(rows, "market_value");
+  const readyRate = ratio(rows, (r) => r.status === "ready");
+
   const recent = rows.slice(0, RECENT_LIMIT);
+
+  const recentColumns: Column<EstRow>[] = [
+    {
+      key: "property",
+      header: t.table.property,
+      render: (r) =>
+        r.city ?? r.property_type ?? UI.estimations.fallbackName,
+    },
+    {
+      key: "status",
+      header: t.table.status,
+      render: (r) => (
+        <span className={`crm-status ${estimationTone(r.status)}`}>
+          {UI.estimations.status[r.status] ?? r.status}
+        </span>
+      ),
+    },
+    {
+      key: "value",
+      header: t.table.value,
+      align: "right",
+      render: (r) => eur(r.market_value),
+    },
+    {
+      key: "updated",
+      header: t.table.updated,
+      align: "right",
+      render: (r) => dateFr(r.updated_at),
+    },
+    {
+      key: "action",
+      header: t.table.action,
+      align: "right",
+      render: (r) => (
+        <Link href={`/estimations/${r.id}`} className="ct-seg-btn">
+          {r.status === "draft" || r.status === "interviewing"
+            ? UI.estimations.resume
+            : UI.estimations.open}
+        </Link>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -130,6 +187,26 @@ export default async function DashboardPage() {
         <KpiCard label={t.kpis.activeMandates} value={String(nbMandatsActifs)} />
       </KpiGrid>
 
+      {/* ── Viz rangée 1 : pipeline + villes ── */}
+      <div className="ct-viz-row">
+        <Card title={t.charts.pipeline}>
+          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+        </Card>
+        <Card title={t.charts.byCity}>
+          <BarList items={byCity} emptyLabel={UI.viz.empty} />
+        </Card>
+      </div>
+
+      {/* ── Viz rangée 2 : tranches de valeur + complétion ── */}
+      <div className="ct-viz-row">
+        <Card title={t.charts.byValueBand}>
+          <BarList items={byValueBand} emptyLabel={UI.viz.empty} />
+        </Card>
+        <Card title={t.charts.completion}>
+          <Donut value={readyRate} sublabel={t.charts.completionSub} accent />
+        </Card>
+      </div>
+
       {/* ── Activité récente : prochaines visites ── */}
       {upcomingVisits.length > 0 && (
         <Card title={t.activity}>
@@ -144,9 +221,7 @@ export default async function DashboardPage() {
                   <div className="est-list-main">{propLabel}</div>
                   <div className="est-list-meta">
                     <span className="ct-badge">{t.visitBadge}</span>
-                    <span className="ct-placeholder">
-                      {dtFmt.format(new Date(v.scheduled_at))}
-                    </span>
+                    <span className="ct-placeholder">{dateFr(v.scheduled_at)}</span>
                   </div>
                 </div>
               </div>
@@ -155,6 +230,7 @@ export default async function DashboardPage() {
         </Card>
       )}
 
+      {/* ── Estimations récentes (tableau) ── */}
       <Card title={t.recent}>
         {recent.length === 0 ? (
           <>
@@ -166,28 +242,12 @@ export default async function DashboardPage() {
           </>
         ) : (
           <>
-            {recent.map((est) => (
-              <div className="est-list-row" key={est.id}>
-                <div className="est-list-info">
-                  <div className="est-list-main">
-                    {est.city ? est.city : est.property_type ? est.property_type : UI.estimations.fallbackName}
-                    {est.property_type && est.city ? ` — ${est.property_type}` : ""}
-                  </div>
-                  <div className="est-list-meta">
-                    <span className="ct-badge">{UI.estimations.status[est.status] ?? est.status}</span>
-                    {est.market_value ? (
-                      <span className="ct-placeholder">{eur.format(est.market_value)}</span>
-                    ) : null}
-                    <span className="ct-placeholder">
-                      {new Date(est.updated_at).toLocaleDateString("fr-FR")}
-                    </span>
-                  </div>
-                </div>
-                <Link href={`/estimations/${est.id}`} className="ct-seg-btn">
-                  {est.status === "draft" || est.status === "interviewing" ? UI.estimations.resume : UI.estimations.open}
-                </Link>
-              </div>
-            ))}
+            <DataTable
+              columns={recentColumns}
+              rows={recent}
+              emptyLabel={UI.estimations.empty}
+              getKey={(r) => r.id}
+            />
             <div className="ct-mb-sm" />
             <Link href="/estimations" className="ct-seg-btn">
               {t.seeAll}

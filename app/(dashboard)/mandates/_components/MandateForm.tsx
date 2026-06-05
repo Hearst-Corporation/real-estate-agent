@@ -73,7 +73,7 @@ export default function MandateForm() {
     <form className="ct-form" onSubmit={handleSubmit}>
       <p className="ct-card-title">{t.form.title}</p>
 
-      <label className="ct-sub">{t.form.property}</label>
+      <label className="ct-eyebrow">{t.form.property}</label>
       <select
         className="ct-input"
         value={propertyId}
@@ -88,7 +88,7 @@ export default function MandateForm() {
         ))}
       </select>
 
-      <label className="ct-sub">{t.form.kind}</label>
+      <label className="ct-eyebrow">{t.form.kind}</label>
       <select
         className="ct-input"
         value={kind}
@@ -101,7 +101,7 @@ export default function MandateForm() {
         ))}
       </select>
 
-      <label className="ct-sub">{t.form.reference}</label>
+      <label className="ct-eyebrow">{t.form.reference}</label>
       <input
         className="ct-input"
         type="text"
@@ -110,7 +110,7 @@ export default function MandateForm() {
         placeholder={t.form.reference}
       />
 
-      <label className="ct-sub">{t.form.askingPrice}</label>
+      <label className="ct-eyebrow">{t.form.askingPrice}</label>
       <input
         className="ct-input"
         type="number"
@@ -119,7 +119,7 @@ export default function MandateForm() {
         onChange={(e) => setAskingPrice(e.target.value)}
       />
 
-      <label className="ct-sub">{t.form.commissionPct}</label>
+      <label className="ct-eyebrow">{t.form.commissionPct}</label>
       <input
         className="ct-input"
         type="number"
@@ -130,7 +130,7 @@ export default function MandateForm() {
         onChange={(e) => setCommissionPct(e.target.value)}
       />
 
-      <label className="ct-sub">{t.form.signedAt}</label>
+      <label className="ct-eyebrow">{t.form.signedAt}</label>
       <input
         className="ct-input"
         type="date"
@@ -138,7 +138,7 @@ export default function MandateForm() {
         onChange={(e) => setSignedAt(e.target.value)}
       />
 
-      <label className="ct-sub">{t.form.expiresAt}</label>
+      <label className="ct-eyebrow">{t.form.expiresAt}</label>
       <input
         className="ct-input"
         type="date"
@@ -146,9 +146,9 @@ export default function MandateForm() {
         onChange={(e) => setExpiresAt(e.target.value)}
       />
 
-      {error && <p className="ct-placeholder" style={{ color: "var(--ct-danger, red)" }}>{error}</p>}
+      {error && <p className="ct-error">{error}</p>}
 
-      <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+      <div className="crm-form-actions">
         <button type="submit" className="ct-seg-btn primary" disabled={loading || !propertyId}>
           {t.form.save}
         </button>

@@ -1,10 +1,17 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
+import { Funnel } from "@/components/cockpit/Funnel";
+import { BarList } from "@/components/cockpit/BarList";
+import { DataTable, type Column } from "@/components/cockpit/DataTable";
+import { StatusSelect } from "@/components/cockpit/StatusSelect";
+import { DeleteButton } from "@/components/cockpit/DeleteButton";
+import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
+import { eur, dateFr, MANDATE_STATUSES } from "@/lib/crm/format";
+import { statusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
-import MandatesList from "./_components/MandatesList";
 
 type MandateRow = {
   id: string;
@@ -13,11 +20,7 @@ type MandateRow = {
   reference: string | null;
   asking_price: number | null;
   commission_pct: number | null;
-  signed_at: string | null;
   expires_at: string | null;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
   properties: { title: string | null; city: string | null } | null;
 };
 
@@ -31,26 +34,57 @@ export default async function MandatesPage() {
   if (claims && sb) {
     const { data } = await sb
       .from("mandates")
-      .select("*, properties(title, city)")
+      .select("id, status, kind, reference, asking_price, commission_pct, expires_at, properties(title, city)")
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("updated_at", { ascending: false });
     mandates = (data ?? []) as MandateRow[];
   }
 
-  const total = mandates.length;
   const actifs = mandates.filter((m) => m.status === "actif");
   const underMandate = actifs.reduce((sum, m) => sum + (m.asking_price ?? 0), 0);
-  const commissions = actifs
-    .map((m) => m.commission_pct)
-    .filter((c): c is number => c !== null);
-  const avgCommission =
-    commissions.length > 0
-      ? commissions.reduce((s, c) => s + c, 0) / commissions.length
-      : 0;
+  const avgCommission = average(actifs, "commission_pct");
 
-  const fmtEur = (v: number) =>
-    new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+  const pipeline = countByStatus(mandates, MANDATE_STATUSES, t.statusLabels, (s) =>
+    statusTone("mandate", s)
+  );
+  const byKind = topByCategory(mandates, "kind", t.kindLabels);
+
+  const columns: Column<MandateRow>[] = [
+    {
+      key: "reference",
+      header: t.table.reference,
+      render: (m) => m.reference ?? m.properties?.city ?? t.noReference,
+    },
+    { key: "price", header: t.table.price, align: "right", render: (m) => eur(m.asking_price) },
+    {
+      key: "commission",
+      header: t.table.commission,
+      align: "right",
+      render: (m) => (m.commission_pct != null ? `${m.commission_pct}${t.commissionUnit}` : "—"),
+    },
+    { key: "kind", header: t.table.kind, render: (m) => <Badge>{t.kindLabels[m.kind] ?? m.kind}</Badge> },
+    { key: "expires", header: t.table.expires, align: "right", render: (m) => dateFr(m.expires_at) },
+    {
+      key: "status",
+      header: t.table.status,
+      render: (m) => (
+        <StatusSelect
+          endpoint={`/api/mandates/${m.id}`}
+          value={m.status}
+          options={MANDATE_STATUSES}
+          labels={t.statusLabels}
+          ariaLabel={t.table.status}
+        />
+      ),
+    },
+    {
+      key: "action",
+      header: t.table.action,
+      align: "right",
+      render: (m) => <DeleteButton endpoint={`/api/mandates/${m.id}`} label={t.delete} confirmMessage={t.delete} />,
+    },
+  ];
 
   return (
     <>
@@ -58,42 +92,35 @@ export default async function MandatesPage() {
       <Title>{t.title}</Title>
       <Sub>{t.sub}</Sub>
 
-      <Link href="/mandates/new" className="ct-seg-btn primary">
-        {t.newCta}
-      </Link>
-
-      <div className="ct-mb-sm" />
-
-      <KpiGrid className="cols-4">
-        <KpiCard>
-          <span className="ct-kpi-label">{t.kpis.total}</span>
-          <span className="ct-kpi-value">{total}</span>
-        </KpiCard>
-        <KpiCard>
-          <span className="ct-kpi-label">{t.kpis.active}</span>
-          <span className="ct-kpi-value">{actifs.length}</span>
-        </KpiCard>
-        <KpiCard className="accent">
-          <span className="ct-kpi-label">{t.kpis.underMandate}</span>
-          <span className="ct-kpi-value">{fmtEur(underMandate)}</span>
-        </KpiCard>
-        <KpiCard>
-          <span className="ct-kpi-label">{t.kpis.avgCommission}</span>
-          <span className="ct-kpi-value">
-            {avgCommission > 0 ? `${avgCommission.toFixed(2)}${t.commissionUnit}` : "—"}
-          </span>
-        </KpiCard>
+      <KpiGrid>
+        <KpiCard label={t.kpis.total} value={String(mandates.length)} />
+        <KpiCard label={t.kpis.active} value={String(actifs.length)} accent />
+        <KpiCard label={t.kpis.underMandate} value={eur(underMandate)} />
+        <KpiCard
+          label={t.kpis.avgCommission}
+          value={avgCommission > 0 ? `${avgCommission}${t.commissionUnit}` : "—"}
+        />
       </KpiGrid>
 
-      <div className="ct-mb-sm" />
-
-      {mandates.length === 0 ? (
-        <Card>
-          <p className="ct-placeholder">{t.empty}</p>
+      <div className="ct-viz-row">
+        <Card title={t.charts.pipeline}>
+          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
         </Card>
-      ) : (
-        <MandatesList initialMandates={mandates} />
-      )}
+        <Card title={t.charts.byKind}>
+          <BarList items={byKind} emptyLabel={UI.viz.empty} />
+        </Card>
+      </div>
+
+      <div className="crm-toolbar">
+        <span className="ct-card-title">{t.title}</span>
+        <Link href="/mandates/new" className="ct-seg-btn primary">
+          {t.newCta}
+        </Link>
+      </div>
+
+      <Card>
+        <DataTable columns={columns} rows={mandates} emptyLabel={t.empty} getKey={(m) => m.id} />
+      </Card>
     </>
   );
 }

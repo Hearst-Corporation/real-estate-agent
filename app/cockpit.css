@@ -1013,3 +1013,112 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 .swarm-dynamic-remove:hover { color: var(--ct-text-danger); }
 .swarm-add-btn { background: none; border: 1px dashed var(--ct-border); color: var(--ct-text-muted); font-size: 12px; cursor: pointer; padding: var(--ct-space-xs) var(--ct-space-md); border-radius: 8px; font-family: inherit; width: 100%; margin-top: var(--ct-space-xs); }
 .swarm-add-btn:hover { border-color: var(--ct-accent); color: var(--ct-accent); }
+
+/* ════════════════════════════════════════════════════════════
+   VIZ — composants graphiques réutilisables (Donut, BarList, Funnel)
+   SVG/CSS pur, tokens --ct-* uniquement. Seul inline toléré côté .tsx :
+   style={{ width: `${pct}%` }} (largeur data-driven des barres).
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Grille bento 2 colonnes pour rangées de viz ── */
+.ct-viz-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--ct-space-md);
+  margin-bottom: var(--ct-space-md);
+}
+.ct-viz-row.even { grid-template-columns: 1fr 1fr; }
+@media (max-width: 1100px) {
+  .ct-viz-row, .ct-viz-row.even { grid-template-columns: 1fr; }
+}
+
+/* La grille KPI par défaut est déjà 4 colonnes ; alias explicite. */
+.ct-kpi-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* ── Donut (anneau de progression) ── */
+.ct-chart-donut {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+.ct-chart-donut-ring { transform: rotate(-90deg); transform-origin: center; }
+.ct-chart-donut-track { fill: none; stroke: var(--ct-surface-2); }
+.ct-chart-donut-fill {
+  fill: none;
+  stroke: var(--ct-text-strong);
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--ct-dur-base) var(--ct-ease);
+}
+.ct-chart-donut-fill.accent { stroke: var(--ct-accent-strong); }
+.ct-chart-donut-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: var(--ct-space-2xs);
+}
+.ct-chart-donut-value {
+  font-size: 24px; font-weight: 800;
+  color: var(--ct-text-primary); letter-spacing: -0.02em;
+}
+.ct-chart-donut-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ct-text-muted);
+}
+
+/* ── BarList (barres horizontales label + valeur + piste) ── */
+.ct-chart-barlist { display: flex; flex-direction: column; gap: var(--ct-space-sm); }
+.ct-chart-barlist-item { display: flex; flex-direction: column; gap: var(--ct-space-2xs); }
+.ct-chart-barlist-head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-sm);
+}
+.ct-chart-barlist-label {
+  font-size: 12px; color: var(--ct-text-body);
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ct-chart-barlist-value { font-size: 12px; font-weight: 700; color: var(--ct-text-primary); flex-shrink: 0; }
+.ct-chart-barlist .est-fiche-bar-track { height: 6px; }
+.ct-chart-empty { font-size: 12px; color: var(--ct-text-muted); font-style: italic; line-height: 1.6; }
+
+/* ── Funnel (entonnoir vertical par statut) ── */
+.ct-chart-funnel { display: flex; flex-direction: column; gap: var(--ct-space-xs); }
+.ct-chart-funnel-step { display: flex; flex-direction: column; gap: var(--ct-space-2xs); }
+.ct-chart-funnel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-sm);
+}
+.ct-chart-funnel-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ct-text-muted);
+}
+.ct-chart-funnel-count { font-size: 13px; font-weight: 800; color: var(--ct-text-primary); }
+.ct-chart-funnel-track { height: 28px; border-radius: 8px; background: var(--ct-surface-1); overflow: hidden; }
+.ct-chart-funnel-bar {
+  height: 100%; min-width: 2px; border-radius: 8px;
+  background: color-mix(in srgb, var(--ct-accent-strong) 18%, transparent);
+  border: 1px solid var(--ct-border-accent);
+  transition: width var(--ct-dur-base) var(--ct-ease);
+}
+.ct-chart-funnel-bar.is-positive {
+  background: color-mix(in srgb, var(--ct-accent-strong) 28%, transparent);
+  border-color: var(--ct-border-accent);
+}
+.ct-chart-funnel-bar.is-negative {
+  background: color-mix(in srgb, var(--ct-text-muted) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ct-text-muted) 30%, transparent);
+}
+.ct-chart-funnel-bar.is-pending {
+  background: color-mix(in srgb, var(--ct-border-strong) 40%, transparent);
+  border-color: var(--ct-border-strong);
+}
+
+/* ── Bouton segment destructif (remplace les style={{color:var(--ct-danger,red)}}) ── */
+.ct-seg-btn.danger { color: var(--ct-text-danger); }
+.ct-seg-btn.danger:hover { background: color-mix(in srgb, var(--ct-text-danger) 12%, transparent); }
+
+/* Titre dans une toolbar (flex centré) : neutralise la marge basse du card-title. */
+.crm-toolbar .ct-card-title { margin-bottom: 0; }
+
+/* ── Cellules de tableau spécifiques ── */
+.ct-table-actions { display: flex; gap: var(--ct-space-2xs); justify-content: flex-end; flex-wrap: wrap; }
+.est-listing-table td.ct-table-num,
+.est-listing-table th.ct-table-num { text-align: right; font-variant-numeric: tabular-nums; }
