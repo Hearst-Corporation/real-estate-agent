@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/server/session"
-import { tenantOf } from "@/lib/tenant"
+import { uuidOwnerOf } from "@/lib/tenant"
 import { getSwarm, patchSwarm, deleteSwarm } from "@/lib/swarms/client"
 import type { PatchSwarmPayload } from "@/lib/swarms/types"
 
@@ -16,7 +16,7 @@ export async function GET(_req: Request, { params }: Params) {
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
 
   try {
     const swarm = await getSwarm(id)
@@ -37,7 +37,7 @@ export async function PATCH(req: Request, { params }: Params) {
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
 
   let body: PatchSwarmPayload
   try {
@@ -66,7 +66,7 @@ export async function DELETE(_req: Request, { params }: Params) {
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
 
   try {
     const swarm = await getSwarm(id)
