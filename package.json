@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start -p 3002",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:3002 && npm run electron:start\"",
     "electron:start": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron .",
     "electron:build": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron-builder",
@@ -51,6 +53,7 @@
     "eslint-config-next": "16.2.7",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vitest": "^4.1.8",
     "wait-on": "^9.0.10"
   },
   "main": "dist-electron/main.js",
