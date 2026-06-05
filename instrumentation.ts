@@ -3,6 +3,7 @@
  * No-op si SENTRY_DSN absent → aucun crash en dev sans config.
  */
 import * as Sentry from "@sentry/nextjs";
+import { scrubSentryEvent } from "./lib/providers/scrub";
 
 export function register() {
   const dsn = process.env.SENTRY_DSN;
@@ -12,6 +13,8 @@ export function register() {
       dsn,
       tracesSampleRate: 0.1,
       environment: process.env.NODE_ENV,
+      // Anti-fuite : scrub secrets/PII de tout event avant envoi.
+      beforeSend: (event) => scrubSentryEvent(event),
     });
   }
 }

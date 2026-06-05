@@ -8,6 +8,7 @@
  */
 
 import { ProviderUnavailableError, envPresent } from "./types";
+import { scrubSecrets } from "./scrub";
 
 const ENDPOINT = "https://api.peopledatalabs.com/v5/person/enrich";
 const PDL_TIMEOUT_MS = 12_000;
@@ -54,7 +55,7 @@ export async function enrichPerson(params: {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(
-        `PDL HTTP ${res.status} — ${text.slice(0, 300)}`,
+        `PDL HTTP ${res.status} — ${scrubSecrets(text).slice(0, 200)}`,
       );
     }
 

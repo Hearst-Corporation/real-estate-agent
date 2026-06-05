@@ -7,6 +7,8 @@
  *   - fail-soft côté caller : on vérifie isConfigured() avant d'appeler.
  */
 
+import { scrubSecrets, safeUrl } from "./scrub";
+
 /** Erreur typée levée quand un provider est appelé sans clé configurée. */
 export class ProviderUnavailableError extends Error {
   readonly provider: string;
@@ -39,7 +41,11 @@ export async function fetchJson<T = unknown>(
     const res = await fetch(url, { ...rest, signal: controller.signal });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status} sur ${url} — ${text.slice(0, 300)}`);
+      // Anti-fuite : url sans query, corps scrubé (les providers échoient parfois
+      // la requête — clé API incluse — dans leur réponse d'erreur).
+      throw new Error(
+        `HTTP ${res.status} sur ${safeUrl(url)} — ${scrubSecrets(text).slice(0, 200)}`,
+      );
     }
     return (await res.json()) as T;
   } finally {
