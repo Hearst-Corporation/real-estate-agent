@@ -9,7 +9,7 @@ import type {
   SwarmTool,
 } from "./types"
 
-const ENGINE_BASE = process.env.MYSWARMS_ENGINE_URL ?? ""
+const ENGINE_BASE = `${process.env.MYSWARMS_ENGINE_URL ?? ""}/v1`
 const ENGINE_TOKEN = process.env.MYSWARMS_ENGINE_TOKEN ?? ""
 const DEFAULT_TIMEOUT_MS = 30_000
 
@@ -111,6 +111,7 @@ export async function generateSpec(
   return engineFetch<ArchitectSpec>("/swarms/architect/generate", {
     method: "POST",
     body: JSON.stringify({ prompt: description, owner_id: ownerId }),
+    timeoutMs: 90_000, // LLM generation can take 60-90s
   })
 }
 
