@@ -39,9 +39,15 @@ export function countByStatus<T extends WithStatus>(
 
 // ─── topByCategory → BarList ────────────────────────────────────────────────────
 
+/** Libellé du regroupement des catégories hors top N. */
+const OTHER_LABEL = "autres";
+
 /**
  * Top N catégories d'un champ texte, triées par fréquence décroissante.
- * Les valeurs nulles/vides sont ignorées. percent = part relative au max.
+ * Les valeurs nulles/vides sont ignorées. `percent` = PART DU TOTAL (la somme
+ * des barres ≈ 100 %), pas part du max → c'est une vraie répartition. Les
+ * catégories au-delà du top N sont regroupées en un item « +N autres » (jamais
+ * masquées silencieusement).
  */
 export function topByCategory<T>(
   rows: T[],
@@ -50,27 +56,42 @@ export function topByCategory<T>(
   top = 5
 ): BarItem[] {
   const counts = new Map<string, number>();
+  let total = 0;
   for (const row of rows) {
     const raw = row[field];
     if (raw == null) continue;
     const key = String(raw).trim();
     if (!key) continue;
     counts.set(key, (counts.get(key) ?? 0) + 1);
+    total += 1;
   }
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, top);
-  const max = sorted[0]?.[1] ?? 1;
-  return sorted.map(([key, n]) => ({
+  if (total === 0) return [];
+
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const head = sorted.slice(0, top);
+  const items: BarItem[] = head.map(([key, n]) => ({
     label: labels?.[key] ?? key,
     value: String(n),
-    percent: Math.round((n / max) * 100),
+    percent: Math.round((n / total) * 100),
   }));
+
+  const rest = sorted.slice(top);
+  const restCount = rest.reduce((s, [, n]) => s + n, 0);
+  if (restCount > 0) {
+    items.push({
+      label: `+${rest.length} ${OTHER_LABEL}`,
+      value: String(restCount),
+      percent: Math.round((restCount / total) * 100),
+    });
+  }
+  return items;
 }
 
 // ─── distributeByBand → BarList ─────────────────────────────────────────────────
 
 export type Band = [min: number, max: number];
 
-/** Tranches de montant par défaut (€). */
+/** Tranches de montant par défaut (€) — fallback si pas assez de données. */
 export const PRICE_BANDS: Band[] = [
   [0, 200_000],
   [200_000, 400_000],
@@ -78,6 +99,37 @@ export const PRICE_BANDS: Band[] = [
   [600_000, 1_000_000],
   [1_000_000, Infinity],
 ];
+
+/**
+ * Construit `n` tranches « jolies » couvrant la plage réelle des valeurs
+ * (min → max), au lieu de bornes figées inadaptées au marché. La dernière
+ * tranche est ouverte (→ Infinity). Fallback sur PRICE_BANDS si < 2 valeurs
+ * exploitables ou plage nulle.
+ */
+export function autoBands(values: (number | null | undefined)[], n = 5): Band[] {
+  const nums = values.filter(
+    (v): v is number => typeof v === "number" && Number.isFinite(v)
+  );
+  if (nums.length < 2) return PRICE_BANDS;
+
+  const min = Math.min(...nums);
+  const max = Math.max(...nums);
+  if (min === max) return PRICE_BANDS;
+
+  const rawStep = (max - min) / n;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const niceStep = Math.ceil(rawStep / mag) * mag;
+  const start = Math.floor(min / niceStep) * niceStep;
+
+  const bands: Band[] = [];
+  let lo = start;
+  for (let i = 0; i < n; i++) {
+    const hi = lo + niceStep;
+    bands.push([lo, i === n - 1 ? Infinity : hi]);
+    lo = hi;
+  }
+  return bands;
+}
 
 /** Libellé FR d'une tranche, formaté via eur(). */
 function bandLabel([min, max]: Band): string {
@@ -88,7 +140,7 @@ function bandLabel([min, max]: Band): string {
 
 /**
  * Distribue les lignes par tranche de valeur (champ numérique).
- * percent = part relative à la tranche la plus peuplée.
+ * `percent` = PART DU TOTAL des lignes valorisées (somme ≈ 100 %).
  */
 export function distributeByBand<T>(
   rows: T[],
@@ -101,11 +153,11 @@ export function distributeByBand<T>(
       return typeof v === "number" && v >= min && v < max ? n + 1 : n;
     }, 0)
   );
-  const max = Math.max(...counts, 1);
+  const total = counts.reduce((a, b) => a + b, 0) || 1;
   return bands.map((band, i) => ({
     label: bandLabel(band),
     value: String(counts[i]),
-    percent: Math.round((counts[i] / max) * 100),
+    percent: Math.round((counts[i] / total) * 100),
   }));
 }
 

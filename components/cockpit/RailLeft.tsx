@@ -4,7 +4,6 @@ import type { ComponentType, SVGProps } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
-import { AccentSelector } from "./AccentSelector";
 import { UI } from "@/lib/ui-strings";
 import {
   IconDashboard,
@@ -67,10 +66,12 @@ export function RailLeft({ userEmail, isAdmin = false }: { userEmail?: string; i
               href={item.href}
               className={`ct-rail-action${active ? " active" : ""}`}
               title={item.label}
-              aria-label={item.label}
               aria-current={active ? "page" : undefined}
             >
-              <Icon />
+              <span className="ct-rail-action-icon">
+                <Icon />
+              </span>
+              <span className="ct-rail-action-label">{item.label}</span>
             </Link>
           );
         })}
@@ -79,10 +80,12 @@ export function RailLeft({ userEmail, isAdmin = false }: { userEmail?: string; i
             href="/admin"
             className={`ct-rail-action${pathname.startsWith("/admin") ? " active" : ""}`}
             title={UI.nav.admin}
-            aria-label={UI.nav.admin}
             aria-current={pathname.startsWith("/admin") ? "page" : undefined}
           >
-            <IconAdmin />
+            <span className="ct-rail-action-icon">
+              <IconAdmin />
+            </span>
+            <span className="ct-rail-action-label">{UI.nav.admin}</span>
           </Link>
         )}
       </div>
@@ -90,16 +93,14 @@ export function RailLeft({ userEmail, isAdmin = false }: { userEmail?: string; i
       <div className="ct-spacer" />
 
       <div className="ct-rail-bottom">
-        <AccentSelector />
-        <div className="ct-rail-divider" />
         <Link
           href="/profile"
-          className={`ct-avatar${profileActive ? " active" : ""}`}
+          className={`ct-rail-profile${profileActive ? " active" : ""}`}
           title={UI.nav.profile}
-          aria-label={UI.nav.profile}
           aria-current={profileActive ? "page" : undefined}
         >
-          {initials}
+          <span className="ct-avatar">{initials}</span>
+          <span className="ct-rail-action-label">{UI.nav.profile}</span>
         </Link>
       </div>
     </nav>

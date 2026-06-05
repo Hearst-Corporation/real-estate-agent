@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
+import { PageHeader, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
@@ -30,15 +30,20 @@ export default async function MandatesPage() {
   const sb = getSupabaseAdmin();
 
   let mandates: MandateRow[] = [];
+  let total = 0;
 
   if (claims && sb) {
-    const { data } = await sb
+    const { data, count } = await sb
       .from("mandates")
-      .select("id, status, kind, reference, asking_price, commission_pct, expires_at, properties(title, city)")
+      .select(
+        "id, status, kind, reference, asking_price, commission_pct, expires_at, properties(title, city)",
+        { count: "exact" }
+      )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("updated_at", { ascending: false });
     mandates = (data ?? []) as MandateRow[];
+    total = count ?? mandates.length;
   }
 
   const actifs = mandates.filter((m) => m.status === "actif");
@@ -88,12 +93,19 @@ export default async function MandatesPage() {
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+      <PageHeader
+        eyebrow={t.eyebrow}
+        title={t.title}
+        sub={t.sub}
+        actions={
+          <Link href="/mandates/new" className="ct-seg-btn primary">
+            {t.newCta}
+          </Link>
+        }
+      />
 
       <KpiGrid>
-        <KpiCard label={t.kpis.total} value={String(mandates.length)} />
+        <KpiCard label={t.kpis.total} value={String(total)} />
         <KpiCard label={t.kpis.active} value={String(actifs.length)} accent />
         <KpiCard label={t.kpis.underMandate} value={eur(underMandate)} />
         <KpiCard
@@ -111,14 +123,7 @@ export default async function MandatesPage() {
         </Card>
       </div>
 
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.title}</span>
-        <Link href="/mandates/new" className="ct-seg-btn primary">
-          {t.newCta}
-        </Link>
-      </div>
-
-      <Card>
+      <Card title={t.title}>
         <DataTable columns={columns} rows={mandates} emptyLabel={t.empty} getKey={(m) => m.id} />
       </Card>
     </>

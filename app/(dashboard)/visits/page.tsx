@@ -1,4 +1,4 @@
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { PageHeader, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { Donut } from "@/components/cockpit/Donut";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
@@ -28,15 +28,20 @@ export default async function VisitsPage() {
   const sb = getSupabaseAdmin();
 
   let visits: VisitRow[] = [];
+  let total = 0;
 
   if (claims && sb) {
-    const { data } = await sb
+    const { data, count } = await sb
       .from("visits")
-      .select("id, status, scheduled_at, duration_min, property_id, properties(title, city)")
+      .select(
+        "id, status, scheduled_at, duration_min, property_id, properties(title, city)",
+        { count: "exact" }
+      )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("scheduled_at", { ascending: true });
     visits = (data ?? []) as VisitRow[];
+    total = count ?? visits.length;
   }
 
   const now = new Date();
@@ -87,12 +92,15 @@ export default async function VisitsPage() {
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+      <PageHeader
+        eyebrow={t.eyebrow}
+        title={t.title}
+        sub={t.sub}
+        actions={<VisitForm cta={t.newCta} />}
+      />
 
       <KpiGrid>
-        <KpiCard label={t.kpis.total} value={String(visits.length)} />
+        <KpiCard label={t.kpis.total} value={String(total)} />
         <KpiCard label={t.kpis.upcoming} value={String(upcoming.length)} accent />
         <KpiCard label={t.kpis.done} value={String(done)} />
         <KpiCard label={t.kpis.noShow} value={`${noShowRate}%`} />
@@ -105,11 +113,6 @@ export default async function VisitsPage() {
         <Card title={t.charts.doneRate}>
           <Donut value={doneRate} sublabel={t.charts.doneRateSub} accent />
         </Card>
-      </div>
-
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.title}</span>
-        <VisitForm cta={t.newCta} />
       </div>
 
       {visits.length === 0 ? (

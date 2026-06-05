@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { PageHeader, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
@@ -35,20 +35,28 @@ export default async function EstimationsPage() {
   const sb = getSupabaseAdmin();
 
   let estimations: EstRow[] = [];
+  let total = 0;
 
   if (claims && sb) {
-    const { data } = await sb
+    const { data, count } = await sb
       .from("estimations")
-      .select("id, status, city, property_type, market_value, updated_at")
+      .select("id, status, city, property_type, market_value, updated_at", {
+        count: "exact",
+      })
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("updated_at", { ascending: false });
     estimations = (data ?? []) as EstRow[];
+    total = count ?? estimations.length;
   }
 
   const ready = estimations.filter((e) => e.status === "ready").length;
   const inProgress = estimations.filter((e) => IN_PROGRESS.includes(e.status)).length;
-  const avgValue = average(estimations, "market_value");
+  // Moyenne sur les estimations PRÊTES uniquement (les autres n'ont pas de valeur).
+  const avgValue = average(
+    estimations.filter((e) => e.status === "ready"),
+    "market_value"
+  );
 
   const pipeline = countByStatus(estimations, ESTIMATION_STATUSES, t.status, estimationTone);
   const byType = topByCategory(estimations, "property_type");
@@ -85,12 +93,19 @@ export default async function EstimationsPage() {
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+      <PageHeader
+        eyebrow={t.eyebrow}
+        title={t.title}
+        sub={t.sub}
+        actions={
+          <Link href="/estimations/new" className="ct-seg-btn primary">
+            {t.newCta}
+          </Link>
+        }
+      />
 
       <KpiGrid>
-        <KpiCard label={t.kpis.total} value={String(estimations.length)} accent />
+        <KpiCard label={t.kpis.total} value={String(total)} accent />
         <KpiCard label={t.kpis.ready} value={String(ready)} />
         <KpiCard label={t.kpis.inProgress} value={String(inProgress)} />
         <KpiCard label={t.kpis.avgValue} value={eur(avgValue)} />
@@ -103,13 +118,6 @@ export default async function EstimationsPage() {
         <Card title={t.charts.byType}>
           <BarList items={byType} emptyLabel={UI.viz.empty} />
         </Card>
-      </div>
-
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.title}</span>
-        <Link href="/estimations/new" className="ct-seg-btn primary">
-          {t.newCta}
-        </Link>
       </div>
 
       <Card>

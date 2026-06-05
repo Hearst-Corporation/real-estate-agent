@@ -100,7 +100,7 @@ export const UI = {
       total: "Estimations",
       ready: "Prêtes",
       inProgress: "En cours",
-      avgValue: "Valeur moyenne",
+      avgValue: "Valeur moy. (prêtes)",
     },
     charts: {
       pipeline: "Pipeline",
@@ -473,11 +473,6 @@ export const UI = {
     userAvatar: "VO",
     assistantAvatar: "KI",
     errorPrefix: "Erreur",
-  },
-  accent: {
-    group: "Accent",
-    custom: "Couleur libre",
-    customAria: "Couleur personnalisée",
   },
   common: {
     yes: "Oui",

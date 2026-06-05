@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
+import { PageHeader, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
-import { countByStatus, topByCategory, distributeByBand, ratio } from "@/lib/crm/aggregate";
+import { countByStatus, topByCategory, distributeByBand, autoBands, ratio } from "@/lib/crm/aggregate";
 import { eur, dateFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -126,7 +126,11 @@ export default async function DashboardPage() {
   // ── Agrégations viz (données déjà en mémoire) ──
   const pipeline = countByStatus(rows, ESTIMATION_STATUSES, UI.estimations.status, estimationTone);
   const byCity = topByCategory(rows, "city");
-  const byValueBand = distributeByBand(rows, "market_value");
+  const byValueBand = distributeByBand(
+    rows,
+    "market_value",
+    autoBands(rows.map((r) => r.market_value))
+  );
   const readyRate = ratio(rows, (r) => r.status === "ready");
 
   const recent = rows.slice(0, RECENT_LIMIT);
@@ -175,9 +179,16 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+      <PageHeader
+        eyebrow={t.eyebrow}
+        title={t.title}
+        sub={t.sub}
+        actions={
+          <Link href="/estimations/new" className="ct-seg-btn primary">
+            {UI.estimations.newCta}
+          </Link>
+        }
+      />
 
       {/* ── KPI CRM ── */}
       <KpiGrid>

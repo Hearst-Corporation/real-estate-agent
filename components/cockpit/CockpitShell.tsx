@@ -18,7 +18,7 @@ export function CockpitShell({
       <div className="ct-ambient-glow" />
       <div className="ct-panels-row">
         <RailLeft userEmail={userEmail} isAdmin={isAdmin} />
-        <CenterPanel isAdmin={isAdmin}>{children}</CenterPanel>
+        <CenterPanel>{children}</CenterPanel>
         <RailRight />
       </div>
     </div>

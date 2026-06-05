@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Avis de valeur — Real Estate Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --accent:#8A1538; --accent-deep:#5e0e25;
+  --ink:#1b1714; --ink-2:#42392f; --mut:#7a7268; --faint:#a39b90;
+  --line:#e6e0d8; --line-2:#f0ece5; --paper:#fffdfa; --soft:#f7f3ed; --soft-2:#fbf8f3;
+  --ok:#1f8a52;
+  --serif:"Spectral",Georgia,serif; --sans:"Inter",-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#c9c4bc;color:var(--ink);font-family:var(--sans);font-size:10.2px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@page{size:A4;margin:0}
+.num{font-variant-numeric:tabular-nums}
+
+.toolbar{position:sticky;top:0;z-index:50;background:#1c1714;color:#f2ece4;display:flex;justify-content:space-between;align-items:center;padding:9px 18px;font-size:12px}
+.toolbar b{font-weight:600;font-family:var(--serif)}
+.toolbar button{font:inherit;font-size:12px;background:var(--accent);color:#fff;border:0;padding:8px 16px;border-radius:5px;cursor:pointer;letter-spacing:.01em}
+.toolbar button:hover{filter:brightness(1.12)}
+
+.doc{padding:18px 0 40px}
+.page{width:210mm;height:297mm;background:var(--paper);margin:0 auto 16px;padding:13mm 13mm 11mm;position:relative;box-shadow:0 6px 30px rgba(0,0,0,.2);display:flex;flex-direction:column;overflow:hidden}
+
+/* ── running head / foot ── */
+.head{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:9px;border-bottom:1px solid var(--accent);position:relative}
+.head::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:1px;background:var(--accent);opacity:.35}
+.lock{display:flex;align-items:center;gap:10px}
+.lock .mk{width:26px;height:26px;border:1.5px solid var(--accent);border-radius:50%;display:grid;place-items:center;color:var(--accent);font-family:var(--serif);font-weight:600;font-size:14px}
+.lock .nm{font-family:var(--serif);font-weight:500;font-size:14px;letter-spacing:.02em;line-height:1}
+.lock .nm small{display:block;font-family:var(--sans);font-size:8px;letter-spacing:.34em;text-transform:uppercase;color:var(--mut);margin-top:3px}
+.head .ref{text-align:right;font-size:8.5px;letter-spacing:.04em;color:var(--mut);line-height:1.5}
+.head .ref b{color:var(--ink);font-weight:600}
+.foot{margin-top:auto;padding-top:8px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:8px;letter-spacing:.04em;color:var(--faint)}
+
+/* ── section eyebrow ── */
+.eb{display:flex;align-items:baseline;gap:9px;margin:14px 0 8px}
+.eb .n{font-family:var(--serif);font-size:15px;color:var(--accent);font-weight:500;line-height:1}
+.eb .tx{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.eb .ln{height:1px;flex:1;background:var(--line);align-self:center}
+h2{font-family:var(--serif);font-weight:500;font-size:17px;letter-spacing:-.01em;line-height:1.1;color:var(--ink)}
+.lead{color:var(--ink-2);max-width:70ch;margin-top:3px;font-size:10px}
+
+/* ── HERO ── */
+.hero{display:grid;grid-template-columns:1.32fr 1fr;gap:22px;align-items:stretch;margin-top:16px}
+.hero .kdoc{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--mut);margin-bottom:9px}
+.hero h1{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.06;letter-spacing:-.01em}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.addr{display:flex;align-items:center;gap:8px;color:var(--ink-2);margin-top:11px;font-size:11px}
+.addr svg{stroke:var(--accent);flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.chip{font-size:9.5px;padding:4px 9px;border:1px solid var(--line);border-radius:3px;background:var(--soft-2);color:var(--ink-2)}
+.chip b{color:var(--ink);font-weight:600}
+
+.valuebox{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:7px;padding:18px 20px;background:linear-gradient(180deg,var(--soft-2),var(--paper));display:flex;flex-direction:column;justify-content:center}
+.valuebox .lab{font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
+.bigval{font-family:var(--serif);font-weight:400;font-size:42px;line-height:1;letter-spacing:-.01em;color:var(--ink);margin:5px 0 0}
+.bigval .cur{color:var(--accent);font-size:.42em;margin-left:5px;vertical-align:.34em}
+.range{display:flex;align-items:center;gap:9px;margin-top:11px;font-size:10.5px;color:var(--mut)}
+.rangebar{height:5px;flex:1;border-radius:3px;background:linear-gradient(90deg,#ece6de,var(--accent) 52%,#ece6de);position:relative}
+.rangebar i{position:absolute;top:50%;left:54%;width:10px;height:10px;border-radius:50%;background:#fff;border:2.5px solid var(--accent);transform:translate(-50%,-50%)}
+.vmeta{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:16px;padding-top:13px;border-top:1px solid var(--line)}
+.vmeta .l{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.vmeta .v{font-family:var(--serif);font-size:18px;color:var(--ink);margin-top:2px}
+.vmeta .v.acc{color:var(--accent)}
+
+/* ── KPI strip ── */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);margin-top:14px;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.kpi{padding:12px 14px;border-right:1px solid var(--line);background:var(--paper)}
+.kpi:last-child{border-right:0}
+.kpi .l{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.kpi .v{font-family:var(--serif);font-size:23px;color:var(--ink);margin:4px 0 2px}
+.kpi .v small{font-size:12px;color:var(--mut)}
+.kpi .d{font-size:8.5px;color:var(--ink-2)}.kpi .d .up{color:var(--ok);font-weight:600}
+
+/* ── split: map + bien ── */
+.split{display:grid;grid-template-columns:1.18fr 1fr;gap:18px;margin-top:6px}
+.mapwrap{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+#map{height:92mm;background:#ece9e3}
+.maplegend{position:absolute;left:8px;bottom:8px;z-index:500;background:rgba(255,253,250,.95);border:1px solid var(--line);border-radius:5px;padding:7px 9px;font-size:8.5px;color:var(--ink-2)}
+.maplegend .t{font-weight:600;color:var(--ink);margin-bottom:4px}
+.maplegend .li{display:flex;align-items:center;gap:6px;margin:2.5px 0}
+.maplegend .dot{width:8px;height:8px;border-radius:50%;flex:none}
+
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;margin-top:2px}
+.spec{display:flex;justify-content:space-between;align-items:baseline;padding:5.5px 0;border-bottom:1px solid var(--line-2)}
+.spec .l{color:var(--mut);font-size:9.5px}.spec .v{font-weight:600;color:var(--ink);font-size:9.5px}
+.dpe{display:inline-grid;place-items:center;width:20px;height:16px;border-radius:3px;background:var(--ok);color:#fff;font-weight:700;font-size:10px}
+.expert{margin-top:10px;font-size:9.5px;color:var(--ink-2);line-height:1.55}
+.expert b{color:var(--ink)} .expert .acc{color:var(--accent);font-weight:600}
+.tags{margin-top:9px;display:flex;gap:5px;flex-wrap:wrap}
+
+/* ── PAGE 2 ── */
+.charts{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;margin-top:6px}
+.panel{border:1px solid var(--line);border-radius:6px;padding:13px 15px;background:var(--paper)}
+.panel .pt{font-family:var(--serif);font-size:11.5px;color:var(--ink);margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.panel .pt::before{content:"";width:5px;height:5px;background:var(--accent);border-radius:1px}
+.spark{width:100%;height:62px;display:block}.spark .line{fill:none;stroke:var(--accent);stroke-width:1.6}
+.dist{display:flex;align-items:flex-end;gap:3px;height:62px;margin-top:16px}
+.dist .bar{flex:1;background:#e9ddd9;border-radius:2px 2px 0 0}.dist .bar.me{background:var(--accent);position:relative}
+.dist .bar.me::after{content:"●";position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--accent)}
+.axis{display:flex;justify-content:space-between;font-size:7.5px;color:var(--faint);margin-top:5px}
+.posbar{height:7px;border-radius:5px;background:linear-gradient(90deg,#cfe6d6,#ecd9bb 45%,#ecc9c9);position:relative;margin:20px 0 6px}
+.posbar i{position:absolute;top:50%;left:62%;transform:translate(-50%,-50%);width:2px;height:20px;background:var(--ink)}
+.posbar i::after{content:"379 k€";position:absolute;top:-15px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:8px;color:var(--ink);font-weight:600}
+
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-top:6px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:6px 7px;border-bottom:1px solid var(--line-2);font-size:9.5px}
+th{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600;border-bottom:1px solid var(--line)}
+td .pm{color:var(--accent);font-weight:600}
+.lst{display:flex;gap:9px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-2)}
+.lst:last-child{border-bottom:0}
+.lst .ph{width:38px;height:30px;border-radius:3px;flex:none;background:var(--soft);border:1px solid var(--line);display:grid;place-items:center;color:var(--faint);font-size:11px}
+.lst .m{flex:1}.lst .m .t{font-weight:500;color:var(--ink);font-size:9.5px;line-height:1.2}.lst .m .s{font-size:8.5px;color:var(--mut);margin-top:1px}
+.lst .pr{text-align:right}.lst .pr b{font-size:11.5px;color:var(--ink)}.lst .pr span{font-size:8.5px;color:var(--accent)}
+
+.strat{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+.stratc{border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.stratc.reco{border-left:3px solid var(--accent);background:var(--soft-2)}
+.stratc .tag{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.stratc h3{font-family:var(--serif);font-weight:500;font-size:13px;margin:4px 0 2px}
+.stratc .p{font-family:var(--serif);font-size:21px;color:var(--ink);margin:6px 0 3px}
+.stratc .meta{color:var(--ink-2);font-size:9.5px}
+
+.metho{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:6px}
+.metho p{font-size:9.5px;color:var(--ink-2);line-height:1.55}
+.sources{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.src{display:flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--line);border-radius:4px;background:var(--paper);font-size:8.8px;color:var(--ink-2)}
+.src .d{width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.disc{font-size:8.3px;color:var(--mut);line-height:1.55;margin-top:11px;padding:10px 12px;background:var(--soft);border-radius:5px;border-left:3px solid var(--accent)}
+.disc b{color:var(--ink-2)}
+
+@media print{html,body{background:#fff}.toolbar{display:none}.doc{padding:0}.page{box-shadow:none;margin:0;page-break-after:always}.page:last-child{page-break-after:auto}}
+</style>
+</head>
+<body>
+<div class="toolbar"><b>Avis de valeur · 2 pages A4</b><button onclick="window.print()">Imprimer / Exporter en PDF</button></div>
+<div class="doc">
+
+<!-- ══════ PAGE 1 ══════ -->
+<div class="page">
+  <div class="head">
+    <div class="lock"><span class="mk">R</span><div class="nm">Real Estate Agent<small>Avis de valeur</small></div></div>
+    <div class="ref">Réf. <b>EV-2026-0418</b><br>06 juin 2026 · Confidentiel</div>
+  </div>
+
+  <div class="hero">
+    <div>
+      <div class="kdoc">Avis de valeur immobilier</div>
+      <h1>Appartement 3 pièces<br>de <em>caractère</em>, vue dégagée.</h1>
+      <div class="addr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> Avenue de l'Estérel, Juan-les-Pins · 06160 Antibes</div>
+      <div class="chips"><span class="chip"><b>74</b> m²</span><span class="chip"><b>3</b> pièces</span><span class="chip"><b>2e</b> étage</span><span class="chip">DPE <b>C</b></span><span class="chip">Terrasse <b>12 m²</b></span><span class="chip">Vue <b>mer partielle</b></span></div>
+    </div>
+    <div class="valuebox">
+      <div class="lab">Valeur de marché estimée</div>
+      <div class="bigval num">372 000<span class="cur">€</span></div>
+      <div class="range num"><span>358 000</span><span class="rangebar"><i></i></span><span>389 000</span></div>
+      <div class="vmeta">
+        <div><div class="l">Prix recommandé</div><div class="v acc num">379 000 €</div></div>
+        <div><div class="l">Prix au m²</div><div class="v num">5 027 €</div></div>
+        <div><div class="l">Indice de confiance</div><div class="v num">87 / 100</div></div>
+        <div><div class="l">Délai de vente</div><div class="v num">78 jours</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">Prix médian / m²</div><div class="v num">5 030<small> €</small></div><div class="d">ventes réelles &lt; 1,2 km</div></div>
+    <div class="kpi"><div class="l">Tendance 12 mois</div><div class="v num">+4,2<small> %</small></div><div class="d"><span class="up">▲</span> marché haussier</div></div>
+    <div class="kpi"><div class="l">Transactions / an</div><div class="v num">90</div><div class="d">appartements comparables</div></div>
+    <div class="kpi"><div class="l">Échantillon DVF</div><div class="v num">1,2<small> km</small></div><div class="d">rayon d'analyse</div></div>
+  </div>
+
+  <div class="eb"><span class="n">01</span><span class="tx">Cartographie &amp; caractéristiques</span><span class="ln"></span></div>
+  <div class="split">
+    <div class="mapwrap">
+      <div id="map"></div>
+      <div class="maplegend"><div class="t">Comparables</div>
+        <div class="li"><span class="dot" style="background:#b91c1c;border:1.5px solid #fff"></span> Le bien estimé</div>
+        <div class="li"><span class="dot" style="background:#1f8a52"></span> Vente DVF · €/m² bas</div>
+        <div class="li"><span class="dot" style="background:#c0392b"></span> Vente DVF · €/m² haut</div>
+        <div class="li"><span class="dot" style="background:#8A1538;border:1.5px solid #fff"></span> Annonce (≈ quartier)</div>
+      </div>
+    </div>
+    <div>
+      <div class="specs">
+        <div class="spec"><span class="l">Type</span><span class="v">Appartement</span></div>
+        <div class="spec"><span class="l">Surface</span><span class="v num">74 m²</span></div>
+        <div class="spec"><span class="l">Pièces</span><span class="v num">3</span></div>
+        <div class="spec"><span class="l">Chambres</span><span class="v num">2</span></div>
+        <div class="spec"><span class="l">Étage</span><span class="v num">2 / 4</span></div>
+        <div class="spec"><span class="l">Année</span><span class="v num">1974</span></div>
+        <div class="spec"><span class="l">DPE</span><span class="v"><span class="dpe">C</span></span></div>
+        <div class="spec"><span class="l">Exposition</span><span class="v">Sud-Ouest</span></div>
+        <div class="spec"><span class="l">Extérieur</span><span class="v">Terrasse 12 m²</span></div>
+        <div class="spec"><span class="l">Parking</span><span class="v num">1 place</span></div>
+      </div>
+      <div class="expert">
+        <b>Lecture de l'expert.</b> Bien recherché : surface familiale, extérieur et exposition favorables. Le DPE C le place au-dessus du parc des années 1970. La vue mer partielle justifie une prime de <span class="acc">+6 à +9 %</span> sur la médiane de quartier. Vigilance : copropriété ancienne et absence d'ascenseur — déjà intégrées dans la fourchette basse.
+      </div>
+      <div class="tags"><span class="chip">+ Vue mer</span><span class="chip">+ Terrasse</span><span class="chip">+ DPE C</span><span class="chip">– Sans ascenseur</span></div>
+    </div>
+  </div>
+
+  <div class="foot"><span>Real Estate Agent — Avis de valeur indicatif</span><span>Réf. EV-2026-0418</span><span>Page 1 / 2</span></div>
+</div>
+
+<!-- ══════ PAGE 2 ══════ -->
+<div class="page">
+  <div class="head">
+    <div class="lock"><span class="mk">R</span><div class="nm">Real Estate Agent<small>Avis de valeur</small></div></div>
+    <div class="ref">Réf. <b>EV-2026-0418</b><br>Avenue de l'Estérel · Juan-les-Pins</div>
+  </div>
+
+  <div class="eb"><span class="n">02</span><span class="tx">Dynamique de prix</span><span class="ln"></span></div>
+  <div class="charts">
+    <div class="panel"><div class="pt">Prix médian / m² · 5 ans</div>
+      <svg class="spark" viewBox="0 0 600 62" preserveAspectRatio="none"><path class="line" d="M0,50 C80,46 120,41 180,37 C250,31 300,35 360,25 C420,16 480,21 540,12 L600,9"/></svg>
+      <div class="axis num"><span>2021 · 4 050</span><span>2026 · 5 030</span></div>
+    </div>
+    <div class="panel"><div class="pt">Positionnement</div>
+      <div class="posbar"><i></i></div>
+      <div class="axis num"><span>358 k€</span><span>610 k€</span></div>
+      <p style="font-size:8.7px;color:var(--ink-2);margin-top:8px;line-height:1.45">Tiers <b style="color:var(--accent)">supérieur</b> du marché de quartier, cohérent avec les atouts du bien.</p>
+    </div>
+    <div class="panel"><div class="pt">Distribution €/m²</div>
+      <div class="dist"><div class="bar" style="height:24%"></div><div class="bar" style="height:46%"></div><div class="bar" style="height:72%"></div><div class="bar" style="height:92%"></div><div class="bar me" style="height:100%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:46%"></div><div class="bar" style="height:26%"></div><div class="bar" style="height:14%"></div></div>
+      <div class="axis num"><span>3 200</span><span>5 030</span><span>9 000</span></div>
+    </div>
+  </div>
+
+  <div class="eb"><span class="n">03</span><span class="tx">Comparables réels &amp; marché actif</span><span class="ln"></span></div>
+  <div class="two">
+    <div>
+      <table><thead><tr><th>Date</th><th>Type</th><th>Surf.</th><th>Prix</th><th>€/m²</th><th>Dist.</th></tr></thead>
+      <tbody>
+        <tr><td class="num">09/25</td><td>3p</td><td class="num">62 m²</td><td class="num">340 000 €</td><td class="pm num">5 484</td><td class="num">22 m</td></tr>
+        <tr><td class="num">06/25</td><td>3p</td><td class="num">51 m²</td><td class="num">309 850 €</td><td class="pm num">6 075</td><td class="num">33 m</td></tr>
+        <tr><td class="num">01/25</td><td>2p</td><td class="num">70 m²</td><td class="num">345 000 €</td><td class="pm num">4 929</td><td class="num">31 m</td></tr>
+        <tr><td class="num">11/25</td><td>3p</td><td class="num">83 m²</td><td class="num">285 000 €</td><td class="pm num">3 434</td><td class="num">69 m</td></tr>
+        <tr><td class="num">06/25</td><td>2p</td><td class="num">43 m²</td><td class="num">236 000 €</td><td class="pm num">5 488</td><td class="num">75 m</td></tr>
+      </tbody></table>
+      <p style="font-size:8px;color:var(--faint);margin-top:5px">90 ventes · DVF Etalab · géolocalisées à la parcelle.</p>
+    </div>
+    <div>
+      <div class="lst"><div class="ph">⌂</div><div class="m"><div class="t">T3/4 74 m² — Terrasse 12 m²</div><div class="s">Juan-les-Pins · 3p · 8 min plages</div></div><div class="pr"><b class="num">298 000 €</b><br><span class="num">4 027 €/m²</span></div></div>
+      <div class="lst"><div class="ph">⌂</div><div class="m"><div class="t">Appartement 3 pièces 65 m²</div><div class="s">Juan-les-Pins · rénové · centre</div></div><div class="pr"><b class="num">369 000 €</b><br><span class="num">5 677 €/m²</span></div></div>
+      <div class="lst"><div class="ph">⌂</div><div class="m"><div class="t">Appartement 4 pièces 112 m²</div><div class="s">Trianon · terrasse · garage</div></div><div class="pr"><b class="num">610 000 €</b><br><span class="num">5 446 €/m²</span></div></div>
+      <p style="font-size:8px;color:var(--faint);margin-top:5px">18 annonces (LeBonCoin) · locations exclues · position ≈ quartier.</p>
+    </div>
+  </div>
+
+  <div class="eb"><span class="n">04</span><span class="tx">Stratégies de mise en vente</span><span class="ln"></span></div>
+  <div class="strat">
+    <div class="stratc"><div class="tag">Vente rapide</div><h3>Liquidité prioritaire</h3><div class="p num">361 000 €</div><div class="meta">Délai cible <b>&lt; 60 jours</b> · prix d'appel attractif, marge de négociation réduite.</div></div>
+    <div class="stratc reco"><div class="tag">Valorisation · recommandé</div><h3>Produit net maximisé</h3><div class="p num">379 000 €</div><div class="meta">Délai estimé <b>90–120 jours</b> · aligné sur la valeur de marché, valorise vue et terrasse.</div></div>
+  </div>
+
+  <div class="eb"><span class="n">05</span><span class="tx">Méthodologie &amp; sources</span><span class="ln"></span></div>
+  <div class="metho">
+    <p>Géocodage de l'adresse (Base Adresse Nationale), résolution cadastrale (IGN), extraction des <b>ventes réelles DVF</b> comparables, pondération par surface, pièces, proximité et qualité (DPE, vue, extérieur), puis calage sur la médiane €/m² du micro-secteur.</p>
+    <div>
+      <div class="sources"><span class="src"><span class="d"></span> BAN · géocodage</span><span class="src"><span class="d"></span> IGN · cadastre</span><span class="src"><span class="d"></span> DVF Etalab · ventes</span><span class="src"><span class="d"></span> ADEME · DPE</span><span class="src"><span class="d"></span> LeBonCoin · marché actif</span></div>
+      <p style="font-size:8px;color:var(--faint);margin-top:7px">Sources publiques officielles françaises. Google Maps non utilisé.</p>
+    </div>
+  </div>
+
+  <div class="disc"><b>Avis de valeur indicatif.</b> Ce document est généré automatiquement à partir de données publiques et ne constitue ni une expertise immobilière au sens réglementaire, ni un engagement de prix. La valeur réelle dépend de l'état précis du bien, du marché au moment de la vente et de la négociation. Real Estate Agent · Réf. EV-2026-0418 · 06 juin 2026.</div>
+
+  <div class="foot"><span>Real Estate Agent — Avis de valeur indicatif</span><span>Réf. EV-2026-0418</span><span>Page 2 / 2</span></div>
+</div>
+
+</div>
+<script>
+const C=[43.570167,7.109342];
+const map=L.map('map',{zoomControl:false,scrollWheelZoom:false,attributionControl:false,dragging:false}).setView(C,16);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:21,maxNativeZoom:19}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{maxZoom:21,detectRetina:true}).addTo(map);
+L.circle(C,{radius:1200,color:'#8A1538',weight:1,fill:false,dashArray:'4 6'}).addTo(map);
+const DVF=[[43.5702,7.1091,5484],[43.5699,7.1095,4929],[43.5702,7.1102,3434],[43.5701,7.1084,5488],[43.5693,7.1090,8523],[43.5705,7.1101,9762],[43.5699,7.1089,5158],[43.5695,7.1089,3865],[43.5700,7.1082,4412],[43.5708,7.1135,12191]];
+function col(v){let t=(v-4063)/(5856-4063);t=Math.max(0,Math.min(1,t));return 'hsl('+((1-t)*135)+',60%,42%)';}
+DVF.forEach(d=>L.circleMarker([d[0],d[1]],{radius:5.5,weight:1.3,color:'#fff',fillColor:col(d[2]),fillOpacity:.96}).addTo(map).bindPopup('DVF · '+d[2].toLocaleString('fr-FR')+' €/m²'));
+[[43.5752,7.1065],[43.5746,7.1039],[43.5717,7.1115],[43.5694,7.1103]].forEach(a=>L.circleMarker(a,{radius:6,weight:1.4,color:'#fff',fillColor:'#8A1538',fillOpacity:.92}).addTo(map));
+L.marker(C,{icon:L.divIcon({className:'',html:'<div style="width:16px;height:16px;background:#b91c1c;border:2.5px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(185,28,28,.5)"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map);
+setTimeout(()=>map.invalidateSize(),350);
+</script>
+</body>
+</html>

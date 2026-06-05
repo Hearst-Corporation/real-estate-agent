@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
+import { PageHeader, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -75,9 +75,7 @@ export default async function AgendaPage() {
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+      <PageHeader eyebrow={t.eyebrow} title={t.title} sub={t.sub} />
 
       <KpiGrid>
         <KpiCard label={t.kpis.thisWeek} value={String(thisWeek)} />

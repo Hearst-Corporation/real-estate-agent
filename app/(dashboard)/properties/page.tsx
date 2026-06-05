@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { PageHeader, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { DeleteButton } from "@/components/cockpit/DeleteButton";
-import { countByStatus, topByCategory, distributeByBand, ratio } from "@/lib/crm/aggregate";
+import { countByStatus, topByCategory, distributeByBand, autoBands, ratio } from "@/lib/crm/aggregate";
 import { eur, sqm, PROPERTY_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
@@ -30,27 +30,34 @@ export default async function PropertiesPage() {
   const sb = getSupabaseAdmin();
 
   let properties: Property[] = [];
+  let total = 0;
 
   if (claims && sb) {
-    const { data } = await sb
+    const { data, count } = await sb
       .from("properties")
-      .select("id, status, title, property_type, city, surface, asking_price")
+      .select("id, status, title, property_type, city, surface, asking_price", {
+        count: "exact",
+      })
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("updated_at", { ascending: false });
     properties = (data ?? []) as Property[];
+    total = count ?? properties.length;
   }
 
-  const total = properties.length;
-  const forSale = properties.filter((p) => p.status === "en_vente").length;
+  const enVente = properties.filter((p) => p.status === "en_vente");
+  const forSale = enVente.length;
   const sold = properties.filter((p) => p.status === "vendu").length;
-  const portfolio = properties.reduce((sum, p) => sum + (p.asking_price ?? 0), 0);
+  // Valeur portefeuille = somme des prix des biens EN VENTE (exclut vendus/archivés).
+  const portfolio = enVente.reduce((sum, p) => sum + (p.asking_price ?? 0), 0);
 
   const pipeline = countByStatus(properties, PROPERTY_STATUSES, t.statusLabels, (s) =>
     statusTone("property", s)
   );
   const byType = topByCategory(properties, "property_type", t.typeLabels);
-  const byValueBand = distributeByBand(properties, "asking_price");
+  // Tranches calculées sur les prix réels du portefeuille (pas de bornes figées).
+  const prices = properties.map((p) => p.asking_price);
+  const byValueBand = distributeByBand(properties, "asking_price", autoBands(prices));
   const soldRate = ratio(properties, (p) => p.status === "vendu");
 
   const columns: Column<Property>[] = [
@@ -93,9 +100,7 @@ export default async function PropertiesPage() {
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+      <PageHeader eyebrow={t.eyebrow} title={t.title} sub={t.sub} actions={<PropertyFormModal />} />
 
       <KpiGrid>
         <KpiCard label={t.kpis.total} value={String(total)} accent />
@@ -122,12 +127,7 @@ export default async function PropertiesPage() {
         </Card>
       </div>
 
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.title}</span>
-        <PropertyFormModal />
-      </div>
-
-      <Card>
+      <Card title={t.title}>
         <DataTable columns={columns} rows={properties} emptyLabel={t.empty} getKey={(p) => p.id} />
       </Card>
     </>

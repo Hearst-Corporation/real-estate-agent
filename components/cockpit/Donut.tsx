@@ -1,7 +1,8 @@
 /**
- * Donut — anneau de progression unique (SVG pur, server component).
+ * Donut — anneau de progression premium (SVG pur, server component).
  * Convention catalog Cockpit : <circle> tourné -90deg, stroke-dasharray = 2πr,
- * stroke-dashoffset = 2πr·(1 - value/100). Tokens --ct-* uniquement.
+ * stroke-dashoffset = 2πr·(1 - value/100). Tokens --ct-* uniquement (le gradient
+ * et le glow réfèrent les tokens via currentColor / variables CSS).
  */
 
 type DonutProps = {
@@ -11,9 +12,9 @@ type DonutProps = {
   centerLabel?: string;
   /** Libellé sous la valeur (ex: "Conversion"). */
   sublabel?: string;
-  /** Diamètre en px (attribut SVG, pas de style inline). Défaut 120. */
+  /** Diamètre en px (attribut SVG, pas de style inline). Défaut 132. */
   size?: number;
-  /** Épaisseur de l'anneau. Défaut 10. */
+  /** Épaisseur de l'anneau. Défaut 12. */
   stroke?: number;
   /** Anneau en couleur d'accent plutôt que blanc. */
   accent?: boolean;
@@ -23,8 +24,8 @@ export function Donut({
   value,
   centerLabel,
   sublabel,
-  size = 120,
-  stroke = 10,
+  size = 132,
+  stroke = 12,
   accent = false,
 }: DonutProps) {
   const safe = Math.max(0, Math.min(100, value));
@@ -32,6 +33,8 @@ export function Donut({
   const c = 2 * Math.PI * r;
   const offset = c * (1 - safe / 100);
   const center = size / 2;
+  const gid = accent ? "ct-donut-grad-accent" : "ct-donut-grad";
+  const fid = "ct-donut-glow";
 
   return (
     <div className="ct-chart-donut">
@@ -43,6 +46,25 @@ export function Donut({
         role="img"
         aria-label={`${safe}%`}
       >
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+            <stop
+              offset="0%"
+              stopColor={accent ? "var(--ct-accent-maroon)" : "var(--ct-text-body)"}
+            />
+            <stop
+              offset="100%"
+              stopColor={accent ? "var(--ct-accent-strong)" : "var(--ct-text-strong)"}
+            />
+          </linearGradient>
+          <filter id={fid} x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         <circle
           className="ct-chart-donut-track"
           cx={center}
@@ -51,13 +73,15 @@ export function Donut({
           strokeWidth={stroke}
         />
         <circle
-          className={accent ? "ct-chart-donut-fill accent" : "ct-chart-donut-fill"}
+          className="ct-chart-donut-fill"
           cx={center}
           cy={center}
           r={r}
           strokeWidth={stroke}
           strokeDasharray={c}
           strokeDashoffset={offset}
+          stroke={`url(#${gid})`}
+          filter={`url(#${fid})`}
         />
       </svg>
       <div className="ct-chart-donut-center">

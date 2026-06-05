@@ -1,4 +1,4 @@
-import { Eyebrow, Title, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
+import { PageHeader, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
 import { getSession } from "@/lib/server/session";
 import { tenantOf } from "@/lib/tenant";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -43,8 +43,15 @@ export default async function SwarmsPage() {
 
   return (
     <>
-      <Eyebrow>{UI.swarms.eyebrow}</Eyebrow>
-      <Title>{UI.swarms.title}</Title>
+      <PageHeader
+        eyebrow={UI.swarms.eyebrow}
+        title={UI.swarms.title}
+        actions={
+          <Link href="/swarms/new" className="ct-seg-btn primary">
+            {UI.swarms.newCta}
+          </Link>
+        }
+      />
 
       <KpiGrid className="cols-4">
         <KpiCard label={UI.swarms.kpis.total} value={String(total)} />
@@ -54,12 +61,6 @@ export default async function SwarmsPage() {
       </KpiGrid>
 
       <div className="ct-mb-sm" />
-
-      <div style={{ marginBottom: "var(--ct-space-md)" }}>
-        <Link href="/swarms/new" className="ct-btn ct-btn-primary">
-          {UI.swarms.newCta}
-        </Link>
-      </div>
 
       {swarms.length === 0 ? (
         <Card>

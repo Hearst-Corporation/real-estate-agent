@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import Anthropic from "@anthropic-ai/sdk";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
-import { kimi, KIMI_MODEL, kimiIsConfigured } from "@/lib/llm/kimi";
+import { kimi } from "@/lib/llm/kimi";
+import { INTERVIEW_MODEL } from "@/lib/ai/interview";
 import { tenantOf } from "@/lib/tenant";
 import { trace } from "@/lib/providers/langfuse";
 
@@ -14,6 +16,25 @@ const CHAT_TITLE_MAX = 60;
 const HISTORY_LIMIT = 40;
 const MEMORY_LIMIT = 20;
 const KIMI_MAX_TOKENS = 8192;
+const ANTHROPIC_MAX_TOKENS = 2048;
+
+// ── Aligné sur « la simulation » (entretien d'estimation, lib/ai/interview) ──
+// Même modèle par défaut (claude-opus-4-8) et même choix de provider :
+// Anthropic si le modèle est un Claude ET ANTHROPIC_API_KEY présent, sinon
+// chemin Kimi/OpenAI-compatible (Moonshot/Hypercli). Override : COCKPIT_CHAT_MODEL.
+const CHAT_MODEL = process.env.COCKPIT_CHAT_MODEL || INTERVIEW_MODEL;
+function usesKimiPath(model: string): boolean {
+  return (
+    model.startsWith("kimi") ||
+    model.startsWith("moonshot") ||
+    !process.env.ANTHROPIC_API_KEY
+  );
+}
+function chatIsConfigured(model: string): boolean {
+  return usesKimiPath(model)
+    ? Boolean(process.env.MOONSHOT_API_KEY || process.env.HYPERCLI_API_KEY)
+    : Boolean(process.env.ANTHROPIC_API_KEY);
+}
 
 const BodySchema = z.object({
   chatId: z.string().uuid().optional(),
@@ -28,7 +49,12 @@ export async function POST(req: Request) {
 
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "invalid_body" }, { status: 400 });
-  if (!kimiIsConfigured()) return NextResponse.json({ error: "kimi_not_configured" }, { status: 503 });
+
+  const model = CHAT_MODEL;
+  const useKimi = usesKimiPath(model);
+  if (!chatIsConfigured(model)) {
+    return NextResponse.json({ error: "llm_not_configured" }, { status: 503 });
+  }
 
   const sb = getSupabaseAdmin();
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
@@ -53,9 +79,8 @@ export async function POST(req: Request) {
       .eq("user_id", userId)
       .eq("tenant_id", tenant)
       .maybeSingle();
-    // Erreur DB transitoire → 500 (ne pas abandonner silencieusement le chat fourni).
     if (error) return NextResponse.json({ error: "chat_lookup_failed" }, { status: 500 });
-    if (!data) chatId = undefined; // chat non possédé → on repart sur un chat neuf
+    if (!data) chatId = undefined; // chat non possédé → chat neuf
   }
   if (!chatId) {
     const { data, error } = await sb
@@ -91,51 +116,59 @@ export async function POST(req: Request) {
     "Tu es l'assistant Cockpit de Real estate Agent. Réponds en français, de façon concise et actionnable." +
     (memoryBlock ? `\n\nMémoire de l'utilisateur :\n${memoryBlock}` : "");
 
-  const messages = [
-    { role: "system" as const, content: system },
-    ...(history ?? []).map((m) => ({
-      role: (m.role === "assistant" ? "assistant" : m.role === "system" ? "system" : "user") as
-        | "assistant"
-        | "system"
-        | "user",
-      content: m.content,
-    })),
-  ];
+  // Conversation user/assistant (le system est placé selon le provider).
+  const convo = (history ?? [])
+    .filter((m) => m.content !== null && (m.role === "user" || m.role === "assistant"))
+    .map((m) => ({
+      role: (m.role === "assistant" ? "assistant" : "user") as "assistant" | "user",
+      content: m.content as string,
+    }));
 
-  // Observabilité Langfuse — métadonnées seulement (pas de contenu PII), no-op si non configuré.
+  // Observabilité Langfuse — métadonnées seulement, no-op si non configuré.
   let t: { end: (output: unknown) => void } = { end: () => {} };
   try {
     t = trace(
       "cockpit-chat",
-      { model: KIMI_MODEL, messageCount: messages.length },
-      { provider: "kimi", model: KIMI_MODEL },
+      { model, messageCount: convo.length },
+      { provider: useKimi ? "kimi" : "anthropic", model },
     );
   } catch {
     // trace() ne doit jamais bloquer le chat.
   }
-
-  const completion = await kimi.chat.completions.create({
-    model: KIMI_MODEL,
-    stream: true,
-    // kimi-k2.6 est un modèle à raisonnement : il faut un budget large pour que la
-    // réponse (`content`) arrive après le raisonnement (`reasoning_content`).
-    max_tokens: KIMI_MAX_TOKENS,
-    messages,
-  });
 
   const encoder = new TextEncoder();
   let assistantFull = "";
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      const push = (txt: string) => {
+        assistantFull += txt;
+        controller.enqueue(encoder.encode(txt));
+      };
       try {
-        for await (const chunk of completion) {
-          // Le raisonnement arrive dans delta.reasoning_content (champ séparé) → ignoré.
-          // On ne stream que la réponse finale (delta.content).
-          const delta = chunk.choices?.[0]?.delta?.content ?? "";
-          if (!delta) continue;
-          assistantFull += delta;
-          controller.enqueue(encoder.encode(delta));
+        if (useKimi) {
+          // Chemin Kimi / OpenAI-compatible (le raisonnement reasoning_content est ignoré).
+          const completion = await kimi.chat.completions.create({
+            model,
+            stream: true,
+            max_tokens: KIMI_MAX_TOKENS,
+            messages: [{ role: "system" as const, content: system }, ...convo],
+          });
+          for await (const chunk of completion) {
+            const delta = chunk.choices?.[0]?.delta?.content ?? "";
+            if (delta) push(delta);
+          }
+        } else {
+          // Chemin Anthropic (Claude Opus 4.8 par défaut), comme l'entretien.
+          const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+          const astream = anthropic.messages.stream({
+            model,
+            max_tokens: ANTHROPIC_MAX_TOKENS,
+            system,
+            messages: convo.map((m) => ({ role: m.role, content: m.content })),
+          });
+          astream.on("text", (delta) => push(delta));
+          await astream.finalMessage();
         }
       } catch {
         controller.enqueue(encoder.encode("\n[Erreur de génération]"));

@@ -1,4 +1,4 @@
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
+import { PageHeader, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { countByStatus } from "@/lib/crm/aggregate";
@@ -42,23 +42,29 @@ export default async function LeadsPage() {
   const sb = getSupabaseAdmin();
 
   let leads: Lead[] = [];
+  let total = 0;
 
   if (claims && sb) {
-    const { data } = await sb
+    const { data, count } = await sb
       .from("leads")
       .select(
-        "id, full_name, email, phone, status, kind, type_personne, source, budget_min, budget_max, property_id, notes, created_at, updated_at"
+        "id, full_name, email, phone, status, kind, type_personne, source, budget_min, budget_max, property_id, notes, created_at, updated_at",
+        { count: "exact" }
       )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("updated_at", { ascending: false });
     leads = (data ?? []) as Lead[];
+    total = count ?? leads.length;
   }
 
-  const total = leads.length;
   const won = leads.filter((l) => l.status === "gagne").length;
+  const lost = leads.filter((l) => l.status === "perdu").length;
   const active = leads.filter((l) => l.status !== "gagne" && l.status !== "perdu").length;
-  const conversion = total > 0 ? Math.round((won / total) * 100) : 0;
+  // Conversion = taux de réussite sur les affaires CLOSES (gagnées vs perdues),
+  // pas sur le total (qui inclut les leads jamais traités).
+  const closed = won + lost;
+  const conversion = closed > 0 ? Math.round((won / closed) * 100) : 0;
 
   const pipeline = countByStatus(leads, LEAD_STATUSES, t.statusLabels, (s) =>
     statusTone("lead", s)
@@ -113,9 +119,12 @@ export default async function LeadsPage() {
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+      <PageHeader
+        eyebrow={t.eyebrow}
+        title={t.title}
+        sub={t.sub}
+        actions={<LeadFormModal cta={t.newCta} />}
+      />
 
       <KpiGrid>
         <KpiCard label={t.kpis.total} value={String(total)} />
@@ -128,12 +137,7 @@ export default async function LeadsPage() {
         <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
       </Card>
 
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.cardTitle}</span>
-        <LeadFormModal cta={t.newCta} />
-      </div>
-
-      <Card>
+      <Card title={t.cardTitle}>
         <DataTable columns={columns} rows={leads} emptyLabel={t.empty} getKey={(l) => l.id} />
       </Card>
     </>

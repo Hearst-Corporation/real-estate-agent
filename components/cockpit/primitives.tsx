@@ -12,6 +12,34 @@ export function Sub({ children }: { children: ReactNode }) {
   return <p className="ct-sub">{children}</p>;
 }
 
+/**
+ * En-tête de page standard : eyebrow + titre + sous-titre à gauche,
+ * actions (CTA principal) toujours visibles à droite. Remplace le trio
+ * Eyebrow/Title/Sub câblé à la main + le CTA relégué dans une toolbar.
+ */
+export function PageHeader({
+  eyebrow,
+  title,
+  sub,
+  actions,
+}: {
+  eyebrow?: ReactNode;
+  title: ReactNode;
+  sub?: ReactNode;
+  actions?: ReactNode;
+}) {
+  return (
+    <header className="ct-page-header">
+      <div className="ct-page-header-text">
+        {eyebrow ? <div className="ct-eyebrow">{eyebrow}</div> : null}
+        <h1 className="ct-title">{title}</h1>
+        {sub ? <p className="ct-sub">{sub}</p> : null}
+      </div>
+      {actions ? <div className="ct-page-header-actions">{actions}</div> : null}
+    </header>
+  );
+}
+
 export function Card({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <section className="ct-card">
