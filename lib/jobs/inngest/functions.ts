@@ -1,13 +1,20 @@
 /**
  * lib/jobs/inngest/functions.ts — Fonctions Inngest enregistrées.
  *
- * A5a : uniquement `ping` (no-op) pour valider la plomberie. Aucun flow produit.
+ * Plomberie A5 (`ping`, `generatePdf`) + jobs Epic 1.4 (saga de closing DvP) :
+ *   - `invClosingSaga`   — event `invest/deal.close.requested` → runClosingSaga (CORE).
+ *   - `invReconcileTick` — cron 5 min → réconciliation DEEP↔chaîne des deals actifs.
+ * Les deux délèguent aux CORES partagés (lib/invest/{closing,tokenization}), qui
+ * sont aussi appelables en synchrone si Inngest n'est pas configuré (fail-soft).
  */
 
 import { inngest } from "./client";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { renderAndCacheEstimationPdf } from "@/lib/brochure/generate";
 import { captureFatal } from "@/lib/server/observe";
+import { runClosingSaga } from "@/lib/invest/closing";
+import { reconcile, supabaseTokenizationStore } from "@/lib/invest/tokenization";
+import { DEFAULT_TENANT_ID } from "@/lib/invest/shared/types";
 
 /** No-op : prouve que la plomberie serve()/event fonctionne. */
 export const ping = inngest.createFunction(
@@ -49,4 +56,76 @@ export const generatePdf = inngest.createFunction(
   },
 );
 
-export const functions = [ping, generatePdf];
+/**
+ * SAGA DE CLOSING DvP (Epic 1.4) — event `invest/deal.close.requested`.
+ *
+ * Délègue au CORE `runClosingSaga` (ordre canonique : DEEP → mint → réconciliation
+ * → release ; compensation refund sur échec avant release ; pause si chaîne>DEEP ;
+ * fail-soft Tokeny/chaîne). La garde 4-eyes + conditions suspensives est revérifiée
+ * DANS le core (jamais de closing sans garde). Idempotent : un rejeu ne re-traite
+ * que les souscriptions au bon statut.
+ */
+export const invClosingSaga = inngest.createFunction(
+  { id: "inv-closing-saga", triggers: [{ event: "invest/deal.close.requested" }] },
+  async ({ event }) => {
+    const data = event.data as { dealId?: string; tenantId?: string; actorUserId?: string | null };
+    const dealId = data?.dealId;
+    if (!dealId) return { skipped: "no_deal_id" };
+
+    const sb = getSupabaseAdmin();
+    if (!sb) return { skipped: "no_db" };
+
+    const tenantId = data.tenantId ?? DEFAULT_TENANT_ID;
+    try {
+      const result = await runClosingSaga(sb, { tenantId, actorUserId: data.actorUserId ?? null }, dealId);
+      // On NE throw PAS sur `compensated`/`paused`/`guard_failed` : ce sont des
+      // issues métier VALIDES de la saga (fail-soft), pas des erreurs d'infra.
+      return { ok: true, outcome: result.outcome, compensated: result.compensated };
+    } catch (err) {
+      captureFatal(err, "inngest/inv-closing-saga");
+      throw err; // erreur d'infra inattendue → retry Inngest (commandes idempotentes)
+    }
+  },
+);
+
+/**
+ * RÉCONCILIATION DEEP↔chaîne périodique (Epic 1.4) — cron toutes les 5 min.
+ *
+ * Pour chaque deal en cours de vie (closing/live/distributing), relance la passe
+ * de réconciliation (DEEP gagne ; chaîne>DEEP ⇒ pause + escalade). Sans indexer
+ * chaîne, chaque passe est `legal_only` (DEEP seul) — aucun blocage. Best-effort :
+ * une passe en échec n'interrompt pas les autres deals.
+ */
+export const invReconcileTick = inngest.createFunction(
+  { id: "inv-reconcile-tick", triggers: [{ cron: "*/5 * * * *" }] },
+  async () => {
+    const sb = getSupabaseAdmin();
+    if (!sb) return { skipped: "no_db" };
+
+    const { data: deals, error } = await sb
+      .from("inv_deals")
+      .select("id, tenant_id")
+      .in("status", ["closing", "live", "distributing"]);
+    if (error) {
+      captureFatal(error, "inngest/inv-reconcile-tick:list");
+      return { skipped: "list_error" };
+    }
+    const rows = (deals as { id: string; tenant_id: string }[] | null) ?? [];
+
+    let reconciled = 0;
+    let paused = 0;
+    for (const d of rows) {
+      try {
+        const r = await reconcile(supabaseTokenizationStore(), d.id, { tenantId: d.tenant_id });
+        reconciled += 1;
+        if (r.pause) paused += 1;
+      } catch (err) {
+        captureFatal(err, "inngest/inv-reconcile-tick:deal");
+        // best-effort : on continue les autres deals.
+      }
+    }
+    return { ok: true, deals: rows.length, reconciled, paused };
+  },
+);
+
+export const functions = [ping, generatePdf, invClosingSaga, invReconcileTick];
