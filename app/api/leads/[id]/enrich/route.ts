@@ -27,6 +27,7 @@ import {
   pdlEnrich,
 } from "@/lib/providers";
 import type { Json } from "@/lib/supabase/database.types";
+import { isEnrichable } from "@/lib/crm/enrichable";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -93,7 +94,7 @@ export async function POST(
   // Charge le lead — ownership = user_id + tenant_id (même pattern que partout)
   const { data: lead, error: leadError } = await sb
     .from("leads")
-    .select("id, full_name, email, enriched_at, enriched_source, enriched_data")
+    .select("id, full_name, email, type_personne, enriched_at, enriched_source, enriched_data")
     .eq("id", id)
     .eq("user_id", claims.sub)
     .eq("tenant_id", tenantOf(claims))
@@ -101,6 +102,12 @@ export async function POST(
 
   if (leadError || !lead) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
+
+  // Garde RGPD (allow-list) : on n'enrichit JAMAIS un particulier (ni un type
+  // inconnu/null). Avant tout cache ou appel provider.
+  if (!isEnrichable(lead.type_personne)) {
+    return NextResponse.json({ error: "forbidden_particulier" }, { status: 403 });
   }
 
   // Court-circuit : enrichissement récent déjà en base → on le réutilise (coût/cache)

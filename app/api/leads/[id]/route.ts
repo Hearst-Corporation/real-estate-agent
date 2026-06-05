@@ -58,7 +58,7 @@ export async function PATCH(
   }
 
   // Champs patchables — full_name ne peut pas être mis à vide
-  const allowed = ["full_name", "kind", "email", "phone", "source", "budget_min", "budget_max", "status", "notes", "property_id"] as const;
+  const allowed = ["full_name", "kind", "type_personne", "email", "phone", "source", "budget_min", "budget_max", "status", "notes", "property_id"] as const;
   const patch: TablesUpdate<"leads"> = {};
   for (const key of allowed) {
     if (key in body) {

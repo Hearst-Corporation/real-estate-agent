@@ -17,7 +17,7 @@ export async function GET() {
 
   const { data, error } = await sb
     .from("leads")
-    .select("id, full_name, email, phone, status, kind, source, budget_min, budget_max, property_id, notes, created_at, updated_at")
+    .select("id, full_name, email, phone, status, kind, type_personne, source, budget_min, budget_max, property_id, notes, created_at, updated_at")
     .eq("user_id", claims.sub)
     .eq("tenant_id", tenantOf(claims))
     .order("updated_at", { ascending: false });
@@ -45,9 +45,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 
-  const { full_name, kind, email, phone, source, budget_min, budget_max, status } = body as {
+  const { full_name, kind, type_personne, email, phone, source, budget_min, budget_max, status } = body as {
     full_name?: string;
     kind?: string;
+    type_personne?: string;
     email?: string;
     phone?: string;
     source?: string;
@@ -67,6 +68,7 @@ export async function POST(req: Request) {
       tenant_id: tenantOf(claims),
       full_name: full_name.trim(),
       kind: kind ?? "acheteur",
+      ...(type_personne ? { type_personne } : {}),
       email: email ?? null,
       phone: phone ?? null,
       source: source ?? null,

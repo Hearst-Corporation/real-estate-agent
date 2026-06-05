@@ -11,6 +11,7 @@ type Lead = {
   phone: string | null;
   status: string;
   kind: string | null;
+  type_personne: string | null;
   source: string | null;
   budget_min: number | null;
   budget_max: number | null;
@@ -73,6 +74,7 @@ function LeadCard({
             phone: lead.phone,
             source: lead.source,
             kind: lead.kind,
+            type_personne: lead.type_personne,
             budget_min: lead.budget_min,
             budget_max: lead.budget_max,
             status: lead.status,

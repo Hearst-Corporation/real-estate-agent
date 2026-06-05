@@ -182,6 +182,13 @@ export const UI = {
       acheteur: "Acheteur",
       vendeur: "Vendeur",
     } as Record<string, string>,
+    typePersonneLabels: {
+      particulier: "Particulier",
+      professionnel: "Professionnel",
+      societe: "Société",
+      sci: "SCI",
+      agence: "Agence",
+    } as Record<string, string>,
     form: {
       title: "Lead",
       fullName: "Nom complet",
@@ -189,6 +196,7 @@ export const UI = {
       phone: "Téléphone",
       source: "Source",
       kind: "Type",
+      typePersonne: "Nature juridique",
       budgetMin: "Budget min (€)",
       budgetMax: "Budget max (€)",
       save: "Enregistrer",

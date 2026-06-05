@@ -18,6 +18,7 @@ type LeadFormProps =
         phone?: string | null;
         source?: string | null;
         kind?: string | null;
+        type_personne?: string | null;
         budget_min?: number | null;
         budget_max?: number | null;
         status?: string | null;
@@ -38,6 +39,7 @@ export default function LeadForm(props: LeadFormProps) {
           phone: "",
           source: "",
           kind: "acheteur",
+          type_personne: "particulier",
           budget_min: "",
           budget_max: "",
           status: "nouveau",
@@ -49,6 +51,9 @@ export default function LeadForm(props: LeadFormProps) {
   const [phone, setPhone] = useState(initial.phone ?? "");
   const [source, setSource] = useState(initial.source ?? "");
   const [kind, setKind] = useState(initial.kind ?? "acheteur");
+  const [typePersonne, setTypePersonne] = useState(
+    ("type_personne" in initial && initial.type_personne) || "particulier"
+  );
   const [budgetMin, setBudgetMin] = useState(
     initial.budget_min != null ? String(initial.budget_min) : ""
   );
@@ -73,6 +78,7 @@ export default function LeadForm(props: LeadFormProps) {
     const body: Record<string, unknown> = {
       full_name: fullName.trim(),
       kind,
+      type_personne: typePersonne,
       status,
       email: email || null,
       phone: phone || null,
@@ -105,6 +111,7 @@ export default function LeadForm(props: LeadFormProps) {
       setPhone("");
       setSource("");
       setKind("acheteur");
+      setTypePersonne("particulier");
       setBudgetMin("");
       setBudgetMax("");
       setStatus("nouveau");
@@ -174,6 +181,21 @@ export default function LeadForm(props: LeadFormProps) {
         >
           <option value="acheteur">{UI.leads.kindLabels.acheteur}</option>
           <option value="vendeur">{UI.leads.kindLabels.vendeur}</option>
+        </select>
+      </label>
+
+      <label className="crm-form-field">
+        <span className="ct-eyebrow">{t.typePersonne}</span>
+        <select
+          className="ct-input"
+          value={typePersonne}
+          onChange={(e) => setTypePersonne(e.target.value)}
+        >
+          <option value="particulier">{UI.leads.typePersonneLabels.particulier}</option>
+          <option value="professionnel">{UI.leads.typePersonneLabels.professionnel}</option>
+          <option value="societe">{UI.leads.typePersonneLabels.societe}</option>
+          <option value="sci">{UI.leads.typePersonneLabels.sci}</option>
+          <option value="agence">{UI.leads.typePersonneLabels.agence}</option>
         </select>
       </label>
 

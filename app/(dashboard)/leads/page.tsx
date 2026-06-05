@@ -13,6 +13,7 @@ type Lead = {
   phone: string | null;
   status: string;
   kind: string | null;
+  type_personne: string | null;
   source: string | null;
   budget_min: number | null;
   budget_max: number | null;
@@ -32,7 +33,7 @@ export default async function LeadsPage() {
   if (claims && sb) {
     const { data } = await sb
       .from("leads")
-      .select("id, full_name, email, phone, status, kind, source, budget_min, budget_max, property_id, notes, created_at, updated_at")
+      .select("id, full_name, email, phone, status, kind, type_personne, source, budget_min, budget_max, property_id, notes, created_at, updated_at")
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("updated_at", { ascending: false });
