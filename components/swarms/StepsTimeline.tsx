@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { UI } from "@/lib/ui-strings"
 
 type SwarmStep = {
   id?: string
@@ -44,7 +45,7 @@ function StepItem({ step }: { step: SwarmStep }) {
               onClick={() => setExpanded((v) => !v)}
               type="button"
             >
-              {expanded ? "Voir moins" : "Voir plus"}
+              {expanded ? UI.swarms.stepsExpandLess : UI.swarms.stepsExpandMore}
             </button>
           )}
         </>

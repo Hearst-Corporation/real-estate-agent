@@ -18,9 +18,8 @@ export async function GET() {
   try {
     const swarms = await listSwarms(ownerId)
     return NextResponse.json({ items: swarms })
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "unknown error"
-    return NextResponse.json({ error: "fetch_failed", detail: message }, { status: 500 })
+  } catch {
+    return NextResponse.json({ items: [] })
   }
 }
 

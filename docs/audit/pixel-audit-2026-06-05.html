@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="fr" data-product="default">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Audit — Real estate Agent — 2026-06-05</title>
+<style>
+  :root {
+    --ct-bg-deep: #1A050B;
+    --ct-accent: #be123c;
+    --ct-accent-strong: #e11d48;
+    --ct-accent-soft: rgba(225,29,72,0.18);
+    --ct-surface-0: rgba(255,255,255,0.02);
+    --ct-surface-1: rgba(255,255,255,0.04);
+    --ct-surface-2: rgba(255,255,255,0.06);
+    --ct-text-strong: #ffffff;
+    --ct-text-primary: rgba(245,245,245,0.92);
+    --ct-text-body: rgba(245,245,245,0.72);
+    --ct-text-muted: rgba(245,245,245,0.48);
+    --ct-border: rgba(255,255,255,0.10);
+    --ct-border-strong: rgba(255,255,255,0.16);
+    font-family: "Inter", -apple-system, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--ct-bg-deep); color: var(--ct-text-primary); min-height: 100vh; padding: 32px; }
+
+  .header { margin-bottom: 32px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: var(--ct-text-strong); letter-spacing: -0.02em; }
+  .header p { font-size: 13px; color: var(--ct-text-muted); margin-top: 4px; }
+
+  .kpi-row { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+  .kpi { background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: 12px; padding: 16px 20px; min-width: 120px; }
+  .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ct-text-muted); font-weight: 600; }
+  .kpi-value { font-size: 28px; font-weight: 700; margin-top: 4px; color: var(--ct-text-strong); }
+  .kpi.p0 .kpi-value { color: #f87171; }
+  .kpi.p1 .kpi-value { color: #fb923c; }
+  .kpi.p2 .kpi-value { color: #facc15; }
+  .kpi.ok .kpi-value { color: #10b981; }
+
+  .section { margin-bottom: 24px; }
+  .section-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: 10px 10px 0 0; cursor: pointer; }
+  .section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ct-text-body); }
+  .section-count { font-size: 11px; color: var(--ct-text-muted); margin-left: auto; }
+  .agent-badge { font-size: 10px; background: var(--ct-accent-soft); color: var(--ct-accent-strong); border-radius: 4px; padding: 2px 6px; font-weight: 600; }
+
+  .findings { border: 1px solid var(--ct-border); border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
+  .finding { padding: 14px 16px; border-bottom: 1px solid var(--ct-border); background: var(--ct-surface-0); }
+  .finding:last-child { border-bottom: none; }
+  .finding:hover { background: var(--ct-surface-1); }
+
+  .finding-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .sev { font-size: 10px; font-weight: 700; border-radius: 4px; padding: 2px 6px; flex-shrink: 0; }
+  .sev.P0 { background: rgba(248,113,113,0.18); color: #f87171; }
+  .sev.P1 { background: rgba(251,146,60,0.18); color: #fb923c; }
+  .sev.P2 { background: rgba(250,204,21,0.18); color: #facc15; }
+  .finding-title { font-size: 13px; font-weight: 600; color: var(--ct-text-strong); line-height: 1.4; }
+  .finding-path { font-size: 11px; color: var(--ct-text-muted); margin-top: 2px; font-family: "SF Mono", "Fira Code", monospace; }
+
+  .finding-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .detail-block { background: var(--ct-surface-2); border-radius: 6px; padding: 8px 10px; }
+  .detail-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ct-text-muted); font-weight: 600; margin-bottom: 4px; }
+  .detail-code { font-size: 11px; color: var(--ct-text-body); font-family: "SF Mono", "Fira Code", monospace; word-break: break-all; }
+  .detail-why { font-size: 11px; color: var(--ct-text-muted); margin-top: 6px; font-style: italic; }
+
+  .quick-wins { margin-bottom: 32px; }
+  .quick-wins h2 { font-size: 14px; font-weight: 700; color: var(--ct-text-strong); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .win-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 8px; margin-bottom: 6px; }
+  .win-num { font-size: 11px; font-weight: 700; color: #10b981; min-width: 20px; }
+  .win-text { font-size: 12px; color: var(--ct-text-body); }
+  .win-effort { font-size: 10px; color: var(--ct-text-muted); margin-top: 2px; }
+
+  .motion-ok { display: flex; align-items: center; gap: 8px; padding: 14px 16px; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.15); border-radius: 10px; }
+  .motion-ok-text { font-size: 12px; color: #10b981; }
+
+  .plan { margin-top: 32px; }
+  .plan h2 { font-size: 14px; font-weight: 700; color: var(--ct-text-strong); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .batch { background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .batch-title { font-size: 12px; font-weight: 700; color: var(--ct-text-strong); margin-bottom: 8px; }
+  .batch-item { font-size: 12px; color: var(--ct-text-body); padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .batch-item:last-child { border-bottom: none; }
+  .batch-item::before { content: "→ "; color: var(--ct-text-muted); }
+
+  .footer { margin-top: 32px; font-size: 11px; color: var(--ct-text-muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Pixel Audit — Real estate Agent</h1>
+  <p>2026-06-05 · 10 agents parallèles · 41 fichiers TSX + cockpit.css · Read-only</p>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-row">
+  <div class="kpi p0"><div class="kpi-label">P0 Critiques</div><div class="kpi-value">8</div></div>
+  <div class="kpi p1"><div class="kpi-label">P1 Majeurs</div><div class="kpi-value">31</div></div>
+  <div class="kpi p2"><div class="kpi-label">P2 Mineurs</div><div class="kpi-value">47</div></div>
+  <div class="kpi ok"><div class="kpi-label">Motion ✓</div><div class="kpi-value">0</div></div>
+  <div class="kpi"><div class="kpi-label">Agents OK</div><div class="kpi-value">10</div></div>
+</div>
+
+<!-- QUICK WINS -->
+<div class="quick-wins">
+  <h2>⚡ Top 10 Quick Wins</h2>
+  <div class="win-item">
+    <div class="win-num">1</div>
+    <div>
+      <div class="win-text"><strong>Token inexistant --ct-danger → --ct-text-danger</strong> dans 5 fichiers (LeadsBoard, VisitForm, LeadForm, MandateForm, PropertyForm)</div>
+      <div class="win-effort">Effort: 1 ligne × 5 = 5 lignes · Impact P1 × 5</div>
+    </div>
+  </div>
+  <div class="win-item">
+    <div class="win-num">2</div>
+    <div>
+      <div class="win-text"><strong>focus-visible manquant sur ct-input + ct-chat-input</strong> — 1 règle CSS dans cockpit.css corrige tous les selects/inputs du dashboard</div>
+      <div class="win-effort">Effort: 3 lignes CSS · Impact P0 × 8</div>
+    </div>
+  </div>
+  <div class="win-item">
+    <div class="win-num">3</div>
+    <div>
+      <div class="win-text"><strong>Type 'Msg' dupliqué 4×</strong> → extraire dans lib/chat/types.ts et importer partout</div>
+      <div class="win-effort">Effort: 5 lignes · Impact P2 × 4</div>
+    </div>
+  </div>
+  <div class="win-item">
+    <div class="win-num">4</div>
+    <div>
+      <div class="win-text"><strong>Fallback "error" EN → FR</strong> dans VisitForm, LeadForm, PropertyForm — remplacer "error" par "Erreur réseau" ou token</div>
+      <div class="win-effort">Effort: 1 ligne × 3 = 3 lignes · Impact P2 × 3</div>
+    </div>
+  </div>
+  <div class="win-item">
+    <div class="win-num">5</div>
+    <div>
+      <div class="win-text"><strong>0.5rem → var(--ct-space-xs)</strong> dans gap inline styles (VisitForm, VisitsList, MandatesList, MandateForm)</div>
+      <div class="win-effort">Effort: 1 ligne × 4 = 4 lignes · Impact P1 × 4</div>
+    </div>
+  </div>
+  <div class="win-item">
+    <div class="win-num">6</div>
+    <div>
+      <div class="win-text"><strong>Bottom bar shadow</strong> → var(--ct-shadow-depth) dans cockpit.css ligne 130</div>
+      <div class="win-effort">Effort: 1 ligne · Impact P1</div>
+    </div>
+  </div>
+  <div class="win-item">
+    <div class="win-num">7</div>
+    <div>
+      <div class="win-text"><strong>Brochure #1a1a1a → var(--ct-bg-deep)</strong> dans app/brochure/[token]/page.tsx:46</div>
+      <div class="win-effort">Effort: 1 ligne · Impact P1</div>
+    </div>
+  </div>
+  <div class="win-item">
+    <div class="win-num">8</div>
+    <div>
+      <div class="win-text"><strong>ValuationPanel table styles → CSS class</strong> — 16 inline styles répétés à extraire en .est-listing-table / .est-listing-th / .est-listing-td</div>
+      <div class="win-effort">Effort: 20 lignes CSS · Impact P1 × 10</div>
+    </div>
+  </div>
+  <div class="win-item">
+    <div class="win-num">9</div>
+    <div>
+      <div class="win-text"><strong>input radius unifié</strong> — .ct-field-input 10px vs .ct-chat-input 12px → choisir 12px et aligner cockpit.css</div>
+      <div class="win-effort">Effort: 1 ligne CSS · Impact P1</div>
+    </div>
+  </div>
+  <div class="win-item">
+    <div class="win-num">10</div>
+    <div>
+      <div class="win-text"><strong>window.confirm() → modale DS</strong> dans LeadsBoard:58 (texte français mais API navigateur)</div>
+      <div class="win-effort">Effort: refacto 10 lignes · Impact P0</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 1 — MAGIC NUMBERS -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 1</span>
+    <span class="section-title">Tokens & Magic Numbers</span>
+    <span class="section-count">6 findings</span>
+  </div>
+  <div class="findings">
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">gap: "0.5rem" inline × 4 fichiers</div>
+          <div class="finding-path">VisitForm:127 · VisitsList:56,82 · MandatesList:106 · MandateForm:151</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">style={{ gap: "0.5rem" }}</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">gap: var(--ct-space-xs) /* 8px */</div></div>
+      </div>
+      <div class="detail-why">0.5rem = 8px = --ct-space-xs. Inline styles ignorent l'échelle canonique.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">fontSize: "0.75rem" inline</div>
+          <div class="finding-path">LeadsBoard:117</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">style={{ fontSize: "0.75rem" }}</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Créer token typo ou text-xs classe DS</div></div>
+      </div>
+      <div class="detail-why">0.75rem (12px) sans token correspondant — à créer ou mapper sur classe existante.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">minWidth: "9rem" / "120px" inline</div>
+          <div class="finding-path">MandatesList:112 · VisitsList:88</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">style={{ minWidth: "9rem" }}</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">min-w-[9rem] ou classe .crm-select-wide</div></div>
+      </div>
+      <div class="detail-why">Valeurs arbitraires hors système de sizing.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">ValuationPanel table — padding: "6px 8px" × 8 cellules</div>
+          <div class="finding-path">ValuationPanel:196-208</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">style={{ padding: "6px 8px" }}</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">td.est-td { padding: var(--ct-space-2xs) var(--ct-space-xs); }</div></div>
+      </div>
+      <div class="detail-why">6px n'est pas dans l'échelle DS. Extraire en classe CSS .est-listing-td.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">marginTop: "0.5rem" inline</div>
+          <div class="finding-path">MandateForm:151</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">style={{ marginTop: "0.5rem" }}</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">margin-top: var(--ct-space-xs)</div></div>
+      </div>
+      <div class="detail-why">0.5rem = 8px = --ct-space-xs.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 2 — TYPOGRAPHIE -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 2</span>
+    <span class="section-title">Typographie</span>
+    <span class="section-count">6 findings majeurs</span>
+  </div>
+  <div class="findings">
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">Token inexistant --ct-danger × 5 formulaires</div>
+          <div class="finding-path">LeadsBoard:130 · VisitForm:125 · LeadForm · MandateForm:149 · PropertyForm:190</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">style={{ color: "var(--ct-danger, red)" }}</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">style={{ color: "var(--ct-text-danger)" }}</div></div>
+      </div>
+      <div class="detail-why">--ct-danger n'existe pas dans cockpit.css. --ct-text-danger (#f87171) est le token correct. Le fallback "red" affiche du rouge pur si la variable échoue.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P0">P0</span>
+        <div>
+          <div class="finding-title">InterviewChat: style inline redondant avec classe .ct-error</div>
+          <div class="finding-path">InterviewChat:212</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">style={{ color: "var(--ct-text-danger)" }}</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">className="ct-error"</div></div>
+      </div>
+      <div class="detail-why">cockpit.css définit .ct-error { color: var(--ct-text-danger) }. Utiliser la classe.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">Email template: font-family sans-serif (hors DS)</div>
+          <div class="finding-path">api/estimations/[id]/share/route.ts:97</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">font-family:sans-serif</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">font-family:'Inter', -apple-system, system-ui, sans-serif</div></div>
+      </div>
+      <div class="detail-why">L'email partage devrait utiliser Inter pour cohérence de marque.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">Email template: background #8B0000 (diverge de --ct-accent-maroon #8A1538)</div>
+          <div class="finding-path">api/estimations/[id]/share/route.ts:102</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">background:#8B0000</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">background:#8A1538 (= --ct-accent-maroon)</div></div>
+      </div>
+      <div class="detail-why">Divergence de 2 points hex vs le token. Unifier.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 3 — SPACING -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 3</span>
+    <span class="section-title">Spacing</span>
+    <span class="section-count">16 findings (dont 10 sur ValuationPanel)</span>
+  </div>
+  <div class="findings">
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">ValuationPanel: table entière en inline styles (th + td répétés)</div>
+          <div class="finding-path">ValuationPanel:183-234</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">style={{ textAlign, padding: "4px 8px", opacity: 0.6, fontWeight: 500 }} × 5 th + 5 td</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Extraire en .est-listing-table / .est-listing-th / .est-listing-td dans cockpit.css</div></div>
+      </div>
+      <div class="detail-why">16 inline styles identiques = dette critique. 4px = --ct-space-2xs, 8px = --ct-space-xs. path P0 estimations.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">Flex layout containers inline × 6 composants</div>
+          <div class="finding-path">VisitForm:127 · VisitsList:56,82 · MandatesList:106 · MandateForm:151</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">style={{ display:"flex", gap:"0.5rem", alignItems:"center" }}</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">className="ct-seg-track" ou classe utilitaire</div></div>
+      </div>
+      <div class="detail-why">cockpit.css définit .ct-seg-track pour les conteneurs de boutons. Réutiliser plutôt que dupliquer.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 4 — COULEURS -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 4</span>
+    <span class="section-title">Couleurs & Palette</span>
+    <span class="section-count">3 vraies violations (AccentSelector = exceptions acceptées)</span>
+  </div>
+  <div class="findings">
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">Brochure: background #1a1a1a hardcodé</div>
+          <div class="finding-path">app/brochure/[token]/page.tsx:46</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">background: #1a1a1a</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">background: var(--ct-bg-deep) /* #1A050B */</div></div>
+      </div>
+      <div class="detail-why">#1a1a1a ≠ #1A050B (ct-bg-deep). Légère divergence de fond mais hors token.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">--ct-danger × 5 formulaires (token inexistant, fallback "red")</div>
+          <div class="finding-path">LeadsBoard · VisitForm · LeadForm · MandateForm · PropertyForm</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">var(--ct-danger, red)</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">var(--ct-text-danger) /* #f87171 */</div></div>
+      </div>
+      <div class="detail-why">Fallback "red" = #ff0000 ≠ #f87171 (--ct-text-danger). En cas de bug CSS, couleur incorrecte.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P0">P0</span>
+        <div>
+          <div class="finding-title">AccentSelector: hex dans palette ACCENTS — EXCEPTION ACCEPTÉE</div>
+          <div class="finding-path">AccentSelector:15-20</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Statut</div><div class="detail-code">✓ Conforme — données de palette, pas du style</div></div>
+        <div class="detail-block"><div class="detail-label">Note</div><div class="detail-code">Les pastilles affichent leur hex littérale (data-driven)</div></div>
+      </div>
+      <div class="detail-why">Exception légitime : mirrors de cockpit.css pour le sélecteur d'accent.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 5 — RADIUS & SHADOWS -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 5</span>
+    <span class="section-title">Radius & Shadows</span>
+    <span class="section-count">6 findings dans cockpit.css</span>
+  </div>
+  <div class="findings">
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">Input radius incohérent: .ct-field-input 10px vs .ct-chat-input 12px</div>
+          <div class="finding-path">cockpit.css</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">ct-field-input: 10px | ct-chat-input: 12px</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Unifier à 12px (ou créer --ct-radius-input token)</div></div>
+      </div>
+      <div class="detail-why">Incohérence visuelle entre les inputs de formulaire et le chat.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">Shadow bottom bar hors token --ct-shadow-depth</div>
+          <div class="finding-path">cockpit.css:130</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.5), 0 20px 60px...</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">box-shadow: var(--ct-shadow-depth)</div></div>
+      </div>
+      <div class="detail-why">ct-shadow-depth existe mais n'est pas utilisé pour le bottom bar.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">3 radius différents pour boutons/actions: 9999px / 11px / 10px</div>
+          <div class="finding-path">cockpit.css — ct-seg-btn / ct-rail-action / ct-logout-full</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">pill(9999px) | action(11px) | logout(10px)</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Définir 2 tiers: pill(9999px) vs rect(12px) + créer tokens</div></div>
+      </div>
+      <div class="detail-why">3 valeurs pour des patterns similaires. Manque de token --ct-radius-button.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 6 — MOTION -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 6</span>
+    <span class="section-title">Motion & Easing</span>
+    <span class="section-count">0 violation</span>
+  </div>
+  <div class="motion-ok">
+    <span style="font-size:18px">✓</span>
+    <div class="motion-ok-text"><strong>Conformité 100%</strong> — Toutes les transitions utilisent --ct-dur-base (180ms) et --ct-ease (cubic-bezier(0.2,0.7,0.2,1)). Aucune durée arbitraire ni easing hors DS.</div>
+  </div>
+</div>
+
+<!-- AGENT 7 — VOIX EDITORIALE -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 7</span>
+    <span class="section-title">Voix Éditoriale & Microcopy</span>
+    <span class="section-count">14 findings</span>
+  </div>
+  <div class="findings">
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P0">P0</span>
+        <div>
+          <div class="finding-title">window.confirm() natif pour suppression — API navigateur non stylée</div>
+          <div class="finding-path">LeadsBoard:58</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">if (!confirm(`Supprimer « ${lead.full_name} » ?`))</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Modale DS avec bouton destructif stylé</div></div>
+      </div>
+      <div class="detail-why">Le dialogue natif du navigateur casse l'expérience Cockpit. Refactorer en modale DS.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">Fallback d'erreur "error" EN × 3 formulaires</div>
+          <div class="finding-path">VisitForm:48 · LeadForm:103 · PropertyForm:74</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">setError(d.error ?? "error")</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">setError(d.error ?? "Erreur réseau")</div></div>
+      </div>
+      <div class="detail-why">MandateForm utilise "Erreur" FR — incohérence avec les 3 autres. Unifier en FR.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">Clé d'erreur "stream_failed" EN × 2 fichiers</div>
+          <div class="finding-path">InterviewChat:92 · InterviewView:83</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">throw new Error(... ?? "stream_failed")</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">"Erreur de flux" ou UI.estimations.streamError</div></div>
+      </div>
+      <div class="detail-why">Messages techniques en anglais visibles si rethrow côté UI.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">Boutons "Modifier"/"Supprimer" hardcodés dans LeadsBoard (hors i18n)</div>
+          <div class="finding-path">LeadsBoard:124,132</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">&gt;Modifier&lt; / &gt;Supprimer&lt;</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Utiliser t.edit / t.delete (comme PropertiesList)</div></div>
+      </div>
+      <div class="detail-why">PropertiesList utilise deleteLabel via i18n — LeadsBoard bypass le système.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 8 — PRIMITIVES DS -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 8</span>
+    <span class="section-title">Primitives DS Réimplémentées</span>
+    <span class="section-count">11 findings (P2 — dettes de duplication)</span>
+  </div>
+  <div class="findings">
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">Pattern est-list-row dupliqué × 5 fichiers</div>
+          <div class="finding-path">estimations/page · mandates/MandatesList · properties/PropertiesList · visits/VisitsList · page.tsx</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">&lt;Card&gt;&lt;div className="est-list-row"&gt;&lt;div className="est-list-info"&gt;...</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Créer primitive &lt;ListItemCard&gt; dans primitives.tsx</div></div>
+      </div>
+      <div class="detail-why">Même structure HTML/CSS répétée 5 fois. Extraction = une seule source de vérité.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">Type 'Msg' dupliqué × 4 fichiers</div>
+          <div class="finding-path">estimations/[id]/page · InterviewChat · InterviewView · ChatKimi</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">type Msg = { role: "user" | "assistant"; content: string }</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">export type Msg depuis lib/chat/types.ts</div></div>
+      </div>
+      <div class="detail-why">Type identique déclaré 4 fois — divergence possible si un seul est modifié.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">Pattern form field label+input dupliqué × 4 formulaires</div>
+          <div class="finding-path">LeadForm · PropertyForm · VisitForm · MandateForm</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">&lt;label className="crm-form-field"&gt;&lt;span className="ct-eyebrow"&gt;...&lt;input className="ct-input" /&gt;&lt;/label&gt;</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Créer &lt;FormField label="..." required&gt; primitive</div></div>
+      </div>
+      <div class="detail-why">Structure identique dans tous les formulaires CRM. Extraction simplifie la maintenance.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">KpiCard réimplémenté inline dans ValuationPanel</div>
+          <div class="finding-path">ValuationPanel:91-117</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">&lt;div className="ct-kpi-card"&gt;&lt;span className="ct-kpi-label"&gt;...&lt;span className="ct-kpi-value"&gt;</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">import { KpiCard, KpiGrid } from "@/components/cockpit/primitives"</div></div>
+      </div>
+      <div class="detail-why">KpiCard est disponible dans primitives.tsx mais pas importé dans ValuationPanel.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 9 — ÉTATS & A11Y -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 9</span>
+    <span class="section-title">États & Accessibilité</span>
+    <span class="section-count">8 P0 · 6 P1 · 8 P2</span>
+  </div>
+  <div class="findings">
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P0">P0</span>
+        <div>
+          <div class="finding-title">focus-visible absent sur tous les inputs/selects (.ct-input, .ct-field-input, .ct-chat-input)</div>
+          <div class="finding-path">cockpit.css — affecte TOUS les formulaires du dashboard</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Fix CSS global</div><div class="detail-code">.ct-input:focus-visible, .ct-field-input:focus-visible { outline: 2px solid var(--ct-accent); outline-offset: 2px; }</div></div>
+        <div class="detail-block"><div class="detail-label">Impact</div><div class="detail-code">Corrige P0 × 8 en une seule règle CSS</div></div>
+      </div>
+      <div class="detail-why">Sans focus-visible, les utilisateurs clavier ne peuvent pas naviguer dans les formulaires. WCAG 2.4.7.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P0">P0</span>
+        <div>
+          <div class="finding-title">Champs required sans indicateur visuel dans PropertyForm</div>
+          <div class="finding-path">PropertyForm:88</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">&lt;input required /&gt; (attribut HTML seul)</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Ajouter &lt;span aria-label="requis"&gt;*&lt;/span&gt; dans le label</div></div>
+      </div>
+      <div class="detail-why">WCAG 3.3.2 — les champs requis doivent être identifiés visuellement ET par aria.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P1">P1</span>
+        <div>
+          <div class="finding-title">Labels form sans htmlFor explicite (wrapped labels = OK mais à risque)</div>
+          <div class="finding-path">PropertyForm:86 · LeadForm:137 (et tous les formulaires CRM)</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">&lt;label&gt;&lt;span&gt;Label&lt;/span&gt;&lt;input /&gt;&lt;/label&gt;</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Ajouter id sur input + htmlFor sur label pour robustesse</div></div>
+      </div>
+      <div class="detail-why">La forme wrappée fonctionne mais peut être fragile avec certains lecteurs d'écran et les custom inputs.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">Bouton suppression avec "…" comme seul indicateur de chargement</div>
+          <div class="finding-path">PropertiesList:73</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">{deleting === p.id ? "…" : deleteLabel}</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">aria-busy={deleting === p.id} + aria-label="Suppression en cours"</div></div>
+      </div>
+      <div class="detail-why">"…" non descriptif pour les lecteurs d'écran.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">RailRight, AccentSelector, LogoutButton : boutons sans focus-visible (classes CSS manquantes)</div>
+          <div class="finding-path">RailRight:46,57 · AccentSelector:74,84 · LogoutButton:13</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Fix global</div><div class="detail-code">.ct-rail-action:focus-visible, .ct-rail-right-btn:focus-visible, .ct-accent-dot:focus-visible { outline: 2px solid var(--ct-accent); }</div></div>
+        <div class="detail-block"><div class="detail-label">Impact</div><div class="detail-code">Corrige P2 × 5 en 3 règles CSS</div></div>
+      </div>
+      <div class="detail-why">Les boutons du rail cockpit manquent d'indicateurs focus pour navigation clavier.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 10 — STABILITE -->
+<div class="section">
+  <div class="section-header">
+    <span class="agent-badge">Agent 10</span>
+    <span class="section-title">Stabilité & Cross-refs</span>
+    <span class="section-count">6 findings P2 — aucun import cassé</span>
+  </div>
+  <div class="findings">
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">Type 'Msg' dupliqué × 4 fichiers</div>
+          <div class="finding-path">estimations/[id]/page:16 · InterviewChat:8 · InterviewView:15 · ChatKimi:6</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">type Msg = { role: "user" | "assistant"; content: string } (× 4)</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">export type Msg depuis lib/chat/types.ts ou lib/ai/types.ts</div></div>
+      </div>
+      <div class="detail-why">Divergence possible si un seul fichier est modifié. Risque faible mais dette réelle.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">Double assertion "as unknown as UpcomingVisit[]"</div>
+          <div class="finding-path">app/(dashboard)/page.tsx:114</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Actuel</div><div class="detail-code">as unknown as UpcomingVisit[]</div></div>
+        <div class="detail-block"><div class="detail-label">Suggéré</div><div class="detail-code">Types Supabase générés (mcp__supabase__generate_typescript_types)</div></div>
+      </div>
+      <div class="detail-why">Double assertion = bypass TypeScript. Régénérer database.types.ts pour typage correct.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-head">
+        <span class="sev P2">P2</span>
+        <div>
+          <div class="finding-title">Aucun import cassé, aucun console.log, aucun TODO/FIXME</div>
+          <div class="finding-path">Tous fichiers</div>
+        </div>
+      </div>
+      <div class="finding-detail">
+        <div class="detail-block"><div class="detail-label">Statut</div><div class="detail-code">✓ Clean — imports locaux tous résolus</div></div>
+        <div class="detail-block"><div class="detail-label">Note</div><div class="detail-code">Logo.tsx et LogoutButton.tsx utilisés (via CockpitShell)</div></div>
+      </div>
+      <div class="detail-why">Stabilité bonne. Pas de dette compilateur visible.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN D'ACTION -->
+<div class="plan">
+  <h2>Plan d'action en 3 batches</h2>
+  <div class="batch">
+    <div class="batch-title">Batch 1 — P0 Critiques <span style="color:var(--ct-text-muted);font-weight:400;font-size:11px">(~30 min, 1 session)</span></div>
+    <div class="batch-item">cockpit.css: ajouter focus-visible sur .ct-input, .ct-field-input, .ct-chat-input, .ct-seg-btn, .ct-rail-action, .ct-accent-dot (corrige P0 × 8 + P2 × 5)</div>
+    <div class="batch-item">5 formulaires: var(--ct-danger, red) → var(--ct-text-danger) (5 lignes)</div>
+    <div class="batch-item">LeadsBoard:58: window.confirm() → modale DS (refacto ~10 lignes)</div>
+    <div class="batch-item">InterviewChat:212: style inline → className="ct-error"</div>
+  </div>
+  <div class="batch">
+    <div class="batch-title">Batch 2 — P1 Cohérence DS <span style="color:var(--ct-text-muted);font-weight:400;font-size:11px">(~2h)</span></div>
+    <div class="batch-item">ValuationPanel: extraire 16 inline styles table → .est-listing-table/.est-listing-th/.est-listing-td dans cockpit.css</div>
+    <div class="batch-item">cockpit.css: unifier input radius → 12px · bottom bar shadow → var(--ct-shadow-depth) · bouton radius tokens</div>
+    <div class="batch-item">Brochure: #1a1a1a → var(--ct-bg-deep)</div>
+    <div class="batch-item">Email template: Inter font-family + #8A1538 (au lieu de #8B0000)</div>
+    <div class="batch-item">Fallbacks erreur "error" EN → "Erreur réseau" FR (VisitForm, LeadForm, PropertyForm)</div>
+    <div class="batch-item">LeadsBoard: t.edit / t.delete au lieu de strings hardcodées</div>
+    <div class="batch-item">PropertyForm: indicateurs requis visuels (*)</div>
+  </div>
+  <div class="batch">
+    <div class="batch-title">Batch 3 — P2 Dettes & Propagation <span style="color:var(--ct-text-muted);font-weight:400;font-size:11px">(~4h)</span></div>
+    <div class="batch-item">lib/chat/types.ts: extraire type Msg centralisé + mettre à jour 4 imports</div>
+    <div class="batch-item">ValuationPanel: importer KpiCard/KpiGrid depuis primitives.tsx</div>
+    <div class="batch-item">primitives.tsx: créer &lt;ListItemCard&gt; pour le pattern est-list-row × 5 fichiers</div>
+    <div class="batch-item">primitives.tsx: créer &lt;FormField&gt; pour les formulaires CRM × 4</div>
+    <div class="batch-item">0.5rem → var(--ct-space-xs) dans les 4 composants avec gap inline</div>
+    <div class="batch-item">Regenerer database.types.ts + corriger double assertions "as unknown as"</div>
+    <div class="batch-item">Ajouter aria-busy sur boutons de suppression en cours</div>
+  </div>
+</div>
+
+<div class="footer">
+  Pixel audit read-only · Real estate Agent · 2026-06-05 · 10 agents · P0:8 P1:31 P2:47
+</div>
+
+</body>
+</html>

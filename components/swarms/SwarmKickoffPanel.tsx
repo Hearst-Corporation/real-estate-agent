@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { UI } from "@/lib/ui-strings"
 import RunStatusBadge from "./RunStatusBadge"
 import StepsTimeline from "./StepsTimeline"
 
@@ -19,6 +20,8 @@ type Props = {
   swarmName: string
   onDone?: (output: string | undefined) => void
 }
+
+const POLL_INTERVAL_MS = 3_000
 
 type RunState =
   | { phase: 'idle' }
@@ -51,24 +54,27 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone }: Props)
       try {
         const res = await fetch(`/api/swarms/${swarmId}/runs/${runId}`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const data: { status: SwarmRunStatus; steps?: SwarmStep[]; output?: string; error?: string } = await res.json()
+        type PollResponse = { run: { status: SwarmRunStatus; output?: string | null; error?: string }; steps: SwarmStep[] }
+        const data: PollResponse = await res.json()
         const steps = data.steps ?? []
+        const runStatus = data.run?.status
+        const runOutput = data.run?.output ?? undefined
 
-        if (data.status === 'done') {
+        if (runStatus === 'done') {
           stopPolling()
-          setState({ phase: 'done', output: data.output, steps })
-          onDone?.(data.output)
-        } else if (data.status === 'failed' || data.status === 'error') {
+          setState({ phase: 'done', output: runOutput, steps })
+          onDone?.(runOutput)
+        } else if (runStatus === 'failed' || runStatus === 'error') {
           stopPolling()
-          setState({ phase: 'failed', message: data.error ?? "Le swarm a échoué.", steps })
+          setState({ phase: 'failed', message: data.run?.error ?? UI.swarms.kickoffFailed, steps })
         } else {
-          setState({ phase: 'running', runId, status: data.status, steps })
+          setState({ phase: 'running', runId, status: runStatus ?? 'pending', steps })
         }
       } catch (err) {
         stopPolling()
-        setState({ phase: 'error', message: err instanceof Error ? err.message : "Erreur réseau." })
+        setState({ phase: 'error', message: err instanceof Error ? err.message : UI.swarms.kickoffNetworkError })
       }
-    }, 3000)
+    }, POLL_INTERVAL_MS)
   }
 
   const handleLaunch = async () => {
@@ -80,7 +86,7 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone }: Props)
       setState({ phase: 'running', runId: data.runId, status: 'pending', steps: [] })
       startPolling(data.runId)
     } catch (err) {
-      setState({ phase: 'error', message: err instanceof Error ? err.message : "Erreur lors du lancement." })
+      setState({ phase: 'error', message: err instanceof Error ? err.message : UI.swarms.kickoffLaunchError })
     }
   }
 
@@ -93,10 +99,9 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone }: Props)
           <button
             className="ct-btn ct-btn-primary"
             onClick={handleLaunch}
-            disabled={false}
             type="button"
           >
-            Lancer le swarm {swarmName}
+            {UI.swarms.kickoffLaunch(swarmName)}
           </button>
           {state.phase === 'error' && (
             <p className="crm-form-error" style={{ color: 'var(--ct-text-danger)', fontSize: 12 }}>
@@ -109,7 +114,7 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone }: Props)
       {state.phase === 'launching' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="swarm-spinner" />
-          <span style={{ fontSize: 13, color: 'var(--ct-text-muted)' }}>Lancement en cours…</span>
+          <span style={{ fontSize: 13, color: 'var(--ct-text-muted)' }}>{UI.swarms.kickoffLaunching}</span>
         </div>
       )}
 
@@ -143,7 +148,7 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone }: Props)
             onClick={() => setState({ phase: 'idle' })}
             type="button"
           >
-            Réessayer
+            {UI.swarms.kickoffRetry}
           </button>
         </div>
       )}

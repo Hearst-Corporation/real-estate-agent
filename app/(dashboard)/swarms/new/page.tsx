@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { UI } from "@/lib/ui-strings";
 import type { SwarmAgent, SwarmTask, ArchitectSpec } from "@/lib/swarms/types";
 
 type Tab = "architect" | "manual";
@@ -36,8 +37,8 @@ export default function NewSwarmPage() {
         body: JSON.stringify({ description }),
       });
       if (!res.ok) throw new Error(`Erreur ${res.status}`);
-      const data = (await res.json()) as ArchitectSpec;
-      setSpec(data);
+      const data = (await res.json()) as { spec: ArchitectSpec };
+      setSpec(data.spec);
     } catch (err) {
       setSpecError(err instanceof Error ? err.message : "Erreur lors de la génération.");
     } finally {
@@ -47,6 +48,10 @@ export default function NewSwarmPage() {
 
   async function handleCreateFromSpec() {
     if (!spec) return;
+    if (!spec.agents?.length || !spec.tasks?.length) {
+      setCreateError(UI.swarms.architectSpecError);
+      return;
+    }
     setCreateLoading(true);
     setCreateError(null);
     try {
@@ -56,8 +61,8 @@ export default function NewSwarmPage() {
         body: JSON.stringify(spec),
       });
       if (!res.ok) throw new Error(`Erreur ${res.status}`);
-      const created = (await res.json()) as { id: string };
-      router.push(`/swarms/${created.id}`);
+      const data = (await res.json()) as { item: { id: string } };
+      router.push(`/swarms/${data.item.id}`);
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "Erreur lors de la création.");
     } finally {
@@ -94,7 +99,7 @@ export default function NewSwarmPage() {
 
   async function handleManualCreate() {
     if (!manualName.trim()) {
-      setManualError("Le nom est requis.");
+      setManualError(UI.swarms.manualNameRequired);
       return;
     }
     setManualLoading(true);
@@ -112,8 +117,8 @@ export default function NewSwarmPage() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`Erreur ${res.status}`);
-      const created = (await res.json()) as { id: string };
-      router.push(`/swarms/${created.id}`);
+      const data = (await res.json()) as { item: { id: string } };
+      router.push(`/swarms/${data.item.id}`);
     } catch (err) {
       setManualError(err instanceof Error ? err.message : "Erreur lors de la création.");
     } finally {
@@ -123,8 +128,8 @@ export default function NewSwarmPage() {
 
   return (
     <>
-      <p className="ct-eyebrow">MySwarms</p>
-      <h1 className="ct-title">Nouveau swarm</h1>
+      <p className="ct-eyebrow">{UI.swarms.eyebrow}</p>
+      <h1 className="ct-title">{UI.swarms.newTitle}</h1>
 
       <div className="swarm-tabs">
         <button
@@ -132,25 +137,25 @@ export default function NewSwarmPage() {
           className={`swarm-tab-btn${tab === "architect" ? " active" : ""}`}
           onClick={() => setTab("architect")}
         >
-          Architect (IA)
+          {UI.swarms.tabArchitect}
         </button>
         <button
           type="button"
           className={`swarm-tab-btn${tab === "manual" ? " active" : ""}`}
           onClick={() => setTab("manual")}
         >
-          Manuel
+          {UI.swarms.tabManual}
         </button>
       </div>
 
       {tab === "architect" && (
         <div className="ct-card" style={{ maxWidth: 720 }}>
-          <p className="ct-card-title">Décrire votre swarm en langage naturel</p>
+          <p className="ct-card-title">{UI.swarms.architectTitle}</p>
           <div className="ct-card-body">
             <textarea
               className="crm-input"
               rows={5}
-              placeholder="Ex : Un swarm qui analyse les annonces Bienici pour une ville donnée, extrait les prix au m², et produit un rapport de marché."
+              placeholder={UI.swarms.architectPlaceholder}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               style={{ width: "100%", resize: "vertical", marginBottom: "var(--ct-space-md)" }}
@@ -161,7 +166,7 @@ export default function NewSwarmPage() {
               onClick={handleGenerateSpec}
               disabled={specLoading || !description.trim()}
             >
-              {specLoading ? "Génération en cours…" : "Générer la spec"}
+              {specLoading ? UI.swarms.architectGenerating : UI.swarms.architectGenerateCta}
             </button>
             {specError && (
               <p style={{ color: "var(--ct-text-danger)", fontSize: 12, marginTop: "var(--ct-space-sm)" }}>
@@ -172,7 +177,7 @@ export default function NewSwarmPage() {
 
           {spec && (
             <div className="ct-card-body" style={{ marginTop: "var(--ct-space-md)" }}>
-              <p className="ct-card-title">Spec générée — {spec.name}</p>
+              <p className="ct-card-title">{UI.swarms.architectSpecTitle(spec.name)}</p>
               <pre className="swarm-spec-preview">{JSON.stringify(spec, null, 2)}</pre>
               <div style={{ marginTop: "var(--ct-space-md)", display: "flex", gap: "var(--ct-space-sm)" }}>
                 <button
@@ -181,7 +186,7 @@ export default function NewSwarmPage() {
                   onClick={handleCreateFromSpec}
                   disabled={createLoading}
                 >
-                  {createLoading ? "Création…" : "Créer ce swarm"}
+                  {createLoading ? UI.swarms.architectCreating : UI.swarms.architectCreateCta}
                 </button>
                 <button
                   type="button"
@@ -189,7 +194,7 @@ export default function NewSwarmPage() {
                   onClick={() => setSpec(null)}
                   disabled={createLoading}
                 >
-                  Régénérer
+                  {UI.swarms.architectRegenCta}
                 </button>
               </div>
               {createError && (
@@ -206,11 +211,11 @@ export default function NewSwarmPage() {
         <div className="ct-card" style={{ maxWidth: 720 }}>
           <div className="ct-card-body">
             <div className="swarm-form-section">
-              <p className="swarm-form-section-title">Informations générales</p>
+              <p className="swarm-form-section-title">{UI.swarms.manualSectionGeneral}</p>
               <input
                 className="crm-input"
                 type="text"
-                placeholder="Nom du swarm *"
+                placeholder={UI.swarms.manualNamePlaceholder}
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
                 style={{ marginBottom: "var(--ct-space-sm)" }}
@@ -218,14 +223,14 @@ export default function NewSwarmPage() {
               <input
                 className="crm-input"
                 type="text"
-                placeholder="Description (optionnel)"
+                placeholder={UI.swarms.manualDescPlaceholder}
                 value={manualDesc}
                 onChange={(e) => setManualDesc(e.target.value)}
               />
             </div>
 
             <div className="swarm-form-section">
-              <p className="swarm-form-section-title">Agents</p>
+              <p className="swarm-form-section-title">{UI.swarms.manualSectionAgents}</p>
               <div className="swarm-dynamic-list">
                 {agents.map((agent, i) => (
                   <div key={i} className="swarm-dynamic-item">
@@ -237,7 +242,7 @@ export default function NewSwarmPage() {
                     <input
                       className="crm-input"
                       type="text"
-                      placeholder="Nom de l'agent"
+                      placeholder={UI.swarms.manualAgentNamePlaceholder}
                       value={agent.name}
                       onChange={(e) => updateAgent(i, "name", e.target.value)}
                       style={{ marginBottom: "var(--ct-space-xs)" }}
@@ -245,7 +250,7 @@ export default function NewSwarmPage() {
                     <input
                       className="crm-input"
                       type="text"
-                      placeholder="Rôle"
+                      placeholder={UI.swarms.manualAgentRolePlaceholder}
                       value={agent.role}
                       onChange={(e) => updateAgent(i, "role", e.target.value)}
                       style={{ marginBottom: "var(--ct-space-xs)" }}
@@ -253,7 +258,7 @@ export default function NewSwarmPage() {
                     <input
                       className="crm-input"
                       type="text"
-                      placeholder="Objectif (goal)"
+                      placeholder={UI.swarms.manualAgentGoalPlaceholder}
                       value={agent.goal}
                       onChange={(e) => updateAgent(i, "goal", e.target.value)}
                     />
@@ -261,12 +266,12 @@ export default function NewSwarmPage() {
                 ))}
               </div>
               <button type="button" className="swarm-add-btn" onClick={addAgent}>
-                + Ajouter un agent
+                {UI.swarms.manualAddAgent}
               </button>
             </div>
 
             <div className="swarm-form-section">
-              <p className="swarm-form-section-title">Tâches</p>
+              <p className="swarm-form-section-title">{UI.swarms.manualSectionTasks}</p>
               <div className="swarm-dynamic-list">
                 {tasks.map((task, i) => (
                   <div key={i} className="swarm-dynamic-item">
@@ -278,7 +283,7 @@ export default function NewSwarmPage() {
                     <input
                       className="crm-input"
                       type="text"
-                      placeholder="Nom de la tâche"
+                      placeholder={UI.swarms.manualTaskNamePlaceholder}
                       value={task.name}
                       onChange={(e) => updateTask(i, "name", e.target.value)}
                       style={{ marginBottom: "var(--ct-space-xs)" }}
@@ -286,7 +291,7 @@ export default function NewSwarmPage() {
                     <input
                       className="crm-input"
                       type="text"
-                      placeholder="Description"
+                      placeholder={UI.swarms.manualTaskDescPlaceholder}
                       value={task.description}
                       onChange={(e) => updateTask(i, "description", e.target.value)}
                       style={{ marginBottom: "var(--ct-space-xs)" }}
@@ -294,7 +299,7 @@ export default function NewSwarmPage() {
                     <input
                       className="crm-input"
                       type="text"
-                      placeholder="Résultat attendu (expected_output)"
+                      placeholder={UI.swarms.manualTaskOutputPlaceholder}
                       value={task.expected_output}
                       onChange={(e) => updateTask(i, "expected_output", e.target.value)}
                     />
@@ -302,7 +307,7 @@ export default function NewSwarmPage() {
                 ))}
               </div>
               <button type="button" className="swarm-add-btn" onClick={addTask}>
-                + Ajouter une tâche
+                {UI.swarms.manualAddTask}
               </button>
             </div>
 
@@ -318,7 +323,7 @@ export default function NewSwarmPage() {
               onClick={handleManualCreate}
               disabled={manualLoading}
             >
-              {manualLoading ? "Création…" : "Créer"}
+              {manualLoading ? UI.swarms.manualCreating : UI.swarms.manualCreateCta}
             </button>
           </div>
         </div>

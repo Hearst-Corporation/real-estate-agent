@@ -1,0 +1,38 @@
+[     440ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[     475ms] [LOG] [HMR] connected @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[   13448ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[   13631ms] [LOG] [Fast Refresh] done in 285ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[   14046ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[   14058ms] [LOG] [HMR] connected @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[   28919ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[   29067ms] [LOG] [Fast Refresh] done in 249ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  252980ms] [ERROR] WebSocket connection to 'ws://localhost:3002/_next/webpack-hmr?id=8106P7LD-LvpC2uL0sYVA' failed:  @ http://localhost:3002/_next/static/chunks/node_modules_next_dist_client_1um1_-a._.js:14622
+[  253995ms] [ERROR] WebSocket connection to 'ws://localhost:3002/_next/webpack-hmr?id=8106P7LD-LvpC2uL0sYVA' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/_next/static/chunks/node_modules_next_dist_client_1um1_-a._.js:14622
+[  254997ms] [ERROR] WebSocket connection to 'ws://localhost:3002/_next/webpack-hmr?id=8106P7LD-LvpC2uL0sYVA' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/_next/static/chunks/node_modules_next_dist_client_1um1_-a._.js:14622
+[  256000ms] [ERROR] WebSocket connection to 'ws://localhost:3002/_next/webpack-hmr?id=8106P7LD-LvpC2uL0sYVA' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/_next/static/chunks/node_modules_next_dist_client_1um1_-a._.js:14622
+[  257003ms] [ERROR] WebSocket connection to 'ws://localhost:3002/_next/webpack-hmr?id=8106P7LD-LvpC2uL0sYVA' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/_next/static/chunks/node_modules_next_dist_client_1um1_-a._.js:14622
+[  258005ms] [ERROR] WebSocket connection to 'ws://localhost:3002/_next/webpack-hmr?id=8106P7LD-LvpC2uL0sYVA' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/_next/static/chunks/node_modules_next_dist_client_1um1_-a._.js:14622
+[  263012ms] [ERROR] WebSocket connection to 'ws://localhost:3002/_next/webpack-hmr?id=8106P7LD-LvpC2uL0sYVA' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/_next/static/chunks/node_modules_next_dist_client_1um1_-a._.js:14622
+[  268040ms] [LOG] [HMR] connected @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  268498ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  268507ms] [LOG] [HMR] connected @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  366515ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  366568ms] [LOG] [Fast Refresh] done in 153ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  373542ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  373681ms] [LOG] [Fast Refresh] done in 242ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  385998ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  386060ms] [LOG] [Fast Refresh] done in 164ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  388336ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  388341ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  405605ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  405700ms] [LOG] [Fast Refresh] done in 196ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  415553ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  415625ms] [LOG] [Fast Refresh] done in 173ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  420159ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  420175ms] [LOG] [Fast Refresh] done in 117ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  432968ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  433071ms] [LOG] [Fast Refresh] done in 204ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  435376ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  435405ms] [LOG] [Fast Refresh] done in 129ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  451500ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898
+[  451542ms] [LOG] [Fast Refresh] done in 143ms @ http://localhost:3002/_next/static/chunks/node_modules_%40sentry_core_build_esm_1rfjznp._.js:8898

@@ -1,0 +1,315 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - navigation "Accueil" [ref=e5]:
+      - link "Accueil" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+      - generic [ref=e10]:
+        - link "Estimations" [ref=e11] [cursor=pointer]:
+          - /url: /estimations
+          - text: €
+        - link "Biens" [ref=e12] [cursor=pointer]:
+          - /url: /properties
+          - text: B
+        - link "Leads" [ref=e13] [cursor=pointer]:
+          - /url: /leads
+          - text: L
+        - link "Visites" [ref=e14] [cursor=pointer]:
+          - /url: /visits
+          - text: V
+        - link "Mandats" [ref=e15] [cursor=pointer]:
+          - /url: /mandates
+          - text: M
+        - link "Admin" [ref=e16] [cursor=pointer]:
+          - /url: /admin
+          - text: A
+      - generic [ref=e17]:
+        - group "Accent" [ref=e18]:
+          - button "default" [ref=e19] [cursor=pointer]
+          - button "hive" [ref=e20] [cursor=pointer]
+          - button "halo" [ref=e21] [cursor=pointer]
+          - button "hyper" [ref=e22] [cursor=pointer]
+          - button "hustle" [ref=e23] [cursor=pointer]
+          - button "gold" [ref=e24] [cursor=pointer]
+          - textbox "Couleur personnalisée" [ref=e25] [cursor=pointer]: "#000000"
+        - link "AD" [ref=e27] [cursor=pointer]:
+          - /url: /profile
+    - main [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]: Cockpit
+        - heading "Entretien" [level=1] [ref=e31]
+        - generic [ref=e33]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: Entretien — Bloc 8 / 9
+            - generic [ref=e37]:
+              - generic [ref=e38]:
+                - generic [ref=e39]: VO
+                - generic [ref=e40]: maison 145 avenue de la pinede 06160 Antibes
+              - generic [ref=e41]:
+                - generic [ref=e42]: VO
+                - generic [ref=e43]: 160M2 la pinede Carez 156 5 pieces 4 chambre 1etage
+              - generic [ref=e44]:
+                - generic [ref=e45]: VO
+                - generic [ref=e46]: La maison est en très bon état général, rénovée en 2021 avec des matériaux haut de gamme, qualité de rénovation excellente. Hauteur sous plafond 2m80. Exposition sud-ouest, très lumineuse, belle vue dégagée sur le jardin.
+              - generic [ref=e47]:
+                - generic [ref=e48]: KI
+                - generic [ref=e49]: Parfait, merci pour ces informations complémentaires. Je prends note de tous ces éléments. Permettez-moi d'enregistrer ces données.
+              - generic [ref=e50]:
+                - generic [ref=e51]: VO
+                - generic [ref=e52]: Il y a un garage double + 1 place de parking extérieure. Pas d'ascenseur (maison individuelle). Jardin de 400m², terrasse de 35m² côté sud. Pas de cave mais un cellier de 12m² attenant.
+              - generic [ref=e53]:
+                - generic [ref=e54]: KI
+                - generic [ref=e55]: Parfait, merci pour ces précisions sur les annexes. J'enregistre ces éléments et je résume le bloc des annexes avant de poursuivre.
+              - generic [ref=e56]:
+                - generic [ref=e57]: VO
+                - generic [ref=e58]: DPE classe C, GES classe C, réalisé en 2023. C'est une maison individuelle donc pas de copropriété, pas de charges. Non meublée, mobilier non inclus dans la vente.
+              - generic [ref=e59]:
+                - generic [ref=e60]: VO
+                - generic [ref=e61]: Standing haut de gamme, architecture provençale rénovée. Cuisine équipée haut de gamme, dressing, piscine 10x5 chauffée, système domotique. Aucune nuisance, quartier calme résidentiel.
+              - generic [ref=e62]:
+                - generic [ref=e63]: VO
+                - generic [ref=e64]: tu veux koi
+              - generic [ref=e65]:
+                - generic [ref=e66]: VO
+                - generic [ref=e67]: cuisine equipé
+              - generic [ref=e68]:
+                - generic [ref=e69]: KI
+                - generic [ref=e70]:
+                  - text: Je résume ce que nous avons sur la
+                  - strong [ref=e71]: copropriété (Bloc 6)
+                  - text: ": ✓"
+                  - strong [ref=e72]: Confirmé
+                  - text: ": Il s'agit d'une maison individuelle, donc pas de copropriété, pas de charges annuelles. C'est noté. Passons maintenant au contexte de la vente. --- ### Bloc 8 — Contexte de la vente [B8Q1] Quel est le motif de cette vente ? (déménagement, succession, séparation, investissement…) [B8Q2] Quel délai souhaitez-vous pour concrétiser la vente ? Y a-t-il une urgence particulière ? [B8Q3] Le bien est-il actuellement occupé ? (résidence principale / loué / libre)"
+              - generic [ref=e73]:
+                - generic [ref=e74]: VO
+                - generic [ref=e75]: pas d urgence residence principal
+              - generic [ref=e76]:
+                - generic [ref=e77]: KI
+                - generic [ref=e78]:
+                  - text: Je résume ce que nous avons pour le
+                  - strong [ref=e79]: contexte de la vente (Bloc 8)
+                  - text: ": ✓"
+                  - strong [ref=e80]: Confirmé
+                  - text: ": - Occupation : Résidence principale - Délai souhaité : Pas d'urgence - Motif de la vente : *À préciser* (déménagement, mutation ?) Avant de passer au dernier bloc, pouvez-vous me confirmer ces éléments ? Et si vous le souhaitez, préciser le motif de la vente (sinon nous l'indiquerons comme \"à confirmer\")."
+              - generic [ref=e81]:
+                - generic [ref=e82]: VO
+                - generic [ref=e83]: oui
+              - generic [ref=e84]:
+                - generic [ref=e85]: KI
+                - generic [ref=e86]: "Parfait, je note la confirmation. Le motif précis de la vente reste à préciser, je le garde de côté. Passons au dernier bloc : les commentaires complémentaires."
+              - generic [ref=e87]:
+                - generic [ref=e88]: VO
+                - generic [ref=e89]: demande moi
+              - generic [ref=e90]:
+                - generic [ref=e91]: KI
+                - generic [ref=e92]: "Parfait, nous arrivons à la fin de l'entretien. --- ### Bloc 9 — Commentaires complémentaires [B9Q1] Y a-t-il des informations supplémentaires à prendre en compte pour l'estimation ? (historique du bien, projets urbains à proximité, servitudes, particularités non mentionnées, travaux récents que nous n'aurions pas évoqués…)"
+              - generic [ref=e93]:
+                - generic [ref=e94]: VO
+                - generic [ref=e95]: non simule
+              - generic [ref=e96]:
+                - generic [ref=e97]: VO
+                - generic [ref=e98]: Génère moi la simulation
+              - generic [ref=e99]:
+                - generic [ref=e100]: KI
+                - generic [ref=e101]:
+                  - text: Je comprends votre demande, mais
+                  - strong [ref=e102]: je ne peux pas générer d'estimation ou de simulation de prix dans cette conversation
+                  - text: — même si l'entretien est complet.
+                  - strong [ref=e103]: Pour obtenir votre estimation
+                  - text: ", vous devez utiliser le"
+                  - strong [ref=e104]: bouton dédié
+                  - text: "(généralement intitulé \"Générer l'estimation\" ou similaire) qui se trouve dans l'interface de l'application. --- ### 📋 Récapitulatif final de l'entretien"
+                  - strong [ref=e105]: Bloc 1 — Identification
+                  - text: "- Maison individuelle, 145 avenue de la Pinède, 06160 Antibes (quartier La Pinède)"
+                  - strong [ref=e106]: Bloc 2 — Caractéristiques
+                  - text: "- Surface habitable : 160 m² / Surface Carrez : 156 m² (confirmée) - 5 pièces dont 4 chambres - Maison sur 1 niveau (étage : 1 — à vérifier si R+1 ou plain-pied surélevé)"
+                  - strong [ref=e107]: Bloc 3 — Confort
+                  - text: "- Pas d'ascenseur (maison) - Vue dégagée sur jardin, exposition sud-ouest, très lumineuse - Hauteur sous plafond : 2,80 m"
+                  - strong [ref=e108]: Bloc 4 — Annexes
+                  - text: "- Garage double + 1 place extérieure - Pas de cave, cellier 12 m² - Terrasse 35 m² (côté sud) - Jardin privatif 400 m²"
+                  - strong [ref=e109]: Bloc 5 — État & qualité
+                  - text: "- État : Rénové récemment (2021), rénovation structurelle (matériaux haut de gamme) - Non meublé, mobilier non inclus - DPE C / GES C (diagnostic 2023)"
+                  - strong [ref=e110]: Bloc 6 — Copropriété
+                  - text: "- Maison individuelle (pas de copropriété, pas de charges)"
+                  - strong [ref=e111]: Bloc 7 — Prestations
+                  - text: "- Style : Provençale haut de gamme - Cuisine équipée haut de gamme, dressing, piscine 10x5 chauffée, domotique - Aucune nuisance, quartier calme résidentiel"
+                  - strong [ref=e112]: Bloc 8 — Contexte
+                  - text: "- Résidence principale, pas d'urgence - ⚠️ *Motif de la vente : À confirmer*"
+                  - strong [ref=e113]: Bloc 9 — Commentaires
+                  - text: "- Aucun commentaire complémentaire ---"
+                  - strong [ref=e114]: Prochaine étape
+                  - text: ": Cliquez sur le bouton"
+                  - strong [ref=e115]: "\"Générer l'estimation\""
+                  - text: pour obtenir la valorisation automatique du bien basée sur ces données.
+              - generic [ref=e281]:
+                - generic [ref=e282]: VO
+                - generic [ref=e283]: Aucun commentaire complémentaire.
+              - generic [ref=e284]:
+                - generic [ref=e285]: KI
+                - generic [ref=e286]: …
+            - generic [ref=e116]:
+              - textbox "Message à Kimi…" [disabled] [ref=e117]
+              - button "Générer l'estimation" [disabled] [ref=e119]
+          - generic [ref=e121]:
+            - generic [ref=e122]: Fiche bien
+            - generic [ref=e123]:
+              - generic [ref=e125]: Bloc 8 / 9
+              - generic [ref=e128]:
+                - generic [ref=e129]: Type de bien
+                - generic [ref=e130]: maison
+              - generic [ref=e131]:
+                - generic [ref=e132]: Adresse
+                - generic [ref=e133]: 145 avenue de la pinede
+              - generic [ref=e134]:
+                - generic [ref=e135]: Ville
+                - generic [ref=e136]: Antibes
+              - generic [ref=e137]:
+                - generic [ref=e138]: Code postal
+                - generic [ref=e139]: "06160"
+              - generic [ref=e140]:
+                - generic [ref=e141]: Secteur / quartier
+                - generic [ref=e142]: La Pinede
+              - generic [ref=e143]:
+                - generic [ref=e144]: Surface habitable (m²)
+                - generic [ref=e145]: "160"
+              - generic [ref=e146]:
+                - generic [ref=e147]: Surface Carrez (m²)
+                - generic [ref=e148]: "156"
+              - generic [ref=e149]:
+                - generic [ref=e150]: Surface Carrez confirmée
+                - generic [ref=e151]: Non
+              - generic [ref=e152]:
+                - generic [ref=e153]: Nombre de pièces
+                - generic [ref=e154]: "5"
+              - generic [ref=e155]:
+                - generic [ref=e156]: Nombre de chambres
+                - generic [ref=e157]: "4"
+              - generic [ref=e158]:
+                - generic [ref=e159]: Étage
+                - generic [ref=e160]: "1"
+              - generic [ref=e161]:
+                - generic [ref=e162]: Nb d'étages total
+                - generic [ref=e163]: —
+              - generic [ref=e164]:
+                - generic [ref=e165]: Ascenseur
+                - generic [ref=e166]: Non
+              - generic [ref=e167]:
+                - generic [ref=e168]: Vue
+                - generic [ref=e169]: dégagée sur le jardin
+              - generic [ref=e170]:
+                - generic [ref=e171]: Exposition
+                - generic [ref=e172]: sud_ouest
+              - generic [ref=e173]:
+                - generic [ref=e174]: Luminosité
+                - generic [ref=e175]: très lumineuse
+              - generic [ref=e176]:
+                - generic [ref=e177]: Hauteur sous plafond (m)
+                - generic [ref=e178]: "2.8"
+              - generic [ref=e179]:
+                - generic [ref=e180]: Stationnement
+                - generic [ref=e181]: plusieurs
+              - generic [ref=e182]:
+                - generic [ref=e183]: Nb de stationnements
+                - generic [ref=e184]: "3"
+              - generic [ref=e185]:
+                - generic [ref=e186]: Cave
+                - generic [ref=e187]: Non
+              - generic [ref=e188]:
+                - generic [ref=e189]: Surface cave (m²)
+                - generic [ref=e190]: —
+              - generic [ref=e191]:
+                - generic [ref=e192]: Terrasse / balcon (m²)
+                - generic [ref=e193]: "35"
+              - generic [ref=e194]:
+                - generic [ref=e195]: Jardin (m²)
+                - generic [ref=e196]: "400"
+              - generic [ref=e197]:
+                - generic [ref=e198]: État général
+                - generic [ref=e199]: renove_recemment
+              - generic [ref=e200]:
+                - generic [ref=e201]: Année de rénovation
+                - generic [ref=e202]: "2021"
+              - generic [ref=e203]:
+                - generic [ref=e204]: Qualité rénovation
+                - generic [ref=e205]: structurelle
+              - generic [ref=e206]:
+                - generic [ref=e207]: Meublé
+                - generic [ref=e208]: Non
+              - generic [ref=e209]:
+                - generic [ref=e210]: Mobilier inclus dans la vente
+                - generic [ref=e211]: Non
+              - generic [ref=e212]:
+                - generic [ref=e213]: Classe DPE
+                - generic [ref=e214]: C
+              - generic [ref=e215]:
+                - generic [ref=e216]: Classe GES
+                - generic [ref=e217]: C
+              - generic [ref=e218]:
+                - generic [ref=e219]: Année DPE
+                - generic [ref=e220]: "2023"
+              - generic [ref=e221]:
+                - generic [ref=e222]: État copropriété
+                - generic [ref=e223]: —
+              - generic [ref=e224]:
+                - generic [ref=e225]: Nombre de lots
+                - generic [ref=e226]: —
+              - generic [ref=e227]:
+                - generic [ref=e228]: Charges annuelles (€)
+                - generic [ref=e229]: "0"
+              - generic [ref=e230]:
+                - generic [ref=e231]: Travaux votés
+                - generic [ref=e232]: —
+              - generic [ref=e233]:
+                - generic [ref=e234]: Standing / style architectural
+                - generic [ref=e235]: —
+              - generic [ref=e236]:
+                - generic [ref=e237]: Prestations particulières
+                - generic [ref=e238]: —
+              - generic [ref=e239]:
+                - generic [ref=e240]: Nuisances
+                - generic [ref=e241]: —
+              - generic [ref=e242]:
+                - generic [ref=e243]: Motif de la vente
+                - generic [ref=e244]: —
+              - generic [ref=e245]:
+                - generic [ref=e246]: Délai souhaité
+                - generic [ref=e247]: pas d'urgence
+              - generic [ref=e248]:
+                - generic [ref=e249]: Occupation
+                - generic [ref=e250]: residence_principale
+              - generic [ref=e251]:
+                - generic [ref=e252]: Loyer mensuel (€)
+                - generic [ref=e253]: —
+              - generic [ref=e254]:
+                - generic [ref=e255]: Commentaires
+                - generic [ref=e256]: Cellier attenant de 12m² (sans cave)
+      - generic [ref=e258]:
+        - generic [ref=e259]: Real estate Agent
+        - generic [ref=e260]:
+          - link "Dashboard" [ref=e261] [cursor=pointer]:
+            - /url: /
+          - link "Estimations" [ref=e262] [cursor=pointer]:
+            - /url: /estimations
+          - link "Biens" [ref=e263] [cursor=pointer]:
+            - /url: /properties
+          - link "Leads" [ref=e264] [cursor=pointer]:
+            - /url: /leads
+          - link "Visites" [ref=e265] [cursor=pointer]:
+            - /url: /visits
+          - link "Mandats" [ref=e266] [cursor=pointer]:
+            - /url: /mandates
+          - link "Profil" [ref=e267] [cursor=pointer]:
+            - /url: /profile
+          - link "Admin" [ref=e268] [cursor=pointer]:
+            - /url: /admin
+    - complementary "Assistant" [ref=e269]:
+      - generic [ref=e287]:
+        - generic [ref=e288]: Assistant
+        - button "Replier" [ref=e289] [cursor=pointer]: ›
+      - generic [ref=e291]:
+        - generic [ref=e292]: Kimi K2.6
+        - paragraph [ref=e294]: "Pose une question, ou « mémorise : … » pour enregistrer un fait du tenant."
+        - textbox "Message à Kimi…" [ref=e296]
+  - button "Open Next.js Dev Tools" [ref=e276] [cursor=pointer]:
+    - img [ref=e277]
+  - alert [ref=e280]

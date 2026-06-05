@@ -255,9 +255,9 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
 
       {/* ── Swarm Bienici contextuel ── */}
       <div className="ct-card est-valuation-block">
-        <p className="ct-card-title">Analyse IA — MySwarms</p>
+        <p className="ct-card-title">{UI.swarms.contextualTitle}</p>
         <p className="ct-placeholder" style={{ marginBottom: "var(--ct-space-sm)" }}>
-          Lance un swarm Bienici pour enrichir l&apos;analyse de marché avec des données en temps réel.
+          {UI.swarms.contextualHint}
         </p>
         <SwarmContextualPanel estimationId={id} />
       </div>

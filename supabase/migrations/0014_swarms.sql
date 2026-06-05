@@ -18,5 +18,5 @@ create index if not exists swarm_runs_run_id_idx on public.swarm_runs(run_id);
 alter table public.swarm_runs enable row level security;
 
 create policy "tenant_isolation" on public.swarm_runs
-  using (tenant_id = current_tenant_id())
-  with check (tenant_id = current_tenant_id());
+  using (tenant_id = (select public.current_tenant_id()))
+  with check (tenant_id = (select public.current_tenant_id()));

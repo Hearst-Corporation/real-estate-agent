@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { UI } from "@/lib/ui-strings";
 import SwarmKickoffPanel from "./SwarmKickoffPanel";
 import type { Swarm } from "@/lib/swarms/types";
 
@@ -15,8 +16,8 @@ export default function SwarmContextualPanel({ estimationId }: { estimationId: s
   useEffect(() => {
     fetch("/api/swarms")
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: Swarm[]) => {
-        const active = (data ?? []).filter((s) => s.is_active);
+      .then((data: { items?: Swarm[] }) => {
+        const active = (data?.items ?? []).filter((s) => s.is_active);
         setSwarms(active);
         if (active.length > 0) setSelectedId(active[0].id);
       })
@@ -25,17 +26,17 @@ export default function SwarmContextualPanel({ estimationId }: { estimationId: s
   }, []);
 
   if (loading) {
-    return <p className="ct-placeholder" style={{ fontSize: 12 }}>Chargement des swarms…</p>;
+    return <p className="ct-placeholder" style={{ fontSize: 12 }}>{UI.swarms.contextualLoading}</p>;
   }
 
   if (swarms.length === 0) {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-xs)" }}>
         <p className="ct-placeholder" style={{ fontSize: 12 }}>
-          Aucun swarm actif disponible.
+          {UI.swarms.contextualEmpty}
         </p>
         <Link href="/swarms/new" className="ct-btn ct-btn-secondary" style={{ display: "inline-block", textDecoration: "none", fontSize: 12 }}>
-          Configurer un swarm
+          {UI.swarms.contextualCta}
         </Link>
       </div>
     );

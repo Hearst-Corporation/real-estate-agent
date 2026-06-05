@@ -6,6 +6,8 @@ import { getSupabaseAdmin } from "@/lib/server/supabase"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+const RUNS_LIMIT = 20
+
 type Params = { params: Promise<{ id: string }> }
 
 // ─── GET /api/swarms/[id]/runs ────────────────────────────────────────────────
@@ -26,7 +28,7 @@ export async function GET(_req: Request, { params }: Params) {
     .eq("swarm_id", id)
     .eq("tenant_id", ownerId)
     .order("created_at", { ascending: false })
-    .limit(20)
+    .limit(RUNS_LIMIT)
 
   if (error) {
     return NextResponse.json({ error: "fetch_failed", detail: error.message }, { status: 500 })

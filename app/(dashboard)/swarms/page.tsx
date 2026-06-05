@@ -6,6 +6,7 @@ import { listSwarms } from "@/lib/swarms/client";
 import SwarmCard from "@/components/swarms/SwarmCard";
 import type { Swarm } from "@/lib/swarms/types";
 import Link from "next/link";
+import { UI } from "@/lib/ui-strings";
 
 export default async function SwarmsPage() {
   const claims = await getSession();
@@ -42,27 +43,27 @@ export default async function SwarmsPage() {
 
   return (
     <>
-      <Eyebrow>MySwarms</Eyebrow>
-      <Title>Swarms</Title>
+      <Eyebrow>{UI.swarms.eyebrow}</Eyebrow>
+      <Title>{UI.swarms.title}</Title>
 
       <KpiGrid className="cols-4">
-        <KpiCard label="Total swarms" value={String(total)} />
-        <KpiCard label="Actifs" value={String(active)} className="accent" />
-        <KpiCard label="Inactifs" value={String(inactive)} />
-        <KpiCard label="Runs aujourd'hui" value={String(runsToday)} />
+        <KpiCard label={UI.swarms.kpis.total} value={String(total)} />
+        <KpiCard label={UI.swarms.kpis.active} value={String(active)} className="accent" />
+        <KpiCard label={UI.swarms.kpis.inactive} value={String(inactive)} />
+        <KpiCard label={UI.swarms.kpis.runsToday} value={String(runsToday)} />
       </KpiGrid>
 
       <div className="ct-mb-sm" />
 
       <div style={{ marginBottom: "var(--ct-space-md)" }}>
         <Link href="/swarms/new" className="ct-btn ct-btn-primary">
-          Nouveau swarm
+          {UI.swarms.newCta}
         </Link>
       </div>
 
       {swarms.length === 0 ? (
         <Card>
-          <p className="crm-empty">Aucun swarm configuré. Créez votre premier swarm pour automatiser vos analyses.</p>
+          <p className="crm-empty">{UI.swarms.empty}</p>
         </Card>
       ) : (
         <div className="crm-grid">

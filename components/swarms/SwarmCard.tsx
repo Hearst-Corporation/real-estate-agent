@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { UI } from "@/lib/ui-strings"
 import RunStatusBadge from "./RunStatusBadge"
 
 type Status = 'pending' | 'running' | 'done' | 'failed' | 'error'
@@ -35,14 +36,14 @@ export default function SwarmCard({
       <div className="crm-card-header">
         <span className="crm-card-title">{name}</span>
         <span className={`swarm-status-badge ${isActive ? 'swarm-status-done' : 'swarm-status-failed'}`}>
-          {isActive ? "Actif" : "Inactif"}
+          {isActive ? UI.swarms.statusActive : UI.swarms.statusInactive}
         </span>
       </div>
       {description && (
         <p className="crm-card-desc">{description}</p>
       )}
       <div className="crm-card-meta">
-        {agentCount} agent(s) · {taskCount} tâche(s)
+        {UI.swarms.agentCount(agentCount)} · {UI.swarms.taskCount(taskCount)}
       </div>
       {(lastRunStatus || formattedDate) && (
         <div className="crm-card-footer">

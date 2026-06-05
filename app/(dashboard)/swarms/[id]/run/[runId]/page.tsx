@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { UI } from "@/lib/ui-strings";
 import RunStatusBadge from "@/components/swarms/RunStatusBadge";
 import StepsTimeline from "@/components/swarms/StepsTimeline";
-import type { SwarmRun, SwarmRunStatus } from "@/lib/swarms/types";
+import { useRouter } from "next/navigation";
+import type { SwarmRun, SwarmRunStatus, SwarmStep } from "@/lib/swarms/types";
 
 const POLL_INTERVAL_MS = 3000;
 const ACTIVE_STATUSES: SwarmRunStatus[] = ["pending", "running"];
@@ -17,7 +19,10 @@ export default function RunDetailPage({
   const [id, setId] = useState<string | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
 
+  const router = useRouter();
+
   const [run, setRun] = useState<SwarmRun | null>(null);
+  const [steps, setSteps] = useState<SwarmStep[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,14 +48,15 @@ export default function RunDetailPage({
     try {
       const res = await fetch(`/api/swarms/${swarmId}/runs/${rId}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = (await res.json()) as SwarmRun;
-      setRun(data);
+      const data = (await res.json()) as { run: SwarmRun; steps: SwarmStep[] };
+      setRun(data.run);
+      setSteps(data.steps ?? []);
       setLoading(false);
-      if (!ACTIVE_STATUSES.includes(data.status)) {
+      if (!ACTIVE_STATUSES.includes(data.run.status)) {
         stopPolling();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur de chargement.");
+      setError(err instanceof Error ? err.message : UI.swarms.loadingError);
       setLoading(false);
       stopPolling();
     }
@@ -80,7 +86,11 @@ export default function RunDetailPage({
     if (!id) return;
     setRelaunching(true);
     try {
-      await fetch(`/api/swarms/${id}/kickoff`, { method: "POST" });
+      const res = await fetch(`/api/swarms/${id}/kickoff`, { method: "POST" });
+      if (res.ok) {
+        const kickoffData = (await res.json()) as { runId: string; swarmId: string };
+        router.push(`/swarms/${kickoffData.swarmId}/run/${kickoffData.runId}`);
+      }
     } catch {
       // ignore
     } finally {
@@ -102,7 +112,7 @@ export default function RunDetailPage({
         <p style={{ color: "var(--ct-text-danger)" }}>{error ?? "Run introuvable."}</p>
         {id && (
           <Link href={`/swarms/${id}`} className="ct-btn ct-btn-secondary" style={{ marginTop: "var(--ct-space-md)", display: "inline-block" }}>
-            Retour au swarm
+            {UI.swarms.backToSwarm}
           </Link>
         )}
       </div>
@@ -145,7 +155,7 @@ export default function RunDetailPage({
           <RunStatusBadge status={run.status} />
         </div>
         <p style={{ fontSize: 12, color: "var(--ct-text-muted)", marginTop: "var(--ct-space-xs)" }}>
-          Lancé le {createdAt}
+          {UI.swarms.runLaunchedAt(createdAt)}
         </p>
       </div>
 
@@ -154,17 +164,17 @@ export default function RunDetailPage({
         <div className="ct-card" style={{ marginBottom: "var(--ct-space-md)" }}>
           <div className="ct-card-body" style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-sm)" }}>
             <span className="swarm-spinner" />
-            <span style={{ fontSize: 13, color: "var(--ct-text-muted)" }}>Analyse en cours…</span>
+            <span style={{ fontSize: 13, color: "var(--ct-text-muted)" }}>{UI.swarms.runActive}</span>
           </div>
         </div>
       )}
 
       {/* Steps */}
-      {run.steps && run.steps.length > 0 && (
+      {steps.length > 0 && (
         <div className="ct-card" style={{ marginBottom: "var(--ct-space-md)" }}>
           <div className="ct-card-body">
-            <p className="ct-card-title">Étapes</p>
-            <StepsTimeline steps={run.steps} />
+            <p className="ct-card-title">{UI.swarms.runStepsTitle}</p>
+            <StepsTimeline steps={steps} />
           </div>
         </div>
       )}
@@ -173,7 +183,7 @@ export default function RunDetailPage({
       {run.status === "done" && run.output && (
         <div className="ct-card" style={{ marginBottom: "var(--ct-space-md)" }}>
           <div className="ct-card-body">
-            <p className="ct-card-title">Résultat</p>
+            <p className="ct-card-title">{UI.swarms.runResultTitle}</p>
             <pre className="swarm-spec-preview">{run.output}</pre>
           </div>
         </div>
@@ -188,7 +198,7 @@ export default function RunDetailPage({
             onClick={handleRelaunch}
             disabled={relaunching}
           >
-            {relaunching ? "Lancement…" : "Relancer"}
+            {relaunching ? UI.swarms.runRelaunching : UI.swarms.runRelaunchCta}
           </button>
         </div>
       )}
