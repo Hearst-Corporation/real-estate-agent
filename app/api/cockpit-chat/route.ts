@@ -4,6 +4,7 @@ import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { kimi, KIMI_MODEL, kimiIsConfigured } from "@/lib/llm/kimi";
 import { tenantOf } from "@/lib/tenant";
+import { trace } from "@/lib/providers/langfuse";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -98,6 +99,18 @@ export async function POST(req: Request) {
     })),
   ];
 
+  // Observabilité Langfuse — métadonnées seulement (pas de contenu PII), no-op si non configuré.
+  let t: { end: (output: unknown) => void } = { end: () => {} };
+  try {
+    t = trace(
+      "cockpit-chat",
+      { model: KIMI_MODEL, messageCount: messages.length },
+      { provider: "kimi", model: KIMI_MODEL },
+    );
+  } catch {
+    // trace() ne doit jamais bloquer le chat.
+  }
+
   const completion = await kimi.chat.completions.create({
     model: KIMI_MODEL,
     stream: true,
@@ -129,6 +142,7 @@ export async function POST(req: Request) {
             .from("cockpit_messages")
             .insert({ chat_id: chatId!, tenant_id: tenant, role: "assistant", content: assistantFull });
         }
+        t.end({ outputLen: assistantFull.length });
         controller.close();
       }
     },
