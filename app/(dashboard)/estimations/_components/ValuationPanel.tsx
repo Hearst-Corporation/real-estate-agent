@@ -25,9 +25,41 @@ const fmtPerSqm = new Intl.NumberFormat("fr-FR", {
 /** Durée d'affichage du libellé « Lien copié » avant retour à « Partager ». */
 const SHARE_COPIED_RESET_MS = 2500;
 
+type MarketContextData = {
+  summary: string | null;
+  citations: { title: string; url: string }[];
+  provider: string | null;
+  reason?: string;
+};
+
 export function ValuationPanel({ id, valuation }: Props) {
   const [shareLabel, setShareLabel] = useState<string>(UI.estimations.share);
   const [sharing, setSharing] = useState(false);
+
+  const [marketLoading, setMarketLoading] = useState(false);
+  const [marketLoaded, setMarketLoaded] = useState(false);
+  const [market, setMarket] = useState<MarketContextData | null>(null);
+
+  async function handleMarketContext() {
+    if (marketLoading) return;
+    setMarketLoading(true);
+    try {
+      const res = await fetch(`/api/estimations/${id}/market-context`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = res.ok ? ((await res.json()) as MarketContextData) : null;
+      setMarket(data);
+    } catch {
+      setMarket(null);
+    } finally {
+      setMarketLoaded(true);
+      setMarketLoading(false);
+    }
+  }
+
+  const marketHasContent = Boolean(market && (market.summary || market.citations.length > 0));
 
   async function handleShare() {
     if (sharing) return;
@@ -106,6 +138,43 @@ export function ValuationPanel({ id, valuation }: Props) {
           </ul>
         </div>
       )}
+
+      {/* ── Contexte marché (hors prix) ── */}
+      <div className="ct-card est-valuation-block">
+        <p className="ct-card-title">{UI.estimations.marketContextTitle}</p>
+        {!marketLoaded && (
+          <div className="ct-card-body">
+            <p className="est-adjust-note">{UI.estimations.marketContextHint}</p>
+            <button
+              className="ct-seg-btn"
+              onClick={handleMarketContext}
+              disabled={marketLoading}
+            >
+              {marketLoading ? UI.estimations.marketContextLoading : UI.estimations.marketContextCta}
+            </button>
+          </div>
+        )}
+        {marketLoaded && !marketHasContent && (
+          <p className="ct-card-body est-adjust-note">{UI.estimations.marketContextEmpty}</p>
+        )}
+        {marketLoaded && marketHasContent && market && (
+          <div className="ct-card-body">
+            {market.summary && <p className="est-market-summary">{market.summary}</p>}
+            {market.citations.length > 0 && (
+              <>
+                <p className="est-adjust-note">{UI.estimations.marketContextSources}</p>
+                <ul className="est-market-sources">
+                  {market.citations.map((c, i) => (
+                    <li key={i}>
+                      <a href={c.url} target="_blank" rel="noreferrer">{c.title}</a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── Actions ── */}
       <div className="est-valuation-actions">

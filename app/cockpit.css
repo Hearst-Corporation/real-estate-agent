@@ -487,6 +487,26 @@ html, body {
 .est-adjust-body { flex: 1; font-size: 12px; }
 .est-adjust-label { color: var(--ct-text-primary); }
 .est-adjust-note { color: var(--ct-text-muted); }
+.est-market-summary {
+  color: var(--ct-text-primary);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-line;
+  margin-bottom: var(--ct-space-sm);
+}
+.est-market-sources {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-xs);
+  font-size: 12px;
+}
+.est-market-sources a {
+  color: var(--ct-accent);
+  text-decoration: none;
+  word-break: break-all;
+}
+.est-market-sources a:hover { text-decoration: underline; }
 .est-valuation-actions {
   display: flex;
   gap: var(--ct-space-sm);
