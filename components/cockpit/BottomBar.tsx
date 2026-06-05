@@ -6,6 +6,11 @@ import { UI } from "@/lib/ui-strings";
 
 const SEGMENTS = [
   { href: "/", label: UI.nav.dashboard },
+  { href: "/estimations", label: UI.nav.estimations },
+  { href: "/properties", label: UI.nav.properties },
+  { href: "/leads", label: UI.nav.leads },
+  { href: "/visits", label: UI.nav.visits },
+  { href: "/mandates", label: UI.nav.mandates },
   { href: "/profile", label: UI.nav.profile },
 ];
 
@@ -17,9 +22,15 @@ export function BottomBar() {
         <span className="ct-bottom-label">{UI.app.name}</span>
         <div className="ct-seg-track">
           {SEGMENTS.map((s) => {
-            const active = s.href === "/" ? pathname === "/" : pathname.startsWith(s.href);
+            const active =
+              s.href === "/" ? pathname === "/" : pathname === s.href || pathname.startsWith(s.href + "/");
             return (
-              <Link key={s.href} href={s.href} className={`ct-seg-btn${active ? " active" : ""}`}>
+              <Link
+                key={s.href}
+                href={s.href}
+                className={`ct-seg-btn${active ? " active" : ""}`}
+                aria-current={active ? "page" : undefined}
+              >
                 {s.label}
               </Link>
             );

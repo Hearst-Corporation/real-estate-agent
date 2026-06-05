@@ -13,6 +13,49 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
         <Logo />
       </Link>
 
+      <div className="ct-rail-actions">
+        <Link
+          href="/estimations"
+          className="ct-rail-action"
+          title={UI.nav.estimations}
+          aria-label={UI.nav.estimations}
+        >
+          €
+        </Link>
+        <Link
+          href="/properties"
+          className="ct-rail-action"
+          title={UI.nav.properties}
+          aria-label={UI.nav.properties}
+        >
+          B
+        </Link>
+        <Link
+          href="/leads"
+          className="ct-rail-action"
+          title={UI.nav.leads}
+          aria-label={UI.nav.leads}
+        >
+          L
+        </Link>
+        <Link
+          href="/visits"
+          className="ct-rail-action"
+          title={UI.nav.visits}
+          aria-label={UI.nav.visits}
+        >
+          V
+        </Link>
+        <Link
+          href="/mandates"
+          className="ct-rail-action"
+          title={UI.nav.mandates}
+          aria-label={UI.nav.mandates}
+        >
+          M
+        </Link>
+      </div>
+
       <div className="ct-spacer" />
 
       <div className="ct-rail-bottom">
