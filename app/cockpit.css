@@ -39,6 +39,7 @@
   --ct-dur-base: 180ms;
 
   --ct-text-danger: #f87171;
+  --ct-danger: var(--ct-text-danger); /* alias référencé par les boutons destructifs (CRM) */
   --ct-success: #10b981;
 
   /* Échelle d'espacement canonique — complète le DS (consommée par les composants).
@@ -114,10 +115,10 @@ html, body {
 
 /* ── CENTRE ── */
 .ct-center-panel {
-  position: relative; flex: 1; min-width: 520px; height: 100%;
+  position: relative; flex: 1; min-width: 0; height: 100%;
   overflow: hidden; display: flex; flex-direction: column;
 }
-.ct-page-area { flex: 1; min-height: 0; overflow-y: auto; padding: 32px 40px 80px; }
+.ct-page-area { flex: 1; min-height: 0; overflow-y: auto; padding: 32px 40px 100px; }
 
 /* ── BOTTOM BAR ── */
 .ct-bottom-bar {
@@ -335,59 +336,59 @@ html, body {
 /* ── ESTIMATIONS — Interview layout ── */
 
 /*
- * Sortie du flux scrollable de .ct-page-area : compense les paddings du parent
- * pour que la grille occupe exactement la hauteur disponible sans débordement.
- * Utilisé uniquement sur les pages à layout full-height (interview).
+ * est-grid-escape : retire le padding X du ct-page-area pour que la grille
+ * soit bord à bord. Ne joue plus sur la hauteur (on laisse le scroll naturel).
  */
 .est-grid-escape {
-  /* annule le padding 32px top + 32px bottom + 80px bottom-bar réservé */
-  margin: calc(-1 * var(--ct-space-xl)) calc(-1 * 40px) calc(-1 * 80px);
-  height: calc(100% + var(--ct-space-xl) + 80px);
-  overflow: hidden;
+  margin-left: -40px;
+  margin-right: -40px;
+  margin-top: calc(-1 * var(--ct-space-xl));
 }
 
-/* Grille 2 colonnes : chat gauche / fiche droite. Hauteur 100% de l'escape. */
+/* Grille 2 colonnes : chat gauche / fiche droite. */
 .est-grid {
   display: flex;
   flex-direction: row;
   gap: var(--ct-space-lg);
-  align-items: stretch;
+  align-items: flex-start;
   width: 100%;
-  height: 100%;
-  min-height: 400px;
-  padding: var(--ct-space-xl) 40px var(--ct-space-lg);
+  min-height: 600px;
+  padding: var(--ct-space-xl) 40px var(--ct-space-xl);
+  box-sizing: border-box;
 }
 .est-grid-chat {
   flex: 1 1 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  min-height: 520px;
+  position: sticky;
+  top: 0;
 }
 .est-grid-fiche {
-  flex: 0 0 380px;
-  height: 100%;
-  overflow-y: auto;
+  flex: 0 0 clamp(340px, 33vw, 480px);
+  min-width: 0;
+  overflow-x: hidden;
 }
-@media (max-width: 1099px) {
+@media (max-width: 999px) {
   .est-grid-escape {
-    margin: calc(-1 * var(--ct-space-xl)) calc(-1 * 40px) 0;
-    height: auto;
-    overflow: visible;
+    margin-left: -24px;
+    margin-right: -24px;
+    margin-top: calc(-1 * var(--ct-space-xl));
   }
   .est-grid {
     flex-direction: column;
-    height: auto;
-    padding-bottom: var(--ct-space-xl);
+    align-items: stretch;
+    min-height: unset;
+    padding: var(--ct-space-md) 24px var(--ct-space-xl);
+  }
+  .est-grid-chat {
+    min-height: 400px;
+    position: static;
   }
   .est-grid-fiche {
     flex: 1 1 auto;
-    height: 50dvh;
     width: 100%;
-  }
-  .est-grid-chat {
-    height: 420px;
   }
 }
 
@@ -483,6 +484,19 @@ html, body {
 .ct-kpi-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .est-valuation { margin-top: var(--ct-space-lg); }
 .est-valuation-block { margin-bottom: var(--ct-space-md); }
+
+/* Dans la fiche estimation, les KPI cards ne doivent jamais déborder */
+.est-grid-fiche .ct-kpi-card {
+  min-width: 0;
+  overflow: hidden;
+  padding: 12px 14px;
+}
+.est-grid-fiche .ct-kpi-value {
+  font-size: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* Valuation — liste des ajustements (premium / décote) */
 .est-adjust-list {
@@ -704,10 +718,12 @@ html, body {
   font-weight: 700;
 }
 
-/* 7. Inputs CRM — même look que .ct-field-input, déclarés séparément pour portabilité */
+/* 7. Inputs CRM — même look que .ct-field-input, déclarés séparément pour portabilité.
+   .ct-input = alias historique référencé par les forms (Property/Mandate/Visit/Lead). */
 .crm-input,
 .crm-select,
-.crm-textarea {
+.crm-textarea,
+.ct-input {
   padding: 11px var(--ct-space-md);
   background: var(--ct-surface-1);
   border: 1px solid var(--ct-border);
@@ -723,14 +739,19 @@ html, body {
 }
 .crm-input:focus,
 .crm-select:focus,
-.crm-textarea:focus {
+.crm-textarea:focus,
+.ct-input:focus {
   border-color: var(--ct-border-accent);
   background: var(--ct-surface-2);
 }
 .crm-input::placeholder,
-.crm-textarea::placeholder { color: var(--ct-text-faint); }
+.crm-textarea::placeholder,
+.ct-input::placeholder { color: var(--ct-text-faint); }
 .crm-select { appearance: none; cursor: pointer; }
 .crm-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+/* .ct-input posé sur <select>/<textarea> hérite des mêmes comportements. */
+select.ct-input { appearance: none; cursor: pointer; }
+textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 /* 8. Badge de statut CRM */
 .crm-status {
@@ -795,8 +816,14 @@ html, body {
 }
 
 /* ── est-listing-table ── */
+.est-listing-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
 .est-listing-table {
   width: 100%;
+  min-width: 400px;
   border-collapse: collapse;
   font-size: 10px;
 }
@@ -814,3 +841,110 @@ html, body {
 .est-listing-table td:last-child {
   text-align: right;
 }
+
+/* ─── CRM — classes complémentaires référencées par les composants ───
+   Complètent le vocabulaire .crm-* (mêmes surfaces / bordures / tokens).
+   Évite tout rendu en style natif sur leads-board, fiche bien, agenda, modales. */
+
+/* Champs de formulaire — wrapper label + libellé unifié (canon .ct-field-label) */
+.ct-form label,
+.crm-form-field { display: flex; flex-direction: column; gap: 6px; }
+.ct-form label > span {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ct-text-muted);
+}
+.crm-form-actions {
+  display: flex; gap: var(--ct-space-sm); flex-wrap: wrap;
+  margin-top: var(--ct-space-2xs);
+}
+
+/* Modale formulaire (PropertyFormModal) */
+.crm-form-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: var(--ct-space-xl) var(--ct-space-md);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  overflow-y: auto;
+}
+.crm-form-modal {
+  width: 100%; max-width: 480px;
+  background: var(--ct-surface-2); border: 1px solid var(--ct-border-strong);
+  border-radius: 12px; padding: var(--ct-space-lg);
+  box-shadow: var(--ct-shadow-depth);
+}
+
+/* Sélecteur de statut inline (fiche bien) — compact, ne prend pas 100% */
+.crm-status-select {
+  width: auto; flex-shrink: 0;
+  padding: var(--ct-space-2xs) var(--ct-space-sm);
+  font-size: 11px;
+}
+
+/* Kanban leads — carte + entête de colonne */
+.crm-lead-card {
+  background: var(--ct-surface-1); border: 1px solid var(--ct-border);
+  border-radius: 12px; padding: var(--ct-space-sm) var(--ct-space-md);
+  display: flex; flex-direction: column; gap: var(--ct-space-2xs);
+  box-shadow: var(--ct-shadow-depth);
+  transition: border-color var(--ct-dur-base) var(--ct-ease), background var(--ct-dur-base) var(--ct-ease);
+}
+.crm-lead-card:hover { background: var(--ct-surface-2); border-color: var(--ct-border-accent); }
+.crm-lead-header { display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-xs); }
+.crm-lead-name {
+  font-size: 13px; font-weight: 700; color: var(--ct-text-primary); line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.crm-lead-contact { display: flex; flex-direction: column; gap: var(--ct-space-2xs); }
+.crm-lead-budget { font-weight: 600; color: var(--ct-text-body); }
+.crm-lead-actions { display: flex; gap: var(--ct-space-2xs); margin-top: var(--ct-space-2xs); }
+.crm-col-header {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-xs);
+  padding-bottom: var(--ct-space-xs); margin-bottom: var(--ct-space-xs);
+  border-bottom: 1px solid var(--ct-border-soft);
+}
+.crm-col-empty { min-height: var(--ct-space-lg); }
+
+/* Listes liées (fiche bien) — alias léger de .crm-row */
+.crm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.crm-list-row {
+  display: flex; align-items: center; gap: var(--ct-space-sm);
+  padding: var(--ct-space-sm) 0; border-bottom: 1px solid var(--ct-border-soft);
+}
+.crm-list-row:last-child { border-bottom: none; }
+.crm-list-name { font-size: 13px; font-weight: 600; color: var(--ct-text-primary); flex: 1; min-width: 0; }
+.crm-list-meta { font-size: 11px; color: var(--ct-text-muted); margin-left: auto; white-space: nowrap; }
+.crm-card-footer {
+  margin-top: var(--ct-space-sm); padding-top: var(--ct-space-sm);
+  border-top: 1px solid var(--ct-border-soft);
+}
+.crm-link { color: var(--ct-accent); text-decoration: none; }
+.crm-link:hover { text-decoration: underline; }
+
+/* Fiche bien — entête + caractéristiques */
+.crm-detail-header { margin-bottom: var(--ct-space-lg); }
+.crm-detail-title-row {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ct-space-md);
+}
+.crm-detail-price {
+  font-size: 20px; font-weight: 800; color: var(--ct-accent-strong);
+  letter-spacing: -0.01em; margin-top: var(--ct-space-2xs);
+}
+.crm-detail-dl {
+  display: grid; grid-template-columns: max-content 1fr;
+  gap: var(--ct-space-xs) var(--ct-space-md); margin: 0; font-size: 13px;
+}
+.crm-detail-dl dt { color: var(--ct-text-muted); }
+.crm-detail-dl dd { color: var(--ct-text-primary); margin: 0; }
+
+/* Agenda — groupé par jour */
+.crm-agenda-day { margin-bottom: var(--ct-space-md); }
+.crm-agenda-day-header { margin-top: var(--ct-space-sm); margin-bottom: var(--ct-space-xs); }
+.crm-agenda-row { display: flex; align-items: center; gap: var(--ct-space-md); }
+.crm-agenda-time {
+  font-size: 13px; font-weight: 700; color: var(--ct-accent-strong);
+  flex-shrink: 0; font-variant-numeric: tabular-nums;
+}
+.crm-agenda-info { display: flex; flex-direction: column; gap: var(--ct-space-2xs); flex: 1; min-width: 0; }
+.crm-agenda-property { font-size: 13px; font-weight: 600; color: var(--ct-text-primary); }
+.crm-agenda-lead { font-size: 11px; color: var(--ct-text-muted); }
