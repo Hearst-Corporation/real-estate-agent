@@ -36,11 +36,11 @@ export default function NewSwarmPage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ description }),
       });
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      if (!res.ok) throw new Error(UI.common.httpError(res.status));
       const data = (await res.json()) as { spec: ArchitectSpec };
       setSpec(data.spec);
     } catch (err) {
-      setSpecError(err instanceof Error ? err.message : "Erreur lors de la génération.");
+      setSpecError(err instanceof Error ? err.message : UI.swarms.generateError);
     } finally {
       setSpecLoading(false);
     }
@@ -60,11 +60,11 @@ export default function NewSwarmPage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(spec),
       });
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      if (!res.ok) throw new Error(UI.common.httpError(res.status));
       const data = (await res.json()) as { item: { id: string } };
       router.push(`/swarms/${data.item.id}`);
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : "Erreur lors de la création.");
+      setCreateError(err instanceof Error ? err.message : UI.swarms.createError);
     } finally {
       setCreateLoading(false);
     }
@@ -116,11 +116,11 @@ export default function NewSwarmPage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      if (!res.ok) throw new Error(UI.common.httpError(res.status));
       const data = (await res.json()) as { item: { id: string } };
       router.push(`/swarms/${data.item.id}`);
     } catch (err) {
-      setManualError(err instanceof Error ? err.message : "Erreur lors de la création.");
+      setManualError(err instanceof Error ? err.message : UI.swarms.createError);
     } finally {
       setManualLoading(false);
     }
@@ -149,7 +149,7 @@ export default function NewSwarmPage() {
       </div>
 
       {tab === "architect" && (
-        <div className="ct-card" style={{ maxWidth: 720 }}>
+        <div className="ct-card" style={{ maxWidth: 720, width: "100%" }}>
           <p className="ct-card-title">{UI.swarms.architectTitle}</p>
           <div className="ct-card-body">
             <textarea
@@ -169,7 +169,7 @@ export default function NewSwarmPage() {
               {specLoading ? UI.swarms.architectGenerating : UI.swarms.architectGenerateCta}
             </button>
             {specError && (
-              <p style={{ color: "var(--ct-text-danger)", fontSize: 12, marginTop: "var(--ct-space-sm)" }}>
+              <p style={{ color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-sm)", marginTop: "var(--ct-space-sm)" }}>
                 {specError}
               </p>
             )}
@@ -198,7 +198,7 @@ export default function NewSwarmPage() {
                 </button>
               </div>
               {createError && (
-                <p style={{ color: "var(--ct-text-danger)", fontSize: 12, marginTop: "var(--ct-space-sm)" }}>
+                <p style={{ color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-sm)", marginTop: "var(--ct-space-sm)" }}>
                   {createError}
                 </p>
               )}
@@ -208,7 +208,7 @@ export default function NewSwarmPage() {
       )}
 
       {tab === "manual" && (
-        <div className="ct-card" style={{ maxWidth: 720 }}>
+        <div className="ct-card" style={{ maxWidth: 720, width: "100%" }}>
           <div className="ct-card-body">
             <div className="swarm-form-section">
               <p className="swarm-form-section-title">{UI.swarms.manualSectionGeneral}</p>
@@ -312,7 +312,7 @@ export default function NewSwarmPage() {
             </div>
 
             {manualError && (
-              <p style={{ color: "var(--ct-text-danger)", fontSize: 12, marginBottom: "var(--ct-space-sm)" }}>
+              <p style={{ color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-sm)", marginBottom: "var(--ct-space-sm)" }}>
                 {manualError}
               </p>
             )}

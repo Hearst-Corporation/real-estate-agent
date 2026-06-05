@@ -101,7 +101,7 @@ export default function RunDetailPage({
   if (loading) {
     return (
       <div style={{ padding: "var(--ct-space-lg)", color: "var(--ct-text-muted)" }}>
-        Chargement…
+        {UI.common.loading}
       </div>
     );
   }
@@ -109,7 +109,7 @@ export default function RunDetailPage({
   if (error || !run) {
     return (
       <div style={{ padding: "var(--ct-space-lg)" }}>
-        <p style={{ color: "var(--ct-text-danger)" }}>{error ?? "Run introuvable."}</p>
+        <p style={{ color: "var(--ct-text-danger)" }}>{error ?? UI.swarms.runNotFound}</p>
         {id && (
           <Link href={`/swarms/${id}`} className="ct-btn ct-btn-secondary" style={{ marginTop: "var(--ct-space-md)", display: "inline-block" }}>
             {UI.swarms.backToSwarm}
@@ -149,12 +149,12 @@ export default function RunDetailPage({
           <h1 className="ct-title" style={{ marginBottom: 0 }}>
             Run
           </h1>
-          <code style={{ fontSize: 12, color: "var(--ct-text-muted)", background: "var(--ct-surface-2)", padding: "2px 8px", borderRadius: 6 }}>
+          <code style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-muted)", background: "var(--ct-surface-2)", padding: "var(--ct-space-2xs) var(--ct-space-xs)", borderRadius: "var(--ct-radius-sm)" }}>
             {run.run_id}
           </code>
           <RunStatusBadge status={run.status} />
         </div>
-        <p style={{ fontSize: 12, color: "var(--ct-text-muted)", marginTop: "var(--ct-space-xs)" }}>
+        <p style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-muted)", marginTop: "var(--ct-space-xs)" }}>
           {UI.swarms.runLaunchedAt(createdAt)}
         </p>
       </div>
@@ -164,7 +164,7 @@ export default function RunDetailPage({
         <div className="ct-card" style={{ marginBottom: "var(--ct-space-md)" }}>
           <div className="ct-card-body" style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-sm)" }}>
             <span className="swarm-spinner" />
-            <span style={{ fontSize: 13, color: "var(--ct-text-muted)" }}>{UI.swarms.runActive}</span>
+            <span style={{ fontSize: "var(--ct-fs-base)", color: "var(--ct-text-muted)" }}>{UI.swarms.runActive}</span>
           </div>
         </div>
       )}

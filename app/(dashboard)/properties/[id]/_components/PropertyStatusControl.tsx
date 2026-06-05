@@ -2,18 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
-const PROPERTY_STATUSES = [
-  "prospect",
-  "estimation",
-  "mandat",
-  "en_vente",
-  "sous_offre",
-  "vendu",
-  "archive",
-] as const;
-
-type PropertyStatus = (typeof PROPERTY_STATUSES)[number];
+import { PROPERTY_STATUSES, type PropertyStatus } from "@/lib/crm/format";
+import { UI } from "@/lib/ui-strings";
 
 interface PropertyStatusControlProps {
   id: string;
@@ -51,7 +41,7 @@ export function PropertyStatusControl({
       value={currentStatus}
       onChange={handleChange}
       disabled={busy}
-      aria-label="Statut du bien"
+      aria-label={UI.properties.statusAria}
     >
       {PROPERTY_STATUSES.map((s) => (
         <option key={s} value={s}>

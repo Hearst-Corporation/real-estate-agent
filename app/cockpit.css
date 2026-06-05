@@ -51,6 +51,19 @@
   --ct-space-lg: 24px;
   --ct-space-xl: 32px;
 
+  /* Échelle typographique canonique — consommée inline par les composants
+     (style={{ fontSize: "var(--ct-fs-sm)" }}), évite tout px brut dans les .tsx. */
+  --ct-fs-2xs: 10px;
+  --ct-fs-xs: 11px;
+  --ct-fs-sm: 12px;
+  --ct-fs-base: 13px;
+  --ct-fs-md: 14px;
+
+  /* Rayons de bordure canoniques (consommés inline pour éviter les px bruts). */
+  --ct-radius-sm: 6px;
+  --ct-radius-md: 8px;
+  --ct-radius-lg: 12px;
+
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -1122,3 +1135,49 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 .ct-table-actions { display: flex; gap: var(--ct-space-2xs); justify-content: flex-end; flex-wrap: wrap; }
 .est-listing-table td.ct-table-num,
 .est-listing-table th.ct-table-num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE — adaptation tablette / mobile du shell + grilles.
+   Le shell est un flex 3 colonnes (rail gauche 88px · centre · rail
+   droit 420px) sans breakpoint à l'origine : le rail droit dépassait
+   l'écran < 500px. Ici on passe le rail droit en overlay flottant et
+   on dégrade les grilles KPI / fiches.
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  /* Rail droit (chat) : overlay au-dessus du contenu plutôt que colonne
+     fixe de 420px qui écrase le centre. Le toggle collapse/reopen existant
+     (RailRight) continue de fonctionner. */
+  .ct-rail-right {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: min(380px, 88vw);
+    box-shadow: -12px 0 40px -16px rgba(0,0,0,0.7);
+  }
+  .ct-rail-right.collapsed { width: 48px; box-shadow: none; }
+  .ct-page-area { padding: 24px 24px 96px; }
+  /* KPI : 4 colonnes illisibles sur tablette → 2 colonnes. */
+  .ct-kpi-grid,
+  .ct-kpi-grid.cols-4,
+  .ct-kpi-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  /* Rail gauche réduit, centre pleine largeur. */
+  .ct-rail-left { width: 56px; padding: 16px 0; }
+  .ct-logo-slot { width: 32px; height: 32px; margin-bottom: 16px; }
+  .ct-avatar { width: 32px; height: 32px; }
+  .ct-page-area { padding: 20px 16px 92px; }
+  /* Tout en une colonne. */
+  .ct-kpi-grid,
+  .ct-kpi-grid.cols-4,
+  .ct-kpi-grid.cols-3,
+  .ct-kpi-grid.cols-2 { grid-template-columns: 1fr; }
+  .swarm-agents-grid { grid-template-columns: 1fr; }
+  /* Fiche bien : la grille label/valeur empile au lieu de déborder. */
+  .crm-detail-dl { grid-template-columns: 1fr; gap: var(--ct-space-2xs) 0; }
+  .crm-detail-dl dt { margin-top: var(--ct-space-xs); }
+  /* Titres dégradés pour tenir sur petit écran. */
+  .ct-title { font-size: 22px; }
+  /* Bottom bar : scroll horizontal si trop de segments. */
+  .ct-bottom-bar { max-width: calc(100% - 24px); overflow-x: auto; }
+  .ct-bottom-bar-inner { gap: var(--ct-space-sm); }
+}

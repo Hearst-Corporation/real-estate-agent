@@ -31,7 +31,7 @@ export function LeadRowActions({ id, fullName, defaultValues }: LeadRowActionsPr
         {UI.viz.edit}
       </button>
       <button className="ct-seg-btn danger" onClick={handleDelete} disabled={deleting}>
-        {deleting ? "…" : UI.viz.delete}
+        {deleting ? UI.common.busy : UI.viz.delete}
       </button>
 
       {editing && (

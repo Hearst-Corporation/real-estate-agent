@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
+import { FORM_LIMITS } from "@/lib/crm/format";
 
 interface PropertyFormProps {
   /** Si fourni, passe en mode édition (PATCH) */
@@ -71,7 +72,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
 
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
-      setError(json.error ?? "Erreur réseau");
+      setError(json.error ?? UI.common.networkError);
       return;
     }
 
@@ -182,7 +183,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
         <textarea
           className="ct-input"
           name="notes"
-          rows={3}
+          rows={FORM_LIMITS.textareaRows}
           defaultValue={defaultValues.notes ?? ""}
         />
       </label>
@@ -191,7 +192,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
 
       <div className="ct-seg-track">
         <button type="submit" className="ct-seg-btn primary" disabled={loading} aria-busy={loading}>
-          {loading ? "Enregistrement…" : t.form.save}
+          {loading ? UI.common.saving : t.form.save}
         </button>
         {onClose && (
           <button type="button" className="ct-seg-btn" onClick={onClose}>

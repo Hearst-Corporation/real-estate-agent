@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
+import { dateFr, dateTimeFr } from "@/lib/crm/format";
 import RunStatusBadge from "@/components/swarms/RunStatusBadge";
 import SwarmKickoffPanel from "@/components/swarms/SwarmKickoffPanel";
 import type { Swarm, SwarmRun } from "@/lib/swarms/types";
@@ -103,7 +104,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
   if (loading) {
     return (
       <div style={{ padding: "var(--ct-space-lg)", color: "var(--ct-text-muted)" }}>
-        Chargement…
+        {UI.common.loading}
       </div>
     );
   }
@@ -119,9 +120,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  const createdAt = swarm.created_at
-    ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(new Date(swarm.created_at))
-    : "—";
+  const createdAt = dateFr(swarm.created_at);
 
   return (
     <>
@@ -130,7 +129,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
         <div style={{ flex: 1 }}>
           <p className="ct-eyebrow">
             <Link href="/swarms" style={{ color: "var(--ct-text-muted)", textDecoration: "none" }}>
-              Swarms
+              {UI.nav.swarms}
             </Link>{" "}
             /
           </p>
@@ -167,7 +166,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
             </button>
           ) : (
             <div style={{ display: "flex", gap: "var(--ct-space-xs)", alignItems: "center" }}>
-              <span style={{ fontSize: 12, color: "var(--ct-text-muted)" }}>{UI.swarms.confirmDelete}</span>
+              <span style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-muted)" }}>{UI.swarms.confirmDelete}</span>
               <button
                 type="button"
                 className="ct-btn"
@@ -175,7 +174,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
                 onClick={handleDelete}
                 disabled={deleteLoading}
               >
-                {deleteLoading ? "…" : UI.swarms.confirmYes}
+                {deleteLoading ? UI.common.busy : UI.swarms.confirmYes}
               </button>
               <button type="button" className="ct-btn ct-btn-secondary" onClick={() => setDeleteConfirm(false)}>
                 {UI.swarms.confirmNo}
@@ -207,7 +206,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
               style={{ marginBottom: "var(--ct-space-sm)" }}
             />
             {editError && (
-              <p style={{ color: "var(--ct-text-danger)", fontSize: 12, marginBottom: "var(--ct-space-sm)" }}>
+              <p style={{ color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-sm)", marginBottom: "var(--ct-space-sm)" }}>
                 {editError}
               </p>
             )}
@@ -254,21 +253,21 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
       {tab === "config" && (
         <div className="ct-card">
           <div className="ct-card-body">
-            <p className="ct-card-title">Informations générales</p>
+            <p className="ct-card-title">{UI.swarms.manualSectionGeneral}</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-xs)" }}>
               <div>
-                <span style={{ fontSize: 11, color: "var(--ct-text-muted)" }}>Nom</span>
-                <p style={{ fontSize: 14, color: "var(--ct-text-primary)", margin: 0 }}>{swarm.name}</p>
+                <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{UI.swarms.metaName}</span>
+                <p style={{ fontSize: "var(--ct-fs-md)", color: "var(--ct-text-primary)", margin: 0 }}>{swarm.name}</p>
               </div>
               {swarm.description && (
                 <div>
-                  <span style={{ fontSize: 11, color: "var(--ct-text-muted)" }}>Description</span>
-                  <p style={{ fontSize: 13, color: "var(--ct-text-body)", margin: 0 }}>{swarm.description}</p>
+                  <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{UI.swarms.metaDescription}</span>
+                  <p style={{ fontSize: "var(--ct-fs-base)", color: "var(--ct-text-body)", margin: 0 }}>{swarm.description}</p>
                 </div>
               )}
               <div>
-                <span style={{ fontSize: 11, color: "var(--ct-text-muted)" }}>Créé le</span>
-                <p style={{ fontSize: 13, color: "var(--ct-text-body)", margin: 0 }}>{createdAt}</p>
+                <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{UI.swarms.metaCreatedAt}</span>
+                <p style={{ fontSize: "var(--ct-fs-base)", color: "var(--ct-text-body)", margin: 0 }}>{createdAt}</p>
               </div>
             </div>
 
@@ -298,7 +297,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
                   <p className="swarm-agent-role">{agent.role}</p>
                   {agent.goal && <p className="swarm-agent-goal">{agent.goal}</p>}
                   {agent.backstory && (
-                    <p style={{ fontSize: 11, color: "var(--ct-text-muted)", marginTop: 4 }}>{agent.backstory}</p>
+                    <p style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)", marginTop: "var(--ct-space-2xs)" }}>{agent.backstory}</p>
                   )}
                 </div>
               ))}
@@ -315,7 +314,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
                   <p className="swarm-agent-name">{task.name}</p>
                   {task.description && <p className="swarm-agent-goal">{task.description}</p>}
                   {task.expected_output && (
-                    <p style={{ fontSize: 11, color: "var(--ct-text-muted)", marginTop: 4 }}>
+                    <p style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)", marginTop: "var(--ct-space-2xs)" }}>
                       {UI.swarms.expectedOutputPrefix}{task.expected_output}
                     </p>
                   )}
@@ -385,18 +384,16 @@ function RunsTab({
         ) : (
           <div>
             {runs.map((run) => {
-              const date = run.created_at
-                ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "short", timeStyle: "short" }).format(new Date(run.created_at))
-                : "—";
+              const date = dateTimeFr(run.created_at);
               return (
                 <div key={run.run_id} className="swarm-run-row">
                   <span className="swarm-run-id">{run.run_id}</span>
                   <RunStatusBadge status={run.status} size="sm" />
-                  <span style={{ fontSize: 12, color: "var(--ct-text-muted)", whiteSpace: "nowrap" }}>{date}</span>
+                  <span style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-muted)", whiteSpace: "nowrap" }}>{date}</span>
                   <Link
                     href={`/swarms/${swarmId}/run/${run.run_id}`}
                     className="ct-btn ct-btn-secondary"
-                    style={{ fontSize: 11, padding: "2px 8px", textDecoration: "none", display: "inline-block" }}
+                    style={{ fontSize: "var(--ct-fs-xs)", padding: "var(--ct-space-2xs) var(--ct-space-xs)", textDecoration: "none", display: "inline-block" }}
                   >
                     {UI.swarms.runsView}
                   </Link>

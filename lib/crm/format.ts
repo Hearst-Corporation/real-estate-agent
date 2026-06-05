@@ -92,3 +92,43 @@ export const MANDATE_STATUSES = [
 ] as const;
 
 export type MandateStatus = (typeof MANDATE_STATUSES)[number];
+
+export const MANDATE_KINDS = ["simple", "exclusif", "semi_exclusif"] as const;
+export type MandateKind = (typeof MANDATE_KINDS)[number];
+
+// ─── Énumérations Leads (valeurs CHECK constraints DB) ────────────────────────
+
+export const LEAD_KINDS = ["acheteur", "vendeur"] as const;
+export type LeadKind = (typeof LEAD_KINDS)[number];
+
+export const LEAD_TYPE_PERSONNE = [
+  "particulier",
+  "professionnel",
+  "societe",
+  "sci",
+  "agence",
+] as const;
+export type LeadTypePersonne = (typeof LEAD_TYPE_PERSONNE)[number];
+
+// Valeurs par défaut des formulaires (évitent les littéraux dupliqués state/JSX).
+export const LEAD_DEFAULT_KIND: LeadKind = "acheteur";
+export const LEAD_DEFAULT_TYPE_PERSONNE: LeadTypePersonne = "particulier";
+export const LEAD_DEFAULT_STATUS: LeadStatus = "nouveau";
+
+// ─── Bornes de validation des formulaires ─────────────────────────────────────
+
+export const FORM_LIMITS = {
+  /** Prix / budget : pas de montant négatif. */
+  priceMin: 0,
+  /** Commission mandat en %. */
+  commissionMin: 0,
+  commissionMax: 100,
+  commissionStep: 0.01,
+  /** Durée d'une visite en minutes. */
+  visitDurationDefault: 30,
+  visitDurationMin: 5,
+  visitDurationMax: 480,
+  visitDurationStep: 5,
+  /** Hauteur par défaut des textarea (nb de lignes). */
+  textareaRows: 3,
+} as const;

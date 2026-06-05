@@ -80,9 +80,9 @@ export default async function AgendaPage() {
       <Sub>{t.sub}</Sub>
 
       <KpiGrid>
-        <KpiCard label="Cette semaine" value={String(thisWeek)} />
-        <KpiCard label="Aujourd'hui" value={String(today)} />
-        <KpiCard label="À confirmer" value={String(toConfirm)} accent={toConfirm > 0} />
+        <KpiCard label={t.kpis.thisWeek} value={String(thisWeek)} />
+        <KpiCard label={t.kpis.today} value={String(today)} />
+        <KpiCard label={t.kpis.toConfirm} value={String(toConfirm)} accent={toConfirm > 0} />
       </KpiGrid>
 
       <div className="ct-mb-sm" />
@@ -106,9 +106,9 @@ export default async function AgendaPage() {
               {dayVisits.map((v) => {
                 const tone = statusTone("visit", v.status);
                 const propertyLabel =
-                  v.properties?.title ?? v.properties?.city ?? "—";
+                  v.properties?.title ?? v.properties?.city ?? UI.common.empty;
                 const cityLabel = v.properties?.city
-                  ? ` — ${v.properties.city}`
+                  ? `${t.locationSeparator}${v.properties.city}`
                   : "";
                 const leadLabel = v.leads?.full_name ?? null;
                 const statusLabel =
