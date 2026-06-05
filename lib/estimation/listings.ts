@@ -12,7 +12,7 @@
  * Toujours best-effort : jamais throw, timeout strict, fallback [] — la
  * valorisation DVF ne dépend jamais des annonces.
  */
-import type { ListingComparable } from "./types";
+import type { ListingComparable, ListingsFetchResult } from "./types";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -51,16 +51,26 @@ export function listingsIsConfigured(): boolean {
 
 /**
  * Point d'entrée unique consommé par /value. Apify en priorité, MySwarms en
- * secours, [] sinon. Jamais throw.
+ * secours, [] sinon. Jamais throw. Retourne metadata de source pour affichage.
  */
-export async function fetchListingComparables(q: ListingsQuery): Promise<ListingComparable[]> {
+export async function fetchListingComparables(q: ListingsQuery): Promise<ListingsFetchResult> {
   if (apifyIsConfigured()) {
-    const apify = await fetchViaApify(q);
-    if (apify.length > 0) return apify;
-    // Apify a répondu vide → on tente MySwarms si dispo, sinon [].
+    const raw = await fetchViaApifyRaw(q);
+    if (raw.filtered.length > 0) {
+      return { listings: raw.filtered, source: 'apify', rawCount: raw.raw, filteredCount: raw.filtered.length, fallbackUsed: false };
+    }
+    // Apify vide → fallback MySwarms si dispo
+    if (myswarmsIsConfigured()) {
+      const raw2 = await fetchViaMyswarmsRaw(q);
+      return { listings: raw2.filtered, source: raw2.filtered.length > 0 ? 'myswarms' : 'none', rawCount: raw2.raw, filteredCount: raw2.filtered.length, fallbackUsed: true };
+    }
+    return { listings: [], source: 'none', rawCount: raw.raw, filteredCount: 0, fallbackUsed: false };
   }
-  if (myswarmsIsConfigured()) return fetchViaMyswarms(q);
-  return [];
+  if (myswarmsIsConfigured()) {
+    const raw = await fetchViaMyswarmsRaw(q);
+    return { listings: raw.filtered, source: raw.filtered.length > 0 ? 'myswarms' : 'none', rawCount: raw.raw, filteredCount: raw.filtered.length, fallbackUsed: false };
+  }
+  return { listings: [], source: 'none', rawCount: 0, filteredCount: 0, fallbackUsed: false };
 }
 
 // ─── Helpers communs ───────────────────────────────────────────────────────
@@ -138,8 +148,8 @@ function buildApifyInput(q: ListingsQuery): Record<string, unknown> {
   return input;
 }
 
-async function fetchViaApify(q: ListingsQuery): Promise<ListingComparable[]> {
-  if (!q.ville) return []; // sans ville, recherche inutile
+async function fetchViaApifyRaw(q: ListingsQuery): Promise<{ raw: number; filtered: ListingComparable[] }> {
+  if (!q.ville) return { raw: 0, filtered: [] };
   try {
     const url =
       `https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items` +
@@ -153,12 +163,12 @@ async function fetchViaApify(q: ListingsQuery): Promise<ListingComparable[]> {
       },
       APIFY_TIMEOUT_MS,
     );
-    if (!res.ok) return [];
+    if (!res.ok) return { raw: 0, filtered: [] };
     const data: unknown = await res.json().catch(() => null);
     const items = Array.isArray(data) ? data : [];
-    return normalizeApify(items);
+    return { raw: items.length, filtered: normalizeApify(items) };
   } catch {
-    return [];
+    return { raw: 0, filtered: [] };
   }
 }
 
@@ -192,7 +202,7 @@ function normalizeApify(items: unknown[], source: string = SOURCE_LEBONCOIN): Li
 
 // ─── Engine MySwarms (POST /v1/listings — scraper Browserbase synchrone) ──────
 
-async function fetchViaMyswarms(q: ListingsQuery): Promise<ListingComparable[]> {
+async function fetchViaMyswarmsRaw(q: ListingsQuery): Promise<{ raw: number; filtered: ListingComparable[] }> {
   try {
     const res = await timedFetch(
       `${MYSWARMS_BASE}/v1/listings`,
@@ -206,12 +216,13 @@ async function fetchViaMyswarms(q: ListingsQuery): Promise<ListingComparable[]> 
       },
       MYSWARMS_TIMEOUT_MS,
     );
-    if (!res.ok) return [];
-    const raw: unknown = await res.json().catch(() => null);
-    const rec = asRecord(raw);
-    return normalizeApify(arrayOf(rec?.listings ?? raw), SOURCE_BIENICI);
+    if (!res.ok) return { raw: 0, filtered: [] };
+    const payload: unknown = await res.json().catch(() => null);
+    const rec = asRecord(payload);
+    const items = arrayOf(rec?.listings ?? payload);
+    return { raw: items.length, filtered: normalizeApify(items, SOURCE_BIENICI) };
   } catch {
-    return [];
+    return { raw: 0, filtered: [] };
   }
 }
 

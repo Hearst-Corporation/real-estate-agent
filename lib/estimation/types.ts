@@ -110,6 +110,16 @@ export type ListingComparable = {
   statut: 'actif' | 'vendu' | 'retire';
 };
 
+export type ListingsFetchSource = 'apify' | 'myswarms' | 'none';
+
+export type ListingsFetchResult = {
+  listings: ListingComparable[];
+  source: ListingsFetchSource;
+  rawCount: number;
+  filteredCount: number;
+  fallbackUsed: boolean;
+};
+
 export type MarketAnalysis = {
   zone: string;
   prix_median_m2: number;
@@ -119,6 +129,7 @@ export type MarketAnalysis = {
   delai_moyen_vente_jours: number | null;
   dvf_comparables: DvfComparable[];
   listing_comparables: ListingComparable[];
+  listing_source?: ListingsFetchResult;
   fetched_at: string;
 };
 

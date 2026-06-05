@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { UI } from "@/lib/ui-strings";
-import type { Valuation, MarketAnalysis } from "@/lib/estimation/types";
+import type { Valuation, MarketAnalysis, ListingsFetchSource } from "@/lib/estimation/types";
 
 type Props = {
   id: string;
@@ -66,6 +66,8 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
 
   const marketHasContent = Boolean(market && (market.summary || market.citations.length > 0));
   const listings = marketProp?.listing_comparables ?? [];
+  const listingFetchSource = (marketProp?.listing_source?.source ?? null) as ListingsFetchSource | null;
+  const listingFallbackUsed = marketProp?.listing_source?.fallbackUsed ?? false;
 
   async function handleShare() {
     if (sharing) return;
@@ -186,6 +188,16 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
       {marketProp != null && (
         <div className="ct-card est-valuation-block">
           <p className="ct-card-title">{UI.estimations.listingComparablesTitle}</p>
+          {listingFetchSource != null && (
+            <p className="ct-placeholder est-listing-source-badge">
+              {UI.estimations.listingFetchSourcePrefix}{" "}
+              <strong>
+                {listingFallbackUsed && listingFetchSource !== "none"
+                  ? UI.estimations.listingFetchSourceLabels["myswarms"]
+                  : (UI.estimations.listingFetchSourceLabels[listingFetchSource] ?? listingFetchSource)}
+              </strong>
+            </p>
+          )}
           {listings.length === 0 ? (
             <p className="ct-placeholder">{UI.estimations.listingComparablesEmpty}</p>
           ) : (

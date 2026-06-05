@@ -120,6 +120,12 @@ export const UI = {
       leboncoin: "LeBonCoin",
       bienici: "Bienici",
     } as Record<string, string>,
+    listingFetchSourceLabels: {
+      apify: "Apify (LeBonCoin)",
+      myswarms: "MySwarms (Bienici) — fallback",
+      none: "Aucune source configurée",
+    } as Record<string, string>,
+    listingFetchSourcePrefix: "Source annonces :",
     status: {
       draft: "Brouillon",
       interviewing: "Entretien en cours",

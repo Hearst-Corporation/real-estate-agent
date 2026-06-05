@@ -189,13 +189,14 @@ export async function POST(
 
         // ── Annonces en cours (MySwarms, best-effort → [] si non configuré) ──
         emit({ type: 'progress', step: 'Annonces…' });
-        const listingComparables = await fetchListingComparables({
+        const listingResult = await fetchListingComparables({
           ville: property.ville,
           codePostal: property.code_postal,
           typeBien: property.type_bien,
           surface: property.surface_habitable_m2 ?? property.surface_carrez_m2 ?? null,
           nbPieces: property.nombre_pieces,
         });
+        const listingComparables = listingResult.listings;
 
         // ── MarketAnalysis ────────────────────────────────────────────
         const market: MarketAnalysis = {
@@ -207,6 +208,7 @@ export async function POST(
           delai_moyen_vente_jours: null,
           dvf_comparables: comparables,
           listing_comparables: listingComparables,
+          listing_source: listingResult,
           fetched_at: new Date().toISOString(),
         };
 
