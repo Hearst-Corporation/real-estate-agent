@@ -13,6 +13,7 @@
     "electron:start": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron .",
     "electron:build": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron-builder",
     "electron:test": "playwright test electron/__tests__",
+    "seed": "node scripts/seed-crm.mjs",
     "test:e2e": "playwright test e2e",
     "electron:build:release": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron-builder --publish never",
     "electron:publish": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron-builder --publish always"
