@@ -1,0 +1,122 @@
+/*
+ * onboarding.module.css — styles scopés du parcours d'onboarding investisseur.
+ *
+ * 100 % tokens --ct-* (aucun hex), aligné Cockpit. Scopé via CSS Modules pour ne
+ * pas toucher app/cockpit.css. Complète les primitives partagées (ct-card,
+ * ct-field, inv-chip, inv-btn-reserve…) sans les redéfinir.
+ */
+
+.wizard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-lg);
+  margin-top: var(--ct-space-lg);
+}
+
+.stepperWrap {
+  margin-bottom: var(--ct-space-xs);
+}
+
+.block {
+  margin-block: var(--ct-space-sm);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-md);
+}
+
+.intro {
+  margin: 0;
+}
+
+.form {
+  gap: var(--ct-space-md);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ct-space-sm);
+  margin-top: var(--ct-space-sm);
+}
+
+/* Quiz ECSP */
+.quiz {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-md);
+}
+
+.question {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-2xs);
+}
+
+.prompt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ct-text-primary);
+  line-height: 1.5;
+  padding: 0;
+}
+
+.opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ct-space-2xs);
+}
+
+.opt {
+  cursor: pointer;
+}
+
+.subtitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+  margin: var(--ct-space-xs) 0 0;
+}
+
+/* Encart plafond calculé */
+.cap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-2xs);
+  padding: var(--ct-space-md);
+  border: 1px solid var(--ct-border-accent);
+  border-radius: 12px;
+  background: var(--ct-accent-soft);
+}
+
+.capLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ct-accent-strong);
+}
+
+.capValue {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ct-text-strong);
+  line-height: 1.1;
+}
+
+.capSub {
+  font-size: 11.5px;
+  color: var(--ct-text-muted);
+}
+
+.foot {
+  margin-top: var(--ct-space-xs);
+}

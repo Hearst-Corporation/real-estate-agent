@@ -9,17 +9,19 @@
  */
 
 import type { Eur } from "../shared/types";
-import { NotImplementedError } from "../shared/errors";
-import { getSupabaseAdmin } from "../../server/supabase";
 import type {
   InvestorClass,
-  InvestorProfile,
   InvestmentCapResult,
   LossCapacityInputs,
   AssessmentClassification,
 } from "./types";
 
 export * from "./types";
+
+// Services DB-backed (couche I/O — Epic 1.1). La logique métier reste PURE dans
+// ce fichier ; les orchestrations Supabase (getOrCreateProfile, submitAssessment,
+// linkWallet, getIdentityStatus, startKyc, applyKycWebhook…) vivent dans ./service.
+export * from "./service";
 
 /**
  * Plancher de plafond pour non-averti : 1000 € = 100 000 centimes.
@@ -87,17 +89,6 @@ export function toInvestorClass(c: AssessmentClassification): InvestorClass {
   return c === "sophisticated" ? "sophisticated" : "non_sophisticated";
 }
 
-// ── Services à I/O (stubs typés — Jalon 1) ──────────────────────────────────
-
-/** Crée/maj le profil + questionnaire suitability (DB). */
-export async function upsertInvestorProfile(_input: {
-  userId: string;
-}): Promise<InvestorProfile> {
-  const _db = getSupabaseAdmin(); // service-role : filtrer user_id + tenant_id (I9)
-  throw new NotImplementedError("investor.upsertInvestorProfile — Jalon 1");
-}
-
-/** Lit le profil + plafonds calculés (DB). */
-export async function getInvestorProfile(_userId: string): Promise<InvestorProfile | null> {
-  throw new NotImplementedError("investor.getInvestorProfile — Jalon 1");
-}
+// Les services à I/O (getOrCreateProfile, updateProfile, submitAssessment,
+// linkWallet, getIdentityStatus, startKyc, applyKycWebhook, getProfile) sont
+// implémentés DB-backed dans ./service.ts et réexportés ci-dessus (Epic 1.1).
