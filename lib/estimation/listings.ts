@@ -6,7 +6,8 @@
  * (params structurés : keywords/city/surfaceMin/Max/roomsMin/maxAds ; ~7s/run).
  * Appel via `run-sync-get-dataset-items` (synchrone, renvoie directement les items).
  *
- * Fallback : MySwarms (crewai-engine) si `MYSWARMS_*` configuré ET pas d'Apify.
+ * Fallback : engine MySwarms `POST /v1/listings` (scraper Browserbase synchrone)
+ *   si `MYSWARMS_ENGINE_URL` + `_TOKEN` configurés ET Apify absent/vide.
  *
  * Toujours best-effort : jamais throw, timeout strict, fallback [] — la
  * valorisation DVF ne dépend jamais des annonces.
@@ -20,9 +21,12 @@ const APIFY_ACTOR = process.env.APIFY_LISTINGS_ACTOR; // ex: Rhe6hf9xgPofMjN8i
 
 const MYSWARMS_BASE = process.env.MYSWARMS_ENGINE_URL;
 const MYSWARMS_TOKEN = process.env.MYSWARMS_ENGINE_TOKEN;
-const MYSWARMS_SWARM = process.env.MYSWARMS_LISTINGS_SWARM_ID;
+
+const SOURCE_LEBONCOIN = "leboncoin";
+const SOURCE_BIENICI = "bienici";
 
 const APIFY_TIMEOUT_MS = 40000; // cap dur (maxDuration route = 60s)
+const MYSWARMS_TIMEOUT_MS = 15000; // best-effort : scraper Browserbase synchrone côté engine
 const MAX_LISTINGS = 12;
 
 export type ListingsQuery = {
@@ -38,7 +42,7 @@ export function apifyIsConfigured(): boolean {
 }
 
 export function myswarmsIsConfigured(): boolean {
-  return Boolean(MYSWARMS_BASE && MYSWARMS_TOKEN && MYSWARMS_SWARM);
+  return Boolean(MYSWARMS_BASE && MYSWARMS_TOKEN);
 }
 
 export function listingsIsConfigured(): boolean {
@@ -60,10 +64,6 @@ export async function fetchListingComparables(q: ListingsQuery): Promise<Listing
 }
 
 // ─── Helpers communs ───────────────────────────────────────────────────────
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
-}
 
 async function timedFetch(url: string, init: RequestInit, ms: number): Promise<Response> {
   const ctrl = new AbortController();
@@ -162,7 +162,7 @@ async function fetchViaApify(q: ListingsQuery): Promise<ListingComparable[]> {
   }
 }
 
-function normalizeApify(items: unknown[]): ListingComparable[] {
+function normalizeApify(items: unknown[], source: string = SOURCE_LEBONCOIN): ListingComparable[] {
   const out: ListingComparable[] = [];
   for (let i = 0; i < items.length; i++) {
     const it = asRecord(items[i]);
@@ -176,7 +176,7 @@ function normalizeApify(items: unknown[]): ListingComparable[] {
     const ppm2 = num(it.price_per_sqm);
     out.push({
       id: str(it.id) ?? `lbc-${i}`,
-      source: "leboncoin",
+      source,
       url: str(it.url),
       titre: str(it.title ?? it.titre) ?? "Annonce",
       prix,
@@ -190,40 +190,26 @@ function normalizeApify(items: unknown[]): ListingComparable[] {
   return out.slice(0, MAX_LISTINGS);
 }
 
-// ─── MySwarms (fallback : transport câblé, crew scraper à construire) ─────────
+// ─── Engine MySwarms (POST /v1/listings — scraper Browserbase synchrone) ──────
 
 async function fetchViaMyswarms(q: ListingsQuery): Promise<ListingComparable[]> {
-  const deadline = Date.now() + 8000;
-  const headers: HeadersInit = {
-    Authorization: `Bearer ${MYSWARMS_TOKEN}`,
-    "Content-Type": "application/json",
-  };
   try {
-    const kick = await timedFetch(
-      `${MYSWARMS_BASE}/v1/swarms/${MYSWARMS_SWARM}/kickoff`,
-      { method: "POST", headers, body: JSON.stringify({ trigger: "on_demand", inputs: q }) },
-      4000,
+    const res = await timedFetch(
+      `${MYSWARMS_BASE}/v1/listings`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${MYSWARMS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(q),
+      },
+      MYSWARMS_TIMEOUT_MS,
     );
-    if (!kick.ok) return [];
-    const kickJson = asRecord(await kick.json().catch(() => null));
-    const runId = str(kickJson?.run_id ?? kickJson?.id);
-    if (!runId) return normalizeApify(arrayOf(kickJson?.result ?? kickJson?.listings));
-    while (Date.now() < deadline) {
-      await sleep(1000);
-      const st = await timedFetch(
-        `${MYSWARMS_BASE}/v1/swarms/${MYSWARMS_SWARM}/status/${runId}`,
-        { method: "GET", headers },
-        3000,
-      ).catch(() => null);
-      if (!st || !st.ok) continue;
-      const stJson = asRecord(await st.json().catch(() => null));
-      const status = typeof stJson?.status === "string" ? stJson.status.toLowerCase() : "";
-      if (status === "completed" || status === "success" || status === "done") {
-        return normalizeApify(arrayOf(stJson?.result ?? stJson?.output ?? stJson?.listings));
-      }
-      if (status === "failed" || status === "error") return [];
-    }
-    return [];
+    if (!res.ok) return [];
+    const raw: unknown = await res.json().catch(() => null);
+    const rec = asRecord(raw);
+    return normalizeApify(arrayOf(rec?.listings ?? raw), SOURCE_BIENICI);
   } catch {
     return [];
   }

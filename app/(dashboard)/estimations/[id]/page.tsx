@@ -68,7 +68,6 @@ export default async function EstimationDetailPage({
     <>
       <Eyebrow>{t.eyebrow}</Eyebrow>
       <Title>{t.interviewTitle}</Title>
-      <Sub>{t.interviewSub}</Sub>
       <InterviewView
         id={id}
         initialMessages={initialMessages}

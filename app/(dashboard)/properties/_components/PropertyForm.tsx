@@ -71,7 +71,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
 
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
-      setError(json.error ?? "error");
+      setError(json.error ?? "Erreur réseau");
       return;
     }
 
@@ -187,11 +187,11 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
         />
       </label>
 
-      {error && <p className="ct-placeholder" style={{ color: "var(--ct-danger, red)" }}>{error}</p>}
+      {error && <p className="ct-error">{error}</p>}
 
       <div className="ct-seg-track">
-        <button type="submit" className="ct-seg-btn primary" disabled={loading}>
-          {loading ? "…" : t.form.save}
+        <button type="submit" className="ct-seg-btn primary" disabled={loading} aria-busy={loading}>
+          {loading ? "Enregistrement…" : t.form.save}
         </button>
         {onClose && (
           <button type="button" className="ct-seg-btn" onClick={onClose}>

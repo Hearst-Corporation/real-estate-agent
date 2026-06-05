@@ -16,14 +16,9 @@ const fmt = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 0,
 });
 
-const fmtPerSqm = new Intl.NumberFormat("fr-FR", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-});
-
 /** Durée d'affichage du libellé « Lien copié » avant retour à « Partager ». */
 const SHARE_COPIED_RESET_MS = 2500;
+const LISTING_TITLE_MAX_CHARS = 45;
 
 type MarketContextData = {
   summary: string | null;
@@ -32,7 +27,17 @@ type MarketContextData = {
   reason?: string;
 };
 
-export function ValuationPanel({ id, valuation }: Props) {
+function safeHref(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  try {
+    const p = new URL(url).protocol;
+    return p === "http:" || p === "https:" ? url : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
   const [shareLabel, setShareLabel] = useState<string>(UI.estimations.share);
   const [sharing, setSharing] = useState(false);
 
@@ -109,7 +114,7 @@ export function ValuationPanel({ id, valuation }: Props) {
       <div className="ct-kpi-grid cols-2 est-valuation-block">
         <div className="ct-kpi-card">
           <span className="ct-kpi-label">{UI.estimations.perSqm}</span>
-          <span className="ct-kpi-value">{fmtPerSqm.format(valuation.adjustedPerM2)}{UI.estimations.perSqmUnit}</span>
+          <span className="ct-kpi-value">{fmt.format(valuation.adjustedPerM2)}{UI.estimations.perSqmUnit}</span>
         </div>
         <div className="ct-kpi-card">
           <span className="ct-kpi-label">{UI.estimations.recommended}</span>
@@ -166,7 +171,7 @@ export function ValuationPanel({ id, valuation }: Props) {
                 <ul className="est-market-sources">
                   {market.citations.map((c, i) => (
                     <li key={i}>
-                      <a href={c.url} target="_blank" rel="noreferrer">{c.title}</a>
+                      <a href={safeHref(c.url)} target="_blank" rel="noreferrer">{c.title}</a>
                     </li>
                   ))}
                 </ul>
@@ -175,6 +180,54 @@ export function ValuationPanel({ id, valuation }: Props) {
           </div>
         )}
       </div>
+
+      {/* ── Annonces comparables ── */}
+      {marketProp?.listing_comparables && marketProp.listing_comparables.length > 0 && (
+        <div className="ct-card est-valuation-block">
+          <p className="ct-card-title">{UI.estimations.listingComparablesTitle}</p>
+          <table className="est-listing-table">
+            <thead>
+              <tr>
+                <th>{UI.estimations.listingColAnnonce}</th>
+                <th>{UI.estimations.listingColPrix}</th>
+                <th>{UI.estimations.listingColSurface}</th>
+                <th>{UI.estimations.listingColPrixM2}</th>
+                <th>{UI.estimations.listingColActions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {marketProp.listing_comparables.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    {item.titre.length > LISTING_TITLE_MAX_CHARS ? item.titre.slice(0, LISTING_TITLE_MAX_CHARS) + "…" : item.titre}
+                  </td>
+                  <td>
+                    {fmt.format(item.prix)}
+                  </td>
+                  <td>
+                    {item.surface_m2}{UI.estimations.surfaceUnit}
+                  </td>
+                  <td>
+                    {fmt.format(item.prix_m2)}{UI.estimations.perSqmUnit}
+                  </td>
+                  <td>
+                    {item.url ? (
+                      <a
+                        href={safeHref(item.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="est-listing-link"
+                      >
+                        {UI.estimations.listingComparablesLink}
+                      </a>
+                    ) : null}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* ── Actions ── */}
       <div className="est-valuation-actions">

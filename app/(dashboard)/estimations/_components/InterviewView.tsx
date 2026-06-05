@@ -140,6 +140,7 @@ export function InterviewView({
   const isReady = status === "ready";
 
   return (
+    <div className="est-grid-escape">
     <div className="est-grid">
       <div className="est-grid-chat">
         <InterviewChat
@@ -164,6 +165,7 @@ export function InterviewView({
           <ValuationPanel id={id} valuation={valuation} market={market} />
         ) : null}
       </div>
+    </div>
     </div>
   );
 }

@@ -202,39 +202,34 @@ export function InterviewChat({
             }
           }}
         />
-      </div>
-
-      <div className="est-interview-cta">
-        {generating ? (
-          <p className="ct-placeholder">
-            {progressStep ?? UI.estimations.generating}
-          </p>
-        ) : generateError ? (
-          <>
-            <p
-              className="ct-placeholder"
-              style={{ color: "var(--ct-text-danger)" }}
-            >
-              {generateError}
+        <div className="est-interview-cta">
+          {generating ? (
+            <p className="ct-placeholder">
+              {progressStep ?? UI.estimations.generating}
             </p>
+          ) : generateError ? (
+            <>
+              <p className="ct-placeholder" style={{ color: "var(--ct-text-danger)" }}>
+                {generateError}
+              </p>
+              <button
+                className="ct-seg-btn primary"
+                disabled={!canGenerate}
+                onClick={onGenerate}
+              >
+                {UI.estimations.generate}
+              </button>
+            </>
+          ) : (
             <button
               className="ct-seg-btn primary"
               disabled={!canGenerate}
               onClick={onGenerate}
-              style={{ marginTop: "var(--ct-space-xs)" }}
             >
               {UI.estimations.generate}
             </button>
-          </>
-        ) : (
-          <button
-            className="ct-seg-btn primary"
-            disabled={!canGenerate}
-            onClick={onGenerate}
-          >
-            {UI.estimations.generate}
-          </button>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
