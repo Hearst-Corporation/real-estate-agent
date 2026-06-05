@@ -133,17 +133,18 @@ html, body {
 }
 .ct-page-area { flex: 1; min-height: 0; overflow-y: auto; padding: 32px 40px 100px; }
 
-/* ── BOTTOM BAR ── */
+/* ── BOTTOM BAR ──
+   Bandeau noir opaque pleine largeur, ancré en bas du panneau central.
+   Opaque (pas de verre dépoli translucide) → le contenu qui défile ne
+   transparaît jamais derrière. Reste fixe pendant le scroll de .ct-page-area. */
 .ct-bottom-bar {
-  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-  z-index: 30; width: max-content; max-width: calc(100% - 48px);
-  padding: 12px 28px; border-radius: 9999px;
-  background: var(--ct-surface-2); border: 1px solid var(--ct-border-strong);
-  backdrop-filter: blur(60px) saturate(110%) brightness(105%);
-  -webkit-backdrop-filter: blur(60px) saturate(110%) brightness(105%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.5), 0 20px 60px -20px rgba(0,0,0,0.6);
+  position: absolute; bottom: 0; left: 0; right: 0;
+  z-index: 30; width: 100%; max-width: 100%; transform: none;
+  padding: 12px 28px; border-radius: 0;
+  background: var(--ct-bg-deep); border-top: 1px solid var(--ct-border-strong);
+  box-shadow: 0 -10px 30px -12px rgba(0,0,0,0.75);
 }
-.ct-bottom-bar-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 20px; }
+.ct-bottom-bar-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 20px; }
 .ct-bottom-label { font-size: 12px; font-weight: 500; color: var(--ct-text-body); white-space: nowrap; }
 .ct-seg-track {
   display: flex; align-items: center; padding: 4px; background: rgba(0,0,0,0.2);
@@ -1177,9 +1178,9 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
   .crm-detail-dl dt { margin-top: var(--ct-space-xs); }
   /* Titres dégradés pour tenir sur petit écran. */
   .ct-title { font-size: 22px; }
-  /* Bottom bar : scroll horizontal si trop de segments. */
-  .ct-bottom-bar { max-width: calc(100% - 24px); overflow-x: auto; }
-  .ct-bottom-bar-inner { gap: var(--ct-space-sm); }
+  /* Bottom bar : bandeau plein, segments scrollables horizontalement. */
+  .ct-bottom-bar { padding: 10px 12px; }
+  .ct-bottom-bar-inner { gap: var(--ct-space-sm); justify-content: flex-start; overflow-x: auto; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
