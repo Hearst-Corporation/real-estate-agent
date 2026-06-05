@@ -24,6 +24,7 @@ import { applyKycWebhook, supabaseInvestorStore } from "@/lib/invest/investor";
 import { dedupeWebhook, supabaseWebhookStore } from "@/lib/invest/shared/webhooks";
 import { DEFAULT_TENANT_ID } from "@/lib/invest/shared/types";
 import { hashBody } from "@/lib/invest/shared/idempotency";
+import { recordAudit } from "@/lib/invest/shared/audit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -85,6 +86,17 @@ export async function POST(req: NextRequest) {
       },
       getIdentityRegistryPort(),
     );
+    // Audit additif de la DÉCISION KYC (best-effort, ne casse jamais l'ACK 200).
+    // Webhook = pas de session → acteur `service` (provider Sumsub).
+    await recordAudit(sb, {
+      tenantId: DEFAULT_TENANT_ID,
+      action: "kyc.decision",
+      actorRole: "service",
+      entityType: "inv_kyc_case",
+      entityId: result.profileId ?? undefined,
+      after: { status: event.status, matched: result.matched, onchainClaimed: result.onchainClaimed },
+      metadata: { provider: PROVIDER, providerEventId },
+    });
     return NextResponse.json({ ok: true, ...result }, { status: 200 });
   } catch (e) {
     // Erreur de persistance : 500 → Sumsub retentera (la dédup laissera passer

@@ -32,6 +32,7 @@ import {
   InvariantViolationError,
   IdempotencyConflictError,
 } from "@/lib/invest/shared/errors";
+import { recordAudit } from "@/lib/invest/shared/audit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,6 +73,16 @@ export async function POST(
       },
       () => createSoftCommit(supabaseSubscriptionStore(), ctx, dealId, amountEur),
     );
+    // Audit additif (best-effort, ne casse jamais la souscription).
+    await recordAudit(sb, {
+      tenantId,
+      action: "subscription.created",
+      actorUserId: claims.sub,
+      actorRole: claims.role,
+      entityType: "inv_subscription",
+      entityId: result.id,
+      after: { dealId, status: result.status, amountEur: result.amountEur, units: result.units },
+    });
     return NextResponse.json({ subscription: result }, { status: 201 });
   } catch (e) {
     if (e instanceof ComplianceBlockedError) {

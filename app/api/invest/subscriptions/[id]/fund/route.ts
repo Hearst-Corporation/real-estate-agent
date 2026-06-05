@@ -33,6 +33,7 @@ import {
   ProviderUnavailableError,
   IdempotencyConflictError,
 } from "@/lib/invest/shared/errors";
+import { recordAudit } from "@/lib/invest/shared/audit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,6 +66,16 @@ export async function POST(
           idempotencyKey: `escrow:${subId}`,
         }),
     );
+    // Audit additif (best-effort, ne casse jamais l'instruction de versement).
+    await recordAudit(sb, {
+      tenantId,
+      action: "subscription.funding_instructed",
+      actorUserId: claims.sub,
+      actorRole: claims.role,
+      entityType: "inv_subscription",
+      entityId: subId,
+      after: { providerRef: result.providerRef, coolingOffEndsAt: result.coolingOffEndsAt },
+    });
     return NextResponse.json({ funding: result }, { status: 200 });
   } catch (e) {
     if (e instanceof ProviderUnavailableError) {

@@ -38,6 +38,7 @@
 import { getSupabaseAdmin } from "../../server/supabase";
 import { DEFAULT_TENANT_ID } from "../shared/types";
 import { ComplianceBlockedError } from "../shared/errors";
+import { recordAudit } from "../shared/audit";
 import { getEscrowPort } from "../adapters";
 import type { EscrowPort, EscrowProvider } from "../ports/escrow";
 import type { TokenizationPort } from "../ports/tokenization";
@@ -398,9 +399,12 @@ export async function runClosingSaga(
   }
 }
 
-// ─── Helper d'audit fail-soft (RPC service-role inv_append_audit_log) ─────────
+// ─── Helper d'audit fail-soft (délègue au helper transverse, Epic 1.6) ────────
 
-/** Écrit une entrée d'audit via le RPC SECURITY DEFINER. Ne lève JAMAIS. */
+/**
+ * Écrit une entrée d'audit via le helper transverse `recordAudit` (RPC SECURITY
+ * DEFINER `inv_append_audit_log`). Ne lève JAMAIS (best-effort). Acteur `service`.
+ */
 async function appendAuditSafe(input: {
   tenantId: string;
   action: string;
@@ -408,21 +412,15 @@ async function appendAuditSafe(input: {
   entityId?: string;
   after?: Record<string, unknown>;
 }): Promise<void> {
-  try {
-    const db = getSupabaseAdmin();
-    if (!db) return;
-    await db.rpc("inv_append_audit_log", {
-      p_tenant_id: input.tenantId,
-      p_action: input.action,
-      p_actor_user_id: input.actorUserId ?? undefined,
-      p_actor_role: "service",
-      p_entity_type: "inv_deal",
-      p_entity_id: input.entityId ?? undefined,
-      p_after: (input.after ?? {}) as never,
-    });
-  } catch {
-    // Audit best-effort : un échec d'audit ne casse jamais la saga.
-  }
+  await recordAudit(getSupabaseAdmin(), {
+    tenantId: input.tenantId,
+    action: input.action,
+    actorUserId: input.actorUserId,
+    actorRole: "service",
+    entityType: "inv_deal",
+    entityId: input.entityId,
+    after: input.after,
+  });
 }
 
 // ─── Adaptateur Supabase par défaut (service-role, colonnes RÉELLES) ──────────

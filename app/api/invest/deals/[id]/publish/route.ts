@@ -17,6 +17,7 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { supabaseDealStore, publishDeal, type OperatorCtx } from "@/lib/invest/deal";
 import { ComplianceBlockedError, InvariantViolationError } from "@/lib/invest/shared/errors";
+import { recordAudit } from "@/lib/invest/shared/audit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,6 +44,16 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   try {
     const deal = await publishDeal(supabaseDealStore(), ctx, id);
+    // Audit additif (best-effort, ne casse jamais la publication).
+    await recordAudit(sb, {
+      tenantId,
+      action: "deal.published",
+      actorUserId: claims.sub,
+      actorRole: claims.role,
+      entityType: "inv_deal",
+      entityId: id,
+      after: { status: "open" },
+    });
     return NextResponse.json({ deal });
   } catch (e) {
     if (e instanceof ComplianceBlockedError) {

@@ -16,6 +16,8 @@ import { runClosingSaga } from "@/lib/invest/closing";
 import { reconcile, supabaseTokenizationStore } from "@/lib/invest/tokenization";
 import { runDistribution, type DistributionKind } from "@/lib/invest/distribution";
 import { generateDealReport } from "@/lib/invest/reporting";
+import { runRefundWatchdog } from "@/lib/invest/subscription";
+import { recordAudit } from "@/lib/invest/shared/audit";
 import { DEFAULT_TENANT_ID } from "@/lib/invest/shared/types";
 
 /** No-op : prouve que la plomberie serve()/event fonctionne. */
@@ -217,6 +219,89 @@ export const invReportingQuarterly = inngest.createFunction(
   },
 );
 
+/**
+ * REFUND WATCHDOG (Epic 1.6) — cron toutes les 15 min.
+ *
+ * Délègue au CORE `runRefundWatchdog` (lib/invest/subscription) : dénoue les
+ * souscriptions des deals (a) `cancelled`, (b) `open` à fenêtre dépassée sans
+ * levée atteinte → cancel deal + refund, (c) `funded` cooling-off expiré jamais
+ * closé après le délai de grâce → refund. Idempotent (clé par souscription),
+ * audité, fail-soft : escrow absent/échec ⇒ statut cohérent + entrée DLQ
+ * (`inv_failed_operations`). Une souscription en échec n'interrompt pas la passe.
+ */
+export const invRefundWatchdog = inngest.createFunction(
+  { id: "inv-refund-watchdog", triggers: [{ cron: "*/15 * * * *" }] },
+  async () => {
+    const sb = getSupabaseAdmin();
+    if (!sb) return { skipped: "no_db" };
+    try {
+      const r = await runRefundWatchdog(sb);
+      return { ok: true, ...r };
+    } catch (err) {
+      captureFatal(err, "inngest/inv-refund-watchdog");
+      throw err; // erreur d'infra au LISTAGE → retry Inngest (traitement idempotent).
+    }
+  },
+);
+
+/**
+ * DLQ HANDLER (Epic 1.6) — event `invest/op.failed` (Pattern C).
+ *
+ * Range un échec définitif d'opération sortante (après retries épuisés) en
+ * `inv_failed_operations` (status `open`, pour rejeu manuel/auto sûr car les
+ * commandes sont idempotentes) + trace une alerte d'audit (best-effort). Le
+ * webhook/job émetteur n'écrit JAMAIS la DLQ inline : il enfile cet event.
+ */
+export const invDlqHandler = inngest.createFunction(
+  { id: "inv-dlq-handler", triggers: [{ event: "invest/op.failed" }] },
+  async ({ event }) => {
+    const data = event.data as {
+      tenantId?: string;
+      opKind?: string;
+      idempotencyKey?: string;
+      lastError?: string;
+      dealId?: string | null;
+      subscriptionId?: string | null;
+      payload?: Record<string, unknown>;
+    };
+    const opKind = data?.opKind;
+    if (!opKind) return { skipped: "no_op_kind" };
+
+    const sb = getSupabaseAdmin();
+    if (!sb) return { skipped: "no_db" };
+
+    const tenantId = data.tenantId ?? DEFAULT_TENANT_ID;
+    const { error } = await sb.from("inv_failed_operations").insert({
+      tenant_id: tenantId,
+      deal_id: data.dealId ?? null,
+      subscription_id: data.subscriptionId ?? null,
+      op_kind: opKind,
+      payload: {
+        idempotencyKey: data.idempotencyKey ?? null,
+        ...(data.payload ?? {}),
+      } as never,
+      attempts: 1,
+      last_error: data.lastError ?? "unknown",
+      status: "open",
+    });
+    if (error) {
+      captureFatal(error, "inngest/inv-dlq-handler:insert");
+      throw error; // retry Inngest (insert DLQ ne doit pas se perdre).
+    }
+
+    // Alerte/trace d'audit best-effort (ne casse jamais le handler).
+    await recordAudit(sb, {
+      tenantId,
+      action: "op.failed",
+      actorRole: "system",
+      entityType: data.dealId ? "inv_deal" : "inv_subscription",
+      entityId: data.dealId ?? data.subscriptionId ?? null,
+      after: { opKind, idempotencyKey: data.idempotencyKey ?? null, lastError: data.lastError ?? "unknown" },
+    });
+    return { ok: true, opKind };
+  },
+);
+
 export const functions = [
   ping,
   generatePdf,
@@ -224,4 +309,6 @@ export const functions = [
   invReconcileTick,
   invDistributionRun,
   invReportingQuarterly,
+  invRefundWatchdog,
+  invDlqHandler,
 ];

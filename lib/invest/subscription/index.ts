@@ -30,6 +30,10 @@ export * from "./types";
 // instructFunding, cancel, listMySubscriptions, applyEsignWebhook, applyEscrowWebhook).
 export * from "./service";
 
+// Watchdog refund/cancel + DLQ (CORE balayé par Inngest — Epic 1.6). Dénoue les
+// souscriptions des deals annulés / à levée échouée / jamais closés (fail-soft).
+export * from "./watchdog";
+
 /** Rails de règlement WHITELISTÉS (I6) — exclut USDT. */
 const ALLOWED_RAILS: readonly SettlementCurrency[] = ["EUR", "EURC", "EURe"];
 
