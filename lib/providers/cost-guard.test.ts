@@ -28,6 +28,38 @@ describe('cost-guard / paidCall', () => {
     expect(fn).not.toHaveBeenCalled();
   });
 
+  it('fail-open : KV absent + failOpen=true → appel autorisé, fn appelée', async () => {
+    const fn = vi.fn(async () => 'data');
+    const { paidCall } = createCostGuard(null, true);
+    const r = await paidCall('exa', 'k1', fn, { ttlSec: 60, dailyCap: 10 });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data).toBe('data');
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('fail-open : KV qui throw + failOpen=true → appel autorisé, fn appelée', async () => {
+    const brokenKV: CostKV = {
+      get: async () => { throw new Error('redis down'); },
+      set: async () => { throw new Error('redis down'); },
+      incrWithExpiry: async () => { throw new Error('redis down'); },
+    };
+    const fn = vi.fn(async () => 'data');
+    const { paidCall } = createCostGuard(brokenKV, true);
+    const r = await paidCall('exa', 'k1', fn, { ttlSec: 60, dailyCap: 10 });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data).toBe('data');
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('fail-open ne bypasse pas le flag enabled=false', async () => {
+    const fn = vi.fn(async () => 'data');
+    const { paidCall } = createCostGuard(null, true);
+    const r = await paidCall('exa', 'k1', fn, { ttlSec: 60, dailyCap: 10, enabled: false });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe('disabled');
+    expect(fn).not.toHaveBeenCalled();
+  });
+
   it('flag off → refus (disabled), fn jamais appelée', async () => {
     const fn = vi.fn(async () => 'data');
     const { paidCall } = createCostGuard(memKV());

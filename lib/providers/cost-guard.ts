@@ -14,6 +14,10 @@
 
 import { Redis } from '@upstash/redis';
 
+// Configurable via env : COST_GUARD_FAIL_OPEN=true → autorise les appels payants
+// si Redis est injoignable, au lieu de les refuser. Défaut : fail-closed.
+const COST_GUARD_FAIL_OPEN = process.env.COST_GUARD_FAIL_OPEN === 'true';
+
 export type PaidCallRefusal = 'disabled' | 'cost_guard_unavailable' | 'daily_cap_reached';
 
 export type PaidCallResult<T> =
@@ -45,9 +49,11 @@ function dayBucket(): string {
 
 /**
  * Fabrique un garde lié à un KV donné. `kv === null` → fail-closed total
- * (tout appel payant est refusé : on ne peut ni cacher ni compter).
+ * par défaut, ou fail-open si `failOpen === true`.
+ *
+ * @param failOpen - override du flag env pour les tests unitaires.
  */
-export function createCostGuard(kv: CostKV | null) {
+export function createCostGuard(kv: CostKV | null, failOpen = COST_GUARD_FAIL_OPEN) {
   async function paidCall<T>(
     provider: string,
     key: string,
@@ -58,7 +64,11 @@ export function createCostGuard(kv: CostKV | null) {
       return { ok: false, reason: 'disabled', data: null };
     }
     if (!kv) {
-      // fail-closed : pas de store → on refuse de dépenser sans contrôle
+      if (failOpen) {
+        console.warn(`[cost-guard] Redis absent — fail-open pour ${provider}`);
+        const data = await fn();
+        return { ok: true, cached: false, data };
+      }
       return { ok: false, reason: 'cost_guard_unavailable', data: null };
     }
 
@@ -79,7 +89,12 @@ export function createCostGuard(kv: CostKV | null) {
         return { ok: false, reason: 'daily_cap_reached', data: null };
       }
     } catch {
-      // erreur store (Redis injoignable) → fail-closed
+      // erreur store (Redis injoignable)
+      if (failOpen) {
+        console.warn(`[cost-guard] Redis injoignable — fail-open pour ${provider}`);
+        const data = await fn();
+        return { ok: true, cached: false, data };
+      }
       return { ok: false, reason: 'cost_guard_unavailable', data: null };
     }
 
