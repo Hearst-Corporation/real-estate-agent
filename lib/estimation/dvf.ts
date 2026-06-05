@@ -93,12 +93,30 @@ export async function fetchMutations(
   }
 }
 
+const MAX_DVF_SECTIONS = 4;
+
+/**
+ * Déduplique et plafonne la liste de sections candidates.
+ * L'ordre est préservé : la section principale (index 0) reste toujours en tête.
+ * Exportée pour être testable sans I/O.
+ */
+export function capSections(sections: string[]): string[] {
+  const unique = [...new Set(sections)];
+  if (unique.length > MAX_DVF_SECTIONS) {
+    console.log(`[dvf] sections truncated ${unique.length} -> ${MAX_DVF_SECTIONS}`);
+    return unique.slice(0, MAX_DVF_SECTIONS);
+  }
+  return unique;
+}
+
 export async function fetchMutationsMultiSection(
   codeCommune: string,
   sections: string[],
 ): Promise<DvfMutation[]> {
+  const capped = capSections(sections);
+
   const results = await Promise.all(
-    sections.map((s) => fetchMutations(codeCommune, s)),
+    capped.map((s) => fetchMutations(codeCommune, s)),
   );
 
   // Deduplicate by id_parcelle + date_mutation
