@@ -1,5 +1,11 @@
-import { test, expect } from "@playwright/test";
+import {
+  test,
+  expect,
+  request as playwrightRequest,
+  type APIRequestContext,
+} from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { createClient } from "@supabase/supabase-js";
 
 // ── Credentials ──────────────────────────────────────────────────────────────
 function readAdminCreds(): { email: string; password: string } | null {
@@ -20,23 +26,102 @@ function readAdminCreds(): { email: string; password: string } | null {
   return null;
 }
 
-const creds = readAdminCreds();
+// ── Env parser (même logique que seed-crm.mjs) ──────────────────────────────
+function loadEnv(): Record<string, string> {
+  const paths = [
+    ".env.local",
+    "/Users/adrienbeyondcrypto/Dev/Projects/Real estate Agent/.env.local",
+  ];
+  for (const p of paths) {
+    try {
+      const raw = readFileSync(p, "utf8");
+      const env: Record<string, string> = {};
+      for (const line of raw.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const idx = trimmed.indexOf("=");
+        if (idx === -1) continue;
+        const key = trimmed.slice(0, idx).trim();
+        let value = trimmed.slice(idx + 1).trim();
+        // Strip surrounding quotes
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          value = value.slice(1, -1);
+        }
+        env[key] = value;
+      }
+      return env;
+    } catch {
+      /* next */
+    }
+  }
+  return {};
+}
 
-// ── Auth helper ──────────────────────────────────────────────────────────────
-test.beforeAll(async ({ request }) => {
+const creds = readAdminCreds();
+const envVars = loadEnv();
+
+// ── Shared API context (cookie jar partagé) ───────────────────────────────────
+let api: APIRequestContext;
+
+// ── Cleanup tracking (C2) ─────────────────────────────────────────────────────
+const createdPropertyIds: string[] = [];
+const createdLeadIds: string[] = [];
+const createdVisitIds: string[] = [];
+const createdMandateIds: string[] = [];
+
+// ── beforeAll : login une seule fois sur le contexte partagé ──────────────────
+test.beforeAll(async () => {
   test.skip(!creds, "docs/credentials.local.txt absent — tests CRM ignorés");
-  const res = await request.post("/api/auth/login", {
+
+  api = await playwrightRequest.newContext({ baseURL: "http://localhost:3002" });
+  const res = await api.post("/api/auth/login", {
     data: { email: creds!.email, password: creds!.password },
   });
-  expect(res.status()).toBe(200);
+  expect(res.status()).toBe(200); // cookie stocké dans le jar de `api`
+});
+
+// ── afterAll : cleanup rows [E2E] via service role ───────────────────────────
+test.afterAll(async () => {
+  // dispose the API context
+  if (api) await api.dispose();
+
+  // Cleanup via Supabase service role
+  const supabaseUrl = envVars.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = envVars.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) return;
+
+  try {
+    const sb = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    // Ordre inverse des FK : mandates et visits d'abord, puis leads, puis properties
+    if (createdMandateIds.length > 0) {
+      await sb.from("mandates").delete().in("id", createdMandateIds);
+    }
+    if (createdVisitIds.length > 0) {
+      await sb.from("visits").delete().in("id", createdVisitIds);
+    }
+    if (createdLeadIds.length > 0) {
+      await sb.from("leads").delete().in("id", createdLeadIds);
+    }
+    if (createdPropertyIds.length > 0) {
+      await sb.from("properties").delete().in("id", createdPropertyIds);
+    }
+  } catch {
+    // best-effort — ne fait pas échouer la suite si cleanup partiel
+  }
 });
 
 // ── Properties ───────────────────────────────────────────────────────────────
-test("POST /api/properties → 201 + id renvoyé", async ({ request }) => {
+test("POST /api/properties → 201 + id renvoyé", async () => {
   test.skip(!creds, "pas de credentials");
-  const res = await request.post("/api/properties", {
+  const res = await api.post("/api/properties", {
     data: {
-      title: "E2E Test Property",
+      title: "[E2E] Test Property",
       property_type: "appartement",
       address: "1 rue de la Paix",
       city: "Paris",
@@ -46,21 +131,22 @@ test("POST /api/properties → 201 + id renvoyé", async ({ request }) => {
   expect(res.status()).toBe(201);
   const body = await res.json();
   expect(body).toHaveProperty("id");
+  createdPropertyIds.push(body.id);
 });
 
-test("GET /api/properties → 200 + liste non vide", async ({ request }) => {
+test("GET /api/properties → 200 + liste non vide", async () => {
   test.skip(!creds, "pas de credentials");
-  const res = await request.get("/api/properties");
+  const res = await api.get("/api/properties");
   expect(res.status()).toBe(200);
   const body = await res.json();
-  expect(Array.isArray(body)).toBe(true);
+  expect(Array.isArray(body.items)).toBe(true);
 });
 
-test("POST /api/properties puis GET → id présent dans la liste", async ({ request }) => {
+test("POST /api/properties puis GET → id présent dans la liste", async () => {
   test.skip(!creds, "pas de credentials");
-  const postRes = await request.post("/api/properties", {
+  const postRes = await api.post("/api/properties", {
     data: {
-      title: "E2E Prop CheckPresence",
+      title: "[E2E] Prop CheckPresence",
       property_type: "maison",
       address: "99 avenue Test",
       city: "Lyon",
@@ -69,38 +155,40 @@ test("POST /api/properties puis GET → id présent dans la liste", async ({ req
   });
   expect(postRes.status()).toBe(201);
   const { id } = await postRes.json();
+  createdPropertyIds.push(id);
 
-  const getRes = await request.get("/api/properties");
+  const getRes = await api.get("/api/properties");
   expect(getRes.status()).toBe(200);
-  const list = await getRes.json();
-  const ids = list.map((p: { id: string }) => p.id);
+  const list = (await getRes.json()).items as { id: string }[];
+  const ids = list.map((p) => p.id);
   expect(ids).toContain(id);
 });
 
 // ── Leads ─────────────────────────────────────────────────────────────────────
-test("POST /api/leads → 201 + id renvoyé", async ({ request }) => {
+test("POST /api/leads → 201 + id renvoyé", async () => {
   test.skip(!creds, "pas de credentials");
-  const res = await request.post("/api/leads", {
-    data: { full_name: "E2E Lead Test" },
+  const res = await api.post("/api/leads", {
+    data: { full_name: "[E2E] Lead Test" },
   });
   expect(res.status()).toBe(201);
   const body = await res.json();
   expect(body).toHaveProperty("id");
+  createdLeadIds.push(body.id);
 });
 
-test("GET /api/leads → 200 + liste non vide", async ({ request }) => {
+test("GET /api/leads → 200 + liste non vide", async () => {
   test.skip(!creds, "pas de credentials");
-  const res = await request.get("/api/leads");
+  const res = await api.get("/api/leads");
   expect(res.status()).toBe(200);
   const body = await res.json();
-  expect(Array.isArray(body)).toBe(true);
+  expect(Array.isArray(body.items)).toBe(true);
 });
 
-test("POST /api/leads puis GET → id présent dans la liste", async ({ request }) => {
+test("POST /api/leads puis GET → id présent dans la liste", async () => {
   test.skip(!creds, "pas de credentials");
-  const postRes = await request.post("/api/leads", {
+  const postRes = await api.post("/api/leads", {
     data: {
-      full_name: "E2E Lead CheckPresence",
+      full_name: "[E2E] Lead CheckPresence",
       kind: "acheteur",
       type_personne: "particulier",
       email: "e2e.check.lead@example.com",
@@ -108,22 +196,23 @@ test("POST /api/leads puis GET → id présent dans la liste", async ({ request 
   });
   expect(postRes.status()).toBe(201);
   const { id } = await postRes.json();
+  createdLeadIds.push(id);
 
-  const getRes = await request.get("/api/leads");
+  const getRes = await api.get("/api/leads");
   expect(getRes.status()).toBe(200);
-  const list = await getRes.json();
-  const ids = list.map((l: { id: string }) => l.id);
+  const list = (await getRes.json()).items as { id: string }[];
+  const ids = list.map((l) => l.id);
   expect(ids).toContain(id);
 });
 
 // ── Visits ────────────────────────────────────────────────────────────────────
-test("POST /api/visits → 201 + id renvoyé", async ({ request }) => {
+test("POST /api/visits → 201 + id renvoyé", async () => {
   test.skip(!creds, "pas de credentials");
 
   // Crée d'abord une property pour la FK
-  const propRes = await request.post("/api/properties", {
+  const propRes = await api.post("/api/properties", {
     data: {
-      title: "E2E Prop for Visit",
+      title: "[E2E] Prop for Visit",
       property_type: "appartement",
       address: "3 rue Gambetta",
       city: "Bordeaux",
@@ -132,37 +221,39 @@ test("POST /api/visits → 201 + id renvoyé", async ({ request }) => {
   });
   expect(propRes.status()).toBe(201);
   const { id: property_id } = await propRes.json();
+  createdPropertyIds.push(property_id);
 
   const scheduledAt = new Date();
   scheduledAt.setDate(scheduledAt.getDate() + 2);
 
-  const res = await request.post("/api/visits", {
+  const res = await api.post("/api/visits", {
     data: {
       property_id,
       scheduled_at: scheduledAt.toISOString(),
       duration_min: 30,
-      notes: "E2E visit test",
+      notes: "[E2E] visit test",
     },
   });
   expect(res.status()).toBe(201);
   const body = await res.json();
   expect(body).toHaveProperty("id");
+  createdVisitIds.push(body.id);
 });
 
-test("GET /api/visits → 200 + liste non vide", async ({ request }) => {
+test("GET /api/visits → 200 + liste non vide", async () => {
   test.skip(!creds, "pas de credentials");
-  const res = await request.get("/api/visits");
+  const res = await api.get("/api/visits");
   expect(res.status()).toBe(200);
   const body = await res.json();
-  expect(Array.isArray(body)).toBe(true);
+  expect(Array.isArray(body.items)).toBe(true);
 });
 
-test("POST /api/visits puis GET → id présent dans la liste", async ({ request }) => {
+test("POST /api/visits puis GET → id présent dans la liste", async () => {
   test.skip(!creds, "pas de credentials");
 
-  const propRes = await request.post("/api/properties", {
+  const propRes = await api.post("/api/properties", {
     data: {
-      title: "E2E Prop for Visit Presence",
+      title: "[E2E] Prop for Visit Presence",
       property_type: "studio",
       address: "5 rue Lamartine",
       city: "Marseille",
@@ -171,30 +262,32 @@ test("POST /api/visits puis GET → id présent dans la liste", async ({ request
   });
   expect(propRes.status()).toBe(201);
   const { id: property_id } = await propRes.json();
+  createdPropertyIds.push(property_id);
 
   const scheduledAt = new Date();
   scheduledAt.setDate(scheduledAt.getDate() + 4);
 
-  const postRes = await request.post("/api/visits", {
+  const postRes = await api.post("/api/visits", {
     data: { property_id, scheduled_at: scheduledAt.toISOString() },
   });
   expect(postRes.status()).toBe(201);
   const { id } = await postRes.json();
+  createdVisitIds.push(id);
 
-  const getRes = await request.get("/api/visits");
+  const getRes = await api.get("/api/visits");
   expect(getRes.status()).toBe(200);
-  const list = await getRes.json();
-  const ids = list.map((v: { id: string }) => v.id);
+  const list = (await getRes.json()).items as { id: string }[];
+  const ids = list.map((v) => v.id);
   expect(ids).toContain(id);
 });
 
 // ── Mandates ──────────────────────────────────────────────────────────────────
-test("POST /api/mandates → 201 + id renvoyé", async ({ request }) => {
+test("POST /api/mandates → 201 + id renvoyé", async () => {
   test.skip(!creds, "pas de credentials");
 
-  const propRes = await request.post("/api/properties", {
+  const propRes = await api.post("/api/properties", {
     data: {
-      title: "E2E Prop for Mandate",
+      title: "[E2E] Prop for Mandate",
       property_type: "maison",
       address: "12 chemin des Fleurs",
       city: "Nice",
@@ -203,8 +296,9 @@ test("POST /api/mandates → 201 + id renvoyé", async ({ request }) => {
   });
   expect(propRes.status()).toBe(201);
   const { id: property_id } = await propRes.json();
+  createdPropertyIds.push(property_id);
 
-  const res = await request.post("/api/mandates", {
+  const res = await api.post("/api/mandates", {
     data: {
       property_id,
       kind: "exclusif",
@@ -215,22 +309,23 @@ test("POST /api/mandates → 201 + id renvoyé", async ({ request }) => {
   expect(res.status()).toBe(201);
   const body = await res.json();
   expect(body).toHaveProperty("id");
+  createdMandateIds.push(body.id);
 });
 
-test("GET /api/mandates → 200 + liste non vide", async ({ request }) => {
+test("GET /api/mandates → 200 + liste non vide", async () => {
   test.skip(!creds, "pas de credentials");
-  const res = await request.get("/api/mandates");
+  const res = await api.get("/api/mandates");
   expect(res.status()).toBe(200);
   const body = await res.json();
-  expect(Array.isArray(body)).toBe(true);
+  expect(Array.isArray(body.items)).toBe(true);
 });
 
-test("POST /api/mandates puis GET → id présent dans la liste", async ({ request }) => {
+test("POST /api/mandates puis GET → id présent dans la liste", async () => {
   test.skip(!creds, "pas de credentials");
 
-  const propRes = await request.post("/api/properties", {
+  const propRes = await api.post("/api/properties", {
     data: {
-      title: "E2E Prop for Mandate Presence",
+      title: "[E2E] Prop for Mandate Presence",
       property_type: "appartement",
       address: "8 boulevard Voltaire",
       city: "Toulouse",
@@ -239,35 +334,38 @@ test("POST /api/mandates puis GET → id présent dans la liste", async ({ reque
   });
   expect(propRes.status()).toBe(201);
   const { id: property_id } = await propRes.json();
+  createdPropertyIds.push(property_id);
 
-  const postRes = await request.post("/api/mandates", {
+  const postRes = await api.post("/api/mandates", {
     data: { property_id, kind: "simple", asking_price: 320000 },
   });
   expect(postRes.status()).toBe(201);
   const { id } = await postRes.json();
+  createdMandateIds.push(id);
 
-  const getRes = await request.get("/api/mandates");
+  const getRes = await api.get("/api/mandates");
   expect(getRes.status()).toBe(200);
-  const list = await getRes.json();
-  const ids = list.map((m: { id: string }) => m.id);
+  const list = (await getRes.json()).items as { id: string }[];
+  const ids = list.map((m) => m.id);
   expect(ids).toContain(id);
 });
 
 // ── Gardes enrich ─────────────────────────────────────────────────────────────
-test("enrich lead particulier avec consent:true → 403 forbidden_particulier", async ({ request }) => {
+test("enrich lead particulier avec consent:true → 403 forbidden_particulier", async () => {
   test.skip(!creds, "pas de credentials");
 
-  const postRes = await request.post("/api/leads", {
+  const postRes = await api.post("/api/leads", {
     data: {
-      full_name: "E2E Particulier Enrich Guard",
+      full_name: "[E2E] Particulier Enrich Guard",
       type_personne: "particulier",
       email: "e2e.particulier.guard@example.com",
     },
   });
   expect(postRes.status()).toBe(201);
   const { id } = await postRes.json();
+  createdLeadIds.push(id);
 
-  const enrichRes = await request.post(`/api/leads/${id}/enrich`, {
+  const enrichRes = await api.post(`/api/leads/${id}/enrich`, {
     data: { consent: true },
   });
   expect(enrichRes.status()).toBe(403);
@@ -275,20 +373,21 @@ test("enrich lead particulier avec consent:true → 403 forbidden_particulier", 
   expect(body).toMatchObject({ error: "forbidden_particulier" });
 });
 
-test("enrich lead sans body consent → 400 invalid_body", async ({ request }) => {
+test("enrich lead sans body consent → 400 invalid_body", async () => {
   test.skip(!creds, "pas de credentials");
 
-  const postRes = await request.post("/api/leads", {
+  const postRes = await api.post("/api/leads", {
     data: {
-      full_name: "E2E Enrich No Consent Guard",
+      full_name: "[E2E] Enrich No Consent Guard",
       type_personne: "professionnel",
       email: "e2e.noconsent.guard@example.com",
     },
   });
   expect(postRes.status()).toBe(201);
   const { id } = await postRes.json();
+  createdLeadIds.push(id);
 
-  const enrichRes = await request.post(`/api/leads/${id}/enrich`, {
+  const enrichRes = await api.post(`/api/leads/${id}/enrich`, {
     data: {},
   });
   expect(enrichRes.status()).toBe(400);

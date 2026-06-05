@@ -37,7 +37,6 @@ export default async function EstimationDetailPage({
   );
   if (!estimation) notFound();
 
-  // Load conversation history
   const { data: rawMessages } = await sb
     .from("estimation_messages")
     .select("role, content")

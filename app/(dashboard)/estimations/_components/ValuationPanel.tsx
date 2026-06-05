@@ -65,6 +65,7 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
   }
 
   const marketHasContent = Boolean(market && (market.summary || market.citations.length > 0));
+  const listings = marketProp?.listing_comparables ?? [];
 
   async function handleShare() {
     if (sharing) return;
@@ -185,7 +186,7 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
       {marketProp != null && (
         <div className="ct-card est-valuation-block">
           <p className="ct-card-title">{UI.estimations.listingComparablesTitle}</p>
-          {marketProp.listing_comparables.length === 0 ? (
+          {listings.length === 0 ? (
             <p className="ct-placeholder">{UI.estimations.listingComparablesEmpty}</p>
           ) : (
             <table className="est-listing-table">
@@ -200,7 +201,7 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {marketProp.listing_comparables.map((item) => (
+                {listings.map((item) => (
                   <tr key={item.id}>
                     <td>
                       {item.titre.length > LISTING_TITLE_MAX_CHARS ? item.titre.slice(0, LISTING_TITLE_MAX_CHARS) + "…" : item.titre}
