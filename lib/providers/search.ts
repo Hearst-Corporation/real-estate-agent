@@ -12,6 +12,8 @@
 
 import { ProviderUnavailableError, envPresent, fetchJson } from "./types";
 
+const SEARCH_PROVIDER_TIMEOUT_MS = 15_000;
+
 export interface SearchResult {
   title: string;
   url: string;
@@ -35,6 +37,7 @@ export async function exaSearch(query: string, numResults = 5): Promise<SearchRe
         "x-api-key": process.env.EXA_API_KEY!,
       },
       body: JSON.stringify({ query, numResults, contents: { text: true } }),
+      timeoutMs: SEARCH_PROVIDER_TIMEOUT_MS,
     },
   );
   return data.results.map((r) => ({
@@ -62,6 +65,7 @@ export async function tavilySearch(query: string, maxResults = 5): Promise<Searc
         query,
         max_results: maxResults,
       }),
+      timeoutMs: SEARCH_PROVIDER_TIMEOUT_MS,
     },
   );
   return data.results.map((r) => ({
@@ -94,6 +98,7 @@ export async function perplexityAnswer(
       model: "sonar",
       messages: [{ role: "user", content: query }],
     }),
+    timeoutMs: SEARCH_PROVIDER_TIMEOUT_MS,
   });
   return {
     answer: data.choices[0]?.message.content ?? "",
