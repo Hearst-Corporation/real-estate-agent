@@ -24,6 +24,7 @@ export { langfuseIsConfigured, getLangfuse, trace } from "./langfuse";
 export { embeddingsIsConfigured, embed, embedBatch } from "./embeddings";
 export { composioIsConfigured, getComposio } from "./composio";
 export { sentryIsConfigured } from "./sentry";
+export { inngestIsConfigured } from "@/lib/jobs/inngest/client";
 
 import { apolloIsConfigured } from "./apollo";
 import { pdlIsConfigured } from "./pdl";
@@ -33,6 +34,7 @@ import { langfuseIsConfigured } from "./langfuse";
 import { embeddingsIsConfigured } from "./embeddings";
 import { composioIsConfigured } from "./composio";
 import { sentryIsConfigured } from "./sentry";
+import { inngestIsConfigured } from "@/lib/jobs/inngest/client";
 
 /** État de configuration de chaque provider (pour /api/health ou debug). */
 export function providersStatus(): Record<string, boolean> {
@@ -47,5 +49,6 @@ export function providersStatus(): Record<string, boolean> {
     embeddings: embeddingsIsConfigured(),
     composio: composioIsConfigured(),
     sentry: sentryIsConfigured(),
+    inngest: inngestIsConfigured(),
   };
 }
