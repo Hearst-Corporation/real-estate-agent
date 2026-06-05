@@ -20,8 +20,9 @@ import {
   type DealDetailView,
   type DealViewerCtx,
 } from "@/lib/invest/deal";
-import { dealBadges, type DealCardData } from "@/components/invest";
+import { dealBadges, type DealCardData, type ProductBadge } from "@/components/invest";
 import { getHoldings, supabaseLedgerStore, type Holding } from "@/lib/invest/ledger";
+import { listPayoutsForUser, type Payout } from "@/lib/invest/distribution";
 import {
   supabaseClosingStore,
   evaluateConditions,
@@ -284,5 +285,168 @@ export async function fetchClosingState(dealId: string): Promise<ClosingStateVie
     return base;
   } catch {
     return base;
+  }
+}
+
+// ─── PORTEFEUILLE (Epic 1.5) : positions JUXTAPOSÉES par deal, branchées DB ────
+
+/**
+ * Une position du portefeuille, RATTACHÉE À UN DEAL précis. JAMAIS agrégée en une
+ * valeur consolidée / NAV (anti-FIA L2) : on additionne des prêts (faits), pas une
+ * valorisation de marché. Chaque position se dénoue à l'exit de SON opération.
+ */
+export interface PortfolioPositionView {
+  dealId: string;
+  dealSlug: string;
+  dealName: string;
+  localisation: string;
+  /** Capital prêté = somme des souscriptions actives (allocated/minted) du deal. */
+  capitalPreteEur: number;
+  /** Units détenues (cap table DEEP, source de vérité). */
+  units: number;
+  /** Distributions reçues sur CE deal (somme des payouts versés). */
+  distributionsRecuesEur: number;
+  /** TRI cible (non garanti) issu du deal, ou null. */
+  triCible: number | null;
+  ltv: number | null;
+  dureeMois: number;
+  statutTone: "open" | "soon" | "late" | "closed";
+  statutLabel: string;
+  badges: ProductBadge[];
+}
+
+/** Portefeuille de l'investisseur courant (positions juxtaposées) + source. */
+export interface PortfolioView {
+  source: DataSource;
+  positions: PortfolioPositionView[];
+  /** Payouts reçus (détail coupons/exit), pour la liste « distributions reçues ». */
+  payouts: Payout[];
+}
+
+/** Libellé/tone de statut d'une position depuis le statut DB du deal. */
+function positionStatus(dealStatus: string): { tone: PortfolioPositionView["statutTone"]; label: string } {
+  switch (dealStatus) {
+    case "open":
+      return { tone: "open", label: "Collecte en cours" };
+    case "closing":
+    case "live":
+    case "distributing":
+      return { tone: "open", label: "En cours" };
+    case "closed":
+    case "exited":
+      return { tone: "closed", label: "Dénouée (exit)" };
+    default:
+      return { tone: "soon", label: "En cours" };
+  }
+}
+
+/**
+ * Portefeuille de l'investisseur courant, BRANCHÉ DB :
+ *   - positions = souscriptions ACTIVES (allocated|minted) groupées PAR DEAL ;
+ *   - units = cap table DEEP (holdings du porteur) ; capital = somme des montants ;
+ *   - distributions reçues = payouts versés au porteur (par deal).
+ *
+ * JUXTAPOSITION stricte : aucune valeur consolidée / NAV. Si la DB est vide (aucune
+ * position) ou non configurée → source `demo` (la page affiche un Banner + les
+ * positions de démonstration). Filtrage tenant_id + user_id explicite (I9).
+ */
+export async function fetchMyPortfolio(): Promise<PortfolioView> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return { source: "demo", positions: [], payouts: [] };
+
+  try {
+    const claims = await getSession();
+    if (!claims) return { source: "demo", positions: [], payouts: [] };
+    const tenantId = tenantOf(claims);
+    const userId = claims.sub;
+
+    // 1. Souscriptions ACTIVES du caller, par deal (capital prêté = montant alloué).
+    const { data: subsData, error: subsErr } = await sb
+      .from("inv_subscriptions")
+      .select("deal_id, amount_eur, units, status")
+      .eq("tenant_id", tenantId)
+      .eq("user_id", userId)
+      .in("status", ["allocated", "minted"]);
+    if (subsErr) throw subsErr;
+    const subs = (subsData as { deal_id: string; amount_eur: number; units: number; status: string }[] | null) ?? [];
+    if (subs.length === 0) return { source: "demo", positions: [], payouts: [] };
+
+    // 2. Payouts reçus (par deal) + détail.
+    const payouts = await listPayoutsForUser({ tenantId, userId });
+    const payoutsByDeal = new Map<string, number>();
+    for (const p of payouts) {
+      payoutsByDeal.set(p.dealId, (payoutsByDeal.get(p.dealId) ?? 0) + p.netAmountEur);
+    }
+
+    // 3. Agrégation PAR DEAL (jamais cross-deal).
+    const byDeal = new Map<string, { capitalPreteEur: number }>();
+    for (const s of subs) {
+      const cur = byDeal.get(s.deal_id) ?? { capitalPreteEur: 0 };
+      cur.capitalPreteEur += Number(s.amount_eur || 0);
+      byDeal.set(s.deal_id, cur);
+    }
+
+    const dealIds = Array.from(byDeal.keys());
+    const { data: dealsData, error: dealsErr } = await sb
+      .from("inv_deals")
+      .select("id, slug, name, deal_type, city, country, target_irr_pct, ltv_pct, duration_months, status")
+      .eq("tenant_id", tenantId)
+      .in("id", dealIds);
+    if (dealsErr) throw dealsErr;
+    const dealRows =
+      (dealsData as
+        | {
+            id: string;
+            slug: string;
+            name: string;
+            deal_type: string;
+            city: string | null;
+            country: string;
+            target_irr_pct: number | null;
+            ltv_pct: number | null;
+            duration_months: number | null;
+            status: string;
+          }[]
+        | null) ?? [];
+    const dealById = new Map(dealRows.map((d) => [d.id, d]));
+
+    const positions: PortfolioPositionView[] = [];
+    for (const dealId of dealIds) {
+      const d = dealById.get(dealId);
+      if (!d) continue;
+      const agg = byDeal.get(dealId)!;
+      // Units = solde DEEP du porteur sur ce deal (holdings filtrés sur l'user).
+      const holdings = await getHoldings(supabaseLedgerStore(), dealId, tenantId);
+      const units = holdings
+        .filter((h) => h.walletAddress === userId)
+        .reduce((s, h) => s + h.units, 0);
+      const ltv = d.ltv_pct != null ? d.ltv_pct / 100 : null;
+      const st = positionStatus(d.status);
+      positions.push({
+        dealId,
+        dealSlug: d.slug,
+        dealName: d.name,
+        localisation: [d.city, d.country].filter(Boolean).join(", ") || "Localisation au closing/NDA",
+        capitalPreteEur: agg.capitalPreteEur,
+        units,
+        distributionsRecuesEur: payoutsByDeal.get(dealId) ?? 0,
+        triCible: d.target_irr_pct != null ? d.target_irr_pct / 100 : null,
+        ltv,
+        dureeMois: d.duration_months ?? 0,
+        statutTone: st.tone,
+        statutLabel: st.label,
+        badges: dealBadges({
+          typeLabel: TYPE_LABEL[d.deal_type] ?? d.deal_type,
+          rangLabel: "Senior secured",
+          risqueEleve: ltv != null && ltv > 0.7,
+        }),
+      });
+    }
+
+    if (positions.length === 0) return { source: "demo", positions: [], payouts: [] };
+    return { source: "db", positions, payouts };
+  } catch {
+    // Fail-soft : toute erreur d'accès DB → bascule démo (jamais d'écran blanc).
+    return { source: "demo", positions: [], payouts: [] };
   }
 }

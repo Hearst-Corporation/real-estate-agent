@@ -14,6 +14,8 @@ import { renderAndCacheEstimationPdf } from "@/lib/brochure/generate";
 import { captureFatal } from "@/lib/server/observe";
 import { runClosingSaga } from "@/lib/invest/closing";
 import { reconcile, supabaseTokenizationStore } from "@/lib/invest/tokenization";
+import { runDistribution, type DistributionKind } from "@/lib/invest/distribution";
+import { generateDealReport } from "@/lib/invest/reporting";
 import { DEFAULT_TENANT_ID } from "@/lib/invest/shared/types";
 
 /** No-op : prouve que la plomberie serve()/event fonctionne. */
@@ -128,4 +130,98 @@ export const invReconcileTick = inngest.createFunction(
   },
 );
 
-export const functions = [ping, generatePdf, invClosingSaga, invReconcileTick];
+/**
+ * DISTRIBUTION (Epic 1.5) — events `invest/distribution.requested` ou
+ * `invest/deal.exit`. Délègue au CORE `runDistribution` (waterfall depuis le
+ * moteur financier → payouts au prorata des units ; règlement EUR via EscrowPort
+ * en fail-soft → pending si non configuré ; idempotent par round). La garde
+ * 4-eyes operator+compliance est faite en amont (route) ; l'event exit force
+ * kind=`exit`. Idempotent : un rejeu rejoue la réponse du même round.
+ */
+export const invDistributionRun = inngest.createFunction(
+  {
+    id: "inv-distribution-run",
+    triggers: [{ event: "invest/distribution.requested" }, { event: "invest/deal.exit" }],
+  },
+  async ({ event }) => {
+    const data = event.data as {
+      dealId?: string;
+      tenantId?: string;
+      actorUserId?: string | null;
+      kind?: DistributionKind;
+    };
+    const dealId = data?.dealId;
+    if (!dealId) return { skipped: "no_deal_id" };
+
+    const sb = getSupabaseAdmin();
+    if (!sb) return { skipped: "no_db" };
+
+    const tenantId = data.tenantId ?? DEFAULT_TENANT_ID;
+    // `invest/deal.exit` force un versement de sortie ; sinon kind du payload (défaut coupon).
+    const kind: DistributionKind = event.name === "invest/deal.exit" ? "exit" : data.kind ?? "coupon";
+    try {
+      const result = await runDistribution(
+        sb,
+        { tenantId, actorUserId: data.actorUserId ?? null },
+        dealId,
+        kind,
+      );
+      return {
+        ok: true,
+        kind,
+        distributionId: result.distributionId,
+        holders: result.holders,
+        payoutStatus: result.payoutStatus,
+      };
+    } catch (err) {
+      captureFatal(err, "inngest/inv-distribution-run");
+      throw err; // erreur d'infra inattendue → retry Inngest (commande idempotente)
+    }
+  },
+);
+
+/**
+ * REPORTING TRIMESTRIEL (Epic 1.5) — cron trimestriel (1er du trimestre, 06:00).
+ *
+ * Pour chaque deal en vie (closing/live/distributing), génère un rapport de suivi
+ * (best-effort, fail-soft R2). Une génération en échec n'interrompt pas les autres
+ * deals. Reporting FACTUEL par deal (aucune NAV consolidée).
+ */
+export const invReportingQuarterly = inngest.createFunction(
+  { id: "inv-reporting-quarterly", triggers: [{ cron: "0 6 1 1,4,7,10 *" }] },
+  async () => {
+    const sb = getSupabaseAdmin();
+    if (!sb) return { skipped: "no_db" };
+
+    const { data: deals, error } = await sb
+      .from("inv_deals")
+      .select("id, tenant_id")
+      .in("status", ["closing", "live", "distributing"]);
+    if (error) {
+      captureFatal(error, "inngest/inv-reporting-quarterly:list");
+      return { skipped: "list_error" };
+    }
+    const rows = (deals as { id: string; tenant_id: string }[] | null) ?? [];
+
+    let generated = 0;
+    for (const d of rows) {
+      try {
+        await generateDealReport(sb, { tenantId: d.tenant_id }, d.id, { kind: "reporting" });
+        generated += 1;
+      } catch (err) {
+        captureFatal(err, "inngest/inv-reporting-quarterly:deal");
+        // best-effort : on continue les autres deals.
+      }
+    }
+    return { ok: true, deals: rows.length, generated };
+  },
+);
+
+export const functions = [
+  ping,
+  generatePdf,
+  invClosingSaga,
+  invReconcileTick,
+  invDistributionRun,
+  invReportingQuarterly,
+];
