@@ -1,0 +1,44 @@
+/**
+ * Skeleton — placeholder de chargement qui mime la forme finale (pas de
+ * spinner plein écran). Server component. `aria-hidden` (décoratif) ; le
+ * conteneur portant le Skeleton doit exposer `aria-busy="true"`.
+ *
+ * Largeur/hauteur = exception data-driven tolérée (cf. cockpit.css BarList).
+ */
+export function Skeleton({
+  width,
+  height = 16,
+  radius,
+}: {
+  width?: number | string;
+  height?: number | string;
+  radius?: number;
+}) {
+  return (
+    <span
+      className="inv-skeleton"
+      aria-hidden
+      style={{
+        display: "block",
+        width: typeof width === "number" ? `${width}px` : (width ?? "100%"),
+        height: typeof height === "number" ? `${height}px` : height,
+        ...(radius != null ? { borderRadius: `${radius}px` } : null),
+      }}
+    />
+  );
+}
+
+/** Bloc carte en skeleton (mime une DealCard). */
+export function SkeletonCard() {
+  return (
+    <div className="inv-deal-card" aria-busy="true">
+      <Skeleton height={150} radius={0} />
+      <div className="inv-deal-body">
+        <Skeleton width="40%" height={11} />
+        <Skeleton width="70%" height={18} />
+        <Skeleton width="100%" height={40} />
+        <Skeleton width="100%" height={6} />
+      </div>
+    </div>
+  );
+}
