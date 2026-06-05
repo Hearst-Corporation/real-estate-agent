@@ -182,50 +182,58 @@ export function ValuationPanel({ id, valuation, market: marketProp }: Props) {
       </div>
 
       {/* ── Annonces comparables ── */}
-      {marketProp?.listing_comparables && marketProp.listing_comparables.length > 0 && (
+      {marketProp != null && (
         <div className="ct-card est-valuation-block">
           <p className="ct-card-title">{UI.estimations.listingComparablesTitle}</p>
-          <table className="est-listing-table">
-            <thead>
-              <tr>
-                <th>{UI.estimations.listingColAnnonce}</th>
-                <th>{UI.estimations.listingColPrix}</th>
-                <th>{UI.estimations.listingColSurface}</th>
-                <th>{UI.estimations.listingColPrixM2}</th>
-                <th>{UI.estimations.listingColActions}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {marketProp.listing_comparables.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    {item.titre.length > LISTING_TITLE_MAX_CHARS ? item.titre.slice(0, LISTING_TITLE_MAX_CHARS) + "…" : item.titre}
-                  </td>
-                  <td>
-                    {fmt.format(item.prix)}
-                  </td>
-                  <td>
-                    {item.surface_m2}{UI.estimations.surfaceUnit}
-                  </td>
-                  <td>
-                    {fmt.format(item.prix_m2)}{UI.estimations.perSqmUnit}
-                  </td>
-                  <td>
-                    {item.url ? (
-                      <a
-                        href={safeHref(item.url)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="est-listing-link"
-                      >
-                        {UI.estimations.listingComparablesLink}
-                      </a>
-                    ) : null}
-                  </td>
+          {marketProp.listing_comparables.length === 0 ? (
+            <p className="ct-placeholder">{UI.estimations.listingComparablesEmpty}</p>
+          ) : (
+            <table className="est-listing-table">
+              <thead>
+                <tr>
+                  <th>{UI.estimations.listingColAnnonce}</th>
+                  <th>{UI.estimations.listingColSource}</th>
+                  <th>{UI.estimations.listingColPrix}</th>
+                  <th>{UI.estimations.listingColSurface}</th>
+                  <th>{UI.estimations.listingColPrixM2}</th>
+                  <th>{UI.estimations.listingColActions}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {marketProp.listing_comparables.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      {item.titre.length > LISTING_TITLE_MAX_CHARS ? item.titre.slice(0, LISTING_TITLE_MAX_CHARS) + "…" : item.titre}
+                    </td>
+                    <td>
+                      {UI.estimations.listingSourceLabels[item.source] ?? item.source}
+                    </td>
+                    <td>
+                      {fmt.format(item.prix)}
+                    </td>
+                    <td>
+                      {item.surface_m2}{UI.estimations.surfaceUnit}
+                    </td>
+                    <td>
+                      {fmt.format(item.prix_m2)}{UI.estimations.perSqmUnit}
+                    </td>
+                    <td>
+                      {item.url ? (
+                        <a
+                          href={safeHref(item.url)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="est-listing-link"
+                        >
+                          {UI.estimations.listingComparablesLink}
+                        </a>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 

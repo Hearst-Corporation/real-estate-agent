@@ -109,11 +109,17 @@ export const UI = {
     blockProgress: (n: number, total: number) => `Bloc ${n} / ${total}`,
     listingComparablesTitle: "Annonces en cours",
     listingComparablesLink: "Voir l'annonce",
+    listingComparablesEmpty: "Aucune annonce comparable trouvée pour ce bien.",
     listingColAnnonce: "Annonce",
+    listingColSource: "Source",
     listingColPrix: "Prix",
     listingColSurface: "Surface",
     listingColPrixM2: "Prix / m²",
     listingColActions: "",
+    listingSourceLabels: {
+      leboncoin: "LeBonCoin",
+      bienici: "Bienici",
+    } as Record<string, string>,
     status: {
       draft: "Brouillon",
       interviewing: "Entretien en cours",
