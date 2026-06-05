@@ -214,7 +214,7 @@ export default async function DashboardPage() {
             const propLabel =
               v.properties?.title ??
               v.properties?.city ??
-              (v.property_id ? "Bien lié" : "Bien non renseigné");
+              (v.property_id ? t.propertyLinked : t.propertyMissing);
             return (
               <div className="est-list-row" key={v.id}>
                 <div className="est-list-info">

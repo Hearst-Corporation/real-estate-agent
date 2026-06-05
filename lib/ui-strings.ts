@@ -81,6 +81,8 @@ export const UI = {
     seeAll: "Voir toutes les estimations",
     activity: "Activité récente",
     visitBadge: "Visite",
+    propertyLinked: "Bien lié",
+    propertyMissing: "Bien non renseigné",
     cards: {
       assistantTitle: "Assistant Kimi",
       assistantBody:
@@ -185,6 +187,7 @@ export const UI = {
     open: "Ouvrir",
     delete: "Supprimer",
     fallbackTitle: "Bien sans titre",
+    statusAria: "Statut du bien",
     cardCaracteristiques: "Caractéristiques",
     seeEstimation: "Voir l'estimation",
     fields: {
@@ -417,6 +420,12 @@ export const UI = {
     eyebrow: "Agenda",
     title: "Agenda",
     sub: "Vue d'ensemble de vos visites à venir.",
+    kpis: {
+      thisWeek: "Cette semaine",
+      today: "Aujourd'hui",
+      toConfirm: "À confirmer",
+    },
+    locationSeparator: " — ",
   },
   profile: {
     eyebrow: "Compte",
@@ -475,8 +484,19 @@ export const UI = {
     empty: "—",
     error: "Erreur",
     networkError: "Erreur réseau.",
+    busy: "…",
+    loading: "Chargement…",
+    saving: "Enregistrement…",
+    httpError: (status: number) => `Erreur ${status}`,
+    required: (label: string) => `${label} requis`,
   },
   logout: "Se déconnecter",
+  brochure: {
+    docTitle: "Avis de valeur",
+    iframeTitle: "Avis de valeur immobilière",
+    openPdf: "Ouvrir le PDF",
+    mobileHint: "Le document ne s'affiche pas ? Ouvrez-le directement :",
+  },
   swarms: {
     eyebrow: "MySwarms",
     title: "Swarms",
@@ -557,7 +577,12 @@ export const UI = {
     architectCreating: "Création…",
     architectRegenCta: "Régénérer",
     architectSpecError: "La spec générée ne contient pas d'agents ou de tâches. Relancez la génération.",
+    generateError: "Erreur lors de la génération.",
+    createError: "Erreur lors de la création.",
     manualSectionGeneral: "Informations générales",
+    metaName: "Nom",
+    metaDescription: "Description",
+    metaCreatedAt: "Créé le",
     manualNamePlaceholder: "Nom du swarm *",
     manualDescPlaceholder: "Description (optionnel)",
     manualSectionAgents: "Agents",

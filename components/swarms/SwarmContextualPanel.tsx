@@ -26,16 +26,16 @@ export default function SwarmContextualPanel({ estimationId }: { estimationId: s
   }, []);
 
   if (loading) {
-    return <p className="ct-placeholder" style={{ fontSize: 12 }}>{UI.swarms.contextualLoading}</p>;
+    return <p className="ct-placeholder" style={{ fontSize: "var(--ct-fs-sm)" }}>{UI.swarms.contextualLoading}</p>;
   }
 
   if (swarms.length === 0) {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-xs)" }}>
-        <p className="ct-placeholder" style={{ fontSize: 12 }}>
+        <p className="ct-placeholder" style={{ fontSize: "var(--ct-fs-sm)" }}>
           {UI.swarms.contextualEmpty}
         </p>
-        <Link href="/swarms/new" className="ct-btn ct-btn-secondary" style={{ display: "inline-block", textDecoration: "none", fontSize: 12 }}>
+        <Link href="/swarms/new" className="ct-btn ct-btn-secondary" style={{ display: "inline-block", textDecoration: "none", fontSize: "var(--ct-fs-sm)" }}>
           {UI.swarms.contextualCta}
         </Link>
       </div>

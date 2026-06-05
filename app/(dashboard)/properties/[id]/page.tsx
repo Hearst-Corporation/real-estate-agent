@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Eyebrow, Title, Sub, Card, Badge } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
+import { eur, dateTimeFr } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
@@ -82,11 +83,7 @@ export default async function PropertyDetailPage({
         {property.city && <Sub>{property.city}</Sub>}
         {displayPrice != null && (
           <p className="crm-detail-price">
-            {new Intl.NumberFormat("fr-FR", {
-              style: "currency",
-              currency: "EUR",
-              maximumFractionDigits: 0,
-            }).format(displayPrice)}
+            {eur(displayPrice)}
           </p>
         )}
       </div>
@@ -156,23 +153,11 @@ export default async function PropertyDetailPage({
                 <Badge>{tLeads.kindLabels[lead.kind] ?? lead.kind}</Badge>
                 {(lead.budget_min != null || lead.budget_max != null) && (
                   <span className="crm-list-meta">
-                    {lead.budget_min != null
-                      ? new Intl.NumberFormat("fr-FR", {
-                          style: "currency",
-                          currency: "EUR",
-                          maximumFractionDigits: 0,
-                        }).format(lead.budget_min)
-                      : ""}
+                    {lead.budget_min != null ? eur(lead.budget_min) : ""}
                     {lead.budget_min != null && lead.budget_max != null
                       ? " – "
                       : ""}
-                    {lead.budget_max != null
-                      ? new Intl.NumberFormat("fr-FR", {
-                          style: "currency",
-                          currency: "EUR",
-                          maximumFractionDigits: 0,
-                        }).format(lead.budget_max)
-                      : ""}
+                    {lead.budget_max != null ? eur(lead.budget_max) : ""}
                   </span>
                 )}
               </li>
@@ -195,10 +180,7 @@ export default async function PropertyDetailPage({
             {visits.map((visit) => (
               <li key={visit.id} className="crm-list-row">
                 <span className="crm-list-name">
-                  {new Intl.DateTimeFormat("fr-FR", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  }).format(new Date(visit.scheduled_at))}
+                  {dateTimeFr(visit.scheduled_at)}
                 </span>
                 <Badge>
                   {tVisits.statusLabels[visit.status] ?? visit.status}

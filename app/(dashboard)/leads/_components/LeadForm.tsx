@@ -3,6 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
+import {
+  LEAD_KINDS,
+  LEAD_TYPE_PERSONNE,
+  LEAD_DEFAULT_KIND,
+  LEAD_DEFAULT_TYPE_PERSONNE,
+  LEAD_DEFAULT_STATUS,
+  FORM_LIMITS,
+} from "@/lib/crm/format";
 
 export type LeadDefaults = {
   full_name?: string;
@@ -34,9 +42,9 @@ export function LeadForm({
   const [email, setEmail] = useState(defaultValues.email ?? "");
   const [phone, setPhone] = useState(defaultValues.phone ?? "");
   const [source, setSource] = useState(defaultValues.source ?? "");
-  const [kind, setKind] = useState(defaultValues.kind ?? "acheteur");
+  const [kind, setKind] = useState(defaultValues.kind ?? LEAD_DEFAULT_KIND);
   const [typePersonne, setTypePersonne] = useState(
-    defaultValues.type_personne ?? "particulier"
+    defaultValues.type_personne ?? LEAD_DEFAULT_TYPE_PERSONNE
   );
   const [budgetMin, setBudgetMin] = useState(
     defaultValues.budget_min != null ? String(defaultValues.budget_min) : ""
@@ -44,14 +52,14 @@ export function LeadForm({
   const [budgetMax, setBudgetMax] = useState(
     defaultValues.budget_max != null ? String(defaultValues.budget_max) : ""
   );
-  const [status] = useState(defaultValues.status ?? "nouveau");
+  const [status] = useState(defaultValues.status ?? LEAD_DEFAULT_STATUS);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!fullName.trim()) {
-      setError(t.fullName + " requis");
+      setError(UI.common.required(t.fullName));
       return;
     }
     setLoading(true);
@@ -139,8 +147,9 @@ export function LeadForm({
           value={kind}
           onChange={(e) => setKind(e.target.value)}
         >
-          <option value="acheteur">{UI.leads.kindLabels.acheteur}</option>
-          <option value="vendeur">{UI.leads.kindLabels.vendeur}</option>
+          {LEAD_KINDS.map((k) => (
+            <option key={k} value={k}>{UI.leads.kindLabels[k]}</option>
+          ))}
         </select>
       </label>
 
@@ -151,11 +160,9 @@ export function LeadForm({
           value={typePersonne}
           onChange={(e) => setTypePersonne(e.target.value)}
         >
-          <option value="particulier">{UI.leads.typePersonneLabels.particulier}</option>
-          <option value="professionnel">{UI.leads.typePersonneLabels.professionnel}</option>
-          <option value="societe">{UI.leads.typePersonneLabels.societe}</option>
-          <option value="sci">{UI.leads.typePersonneLabels.sci}</option>
-          <option value="agence">{UI.leads.typePersonneLabels.agence}</option>
+          {LEAD_TYPE_PERSONNE.map((t) => (
+            <option key={t} value={t}>{UI.leads.typePersonneLabels[t]}</option>
+          ))}
         </select>
       </label>
 
@@ -164,7 +171,7 @@ export function LeadForm({
         <input
           className="ct-input"
           type="number"
-          min={0}
+          min={FORM_LIMITS.priceMin}
           value={budgetMin}
           onChange={(e) => setBudgetMin(e.target.value)}
         />

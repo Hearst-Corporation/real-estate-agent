@@ -104,7 +104,7 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone }: Props)
             {UI.swarms.kickoffLaunch(swarmName)}
           </button>
           {state.phase === 'error' && (
-            <p className="crm-form-error" style={{ color: 'var(--ct-text-danger)', fontSize: 12 }}>
+            <p className="crm-form-error" style={{ color: 'var(--ct-text-danger)', fontSize: "var(--ct-fs-sm)" }}>
               {state.message}
             </p>
           )}
@@ -112,15 +112,15 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone }: Props)
       )}
 
       {state.phase === 'launching' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: "var(--ct-space-xs)" }}>
           <span className="swarm-spinner" />
-          <span style={{ fontSize: 13, color: 'var(--ct-text-muted)' }}>{UI.swarms.kickoffLaunching}</span>
+          <span style={{ fontSize: "var(--ct-fs-base)", color: 'var(--ct-text-muted)' }}>{UI.swarms.kickoffLaunching}</span>
         </div>
       )}
 
       {state.phase === 'running' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ct-space-sm)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: "var(--ct-space-xs)" }}>
             {isRunning && <span className="swarm-spinner" />}
             <RunStatusBadge status={state.status} />
           </div>
@@ -141,7 +141,7 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone }: Props)
       {state.phase === 'failed' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ct-space-sm)' }}>
           <RunStatusBadge status="failed" />
-          <p style={{ fontSize: 12, color: 'var(--ct-text-danger)', margin: 0 }}>{state.message}</p>
+          <p style={{ fontSize: "var(--ct-fs-sm)", color: 'var(--ct-text-danger)', margin: 0 }}>{state.message}</p>
           {state.steps.length > 0 && <StepsTimeline steps={state.steps} />}
           <button
             className="ct-btn ct-btn-secondary"

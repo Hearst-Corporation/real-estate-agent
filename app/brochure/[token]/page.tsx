@@ -9,6 +9,7 @@
 import { notFound } from "next/navigation";
 import { verifyShareToken } from "@/lib/estimation/share";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { UI } from "@/lib/ui-strings";
 
 interface Props {
   params: Promise<{ token: string }>;
@@ -36,23 +37,43 @@ export default async function BrochurePage({ params }: Props) {
   const pdfSrc = `/api/brochure/${encodeURIComponent(token)}/pdf`;
 
   return (
-    <html lang="fr" style={{ margin: 0, padding: 0, height: "100%" }}>
+    <html lang="fr" className="brochure-host">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Avis de valeur</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <title>{UI.brochure.docTitle}</title>
         <style>{`
           * { box-sizing: border-box; }
-          html, body { margin: 0; padding: 0; height: 100%; background: #1a1a1a; }
-          iframe { display: block; width: 100%; height: 100vh; border: none; }
+          html.brochure-host, html.brochure-host body {
+            margin: 0; padding: 0; height: 100%;
+            background: var(--ct-bg-deep, #1a1a1a);
+          }
+          /* 100dvh : suit la hauteur visible réelle (corrige la barre d'URL iOS Safari). */
+          .brochure-frame { display: block; width: 100%; height: 100dvh; border: none; }
+          /* Repli mobile : Safari iOS n'affiche pas un PDF dans une iframe. */
+          .brochure-fallback {
+            display: none; padding: 16px; text-align: center;
+            font-family: system-ui, sans-serif; color: rgba(245,245,245,0.72);
+          }
+          .brochure-fallback a { color: #e11d48; font-weight: 600; }
+          @media (max-width: 820px), (pointer: coarse) {
+            .brochure-fallback { display: block; }
+          }
         `}</style>
       </head>
       <body>
         <iframe
+          className="brochure-frame"
           src={pdfSrc}
-          title="Avis de valeur immobilière"
+          title={UI.brochure.iframeTitle}
           allowFullScreen
         />
+        <p className="brochure-fallback">
+          {UI.brochure.mobileHint}{" "}
+          <a href={pdfSrc} target="_blank" rel="noopener noreferrer">
+            {UI.brochure.openPdf}
+          </a>
+        </p>
       </body>
     </html>
   );

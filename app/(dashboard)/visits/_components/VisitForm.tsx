@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
+import { FORM_LIMITS } from "@/lib/crm/format";
 
 type Property = { id: string; title: string | null; city: string | null };
 
@@ -16,7 +17,7 @@ export default function VisitForm({ cta }: { cta: string }) {
 
   const [propertyId, setPropertyId] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
-  const [duration, setDuration] = useState(30);
+  const [duration, setDuration] = useState<number>(FORM_LIMITS.visitDurationDefault);
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -45,13 +46,13 @@ export default function VisitForm({ cta }: { cta: string }) {
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        setError(d.error ?? "error");
+        setError(d.error ?? UI.common.error);
         return;
       }
       setOpen(false);
       setPropertyId("");
       setScheduledAt("");
-      setDuration(30);
+      setDuration(FORM_LIMITS.visitDurationDefault);
       setNotes("");
       router.refresh();
     } finally {
@@ -104,9 +105,9 @@ export default function VisitForm({ cta }: { cta: string }) {
           <input
             className="ct-input"
             type="number"
-            min={5}
-            max={480}
-            step={5}
+            min={FORM_LIMITS.visitDurationMin}
+            max={FORM_LIMITS.visitDurationMax}
+            step={FORM_LIMITS.visitDurationStep}
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
           />

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { UI } from "@/lib/ui-strings";
 
 type DeleteButtonProps = {
   /** Endpoint REST à DELETE. Ex: `/api/visits/${id}`. */
@@ -29,7 +30,7 @@ export function DeleteButton({ endpoint, label, confirmMessage }: DeleteButtonPr
 
   return (
     <button className="ct-seg-btn danger" onClick={handleDelete} disabled={busy}>
-      {busy ? "…" : label}
+      {busy ? UI.common.busy : label}
     </button>
   );
 }

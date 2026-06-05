@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
+import { FORM_LIMITS } from "@/lib/crm/format";
 
 type PropertyOption = {
   id: string;
@@ -57,13 +58,13 @@ export default function MandateForm() {
 
       if (!res.ok) {
         const d = await res.json();
-        setError(d.error ?? "Erreur");
+        setError(d.error ?? UI.common.error);
         return;
       }
 
       router.refresh();
     } catch {
-      setError("network_error");
+      setError(UI.common.networkError);
     } finally {
       setLoading(false);
     }
@@ -114,7 +115,7 @@ export default function MandateForm() {
       <input
         className="ct-input"
         type="number"
-        min={0}
+        min={FORM_LIMITS.priceMin}
         value={askingPrice}
         onChange={(e) => setAskingPrice(e.target.value)}
       />
@@ -123,9 +124,9 @@ export default function MandateForm() {
       <input
         className="ct-input"
         type="number"
-        min={0}
-        max={100}
-        step={0.01}
+        min={FORM_LIMITS.commissionMin}
+        max={FORM_LIMITS.commissionMax}
+        step={FORM_LIMITS.commissionStep}
         value={commissionPct}
         onChange={(e) => setCommissionPct(e.target.value)}
       />
