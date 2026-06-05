@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Eyebrow, Title, Sub } from "@/components/cockpit/primitives";
+import { Eyebrow, Title } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";

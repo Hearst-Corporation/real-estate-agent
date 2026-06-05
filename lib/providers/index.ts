@@ -21,8 +21,6 @@ export {
 } from "./search";
 export { llamaParseIsConfigured, parseDocument } from "./llamaparse";
 export { langfuseIsConfigured, getLangfuse, trace } from "./langfuse";
-export { embeddingsIsConfigured, embed, embedBatch } from "./embeddings";
-export { composioIsConfigured, getComposio } from "./composio";
 export { sentryIsConfigured } from "./sentry";
 export { inngestIsConfigured } from "@/lib/jobs/inngest/client";
 
@@ -31,8 +29,6 @@ import { pdlIsConfigured } from "./pdl";
 import { exaIsConfigured, tavilyIsConfigured, perplexityIsConfigured } from "./search";
 import { llamaParseIsConfigured } from "./llamaparse";
 import { langfuseIsConfigured } from "./langfuse";
-import { embeddingsIsConfigured } from "./embeddings";
-import { composioIsConfigured } from "./composio";
 import { sentryIsConfigured } from "./sentry";
 import { inngestIsConfigured } from "@/lib/jobs/inngest/client";
 
@@ -46,8 +42,6 @@ export function providersStatus(): Record<string, boolean> {
     perplexity: perplexityIsConfigured(),
     llamaparse: llamaParseIsConfigured(),
     langfuse: langfuseIsConfigured(),
-    embeddings: embeddingsIsConfigured(),
-    composio: composioIsConfigured(),
     sentry: sentryIsConfigured(),
     inngest: inngestIsConfigured(),
   };
