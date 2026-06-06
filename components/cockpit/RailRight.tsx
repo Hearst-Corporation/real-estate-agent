@@ -10,9 +10,10 @@ const CHANGE_EVENT = "cockpit:rail-right-open-change";
 
 function readUserOpenPreference() {
   if (typeof window === "undefined") return true;
+  if (window.innerWidth <= 1024) return false;
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved !== null) return saved === "true";
-  return window.innerWidth > 1024;
+  return true;
 }
 
 function subscribeToUserOpenPreference(onStoreChange: () => void) {

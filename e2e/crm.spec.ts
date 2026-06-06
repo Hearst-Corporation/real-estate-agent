@@ -164,6 +164,27 @@ test("POST /api/properties puis GET → id présent dans la liste", async () => 
   expect(ids).toContain(id);
 });
 
+test("PATCH /api/properties statut invalide → 400", async () => {
+  test.skip(!creds, "pas de credentials");
+  const postRes = await api.post("/api/properties", {
+    data: {
+      title: "[E2E] Property Invalid Status",
+      property_type: "appartement",
+      address: "1 rue Test",
+      city: "Paris",
+      postal_code: "75002",
+    },
+  });
+  expect(postRes.status()).toBe(201);
+  const { id } = await postRes.json();
+  createdPropertyIds.push(id);
+
+  const res = await api.patch(`/api/properties/${id}`, { data: { status: "nope" } });
+  expect(res.status()).toBe(400);
+  const body = await res.json();
+  expect(body).toMatchObject({ error: "invalid_status" });
+});
+
 // ── Leads ─────────────────────────────────────────────────────────────────────
 test("POST /api/leads → 201 + id renvoyé", async () => {
   test.skip(!creds, "pas de credentials");
@@ -203,6 +224,27 @@ test("POST /api/leads puis GET → id présent dans la liste", async () => {
   const list = (await getRes.json()).items as { id: string }[];
   const ids = list.map((l) => l.id);
   expect(ids).toContain(id);
+});
+
+test("PATCH /api/leads statut valide puis invalide", async () => {
+  test.skip(!creds, "pas de credentials");
+  const postRes = await api.post("/api/leads", {
+    data: {
+      full_name: "[E2E] Lead Status",
+      type_personne: "particulier",
+    },
+  });
+  expect(postRes.status()).toBe(201);
+  const { id } = await postRes.json();
+  createdLeadIds.push(id);
+
+  const okRes = await api.patch(`/api/leads/${id}`, { data: { status: "qualifie" } });
+  expect(okRes.status()).toBe(200);
+
+  const badRes = await api.patch(`/api/leads/${id}`, { data: { status: "nope" } });
+  expect(badRes.status()).toBe(400);
+  const body = await badRes.json();
+  expect(body).toMatchObject({ error: "invalid_status" });
 });
 
 // ── Visits ────────────────────────────────────────────────────────────────────
@@ -281,6 +323,52 @@ test("POST /api/visits puis GET → id présent dans la liste", async () => {
   expect(ids).toContain(id);
 });
 
+test("POST /api/visits avec property_id inconnu → 404", async () => {
+  test.skip(!creds, "pas de credentials");
+
+  const scheduledAt = new Date();
+  scheduledAt.setDate(scheduledAt.getDate() + 1);
+
+  const res = await api.post("/api/visits", {
+    data: {
+      property_id: "00000000-0000-0000-0000-000000000000",
+      scheduled_at: scheduledAt.toISOString(),
+    },
+  });
+  expect(res.status()).toBe(404);
+  const body = await res.json();
+  expect(body).toMatchObject({ error: "property_not_found" });
+});
+
+test("PATCH /api/visits statut invalide → 400", async () => {
+  test.skip(!creds, "pas de credentials");
+  const propRes = await api.post("/api/properties", {
+    data: {
+      title: "[E2E] Prop for Visit Invalid Status",
+      property_type: "appartement",
+      address: "2 rue Test",
+      city: "Paris",
+      postal_code: "75003",
+    },
+  });
+  expect(propRes.status()).toBe(201);
+  const { id: property_id } = await propRes.json();
+  createdPropertyIds.push(property_id);
+  const scheduledAt = new Date();
+  scheduledAt.setDate(scheduledAt.getDate() + 3);
+  const visitRes = await api.post("/api/visits", {
+    data: { property_id, scheduled_at: scheduledAt.toISOString() },
+  });
+  expect(visitRes.status()).toBe(201);
+  const { id } = await visitRes.json();
+  createdVisitIds.push(id);
+
+  const res = await api.patch(`/api/visits/${id}`, { data: { status: "nope" } });
+  expect(res.status()).toBe(400);
+  const body = await res.json();
+  expect(body).toMatchObject({ error: "invalid_status" });
+});
+
 // ── Mandates ──────────────────────────────────────────────────────────────────
 test("POST /api/mandates → 201 + id renvoyé", async () => {
   test.skip(!creds, "pas de credentials");
@@ -350,6 +438,47 @@ test("POST /api/mandates puis GET → id présent dans la liste", async () => {
   expect(ids).toContain(id);
 });
 
+test("POST /api/mandates avec property_id inconnu → 404", async () => {
+  test.skip(!creds, "pas de credentials");
+
+  const res = await api.post("/api/mandates", {
+    data: {
+      property_id: "00000000-0000-0000-0000-000000000000",
+      kind: "simple",
+    },
+  });
+  expect(res.status()).toBe(404);
+  const body = await res.json();
+  expect(body).toMatchObject({ error: "property_not_found" });
+});
+
+test("PATCH /api/mandates statut invalide → 400", async () => {
+  test.skip(!creds, "pas de credentials");
+  const propRes = await api.post("/api/properties", {
+    data: {
+      title: "[E2E] Prop for Mandate Invalid Status",
+      property_type: "maison",
+      address: "3 rue Test",
+      city: "Lyon",
+      postal_code: "69002",
+    },
+  });
+  expect(propRes.status()).toBe(201);
+  const { id: property_id } = await propRes.json();
+  createdPropertyIds.push(property_id);
+  const mandateRes = await api.post("/api/mandates", {
+    data: { property_id, kind: "simple" },
+  });
+  expect(mandateRes.status()).toBe(201);
+  const { id } = await mandateRes.json();
+  createdMandateIds.push(id);
+
+  const res = await api.patch(`/api/mandates/${id}`, { data: { status: "nope" } });
+  expect(res.status()).toBe(400);
+  const body = await res.json();
+  expect(body).toMatchObject({ error: "invalid_status" });
+});
+
 // ── Gardes enrich ─────────────────────────────────────────────────────────────
 test("enrich lead particulier avec consent:true → 403 forbidden_particulier", async () => {
   test.skip(!creds, "pas de credentials");
@@ -393,4 +522,48 @@ test("enrich lead sans body consent → 400 invalid_body", async () => {
   expect(enrichRes.status()).toBe(400);
   const body = await enrichRes.json();
   expect(body).toMatchObject({ error: "invalid_body" });
+});
+
+// ── Gardes prospection ────────────────────────────────────────────────────────
+test("GET /api/prospection/annonces avec pagination invalide → 200 + tableau", async () => {
+  test.skip(!creds, "pas de credentials");
+
+  const res = await api.get("/api/prospection/annonces?limit=nope&offset=-10&eligible=1");
+  expect(res.status()).toBe(200);
+  const body = await res.json();
+  expect(Array.isArray(body.data)).toBe(true);
+});
+
+test("POST /api/prospection/criteres sans nom → 400", async () => {
+  test.skip(!creds, "pas de credentials");
+
+  const res = await api.post("/api/prospection/criteres", { data: { zones: ["75011"] } });
+  expect(res.status()).toBe(400);
+  const body = await res.json();
+  expect(body).toMatchObject({ error: "nom requis" });
+});
+
+test("POST /api/prospection/matchs feedback invalide → 400", async () => {
+  test.skip(!creds, "pas de credentials");
+
+  const res = await api.post("/api/prospection/matchs", {
+    data: { match_id: "not-a-match", verdict: "unknown" },
+  });
+  expect(res.status()).toBe(400);
+  const body = await res.json();
+  expect(body).toMatchObject({ error: "match_id + verdict requis" });
+});
+
+test("POST /api/prospection/matchs feedback sur match inconnu → 404", async () => {
+  test.skip(!creds, "pas de credentials");
+
+  const res = await api.post("/api/prospection/matchs", {
+    data: {
+      match_id: "00000000-0000-0000-0000-000000000000",
+      verdict: "like",
+    },
+  });
+  expect(res.status()).toBe(404);
+  const body = await res.json();
+  expect(body).toMatchObject({ error: "match_not_found" });
 });

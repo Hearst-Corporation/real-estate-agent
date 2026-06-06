@@ -11,17 +11,26 @@ export default function SwarmContextualPanel({ estimationId }: { estimationId: s
   void estimationId;
   const [swarms, setSwarms] = useState<Swarm[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string>("");
 
   useEffect(() => {
     fetch("/api/swarms")
-      .then((res) => (res.ok ? res.json() : []))
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error ?? "engine_fetch_failed");
+        return data as { items?: Swarm[] };
+      })
       .then((data: { items?: Swarm[] }) => {
+        setError(null);
         const active = (data?.items ?? []).filter((s) => s.is_active);
         setSwarms(active);
         if (active.length > 0) setSelectedId(active[0].id);
       })
-      .catch(() => setSwarms([]))
+      .catch(() => {
+        setSwarms([]);
+        setError(UI.swarms.contextualEngineError);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -33,7 +42,7 @@ export default function SwarmContextualPanel({ estimationId }: { estimationId: s
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-xs)" }}>
         <p className="ct-placeholder" style={{ fontSize: "var(--ct-fs-sm)" }}>
-          {UI.swarms.contextualEmpty}
+          {error ?? UI.swarms.contextualEmpty}
         </p>
         <Link href="/swarms/new" className="ct-btn ct-btn-secondary" style={{ display: "inline-block", textDecoration: "none", fontSize: "var(--ct-fs-sm)" }}>
           {UI.swarms.contextualCta}

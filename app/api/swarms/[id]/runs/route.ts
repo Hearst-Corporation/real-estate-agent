@@ -27,6 +27,7 @@ export async function GET(_req: Request, { params }: Params) {
     .select("*")
     .eq("swarm_id", id)
     .eq("tenant_id", ownerId)
+    .eq("user_id", claims.sub)
     .order("created_at", { ascending: false })
     .limit(RUNS_LIMIT)
 

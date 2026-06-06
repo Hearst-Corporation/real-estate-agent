@@ -80,22 +80,26 @@ export function LeadForm({
     const url = isEdit ? `/api/leads/${id}` : "/api/leads";
     const method = isEdit ? "PATCH" : "POST";
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
-    setLoading(false);
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setError((json as { error?: string }).error ?? UI.common.error);
+        return;
+      }
 
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      setError((json as { error?: string }).error ?? UI.common.error);
-      return;
+      router.refresh();
+      onClose?.();
+    } catch {
+      setError(UI.common.networkError);
+    } finally {
+      setLoading(false);
     }
-
-    router.refresh();
-    onClose?.();
   }
 
   return (

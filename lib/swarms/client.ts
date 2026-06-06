@@ -9,9 +9,17 @@ import type {
   SwarmTool,
 } from "./types"
 
-const ENGINE_BASE = `${process.env.MYSWARMS_ENGINE_URL ?? ""}/v1`
+const ENGINE_ROOT = process.env.MYSWARMS_ENGINE_URL?.replace(/\/+$/, "") ?? ""
+const ENGINE_BASE = ENGINE_ROOT ? `${ENGINE_ROOT}/v1` : ""
 const ENGINE_TOKEN = process.env.MYSWARMS_ENGINE_TOKEN ?? ""
 const DEFAULT_TIMEOUT_MS = 30_000
+
+export class SwarmsEngineUnavailableError extends Error {
+  constructor(message = "myswarms_engine_unavailable") {
+    super(message)
+    this.name = "SwarmsEngineUnavailableError"
+  }
+}
 
 // ─── Helper interne ──────────────────────────────────────────────────────────
 
@@ -20,6 +28,10 @@ async function engineFetch<T>(
   init?: RequestInit & { timeoutMs?: number }
 ): Promise<T> {
   const { timeoutMs = DEFAULT_TIMEOUT_MS, ...fetchInit } = init ?? {}
+
+  if (!ENGINE_BASE || !ENGINE_TOKEN) {
+    throw new SwarmsEngineUnavailableError()
+  }
 
   const url = `${ENGINE_BASE}${path}`
   const headers = new Headers(fetchInit.headers as HeadersInit | undefined)

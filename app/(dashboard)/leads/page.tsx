@@ -1,6 +1,7 @@
 import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
+import { StatusSelect } from "@/components/cockpit/StatusSelect";
 import { countByStatus } from "@/lib/crm/aggregate";
 import { eur, LEAD_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
@@ -75,9 +76,13 @@ export default async function LeadsPage() {
       key: "status",
       header: t.table.status,
       render: (l) => (
-        <span className={`crm-status ${statusTone("lead", l.status)}`}>
-          {t.statusLabels[l.status] ?? l.status}
-        </span>
+        <StatusSelect
+          endpoint={`/api/leads/${l.id}`}
+          value={l.status}
+          options={LEAD_STATUSES}
+          labels={t.statusLabels}
+          ariaLabel={t.table.status}
+        />
       ),
     },
     {

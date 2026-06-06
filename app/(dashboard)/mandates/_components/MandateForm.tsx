@@ -11,7 +11,7 @@ type PropertyOption = {
   city: string | null;
 };
 
-export default function MandateForm() {
+function MandateForm({ onClose }: { onClose?: () => void }) {
   const t = UI.mandates;
   const router = useRouter();
 
@@ -63,6 +63,7 @@ export default function MandateForm() {
       }
 
       router.refresh();
+      onClose?.();
     } catch {
       setError(UI.common.networkError);
     } finally {
@@ -156,12 +157,32 @@ export default function MandateForm() {
         <button
           type="button"
           className="ct-seg-btn"
-          onClick={() => router.back()}
+          onClick={() => onClose?.()}
           disabled={loading}
         >
           {t.form.cancel}
         </button>
       </div>
     </form>
+  );
+}
+
+export default function MandateFormModal({ cta }: { cta: string }) {
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <button className="ct-seg-btn primary" onClick={() => setOpen(true)}>
+        {cta}
+      </button>
+    );
+  }
+
+  return (
+    <div className="crm-form-overlay">
+      <div className="crm-form-modal">
+        <MandateForm onClose={() => setOpen(false)} />
+      </div>
+    </div>
   );
 }

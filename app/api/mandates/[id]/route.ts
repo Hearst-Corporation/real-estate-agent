@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { MANDATE_STATUSES } from "@/lib/crm/format";
 import type { TablesUpdate } from "@/lib/supabase/database.types";
 
 export const runtime = "nodejs";
@@ -51,7 +52,21 @@ export async function PATCH(
   const allowed = ["kind", "reference", "asking_price", "commission_pct", "signed_at", "expires_at", "status", "notes"];
   const patch: TablesUpdate<"mandates"> = { updated_at: new Date().toISOString() };
   for (const key of allowed) {
-    if (key in body) (patch as Record<string, unknown>)[key] = (body as Record<string, unknown>)[key];
+    if (key in body) {
+      if (key === "status") {
+        const val = body[key];
+        if (typeof val !== "string" || !(MANDATE_STATUSES as readonly string[]).includes(val)) {
+          return NextResponse.json({ error: "invalid_status" }, { status: 400 });
+        }
+        (patch as Record<string, unknown>)[key] = val;
+      } else {
+        (patch as Record<string, unknown>)[key] = (body as Record<string, unknown>)[key];
+      }
+    }
+  }
+
+  if (Object.keys(patch).length === 1) {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 
   const { data, error } = await sb

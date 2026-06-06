@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { LEAD_STATUSES } from "@/lib/crm/format";
 import type { TablesUpdate } from "@/lib/supabase/database.types";
 
 export const runtime = "nodejs";
@@ -68,6 +69,12 @@ export async function PATCH(
           return NextResponse.json({ error: "invalid_body" }, { status: 400 });
         }
         (patch as Record<string, unknown>)[key] = (val as string).trim();
+      } else if (key === "status") {
+        const val = body[key];
+        if (typeof val !== "string" || !(LEAD_STATUSES as readonly string[]).includes(val)) {
+          return NextResponse.json({ error: "invalid_status" }, { status: 400 });
+        }
+        (patch as Record<string, unknown>)[key] = val;
       } else {
         (patch as Record<string, unknown>)[key] = body[key];
       }

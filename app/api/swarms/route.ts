@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/server/session"
 import { uuidOwnerOf } from "@/lib/tenant"
-import { listSwarms, createSwarm } from "@/lib/swarms/client"
+import { listSwarms, createSwarm, SwarmsEngineUnavailableError } from "@/lib/swarms/client"
 import type { CreateSwarmPayload } from "@/lib/swarms/types"
 
 export const runtime = "nodejs"
@@ -18,8 +18,16 @@ export async function GET() {
   try {
     const swarms = await listSwarms(ownerId)
     return NextResponse.json({ items: swarms })
-  } catch {
-    return NextResponse.json({ items: [] })
+  } catch (err) {
+    if (err instanceof SwarmsEngineUnavailableError) {
+      return NextResponse.json(
+        { items: [], degraded: "engine_unavailable", error: "engine_unavailable" },
+        { status: 503 },
+      )
+    }
+    const message = err instanceof Error ? err.message : "unknown error"
+    console.error("[swarms] list failed", { message })
+    return NextResponse.json({ items: [], error: "engine_fetch_failed" }, { status: 502 })
   }
 }
 

@@ -12,7 +12,7 @@
   --ct-accent-soft: rgba(225, 29, 72, 0.18);
   --ct-border-accent: rgba(225, 29, 72, 0.55);
 
-  --ct-rail-left: 88px;
+  --ct-rail-left: 118px;
   --ct-rail-right: 420px;
 
   --ct-surface-0: rgba(255,255,255,0.02);
@@ -109,7 +109,7 @@ html, body {
   border-right: 1px solid var(--ct-border-strong);
   backdrop-filter: blur(60px) saturate(110%) brightness(105%);
   -webkit-backdrop-filter: blur(60px) saturate(110%) brightness(105%);
-  display: flex; flex-direction: column; align-items: center; padding: 32px 0;
+  display: flex; flex-direction: column; align-items: center; padding: 24px 0;
 }
 .ct-logo-slot {
   width: 40px; height: 40px; border-radius: 10px; background: var(--ct-surface-3);
@@ -145,7 +145,7 @@ html, body {
   box-shadow: 0 -10px 30px -12px rgba(0,0,0,0.75);
 }
 .ct-bottom-bar-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 20px; }
-.ct-bottom-label { font-size: 12px; font-weight: 500; color: var(--ct-text-body); white-space: nowrap; }
+.ct-bottom-label { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: var(--ct-text-muted); text-transform: uppercase; white-space: nowrap; }
 .ct-seg-track {
   display: flex; align-items: center; padding: 4px; background: rgba(0,0,0,0.2);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1); border-radius: 9999px;
@@ -248,11 +248,11 @@ html, body {
 .ct-placeholder { font-size: 12px; color: var(--ct-text-muted); font-style: italic; line-height: 1.6; }
 
 /* ── RAIL GAUCHE — Actions ── */
-.ct-rail-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; align-items: center; }
+.ct-rail-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; align-items: center; width: 100%; }
 .ct-rail-action {
-  width: 44px; height: 44px; border-radius: 11px; background: var(--ct-surface-1);
-  border: 1px solid var(--ct-border-soft); display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--ct-text-body); padding: 0; font-family: inherit;
+  width: 92px; min-height: 66px; border-radius: 14px; background: var(--ct-surface-1);
+  border: 1px solid var(--ct-border-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  cursor: pointer; color: var(--ct-text-body); padding: 7px 6px; font-family: inherit; text-decoration: none;
   transition: background var(--ct-dur-base) var(--ct-ease), color var(--ct-dur-base) var(--ct-ease), border-color var(--ct-dur-base) var(--ct-ease);
 }
 .ct-rail-action:hover { background: var(--ct-surface-2); color: var(--ct-text-strong); border-color: var(--ct-border); }
@@ -260,6 +260,23 @@ html, body {
 .ct-rail-action.active:hover { background: color-mix(in srgb, var(--ct-accent-strong) 28%, transparent); }
 .ct-rail-action.accent { background: var(--ct-accent-soft); border-color: var(--ct-border-accent); color: var(--ct-accent-strong); }
 .ct-rail-action.accent:hover { background: color-mix(in srgb, var(--ct-accent-strong) 28%, transparent); }
+.ct-rail-action-icon { display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+.ct-rail-action-icon svg {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.22));
+}
+.ct-rail-action-label {
+  max-width: 100%;
+  overflow: hidden;
+  color: currentColor;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .ct-rail-divider { width: 28px; height: 1px; background: var(--ct-border-soft); margin: 12px 0 4px; }
 
 /* Focus visible — accessibilité clavier (WCAG 2.4.7) sur les contrôles nav / CTA. */
@@ -356,6 +373,202 @@ html, body {
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12); }
 
 /* ── ESTIMATIONS — Interview layout ── */
+
+/* ── PROSPECTION ── */
+.prospection-page {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+}
+.prospection-title {
+  margin: 0;
+}
+.prospection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ct-space-md);
+  margin-bottom: var(--ct-space-lg);
+}
+.prospection-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ct-space-sm);
+  margin-bottom: var(--ct-space-md);
+}
+.prospection-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ct-space-xs);
+  min-width: 0;
+  color: var(--ct-text-body);
+  cursor: pointer;
+  font-size: var(--ct-fs-sm);
+}
+.prospection-count {
+  color: var(--ct-text-muted);
+  font-size: var(--ct-fs-xs);
+  white-space: nowrap;
+}
+.prospection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: var(--ct-space-md);
+  width: 100%;
+}
+.prospection-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-sm);
+}
+.prospection-empty,
+.prospection-spinner {
+  width: 100%;
+  min-height: clamp(280px, 42vh, 520px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(var(--ct-space-lg), 5vw, 64px);
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-lg);
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--ct-accent-strong) 12%, transparent), transparent 44%),
+    var(--ct-surface-1);
+  box-shadow: var(--ct-shadow-depth);
+  color: var(--ct-text-muted);
+  font-size: var(--ct-fs-sm);
+  text-align: center;
+}
+.prospection-empty-title {
+  max-width: 620px;
+  margin: 0;
+  color: var(--ct-text-primary);
+  font-size: clamp(15px, 1.6vw, 22px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.prospection-empty-text {
+  max-width: 520px;
+  margin: var(--ct-space-xs) 0 0;
+  color: var(--ct-text-muted);
+  font-size: var(--ct-fs-sm);
+  line-height: 1.6;
+}
+.prospection-grid > .prospection-empty {
+  grid-column: 1 / -1;
+}
+.prospection-hint {
+  color: var(--ct-text-muted);
+  font-size: var(--ct-fs-sm);
+  margin-bottom: var(--ct-space-md);
+}
+.prospection-refresh {
+  margin-bottom: var(--ct-space-md);
+}
+.prospection-card {
+  padding: var(--ct-space-md);
+}
+.prospection-badge {
+  display: inline-block;
+  padding: 2px var(--ct-space-xs);
+  border-radius: 9999px;
+  background: var(--ct-accent-soft);
+  color: var(--ct-accent);
+  font-size: var(--ct-fs-xs);
+  font-weight: 600;
+  margin-bottom: var(--ct-space-xs);
+}
+.prospection-card-title {
+  color: var(--ct-text-strong);
+  font-size: var(--ct-fs-md);
+  font-weight: 600;
+  margin-bottom: var(--ct-space-2xs);
+}
+.prospection-card-meta {
+  color: var(--ct-text-muted);
+  font-size: var(--ct-fs-sm);
+  margin-bottom: var(--ct-space-xs);
+}
+.prospection-price {
+  color: var(--ct-text-primary);
+  font-weight: 700;
+  margin-bottom: var(--ct-space-sm);
+}
+.prospection-pap {
+  color: var(--ct-success);
+  font-size: var(--ct-fs-xs);
+}
+.prospection-link {
+  display: block;
+  margin-top: var(--ct-space-xs);
+  color: var(--ct-accent);
+  font-size: var(--ct-fs-xs);
+}
+.prospection-match {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-md);
+  padding: var(--ct-space-md);
+}
+.prospection-score {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--ct-radius-md);
+  background: var(--ct-surface-3);
+  color: var(--ct-text-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+.prospection-score.is-good {
+  color: var(--ct-success);
+}
+.prospection-match-body {
+  flex: 1;
+  min-width: 0;
+}
+.prospection-feedback {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--ct-space-xs);
+}
+.prospection-feedback-btn {
+  background: var(--ct-surface-2);
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-sm);
+  color: var(--ct-text-primary);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px 10px;
+}
+.prospection-feedback-btn:hover {
+  background: var(--ct-surface-3);
+}
+@media (max-width: 720px) {
+  .prospection-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .prospection-header .ct-seg-track {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .prospection-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .prospection-match {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .prospection-feedback {
+    width: 100%;
+  }
+}
 
 /*
  * est-grid-escape : retire le padding X du ct-page-area pour que la grille
@@ -1169,9 +1382,12 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 @media (max-width: 640px) {
   /* Rail gauche réduit, centre pleine largeur. */
-  .ct-rail-left { width: 56px; padding: 16px 0; }
+  .ct-rail-left { width: 76px; padding: 16px 0; }
   .ct-logo-slot { width: 32px; height: 32px; margin-bottom: 16px; }
   .ct-avatar { width: 32px; height: 32px; }
+  .ct-rail-action { width: 64px; min-height: 58px; padding: 6px 4px; }
+  .ct-rail-action-icon { font-size: 18px; }
+  .ct-rail-action-label { font-size: 8px; }
   .ct-page-area { padding: 20px 16px 92px; }
   /* Tout en une colonne. */
   .ct-kpi-grid,

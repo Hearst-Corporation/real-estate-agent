@@ -6,6 +6,27 @@ import { tenantOf } from "@/lib/tenant";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+async function propertyBelongsToUser(
+  sb: ReturnType<typeof getSupabaseAdmin>,
+  propertyId: string,
+  userId: string,
+  tenantId: string,
+): Promise<boolean> {
+  if (!sb) return false;
+  const { data, error } = await sb
+    .from("properties")
+    .select("id")
+    .eq("id", propertyId)
+    .eq("user_id", userId)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+  if (error) {
+    console.error("[visits] property ownership check failed", { code: error.code });
+    return false;
+  }
+  return Boolean(data);
+}
+
 export async function GET() {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -35,12 +56,18 @@ export async function POST(req: NextRequest) {
   }
 
   const { property_id, scheduled_at, lead_id, duration_min, status, notes } = body;
+  const tenantId = tenantOf(claims);
+
+  const ownedProperty = await propertyBelongsToUser(sb, property_id, claims.sub, tenantId);
+  if (!ownedProperty) {
+    return NextResponse.json({ error: "property_not_found" }, { status: 404 });
+  }
 
   const { data, error } = await sb
     .from("visits")
     .insert({
       user_id: claims.sub,
-      tenant_id: tenantOf(claims),
+      tenant_id: tenantId,
       property_id,
       scheduled_at,
       lead_id: lead_id ?? null,

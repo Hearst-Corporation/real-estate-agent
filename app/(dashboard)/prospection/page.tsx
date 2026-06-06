@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { UI } from "@/lib/ui-strings";
 
 interface Annonce {
   id: string;
@@ -31,48 +32,108 @@ export default function ProspectionPage() {
   const [tab, setTab] = useState<Tab>("annonces");
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
   const [matchs, setMatchs] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filterEligible, setFilterEligible] = useState(false);
 
-  const loadAnnonces = useCallback(async () => {
+  async function loadAnnonces(nextFilterEligible = filterEligible) {
     setLoading(true);
-    const qs = filterEligible ? "?eligible=1" : "";
-    const res = await fetch(`/api/prospection/annonces${qs}`);
-    const json = await res.json();
-    setAnnonces(json.data ?? []);
-    setLoading(false);
-  }, [filterEligible]);
+    setError(null);
+    try {
+      const qs = nextFilterEligible ? "?eligible=1" : "";
+      const res = await fetch(`/api/prospection/annonces${qs}`);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error ?? `Erreur HTTP ${res.status}`);
+        return;
+      }
+      if (json.degraded) setError(UI.prospection.degradedAnnonces);
+      setAnnonces(json.data ?? []);
+    } catch {
+      setError(UI.prospection.loadAnnoncesError);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const loadMatchs = useCallback(async () => {
+  async function loadMatchs() {
     setLoading(true);
-    const res = await fetch("/api/prospection/matchs");
-    const json = await res.json();
-    setMatchs(json.data ?? []);
-    setLoading(false);
-  }, []);
+    setError(null);
+    try {
+      const res = await fetch("/api/prospection/matchs");
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error ?? `Erreur HTTP ${res.status}`);
+        return;
+      }
+      setMatchs(json.data ?? []);
+    } catch {
+      setError(UI.prospection.loadMatchsError);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function selectTab(nextTab: Tab) {
+    setTab(nextTab);
+    if (nextTab === "annonces" && annonces.length === 0) void loadAnnonces();
+    if (nextTab === "matching" && matchs.length === 0) void loadMatchs();
+  }
 
   useEffect(() => {
-    if (tab === "annonces") loadAnnonces();
-    if (tab === "matching") loadMatchs();
-  }, [tab, loadAnnonces, loadMatchs]);
+    let cancelled = false;
+
+    async function loadInitialAnnonces() {
+      try {
+        const res = await fetch("/api/prospection/annonces");
+        const json = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!res.ok) {
+          setError(json.error ?? `Erreur HTTP ${res.status}`);
+          return;
+        }
+        if (json.degraded) setError(UI.prospection.degradedAnnonces);
+        setAnnonces(json.data ?? []);
+      } catch {
+        if (!cancelled) setError(UI.prospection.loadAnnoncesError);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void loadInitialAnnonces();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function sendFeedback(matchId: string, signal: "like" | "dislike" | "contact" | "visite") {
-    await fetch("/api/prospection/matchs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ match_id: matchId, signal }),
-    });
-    loadMatchs();
+    setError(null);
+    try {
+      const res = await fetch("/api/prospection/matchs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ match_id: matchId, verdict: signal }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error ?? `Erreur HTTP ${res.status}`);
+        return;
+      }
+      await loadMatchs();
+    } catch {
+      setError(UI.prospection.feedbackError);
+    }
   }
 
   return (
-    <div style={{ padding: "var(--ct-space-xl)" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--ct-space-lg)" }}>
-        <h1 className="ct-title" style={{ margin: 0 }}>Prospection</h1>
+    <div className="prospection-page">
+      <div className="prospection-header">
+        <h1 className="ct-title prospection-title">{UI.prospection.title}</h1>
         <div className="ct-seg-track">
           {(["annonces","matching","criteres"] as Tab[]).map(t => (
-            <button key={t} className={`ct-seg-btn${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>
-              {t === "annonces" ? "Annonces" : t === "matching" ? "Matching" : "Critères"}
+            <button key={t} className={`ct-seg-btn${tab === t ? " active" : ""}`} onClick={() => selectTab(t)}>
+              {t === "annonces" ? UI.prospection.annonces : t === "matching" ? UI.prospection.matching : UI.prospection.criteres}
             </button>
           ))}
         </div>
@@ -80,17 +141,34 @@ export default function ProspectionPage() {
 
       {tab === "annonces" && (
         <div>
-          <div style={{ display: "flex", gap: "var(--ct-space-sm)", marginBottom: "var(--ct-space-md)", alignItems: "center" }}>
-            <label style={{ display: "flex", gap: "var(--ct-space-xs)", alignItems: "center", cursor: "pointer", fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-body)" }}>
-              <input type="checkbox" checked={filterEligible} onChange={e => setFilterEligible(e.target.checked)} />
-              Mandat éligibles uniquement
+          <div className="prospection-toolbar">
+            <label className="prospection-filter">
+              <input
+                type="checkbox"
+                checked={filterEligible}
+                onChange={e => {
+                  const checked = e.target.checked;
+                  setFilterEligible(checked);
+                  void loadAnnonces(checked);
+                }}
+              />
+              {UI.prospection.eligibleOnly}
             </label>
-            <span style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-xs)" }}>{annonces.length} annonces</span>
+            <span className="prospection-count">{annonces.length} annonces</span>
+            <button type="button" className="ct-seg-btn" onClick={() => loadAnnonces()}>
+              {UI.prospection.refresh}
+            </button>
           </div>
+          {error && annonces.length > 0 ? <p className="ct-error">{error}</p> : null}
           {loading ? <Spinner /> : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: "var(--ct-space-md)" }}>
+            <div className="prospection-grid">
               {annonces.map(a => <AnnonceCard key={a.id} annonce={a} />)}
-              {!annonces.length && <EmptyState text="Aucune annonce. Le job d'ingestion tourne toutes les heures." />}
+              {!annonces.length && (
+                <EmptyState
+                  title={error ?? UI.prospection.emptyAnnonces}
+                  text="Vérifiez l'ingestion ou les providers configurés."
+                />
+              )}
             </div>
           )}
         </div>
@@ -98,15 +176,19 @@ export default function ProspectionPage() {
 
       {tab === "matching" && (
         <div>
-          <p style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-sm)", marginBottom: "var(--ct-space-md)" }}>
-            Matchs générés par le moteur — score ≥ 50/100. Alertes WhatsApp automatiques si ≥ 70.
+          <p className="prospection-hint">
+            {UI.prospection.matchingHint}
           </p>
+          <button type="button" className="ct-seg-btn prospection-refresh" onClick={() => loadMatchs()}>
+            {UI.prospection.refresh}
+          </button>
+          {error && matchs.length > 0 ? <p className="ct-error">{error}</p> : null}
           {loading ? <Spinner /> : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
+            <div className="prospection-list">
               {matchs.map(m => (
                 <MatchCard key={m.id} match={m} onFeedback={(signal) => sendFeedback(m.id, signal)} />
               ))}
-              {!matchs.length && <EmptyState text="Aucun match. Créez des critères acquéreur dans l'onglet Critères." />}
+              {!matchs.length && <EmptyState title={error ?? UI.prospection.emptyMatchs} />}
             </div>
           )}
         </div>
@@ -120,23 +202,23 @@ export default function ProspectionPage() {
 function AnnonceCard({ annonce: a }: { annonce: Annonce }) {
   const prix = a.prix ? `${Math.round(a.prix / 1000)}k€` : "NC";
   return (
-    <div className="ct-card" style={{ padding: "var(--ct-space-md)" }}>
+    <div className="ct-card prospection-card">
       {a.mandat_eligible && (
-        <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 99, background: "var(--ct-accent-soft)", color: "var(--ct-accent)", fontSize: "var(--ct-fs-xs)", fontWeight: 600, marginBottom: "var(--ct-space-xs)" }}>
+        <span className="prospection-badge">
           Mandat {a.score_mandat}/100
         </span>
       )}
-      <div style={{ fontWeight: 600, fontSize: "var(--ct-fs-md)", color: "var(--ct-text-strong)", marginBottom: 4 }}>
+      <div className="prospection-card-title">
         {a.titre ?? a.type_bien}
       </div>
-      <div style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-sm)", marginBottom: "var(--ct-space-xs)" }}>
+      <div className="prospection-card-meta">
         {[a.surface && `${a.surface}m²`, a.pieces && `${a.pieces}p`, a.ville ?? a.code_postal].filter(Boolean).join(" · ")}
       </div>
-      <div style={{ fontWeight: 700, color: "var(--ct-text-primary)", marginBottom: "var(--ct-space-sm)" }}>{prix}</div>
-      {a.is_pap && <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-success)" }}>PAP</span>}
+      <div className="prospection-price">{prix}</div>
+      {a.is_pap && <span className="prospection-pap">PAP</span>}
       {a.url && (
-        <a href={a.url} target="_blank" rel="noopener" style={{ display: "block", marginTop: "var(--ct-space-xs)", fontSize: "var(--ct-fs-xs)", color: "var(--ct-accent)" }}>
-          Voir l'annonce →
+        <a href={a.url} target="_blank" rel="noopener" className="prospection-link">
+          Voir l&apos;annonce →
         </a>
       )}
     </div>
@@ -147,17 +229,17 @@ function MatchCard({ match: m, onFeedback }: { match: Match; onFeedback: (s: "li
   const a = m.annonce;
   const prix = a.prix ? `${Math.round(a.prix / 1000)}k€` : "NC";
   return (
-    <div className="ct-card" style={{ padding: "var(--ct-space-md)", display: "flex", alignItems: "center", gap: "var(--ct-space-md)" }}>
-      <div style={{ width: 56, height: 56, borderRadius: "var(--ct-radius-md)", background: "var(--ct-surface-3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 22, fontWeight: 700, color: m.score_match >= 70 ? "var(--ct-success)" : "var(--ct-text-body)" }}>
+    <div className="ct-card prospection-match">
+      <div className={`prospection-score${m.score_match >= 70 ? " is-good" : ""}`}>
         {m.score_match}
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, fontSize: "var(--ct-fs-md)", color: "var(--ct-text-strong)" }}>{a.titre ?? a.type_bien}</div>
-        <div style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-sm)" }}>
+      <div className="prospection-match-body">
+        <div className="prospection-card-title">{a.titre ?? a.type_bien}</div>
+        <div className="prospection-card-meta">
           {[a.surface && `${a.surface}m²`, a.pieces && `${a.pieces}p`, a.ville ?? a.code_postal, prix].filter(Boolean).join(" · ")}
         </div>
       </div>
-      <div style={{ display: "flex", gap: "var(--ct-space-xs)", flexShrink: 0 }}>
+      <div className="prospection-feedback">
         <FeedbackBtn emoji="👍" onClick={() => onFeedback("like")} />
         <FeedbackBtn emoji="👎" onClick={() => onFeedback("dislike")} />
         <FeedbackBtn emoji="📞" onClick={() => onFeedback("contact")} />
@@ -168,7 +250,7 @@ function MatchCard({ match: m, onFeedback }: { match: Match; onFeedback: (s: "li
 
 function FeedbackBtn({ emoji, onClick }: { emoji: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} style={{ background: "var(--ct-surface-2)", border: "1px solid var(--ct-border)", borderRadius: "var(--ct-radius-sm)", padding: "6px 10px", cursor: "pointer", fontSize: 16 }}>
+    <button onClick={onClick} className="prospection-feedback-btn">
       {emoji}
     </button>
   );
@@ -182,52 +264,122 @@ function CriteresPanel() {
   const [budgetMax, setBudgetMax] = useState("");
   const [surfaceMin, setSurfaceMin] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadCriteres() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/prospection/criteres");
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error ?? `Erreur HTTP ${res.status}`);
+        return;
+      }
+      setCriteres(json.data ?? []);
+    } catch {
+      setError(UI.prospection.loadCriteresError);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    fetch("/api/prospection/criteres").then(r => r.json()).then(j => setCriteres(j.data ?? []));
+    let cancelled = false;
+
+    async function loadInitialCriteres() {
+      try {
+        const res = await fetch("/api/prospection/criteres");
+        const json = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!res.ok) {
+          setError(json.error ?? `Erreur HTTP ${res.status}`);
+          return;
+        }
+        setCriteres(json.data ?? []);
+      } catch {
+        if (!cancelled) setError(UI.prospection.loadCriteresError);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void loadInitialCriteres();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function save() {
-    if (!nom.trim()) return;
+    if (!nom.trim()) {
+      setError(UI.prospection.critereNameRequired);
+      return;
+    }
     setSaving(true);
-    await fetch("/api/prospection/criteres", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nom: nom.trim(),
-        zones: zones.split(",").map(z => z.trim()).filter(Boolean),
-        budget_max: budgetMax ? Number(budgetMax) : null,
-        surface_min: surfaceMin ? Number(surfaceMin) : null,
-      }),
-    });
-    const r = await fetch("/api/prospection/criteres").then(r => r.json());
-    setCriteres(r.data ?? []);
-    setSaving(false);
-    setShowForm(false);
-    setNom(""); setZones(""); setBudgetMax(""); setSurfaceMin("");
+    setError(null);
+    try {
+      const res = await fetch("/api/prospection/criteres", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nom: nom.trim(),
+          zones: zones.split(",").map(z => z.trim()).filter(Boolean),
+          budget_max: budgetMax ? Number(budgetMax) : null,
+          surface_min: surfaceMin ? Number(surfaceMin) : null,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error ?? `Erreur HTTP ${res.status}`);
+        return;
+      }
+      await loadCriteres();
+      setShowForm(false);
+      setNom(""); setZones(""); setBudgetMax(""); setSurfaceMin("");
+    } catch {
+      setError(UI.prospection.saveError);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function deleteCritere(id: string) {
-    await fetch(`/api/prospection/criteres?id=${id}`, { method: "DELETE" });
-    setCriteres(c => c.filter(x => x.id !== id));
+    setError(null);
+    try {
+      const res = await fetch(`/api/prospection/criteres?id=${id}`, { method: "DELETE" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error ?? `Erreur HTTP ${res.status}`);
+        return;
+      }
+      setCriteres(c => c.filter(x => x.id !== id));
+    } catch {
+      setError(UI.prospection.deleteError);
+    }
   }
 
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--ct-space-md)" }}>
-        <span style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-sm)" }}>{criteres.length} critère(s) actif(s)</span>
-        <button className="ct-seg-btn primary" onClick={() => setShowForm(v => !v)}>+ Nouveau critère</button>
+        <span style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-sm)" }}>{UI.prospection.criteresCount(criteres.length)}</span>
+        <div className="ct-seg-track">
+          <button className="ct-seg-btn" onClick={loadCriteres}>{UI.prospection.refresh}</button>
+          <button className="ct-seg-btn primary" onClick={() => setShowForm(v => !v)}>{UI.prospection.newCritere}</button>
+        </div>
       </div>
       {showForm && (
         <div className="ct-card" style={{ padding: "var(--ct-space-md)", marginBottom: "var(--ct-space-md)", display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
-          <input className="ct-input" placeholder="Nom du critère (ex: Famille Martin)" value={nom} onChange={e => setNom(e.target.value)} />
-          <input className="ct-input" placeholder="Zones (codes postaux séparés par virgule : 75011,75012)" value={zones} onChange={e => setZones(e.target.value)} />
-          <input className="ct-input" placeholder="Budget max (€)" type="number" value={budgetMax} onChange={e => setBudgetMax(e.target.value)} />
-          <input className="ct-input" placeholder="Surface min (m²)" type="number" value={surfaceMin} onChange={e => setSurfaceMin(e.target.value)} />
-          <button className="ct-seg-btn primary" onClick={save} disabled={saving}>{saving ? "Enregistrement…" : "Enregistrer"}</button>
+          <input className="ct-input" placeholder={UI.prospection.critereNamePlaceholder} value={nom} onChange={e => setNom(e.target.value)} />
+          <input className="ct-input" placeholder={UI.prospection.critereZonesPlaceholder} value={zones} onChange={e => setZones(e.target.value)} />
+          <input className="ct-input" placeholder={UI.prospection.budgetMaxPlaceholder} type="number" value={budgetMax} onChange={e => setBudgetMax(e.target.value)} />
+          <input className="ct-input" placeholder={UI.prospection.surfaceMinPlaceholder} type="number" value={surfaceMin} onChange={e => setSurfaceMin(e.target.value)} />
+          <button className="ct-seg-btn primary" onClick={save} disabled={saving}>{saving ? UI.prospection.saving : UI.prospection.save}</button>
         </div>
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
+        {error ? <p className="ct-error">{error}</p> : null}
+        {loading ? <Spinner /> : null}
         {criteres.map(c => (
           <div key={String(c.id)} className="ct-card" style={{ padding: "var(--ct-space-md)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
@@ -238,19 +390,24 @@ function CriteresPanel() {
               </div>
             </div>
             <button onClick={() => deleteCritere(String(c.id))} style={{ background: "none", border: "1px solid var(--ct-border)", borderRadius: "var(--ct-radius-sm)", padding: "4px 12px", cursor: "pointer", color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-xs)" }}>
-              Supprimer
+              {UI.prospection.delete}
             </button>
           </div>
         ))}
-        {!criteres.length && <EmptyState text="Aucun critère. Créez un profil acquéreur pour démarrer le matching automatique." />}
+        {!loading && !criteres.length && <EmptyState title={UI.prospection.emptyCriteres} />}
       </div>
     </div>
   );
 }
 
 function Spinner() {
-  return <div style={{ color: "var(--ct-text-muted)", padding: "var(--ct-space-lg)" }}>Chargement…</div>;
+  return <div className="prospection-spinner">Chargement…</div>;
 }
-function EmptyState({ text }: { text: string }) {
-  return <div style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-sm)", padding: "var(--ct-space-lg)", textAlign: "center" }}>{text}</div>;
+function EmptyState({ title, text }: { title: string; text?: string }) {
+  return (
+    <div className="prospection-empty">
+      <p className="prospection-empty-title">{title}</p>
+      {text ? <p className="prospection-empty-text">{text}</p> : null}
+    </div>
+  );
 }

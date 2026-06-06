@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
@@ -12,6 +11,7 @@ import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import MandateFormModal from "./_components/MandateForm";
 
 type MandateRow = {
   id: string;
@@ -113,9 +113,7 @@ export default async function MandatesPage() {
 
       <div className="crm-toolbar">
         <span className="ct-card-title">{t.title}</span>
-        <Link href="/mandates/new" className="ct-seg-btn primary">
-          {t.newCta}
-        </Link>
+        <MandateFormModal cta={t.newCta} />
       </div>
 
       <Card>

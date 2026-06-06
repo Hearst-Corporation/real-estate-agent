@@ -1,8 +1,8 @@
 import { Eyebrow, Title, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
 import { getSession } from "@/lib/server/session";
-import { tenantOf } from "@/lib/tenant";
+import { uuidOwnerOf } from "@/lib/tenant";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
-import { listSwarms } from "@/lib/swarms/client";
+import { listSwarms, SwarmsEngineUnavailableError } from "@/lib/swarms/client";
 import SwarmCard from "@/components/swarms/SwarmCard";
 import type { Swarm } from "@/lib/swarms/types";
 import Link from "next/link";
@@ -10,13 +10,18 @@ import { UI } from "@/lib/ui-strings";
 
 export default async function SwarmsPage() {
   const claims = await getSession();
-  const ownerId = claims ? tenantOf(claims) : null;
+  const ownerId = claims ? uuidOwnerOf(claims) : null;
 
   let swarms: Swarm[] = [];
+  let loadError: string | null = null;
   if (ownerId) {
     try {
       swarms = await listSwarms(ownerId);
-    } catch {
+    } catch (err) {
+      loadError =
+        err instanceof SwarmsEngineUnavailableError
+          ? UI.swarms.engineUnavailable
+          : UI.swarms.engineFetchFailed;
       swarms = [];
     }
   }
@@ -61,7 +66,11 @@ export default async function SwarmsPage() {
         </Link>
       </div>
 
-      {swarms.length === 0 ? (
+      {loadError ? (
+        <Card>
+          <p className="ct-error">{loadError}</p>
+        </Card>
+      ) : swarms.length === 0 ? (
         <Card>
           <p className="crm-empty">{UI.swarms.empty}</p>
         </Card>
