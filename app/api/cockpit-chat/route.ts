@@ -269,6 +269,7 @@ export async function POST(req: Request) {
     ? await loadOwnedEstimation(sb, estimationId, userId, tenant)
     : null;
   const estimationContextBlock = buildEstimationContextBlock(currentEstimation);
+  const chatScope = estimationId ? `estimation:${estimationId}` : `page:${context?.pathname ?? "global"}`;
 
   // Capture mémoire « mémorise: … »
   const mem = message.match(MEMORIZE_RE);
@@ -281,19 +282,21 @@ export async function POST(req: Request) {
   if (chatId) {
     const { data, error } = await sb
       .from("cockpit_chats")
-      .select("id")
+      .select("id,title")
       .eq("id", chatId)
       .eq("user_id", userId)
       .eq("tenant_id", tenant)
       .maybeSingle();
     // Erreur DB transitoire → 500 (ne pas abandonner silencieusement le chat fourni).
     if (error) return NextResponse.json({ error: "chat_lookup_failed" }, { status: 500 });
-    if (!data) chatId = undefined; // chat non possédé → on repart sur un chat neuf
+    if (!data || !data.title?.startsWith(chatScope)) {
+      chatId = undefined; // chat non possédé ou contexte différent → nouveau chat
+    }
   }
   if (!chatId) {
     const { data, error } = await sb
       .from("cockpit_chats")
-      .insert({ user_id: userId, tenant_id: tenant, title: message.slice(0, CHAT_TITLE_MAX) })
+      .insert({ user_id: userId, tenant_id: tenant, title: `${chatScope} — ${message}`.slice(0, CHAT_TITLE_MAX) })
       .select("id")
       .single();
     if (error || !data) return NextResponse.json({ error: "chat_create_failed" }, { status: 500 });

@@ -26,6 +26,10 @@ function renderLight(text: string) {
 
 export function ChatKimi() {
   const pathname = usePathname();
+  return <ChatKimiSession key={pathname} pathname={pathname} />;
+}
+
+function ChatKimiSession({ pathname }: { pathname: string }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
