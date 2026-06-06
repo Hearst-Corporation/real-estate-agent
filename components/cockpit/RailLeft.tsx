@@ -16,6 +16,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/leads", label: UI.nav.leads, icon: "L" },
   { href: "/visits", label: UI.nav.visits, icon: "V" },
   { href: "/mandates", label: UI.nav.mandates, icon: "M" },
+  { href: "/prospection", label: UI.nav.prospection, icon: "P" },
   { href: "/swarms", label: UI.nav.swarms, icon: "S" },
 ];
 

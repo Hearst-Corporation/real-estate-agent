@@ -1,50 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { ChatKimi } from "./ChatKimi";
 import { UI } from "@/lib/ui-strings";
+
+const STORAGE_KEY = "cockpit:rail-right-open";
+const CHANGE_EVENT = "cockpit:rail-right-open-change";
+
+function readUserOpenPreference() {
+  if (typeof window === "undefined") return true;
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved !== null) return saved === "true";
+  return window.innerWidth > 1024;
+}
+
+function subscribeToUserOpenPreference(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener("resize", onStoreChange);
+  window.addEventListener(CHANGE_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener("resize", onStoreChange);
+    window.removeEventListener(CHANGE_EVENT, onStoreChange);
+  };
+}
 
 export function RailRight() {
   const pathname = usePathname();
   const onInterview = pathname.startsWith("/estimations/") && pathname !== "/estimations/new";
 
-  const [userOpen, setUserOpen] = useState(true);
-  const [override, setOverride] = useState<boolean | null>(null);
+  const userOpen = useSyncExternalStore(
+    subscribeToUserOpenPreference,
+    readUserOpenPreference,
+    () => true,
+  );
+  const [override, setOverride] = useState<{ pathname: string; open: boolean } | null>(null);
   // Dérivé en render : identique au SSR (usePathname est hydration-stable) → aucun flash.
-  const open = override ?? (onInterview ? false : userOpen);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("cockpit:rail-right-open");
-    // Hydratation post-mount depuis localStorage (indispo en SSR) → setState volontaire.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (saved !== null) {
-      setUserOpen(saved === "true");
-    } else if (window.innerWidth <= 1024) {
-      // Mobile/tablette : le chat est un overlay flottant. Replié par défaut (sans
-      // préférence sauvée) pour ne pas masquer le contenu au chargement.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUserOpen(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Repart replié à chaque (dé)passage d'une page d'entretien.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setOverride(null);
-  }, [onInterview]);
+  const interviewOverride = override?.pathname === pathname ? override.open : null;
+  const open = interviewOverride ?? (onInterview ? false : userOpen);
 
   function toggle() {
     if (onInterview) {
       // Sur l'entretien : override local, sans polluer le choix global persisté.
-      setOverride((o) => (o == null ? true : !o));
+      setOverride((current) => ({
+        pathname,
+        open: current?.pathname === pathname ? !current.open : true,
+      }));
       return;
     }
-    setUserOpen((prev) => {
-      const next = !prev;
-      localStorage.setItem("cockpit:rail-right-open", String(next));
-      return next;
-    });
+    localStorage.setItem(STORAGE_KEY, String(!userOpen));
+    window.dispatchEvent(new Event(CHANGE_EVENT));
   }
 
   if (!open) {

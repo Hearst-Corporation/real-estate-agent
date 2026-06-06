@@ -2813,6 +2813,921 @@ export type Database = {
           },
         ]
       }
+      prosp_annonces: {
+        Row: {
+          actif: boolean
+          age_hours: number | null
+          annee_construction: number | null
+          ascenseur: boolean | null
+          baisse_detectee_at: string | null
+          charges_mensuelles: number | null
+          code_postal: string | null
+          commune: string | null
+          conso_energie_kwh: number | null
+          created_at: string
+          date_collecte: string
+          demarchage_bloque: boolean
+          derniere_republication_at: string | null
+          description: string | null
+          dpe_note: string | null
+          duplicate_count: number
+          duplicate_sources: Json
+          email_vendeur: string | null
+          enriched_at: string | null
+          etage: number | null
+          first_seen_at: string
+          ges_note: string | null
+          hash_dedup: string
+          id: string
+          is_auction_sale: boolean
+          is_under_mandate: boolean
+          is_viager: boolean
+          jardin: boolean | null
+          latitude: number | null
+          longitude: number | null
+          mi_origin: string | null
+          nb_chambres: number | null
+          nb_pieces: number | null
+          nom_annonceur: string | null
+          opt_out_at: string | null
+          parking: boolean | null
+          phone_removed_at: string | null
+          photos_urls: Json
+          piscine: boolean | null
+          premiere_parution_at: string | null
+          prix: number | null
+          prix_baisse_delta: number | null
+          prix_gap_median: number | null
+          prix_m2: number | null
+          prix_original: number | null
+          rentabilite_estimee: number | null
+          scored_at: string | null
+          siren_annonceur: string | null
+          source_id: string | null
+          source_platform: string
+          source_url: string | null
+          sous_compromis: boolean
+          surface_m2: number | null
+          surface_terrain_m2: number | null
+          taxe_fonciere: number | null
+          telephone_vendeur: string | null
+          tenant_id: string
+          terrasse: boolean | null
+          title: string | null
+          type_annonceur: string
+          type_bien: string | null
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean
+          age_hours?: number | null
+          annee_construction?: number | null
+          ascenseur?: boolean | null
+          baisse_detectee_at?: string | null
+          charges_mensuelles?: number | null
+          code_postal?: string | null
+          commune?: string | null
+          conso_energie_kwh?: number | null
+          created_at?: string
+          date_collecte?: string
+          demarchage_bloque?: boolean
+          derniere_republication_at?: string | null
+          description?: string | null
+          dpe_note?: string | null
+          duplicate_count?: number
+          duplicate_sources?: Json
+          email_vendeur?: string | null
+          enriched_at?: string | null
+          etage?: number | null
+          first_seen_at?: string
+          ges_note?: string | null
+          hash_dedup: string
+          id?: string
+          is_auction_sale?: boolean
+          is_under_mandate?: boolean
+          is_viager?: boolean
+          jardin?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          mi_origin?: string | null
+          nb_chambres?: number | null
+          nb_pieces?: number | null
+          nom_annonceur?: string | null
+          opt_out_at?: string | null
+          parking?: boolean | null
+          phone_removed_at?: string | null
+          photos_urls?: Json
+          piscine?: boolean | null
+          premiere_parution_at?: string | null
+          prix?: number | null
+          prix_baisse_delta?: number | null
+          prix_gap_median?: number | null
+          prix_m2?: number | null
+          prix_original?: number | null
+          rentabilite_estimee?: number | null
+          scored_at?: string | null
+          siren_annonceur?: string | null
+          source_id?: string | null
+          source_platform: string
+          source_url?: string | null
+          sous_compromis?: boolean
+          surface_m2?: number | null
+          surface_terrain_m2?: number | null
+          taxe_fonciere?: number | null
+          telephone_vendeur?: string | null
+          tenant_id?: string
+          terrasse?: boolean | null
+          title?: string | null
+          type_annonceur?: string
+          type_bien?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean
+          age_hours?: number | null
+          annee_construction?: number | null
+          ascenseur?: boolean | null
+          baisse_detectee_at?: string | null
+          charges_mensuelles?: number | null
+          code_postal?: string | null
+          commune?: string | null
+          conso_energie_kwh?: number | null
+          created_at?: string
+          date_collecte?: string
+          demarchage_bloque?: boolean
+          derniere_republication_at?: string | null
+          description?: string | null
+          dpe_note?: string | null
+          duplicate_count?: number
+          duplicate_sources?: Json
+          email_vendeur?: string | null
+          enriched_at?: string | null
+          etage?: number | null
+          first_seen_at?: string
+          ges_note?: string | null
+          hash_dedup?: string
+          id?: string
+          is_auction_sale?: boolean
+          is_under_mandate?: boolean
+          is_viager?: boolean
+          jardin?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          mi_origin?: string | null
+          nb_chambres?: number | null
+          nb_pieces?: number | null
+          nom_annonceur?: string | null
+          opt_out_at?: string | null
+          parking?: boolean | null
+          phone_removed_at?: string | null
+          photos_urls?: Json
+          piscine?: boolean | null
+          premiere_parution_at?: string | null
+          prix?: number | null
+          prix_baisse_delta?: number | null
+          prix_gap_median?: number | null
+          prix_m2?: number | null
+          prix_original?: number | null
+          rentabilite_estimee?: number | null
+          scored_at?: string | null
+          siren_annonceur?: string | null
+          source_id?: string | null
+          source_platform?: string
+          source_url?: string | null
+          sous_compromis?: boolean
+          surface_m2?: number | null
+          surface_terrain_m2?: number | null
+          taxe_fonciere?: number | null
+          telephone_vendeur?: string | null
+          tenant_id?: string
+          terrasse?: boolean | null
+          title?: string | null
+          type_annonceur?: string
+          type_bien?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prosp_config: {
+        Row: {
+          bareme_match: Json
+          created_at: string
+          id: string
+          mandat_poids: Json
+          mandat_preset: string
+          mandat_seuil: number
+          pap_keywords: Json
+          siren_blacklist: Json
+          tenant_id: string
+          updated_at: string
+          user_id: string
+          wa_cooldown_h: number
+          wa_daily_cap: number
+          zones_prioritaires: Json
+        }
+        Insert: {
+          bareme_match?: Json
+          created_at?: string
+          id?: string
+          mandat_poids?: Json
+          mandat_preset?: string
+          mandat_seuil?: number
+          pap_keywords?: Json
+          siren_blacklist?: Json
+          tenant_id?: string
+          updated_at?: string
+          user_id: string
+          wa_cooldown_h?: number
+          wa_daily_cap?: number
+          zones_prioritaires?: Json
+        }
+        Update: {
+          bareme_match?: Json
+          created_at?: string
+          id?: string
+          mandat_poids?: Json
+          mandat_preset?: string
+          mandat_seuil?: number
+          pap_keywords?: Json
+          siren_blacklist?: Json
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+          wa_cooldown_h?: number
+          wa_daily_cap?: number
+          zones_prioritaires?: Json
+        }
+        Relationships: []
+      }
+      prosp_criteres: {
+        Row: {
+          accepte_travaux: boolean
+          actif: boolean
+          alert_canal: string
+          alert_frequency: string
+          chambres_min: number | null
+          communes: Json
+          created_at: string
+          id: string
+          label: string
+          lead_id: string | null
+          pieces_min: number | null
+          poids: Json
+          pref_ascenseur: string
+          pref_jardin: string
+          pref_parking: string
+          pref_piscine: string
+          pref_terrasse: string
+          prix_max: number | null
+          prix_min: number | null
+          seuil_match: number
+          source: string
+          surface_min: number | null
+          tenant_id: string
+          type_bien: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepte_travaux?: boolean
+          actif?: boolean
+          alert_canal?: string
+          alert_frequency?: string
+          chambres_min?: number | null
+          communes?: Json
+          created_at?: string
+          id?: string
+          label: string
+          lead_id?: string | null
+          pieces_min?: number | null
+          poids?: Json
+          pref_ascenseur?: string
+          pref_jardin?: string
+          pref_parking?: string
+          pref_piscine?: string
+          pref_terrasse?: string
+          prix_max?: number | null
+          prix_min?: number | null
+          seuil_match?: number
+          source?: string
+          surface_min?: number | null
+          tenant_id?: string
+          type_bien?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accepte_travaux?: boolean
+          actif?: boolean
+          alert_canal?: string
+          alert_frequency?: string
+          chambres_min?: number | null
+          communes?: Json
+          created_at?: string
+          id?: string
+          label?: string
+          lead_id?: string | null
+          pieces_min?: number | null
+          poids?: Json
+          pref_ascenseur?: string
+          pref_jardin?: string
+          pref_parking?: string
+          pref_piscine?: string
+          pref_terrasse?: string
+          prix_max?: number | null
+          prix_min?: number | null
+          seuil_match?: number
+          source?: string
+          surface_min?: number | null
+          tenant_id?: string
+          type_bien?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prosp_criteres_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prosp_criteres_acquereur: {
+        Row: {
+          actif: boolean
+          alerte_email: boolean
+          alerte_whatsapp: boolean
+          ascenseur: string
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          dpe_max: string | null
+          id: string
+          jardin: string
+          lead_id: string | null
+          nom: string
+          parking: string
+          pieces_max: number | null
+          pieces_min: number | null
+          piscine: string
+          surface_max: number | null
+          surface_min: number | null
+          telephone: string | null
+          tenant_id: string
+          terrasse: string
+          type_bien: string[] | null
+          updated_at: string
+          user_id: string
+          zones: Json
+        }
+        Insert: {
+          actif?: boolean
+          alerte_email?: boolean
+          alerte_whatsapp?: boolean
+          ascenseur?: string
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          dpe_max?: string | null
+          id?: string
+          jardin?: string
+          lead_id?: string | null
+          nom: string
+          parking?: string
+          pieces_max?: number | null
+          pieces_min?: number | null
+          piscine?: string
+          surface_max?: number | null
+          surface_min?: number | null
+          telephone?: string | null
+          tenant_id: string
+          terrasse?: string
+          type_bien?: string[] | null
+          updated_at?: string
+          user_id: string
+          zones?: Json
+        }
+        Update: {
+          actif?: boolean
+          alerte_email?: boolean
+          alerte_whatsapp?: boolean
+          ascenseur?: string
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          dpe_max?: string | null
+          id?: string
+          jardin?: string
+          lead_id?: string | null
+          nom?: string
+          parking?: string
+          pieces_max?: number | null
+          pieces_min?: number | null
+          piscine?: string
+          surface_max?: number | null
+          surface_min?: number | null
+          telephone?: string | null
+          tenant_id?: string
+          terrasse?: string
+          type_bien?: string[] | null
+          updated_at?: string
+          user_id?: string
+          zones?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prosp_criteres_acquereur_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prosp_envois: {
+        Row: {
+          canal: string
+          created_at: string
+          critere_id: string
+          destinataire: string | null
+          error: string | null
+          id: string
+          match_ids: Json
+          pdf_key: string | null
+          pdf_url: string | null
+          provider_ref: string | null
+          sent_at: string | null
+          statut: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canal: string
+          created_at?: string
+          critere_id: string
+          destinataire?: string | null
+          error?: string | null
+          id?: string
+          match_ids?: Json
+          pdf_key?: string | null
+          pdf_url?: string | null
+          provider_ref?: string | null
+          sent_at?: string | null
+          statut?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canal?: string
+          created_at?: string
+          critere_id?: string
+          destinataire?: string | null
+          error?: string | null
+          id?: string
+          match_ids?: Json
+          pdf_key?: string | null
+          pdf_url?: string | null
+          provider_ref?: string | null
+          sent_at?: string | null
+          statut?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prosp_envois_critere_id_fkey"
+            columns: ["critere_id"]
+            isOneToOne: false
+            referencedRelation: "prosp_criteres"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prosp_failed_operations: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          last_error: string | null
+          op_kind: string
+          payload: Json
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          op_kind: string
+          payload?: Json
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          op_kind?: string
+          payload?: Json
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prosp_idempotency_keys: {
+        Row: {
+          body_hash: string | null
+          created_at: string
+          id: string
+          idem_key: string
+          response: Json | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          body_hash?: string | null
+          created_at?: string
+          id?: string
+          idem_key: string
+          response?: Json | null
+          status?: string
+          tenant_id?: string
+        }
+        Update: {
+          body_hash?: string | null
+          created_at?: string
+          id?: string
+          idem_key?: string
+          response?: Json | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      prosp_ingestion_runs: {
+        Row: {
+          alerts_sent: number
+          cost_estimate: number
+          error: string | null
+          finished_at: string | null
+          id: string
+          inserted: number
+          kind: string
+          scanned: number
+          skipped: number
+          source: string | null
+          started_at: string
+          status: string
+          tenant_id: string
+          updated_count: number
+        }
+        Insert: {
+          alerts_sent?: number
+          cost_estimate?: number
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          kind?: string
+          scanned?: number
+          skipped?: number
+          source?: string | null
+          started_at?: string
+          status?: string
+          tenant_id?: string
+          updated_count?: number
+        }
+        Update: {
+          alerts_sent?: number
+          cost_estimate?: number
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          kind?: string
+          scanned?: number
+          skipped?: number
+          source?: string | null
+          started_at?: string
+          status?: string
+          tenant_id?: string
+          updated_count?: number
+        }
+        Relationships: []
+      }
+      prosp_match_feedback: {
+        Row: {
+          created_at: string
+          critere_id: string | null
+          features_snapshot: Json
+          id: string
+          match_id: string
+          score_at_feedback: number | null
+          tenant_id: string
+          user_id: string
+          verdict: string
+        }
+        Insert: {
+          created_at?: string
+          critere_id?: string | null
+          features_snapshot?: Json
+          id?: string
+          match_id: string
+          score_at_feedback?: number | null
+          tenant_id?: string
+          user_id: string
+          verdict: string
+        }
+        Update: {
+          created_at?: string
+          critere_id?: string | null
+          features_snapshot?: Json
+          id?: string
+          match_id?: string
+          score_at_feedback?: number | null
+          tenant_id?: string
+          user_id?: string
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prosp_match_feedback_critere_id_fkey"
+            columns: ["critere_id"]
+            isOneToOne: false
+            referencedRelation: "prosp_criteres"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prosp_match_feedback_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "prosp_matchs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prosp_matchs: {
+        Row: {
+          alerted_at: string | null
+          annonce_id: string
+          bonus_breakdown: Json
+          created_at: string
+          critere_id: string
+          date_match: string
+          digest_sent_at: string | null
+          features_snapshot: Json
+          id: string
+          proposed_to_others: Json
+          score_match: number
+          sent_at: string | null
+          statut: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alerted_at?: string | null
+          annonce_id: string
+          bonus_breakdown?: Json
+          created_at?: string
+          critere_id: string
+          date_match?: string
+          digest_sent_at?: string | null
+          features_snapshot?: Json
+          id?: string
+          proposed_to_others?: Json
+          score_match?: number
+          sent_at?: string | null
+          statut?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alerted_at?: string | null
+          annonce_id?: string
+          bonus_breakdown?: Json
+          created_at?: string
+          critere_id?: string
+          date_match?: string
+          digest_sent_at?: string | null
+          features_snapshot?: Json
+          id?: string
+          proposed_to_others?: Json
+          score_match?: number
+          sent_at?: string | null
+          statut?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prosp_matchs_annonce_id_fkey"
+            columns: ["annonce_id"]
+            isOneToOne: false
+            referencedRelation: "prosp_annonces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prosp_matchs_critere_id_fkey"
+            columns: ["critere_id"]
+            isOneToOne: false
+            referencedRelation: "prosp_criteres"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prosp_optout: {
+        Row: {
+          created_at: string
+          email_hash: string | null
+          id: string
+          raison: string
+          source: string | null
+          telephone_hash: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_hash?: string | null
+          id?: string
+          raison?: string
+          source?: string | null
+          telephone_hash?: string | null
+          tenant_id?: string
+        }
+        Update: {
+          created_at?: string
+          email_hash?: string | null
+          id?: string
+          raison?: string
+          source?: string | null
+          telephone_hash?: string | null
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      prosp_prospects: {
+        Row: {
+          alerted_at: string | null
+          annonce_id: string
+          created_at: string
+          first_call_at: string | null
+          id: string
+          lead_id: string | null
+          mandat_signed_at: string | null
+          notes: string | null
+          rappel_at: string | null
+          score_breakdown: Json
+          score_mandat: number
+          seen_at: string | null
+          statut: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alerted_at?: string | null
+          annonce_id: string
+          created_at?: string
+          first_call_at?: string | null
+          id?: string
+          lead_id?: string | null
+          mandat_signed_at?: string | null
+          notes?: string | null
+          rappel_at?: string | null
+          score_breakdown?: Json
+          score_mandat?: number
+          seen_at?: string | null
+          statut?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alerted_at?: string | null
+          annonce_id?: string
+          created_at?: string
+          first_call_at?: string | null
+          id?: string
+          lead_id?: string | null
+          mandat_signed_at?: string | null
+          notes?: string | null
+          rappel_at?: string | null
+          score_breakdown?: Json
+          score_mandat?: number
+          seen_at?: string | null
+          statut?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prosp_prospects_annonce_id_fkey"
+            columns: ["annonce_id"]
+            isOneToOne: false
+            referencedRelation: "prosp_annonces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prosp_prospects_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prosp_veille_agences: {
+        Row: {
+          actif: boolean
+          created_at: string
+          id: string
+          last_seen_at: string | null
+          nom_agence: string
+          patterns_nom: Json
+          siren: string | null
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actif?: boolean
+          created_at?: string
+          id?: string
+          last_seen_at?: string | null
+          nom_agence: string
+          patterns_nom?: Json
+          siren?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actif?: boolean
+          created_at?: string
+          id?: string
+          last_seen_at?: string | null
+          nom_agence?: string
+          patterns_nom?: Json
+          siren?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      prosp_zones: {
+        Row: {
+          actif: boolean
+          code_postal: string
+          commune: string | null
+          created_at: string
+          id: string
+          last_run_at: string | null
+          tenant_id: string
+          type_bien: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actif?: boolean
+          code_postal: string
+          commune?: string | null
+          created_at?: string
+          id?: string
+          last_run_at?: string | null
+          tenant_id?: string
+          type_bien?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actif?: boolean
+          code_postal?: string
+          commune?: string | null
+          created_at?: string
+          id?: string
+          last_run_at?: string | null
+          tenant_id?: string
+          type_bien?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sessions: {
         Row: {
           created_at: string | null
