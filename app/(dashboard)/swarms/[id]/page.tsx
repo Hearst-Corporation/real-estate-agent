@@ -6,10 +6,14 @@ import { useRouter } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
 import { dateFr, dateTimeFr } from "@/lib/crm/format";
 import RunStatusBadge from "@/components/swarms/RunStatusBadge";
+import RunReport from "@/components/swarms/RunReport";
 import SwarmKickoffPanel from "@/components/swarms/SwarmKickoffPanel";
 import type { Swarm, SwarmRun } from "@/lib/swarms/types";
 
 type Tab = "config" | "agents" | "runs";
+
+// Longueur d'affichage abrégé d'un run_id sur la carte du strip.
+const RUN_ID_SHORT_LEN = 8;
 
 export default function SwarmDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -102,18 +106,14 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   if (loading) {
-    return (
-      <div style={{ padding: "var(--ct-space-lg)", color: "var(--ct-text-muted)" }}>
-        {UI.common.loading}
-      </div>
-    );
+    return <div className="swarm-state">{UI.common.loading}</div>;
   }
 
   if (error || !swarm) {
     return (
-      <div style={{ padding: "var(--ct-space-lg)" }}>
-        <p style={{ color: "var(--ct-text-danger)" }}>{error ?? UI.swarms.notFound}</p>
-        <Link href="/swarms" className="ct-btn ct-btn-secondary" style={{ marginTop: "var(--ct-space-md)", display: "inline-block" }}>
+      <div className="swarm-state">
+        <p className="swarm-state-error">{error ?? UI.swarms.notFound}</p>
+        <Link href="/swarms" className="ct-btn ct-btn-secondary swarm-state-back">
           {UI.swarms.backToSwarms}
         </Link>
       </div>
@@ -125,22 +125,20 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--ct-space-md)", marginBottom: "var(--ct-space-lg)", flexWrap: "wrap" }}>
-        <div style={{ flex: 1 }}>
+      <div className="swarm-detail-head">
+        <div className="swarm-detail-head-main">
           <p className="ct-eyebrow">
-            <Link href="/swarms" style={{ color: "var(--ct-text-muted)", textDecoration: "none" }}>
+            <Link href="/swarms" className="swarm-crumb">
               {UI.nav.swarms}
             </Link>{" "}
             /
           </p>
-          <h1 className="ct-title" style={{ marginBottom: "var(--ct-space-xs)" }}>
-            {swarm.name}
-          </h1>
+          <h1 className="ct-title swarm-detail-title">{swarm.name}</h1>
           <span className={`swarm-status-badge ${swarm.is_active ? "swarm-status-done" : "swarm-status-failed"}`}>
             {swarm.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}
           </span>
         </div>
-        <div style={{ display: "flex", gap: "var(--ct-space-sm)", flexWrap: "wrap" }}>
+        <div className="swarm-detail-actions">
           <button
             type="button"
             className="ct-btn ct-btn-primary"
@@ -158,19 +156,17 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
           {!deleteConfirm ? (
             <button
               type="button"
-              className="ct-btn"
-              style={{ color: "var(--ct-text-danger)", borderColor: "var(--ct-text-danger)" }}
+              className="ct-btn swarm-btn-danger"
               onClick={() => setDeleteConfirm(true)}
             >
               {UI.swarms.deleteBtn}
             </button>
           ) : (
-            <div style={{ display: "flex", gap: "var(--ct-space-xs)", alignItems: "center" }}>
-              <span style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-muted)" }}>{UI.swarms.confirmDelete}</span>
+            <div className="swarm-delete-confirm">
+              <span className="swarm-delete-confirm-label">{UI.swarms.confirmDelete}</span>
               <button
                 type="button"
-                className="ct-btn"
-                style={{ color: "var(--ct-text-danger)" }}
+                className="ct-btn swarm-btn-danger"
                 onClick={handleDelete}
                 disabled={deleteLoading}
               >
@@ -186,31 +182,25 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
 
       {/* Inline edit form */}
       {editing && (
-        <div className="ct-card" style={{ marginBottom: "var(--ct-space-md)" }}>
+        <div className="ct-card swarm-block">
           <div className="ct-card-body">
             <p className="ct-card-title">{UI.swarms.editTitle}</p>
             <input
-              className="crm-input"
+              className="crm-input swarm-field"
               type="text"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               placeholder={UI.swarms.manualSectionGeneral}
-              style={{ marginBottom: "var(--ct-space-sm)" }}
             />
             <input
-              className="crm-input"
+              className="crm-input swarm-field"
               type="text"
               value={editDesc}
               onChange={(e) => setEditDesc(e.target.value)}
               placeholder={UI.swarms.manualDescPlaceholder}
-              style={{ marginBottom: "var(--ct-space-sm)" }}
             />
-            {editError && (
-              <p style={{ color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-sm)", marginBottom: "var(--ct-space-sm)" }}>
-                {editError}
-              </p>
-            )}
-            <div style={{ display: "flex", gap: "var(--ct-space-sm)" }}>
+            {editError && <p className="swarm-field-error">{editError}</p>}
+            <div className="swarm-form-actions">
               <button type="button" className="ct-btn ct-btn-primary" onClick={handleEdit} disabled={editLoading}>
                 {editLoading ? UI.swarms.editSaving : UI.swarms.editSave}
               </button>
@@ -224,13 +214,14 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
 
       {/* Kickoff panel */}
       {showKickoff && (
-        <div className="ct-card" style={{ marginBottom: "var(--ct-space-md)" }}>
+        <div className="ct-card swarm-block">
           <div className="ct-card-body">
             <p className="ct-card-title">{UI.swarms.launchPanelTitle}</p>
             <SwarmKickoffPanel
               swarmId={swarm.id}
               swarmName={swarm.name}
               onDone={() => { if (id) void loadSwarm(id); }}
+              onLaunched={(runId) => router.push(`/swarms/${swarm.id}/run/${runId}`)}
             />
           </div>
         </div>
@@ -254,27 +245,27 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
         <div className="ct-card">
           <div className="ct-card-body">
             <p className="ct-card-title">{UI.swarms.manualSectionGeneral}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-xs)" }}>
-              <div>
-                <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{UI.swarms.metaName}</span>
-                <p style={{ fontSize: "var(--ct-fs-md)", color: "var(--ct-text-primary)", margin: 0 }}>{swarm.name}</p>
+            <div className="swarm-meta-list">
+              <div className="swarm-meta-row">
+                <span className="swarm-meta-label">{UI.swarms.metaName}</span>
+                <p className="swarm-meta-value swarm-meta-value--name">{swarm.name}</p>
               </div>
               {swarm.description && (
-                <div>
-                  <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{UI.swarms.metaDescription}</span>
-                  <p style={{ fontSize: "var(--ct-fs-base)", color: "var(--ct-text-body)", margin: 0 }}>{swarm.description}</p>
+                <div className="swarm-meta-row">
+                  <span className="swarm-meta-label">{UI.swarms.metaDescription}</span>
+                  <p className="swarm-meta-value">{swarm.description}</p>
                 </div>
               )}
-              <div>
-                <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{UI.swarms.metaCreatedAt}</span>
-                <p style={{ fontSize: "var(--ct-fs-base)", color: "var(--ct-text-body)", margin: 0 }}>{createdAt}</p>
+              <div className="swarm-meta-row">
+                <span className="swarm-meta-label">{UI.swarms.metaCreatedAt}</span>
+                <p className="swarm-meta-value">{createdAt}</p>
               </div>
             </div>
 
             {swarm.tool_bindings && swarm.tool_bindings.length > 0 && (
-              <div style={{ marginTop: "var(--ct-space-md)" }}>
+              <div className="swarm-meta-tools">
                 <p className="ct-card-title">{UI.swarms.toolsTitle}</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--ct-space-xs)" }}>
+                <div className="swarm-badge-row">
                   {swarm.tool_bindings.map((tb, i) => (
                     <span key={i} className="swarm-tool-badge">{tb.tool_id}</span>
                   ))}
@@ -290,15 +281,13 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
         <div className="swarm-agents-grid">
           <div>
             <p className="swarm-form-section-title">{UI.swarms.agentsCount(swarm.agents?.length ?? 0)}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
+            <div className="swarm-card-list">
               {(swarm.agents ?? []).map((agent, i) => (
                 <div key={agent.id ?? i} className="swarm-agent-card">
                   <p className="swarm-agent-name">{agent.name}</p>
                   <p className="swarm-agent-role">{agent.role}</p>
                   {agent.goal && <p className="swarm-agent-goal">{agent.goal}</p>}
-                  {agent.backstory && (
-                    <p style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)", marginTop: "var(--ct-space-2xs)" }}>{agent.backstory}</p>
-                  )}
+                  {agent.backstory && <p className="swarm-agent-note">{agent.backstory}</p>}
                 </div>
               ))}
               {(swarm.agents ?? []).length === 0 && (
@@ -308,20 +297,18 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
           </div>
           <div>
             <p className="swarm-form-section-title">{UI.swarms.tasksCount(swarm.tasks?.length ?? 0)}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
+            <div className="swarm-card-list">
               {(swarm.tasks ?? []).map((task, i) => (
                 <div key={task.id ?? i} className="swarm-agent-card">
                   <p className="swarm-agent-name">{task.name}</p>
                   {task.description && <p className="swarm-agent-goal">{task.description}</p>}
                   {task.expected_output && (
-                    <p style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)", marginTop: "var(--ct-space-2xs)" }}>
+                    <p className="swarm-agent-note">
                       {UI.swarms.expectedOutputPrefix}{task.expected_output}
                     </p>
                   )}
                   {task.agent_name && (
-                    <span className="swarm-tool-badge" style={{ marginTop: 4, display: "inline-block" }}>
-                      {task.agent_name}
-                    </span>
+                    <span className="swarm-tool-badge swarm-agent-task-badge">{task.agent_name}</span>
                   )}
                 </div>
               ))}
@@ -351,12 +338,29 @@ function RunsTab({
   onRefresh: () => void;
 }) {
   const [launching, setLaunching] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
+
+  // Sélection par défaut = run le plus récent ; reste valide quand la liste change.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (runs.length === 0) {
+      if (selected !== null) setSelected(null);
+      return;
+    }
+    if (!selected || !runs.some((r) => r.run_id === selected)) {
+      setSelected(runs[0].run_id);
+    }
+  }, [runs, selected]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function handleRelaunch() {
     setLaunching(true);
     try {
       const res = await fetch(`/api/swarms/${swarmId}/kickoff`, { method: "POST" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Reste sur la page : on sélectionne le nouveau run inline (suivi live via RunReport).
+      const data = (await res.json()) as { runId?: string };
+      if (data.runId) setSelected(data.runId);
       onRefresh();
     } catch {
       // ignore
@@ -366,43 +370,51 @@ function RunsTab({
   }
 
   return (
-    <div className="ct-card">
-      <div className="ct-card-body">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--ct-space-md)" }}>
-          <p className="ct-card-title">{UI.swarms.runsHistory}</p>
-          <button
-            type="button"
-            className="ct-btn ct-btn-primary"
-            onClick={handleRelaunch}
-            disabled={launching}
-          >
-            {launching ? UI.swarms.runsRelaunching : UI.swarms.runsRelaunch}
-          </button>
-        </div>
-        {runs.length === 0 ? (
-          <p className="ct-placeholder">{UI.swarms.runsEmpty}</p>
-        ) : (
-          <div>
-            {runs.map((run) => {
-              const date = dateTimeFr(run.created_at);
-              return (
-                <div key={run.run_id} className="swarm-run-row">
-                  <span className="swarm-run-id">{run.run_id}</span>
-                  <RunStatusBadge status={run.status} size="sm" />
-                  <span style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-muted)", whiteSpace: "nowrap" }}>{date}</span>
-                  <Link
-                    href={`/swarms/${swarmId}/run/${run.run_id}`}
-                    className="ct-btn ct-btn-secondary"
-                    style={{ fontSize: "var(--ct-fs-xs)", padding: "var(--ct-space-2xs) var(--ct-space-xs)", textDecoration: "none", display: "inline-block" }}
-                  >
-                    {UI.swarms.runsView}
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        )}
+    <div className="swarm-runs">
+      <div className="swarm-runs-bar">
+        <p className="ct-card-title swarm-runs-title">{UI.swarms.runsHistory}</p>
+        <button
+          type="button"
+          className="ct-btn ct-btn-primary"
+          onClick={handleRelaunch}
+          disabled={launching}
+        >
+          {launching ? UI.swarms.runsRelaunching : UI.swarms.runsRelaunch}
+        </button>
       </div>
+
+      {runs.length === 0 ? (
+        <div className="ct-card">
+          <div className="ct-card-body">
+            <p className="ct-placeholder">{UI.swarms.runsEmpty}</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Strip horizontal des runs */}
+          <div className="swarm-runs-strip">
+            {runs.map((run) => (
+              <button
+                key={run.run_id}
+                type="button"
+                className={`swarm-run-card${selected === run.run_id ? " active" : ""}`}
+                onClick={() => setSelected(run.run_id)}
+              >
+                <RunStatusBadge status={run.status} size="sm" />
+                <span className="swarm-run-card-date">{dateTimeFr(run.created_at)}</span>
+                <span className="swarm-run-card-id">#{run.run_id.slice(0, RUN_ID_SHORT_LEN)}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Rapport inline du run sélectionné */}
+          {selected ? (
+            <RunReport key={selected} swarmId={swarmId} runId={selected} />
+          ) : (
+            <p className="ct-placeholder">{UI.swarms.reportSelectHint}</p>
+          )}
+        </>
+      )}
     </div>
   );
 }

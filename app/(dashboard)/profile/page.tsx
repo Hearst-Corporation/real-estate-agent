@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/server/session";
 import { Eyebrow, Title, Sub, Card, Badge } from "@/components/cockpit/primitives";
 import { LogoutButton } from "@/components/cockpit/LogoutButton";
+import { GmailConnectButton } from "@/components/cockpit/GmailConnectButton";
 import { UI } from "@/lib/ui-strings";
 
 export default async function ProfilePage() {
@@ -36,6 +37,13 @@ export default async function ProfilePage() {
       <Card title={t.sessionTitle}>
         <p className="ct-mb-sm">{t.sessionHint}</p>
         <LogoutButton variant="full" />
+      </Card>
+
+      <Card title={t.integrationsTitle}>
+        <div className="ct-stack-sm">
+          <p className="ct-card-body">{t.integrationsHint}</p>
+          <GmailConnectButton />
+        </div>
       </Card>
     </>
   );

@@ -1,12 +1,12 @@
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
-import { Funnel } from "@/components/cockpit/Funnel";
+import { PageHeader, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { StatusSelect } from "@/components/cockpit/StatusSelect";
 import { DeleteButton } from "@/components/cockpit/DeleteButton";
-import { countByStatus, ratio } from "@/lib/crm/aggregate";
-import { dateTimeFr, VISIT_STATUSES } from "@/lib/crm/format";
+import { barsByStatus, ratio } from "@/lib/crm/aggregate";
 import { statusTone } from "@/lib/crm/statusTone";
+import { dateTimeFr, VISIT_STATUSES } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -28,15 +28,20 @@ export default async function VisitsPage() {
   const sb = getSupabaseAdmin();
 
   let visits: VisitRow[] = [];
+  let total = 0;
 
   if (claims && sb) {
-    const { data } = await sb
+    const { data, count } = await sb
       .from("visits")
-      .select("id, status, scheduled_at, duration_min, property_id, properties(title, city)")
+      .select(
+        "id, status, scheduled_at, duration_min, property_id, properties(title, city)",
+        { count: "exact" }
+      )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("scheduled_at", { ascending: true });
     visits = (data ?? []) as VisitRow[];
+    total = count ?? visits.length;
   }
 
   const now = new Date();
@@ -46,9 +51,7 @@ export default async function VisitsPage() {
   const noShow = visits.filter((v) => v.status === "no_show").length;
   const noShowRate = visits.length > 0 ? Math.round((noShow / visits.length) * 100) : 0;
 
-  const pipeline = countByStatus(visits, VISIT_STATUSES, t.statusLabels, (s) =>
-    statusTone("visit", s)
-  );
+  const pipeline = barsByStatus(visits, VISIT_STATUSES, t.statusLabels, (s) => statusTone("visit", s));
   const doneRate = ratio(visits, (v) => v.status === "realisee");
 
   const columns: Column<VisitRow>[] = [
@@ -87,12 +90,15 @@ export default async function VisitsPage() {
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+      <PageHeader
+        eyebrow={t.eyebrow}
+        title={t.title}
+        sub={t.sub}
+        actions={<VisitForm cta={t.newCta} />}
+      />
 
       <KpiGrid>
-        <KpiCard label={t.kpis.total} value={String(visits.length)} />
+        <KpiCard label={t.kpis.total} value={String(total)} />
         <KpiCard label={t.kpis.upcoming} value={String(upcoming.length)} accent />
         <KpiCard label={t.kpis.done} value={String(done)} />
         <KpiCard label={t.kpis.noShow} value={`${noShowRate}%`} />
@@ -100,16 +106,11 @@ export default async function VisitsPage() {
 
       <div className="ct-viz-row">
         <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+          <BarList items={pipeline} emptyLabel={UI.viz.empty} />
         </Card>
         <Card title={t.charts.doneRate}>
           <Donut value={doneRate} sublabel={t.charts.doneRateSub} accent />
         </Card>
-      </div>
-
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.title}</span>
-        <VisitForm cta={t.newCta} />
       </div>
 
       {visits.length === 0 ? (

@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // data-product = seul switch d'accent autorisé (défaut). L'AccentSelector le surcharge côté client.
+  // data-product = seul switch d'accent autorisé. Posé en dur sur la racine ;
+  // les sous-sections (ex. invest = "gold") surchargent via leur propre wrapper.
   return (
     <html lang="fr" data-product="default">
       <body>{children}</body>

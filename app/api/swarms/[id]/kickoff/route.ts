@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/server/session"
-import { tenantOf } from "@/lib/tenant"
+import { uuidOwnerOf } from "@/lib/tenant"
 import { getSupabaseAdmin } from "@/lib/server/supabase"
 import { kickoffSwarm } from "@/lib/swarms/client"
 
@@ -15,14 +15,14 @@ export async function POST(_req: Request, { params }: Params) {
   const claims = await getSession()
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
   const { id } = await params
 
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 })
 
   try {
-    const result = await kickoffSwarm(id)
+    const result = await kickoffSwarm(id, ownerId)
 
     // Persist dans swarm_runs
     const { error: dbError } = await sb.from("swarm_runs").insert({

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/server/session"
-import { tenantOf } from "@/lib/tenant"
+import { uuidOwnerOf } from "@/lib/tenant"
 import { listSwarms, createSwarm } from "@/lib/swarms/client"
 import type { CreateSwarmPayload } from "@/lib/swarms/types"
 
@@ -13,7 +13,7 @@ export async function GET() {
   const claims = await getSession()
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
 
   try {
     const swarms = await listSwarms(ownerId)
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   const claims = await getSession()
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
 
   let body: Record<string, unknown>
   try {

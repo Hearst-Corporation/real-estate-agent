@@ -5,11 +5,13 @@ import type {
   PatchSwarmPayload,
   KickoffResponse,
   SwarmRun,
+  SwarmRunStatus,
+  SwarmStep,
   ArchitectSpec,
   SwarmTool,
 } from "./types"
 
-const ENGINE_BASE = process.env.MYSWARMS_ENGINE_URL ?? ""
+const ENGINE_BASE = `${process.env.MYSWARMS_ENGINE_URL ?? ""}/v1`
 const ENGINE_TOKEN = process.env.MYSWARMS_ENGINE_TOKEN ?? ""
 const DEFAULT_TIMEOUT_MS = 30_000
 
@@ -41,6 +43,58 @@ async function engineFetch<T>(
   return res.json() as Promise<T>
 }
 
+// ─── Normalisation run engine → type app ─────────────────────────────────────
+// L'engine renvoie des champs distincts de SwarmRun (id/result_text/output_text,
+// statut "completed", endpoint plat /runs/{id}). On normalise pour l'UI.
+
+function mapRunStatus(s: unknown): SwarmRunStatus {
+  switch (s) {
+    case "completed":
+      return "done"
+    case "queued":
+      return "pending"
+    case "cancelled":
+    case "canceled":
+      return "error"
+    case "pending":
+    case "running":
+    case "done":
+    case "failed":
+    case "error":
+      return s
+    default:
+      return "running"
+  }
+}
+
+function normalizeStep(st: Record<string, unknown>): SwarmStep {
+  return {
+    id: (st.id as string | undefined) ?? undefined,
+    agent: (st.agent_name ?? st.agent) as string | undefined,
+    task: (st.task_name ?? st.task) as string | undefined,
+    output: (st.output_text ?? st.output) as string | undefined,
+    timestamp: (st.created_at ?? st.timestamp) as string | undefined,
+  }
+}
+
+function normalizeRun(raw: Record<string, unknown>): SwarmRun {
+  const steps = Array.isArray(raw.steps)
+    ? (raw.steps as Record<string, unknown>[]).map(normalizeStep)
+    : undefined
+  return {
+    run_id: (raw.run_id ?? raw.id) as string,
+    swarm_id: raw.swarm_id as string,
+    status: mapRunStatus(raw.status),
+    output: (raw.result_text ?? raw.output) as string | undefined,
+    steps,
+    created_at: (raw.started_at ?? raw.created_at) as string | undefined,
+    updated_at: (raw.finished_at ?? raw.updated_at) as string | undefined,
+    tokens_in: (raw.total_tokens_in ?? raw.tokens_in) as number | undefined,
+    tokens_out: (raw.total_tokens_out ?? raw.tokens_out) as number | undefined,
+    cost_usd: (raw.total_cost_usd ?? raw.cost_usd) as number | undefined,
+  }
+}
+
 // ─── API publique ────────────────────────────────────────────────────────────
 
 export async function listSwarms(ownerId: string): Promise<Swarm[]> {
@@ -54,40 +108,55 @@ export async function createSwarm(payload: CreateSwarmPayload): Promise<Swarm> {
   })
 }
 
-export async function getSwarm(swarmId: string): Promise<Swarm> {
-  return engineFetch<Swarm>(`/swarms/${encodeURIComponent(swarmId)}`)
+// L'engine exige owner_id (query) sur TOUS les endpoints par-swarm — sinon 400.
+export async function getSwarm(swarmId: string, ownerId: string): Promise<Swarm> {
+  return engineFetch<Swarm>(
+    `/swarms/${encodeURIComponent(swarmId)}?owner_id=${encodeURIComponent(ownerId)}`
+  )
 }
 
 export async function patchSwarm(
   swarmId: string,
-  payload: PatchSwarmPayload
+  payload: PatchSwarmPayload,
+  ownerId: string
 ): Promise<Swarm> {
-  return engineFetch<Swarm>(`/swarms/${encodeURIComponent(swarmId)}`, {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-  })
+  return engineFetch<Swarm>(
+    `/swarms/${encodeURIComponent(swarmId)}?owner_id=${encodeURIComponent(ownerId)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }
+  )
 }
 
-export async function deleteSwarm(swarmId: string): Promise<void> {
-  return engineFetch<void>(`/swarms/${encodeURIComponent(swarmId)}`, {
-    method: "DELETE",
-  })
+export async function deleteSwarm(swarmId: string, ownerId: string): Promise<void> {
+  return engineFetch<void>(
+    `/swarms/${encodeURIComponent(swarmId)}?owner_id=${encodeURIComponent(ownerId)}`,
+    {
+      method: "DELETE",
+    }
+  )
 }
 
-export async function kickoffSwarm(swarmId: string): Promise<KickoffResponse> {
+export async function kickoffSwarm(
+  swarmId: string,
+  ownerId: string
+): Promise<KickoffResponse> {
   return engineFetch<KickoffResponse>(
-    `/swarms/${encodeURIComponent(swarmId)}/kickoff`,
+    `/swarms/${encodeURIComponent(swarmId)}/kickoff?owner_id=${encodeURIComponent(ownerId)}`,
     { method: "POST", body: JSON.stringify({}) }
   )
 }
 
 export async function getRunStatus(
   swarmId: string,
-  runId: string
+  runId: string,
+  ownerId: string
 ): Promise<SwarmRun> {
-  return engineFetch<SwarmRun>(
-    `/swarms/${encodeURIComponent(swarmId)}/runs/${encodeURIComponent(runId)}`
-  )
+  // L'engine expose le run sur un endpoint PLAT (/runs/{id}) — le nested
+  // /swarms/{id}/runs/{id} n'existe pas (404). swarmId conservé pour compat.
+  void swarmId
+  return getRun(runId, ownerId)
 }
 
 export async function listSwarmRuns(
@@ -95,22 +164,27 @@ export async function listSwarmRuns(
   ownerId: string,
   limit = 20
 ): Promise<SwarmRun[]> {
-  return engineFetch<SwarmRun[]>(
+  const raw = await engineFetch<Record<string, unknown>[]>(
     `/swarms/${encodeURIComponent(swarmId)}/runs?owner_id=${encodeURIComponent(ownerId)}&limit=${limit}`
   )
+  return Array.isArray(raw) ? raw.map(normalizeRun) : []
 }
 
-export async function getRun(runId: string): Promise<SwarmRun> {
-  return engineFetch<SwarmRun>(`/runs/${encodeURIComponent(runId)}`)
+export async function getRun(runId: string, ownerId: string): Promise<SwarmRun> {
+  const raw = await engineFetch<Record<string, unknown>>(
+    `/runs/${encodeURIComponent(runId)}?owner_id=${encodeURIComponent(ownerId)}`
+  )
+  return normalizeRun(raw)
 }
 
 export async function generateSpec(
   description: string,
   ownerId: string
 ): Promise<ArchitectSpec> {
-  return engineFetch<ArchitectSpec>("/architect", {
+  return engineFetch<ArchitectSpec>("/swarms/architect/generate", {
     method: "POST",
-    body: JSON.stringify({ description, owner_id: ownerId }),
+    body: JSON.stringify({ prompt: description, owner_id: ownerId }),
+    timeoutMs: 90_000, // LLM generation can take 60-90s
   })
 }
 

@@ -8,6 +8,7 @@ const OPEN_ROUTES = [
   "/api/auth/logout",
   "/api/health",
   "/api/inngest", // sécurisé par signature HMAC Inngest (INNGEST_SIGNING_KEY), pas par JWT
+  "/api/invest/webhooks", // sécurisé par HMAC, pas JWT
 ];
 
 function isOpen(pathname: string): boolean {

@@ -27,7 +27,7 @@ export function BarList({ items, emptyLabel }: BarListProps) {
           <div className="est-fiche-bar-track">
             {/* largeur data-driven : seul style inline toléré (cf. cockpit.css) */}
             <div
-              className="est-fiche-bar-fill"
+              className={`est-fiche-bar-fill${item.tone ? ` ${item.tone}` : ""}`}
               style={{ width: `${Math.max(0, Math.min(100, item.percent))}%` }}
             />
           </div>

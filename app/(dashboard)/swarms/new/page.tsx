@@ -13,6 +13,8 @@ type TaskDraft = { name: string; description: string; expected_output: string };
 const EMPTY_AGENT: AgentDraft = { name: "", role: "", goal: "" };
 const EMPTY_TASK: TaskDraft = { name: "", description: "", expected_output: "" };
 
+const ARCHITECT_TEXTAREA_ROWS = 5;
+
 export default function NewSwarmPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("architect");
@@ -149,76 +151,119 @@ export default function NewSwarmPage() {
       </div>
 
       {tab === "architect" && (
-        <div className="ct-card" style={{ maxWidth: 720, width: "100%" }}>
-          <p className="ct-card-title">{UI.swarms.architectTitle}</p>
-          <div className="ct-card-body">
-            <textarea
-              className="crm-input"
-              rows={5}
-              placeholder={UI.swarms.architectPlaceholder}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              style={{ width: "100%", resize: "vertical", marginBottom: "var(--ct-space-md)" }}
-            />
-            <button
-              type="button"
-              className="ct-btn ct-btn-primary"
-              onClick={handleGenerateSpec}
-              disabled={specLoading || !description.trim()}
-            >
-              {specLoading ? UI.swarms.architectGenerating : UI.swarms.architectGenerateCta}
-            </button>
-            {specError && (
-              <p style={{ color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-sm)", marginTop: "var(--ct-space-sm)" }}>
-                {specError}
-              </p>
-            )}
+        <div className="swarm-create-arch">
+          {/* Colonne gauche : prompt */}
+          <div className="ct-card swarm-arch-prompt">
+            <div className="ct-card-body">
+              <p className="ct-card-title">{UI.swarms.architectTitle}</p>
+              <textarea
+                className="crm-input swarm-form-textarea"
+                rows={ARCHITECT_TEXTAREA_ROWS}
+                placeholder={UI.swarms.architectPlaceholder}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <button
+                type="button"
+                className="ct-btn ct-btn-primary"
+                onClick={handleGenerateSpec}
+                disabled={specLoading || !description.trim()}
+              >
+                {specLoading ? UI.swarms.architectGenerating : UI.swarms.architectGenerateCta}
+              </button>
+              {specError && <p className="swarm-form-error">{specError}</p>}
+            </div>
           </div>
 
-          {spec && (
-            <div className="ct-card-body" style={{ marginTop: "var(--ct-space-md)" }}>
-              <p className="ct-card-title">{UI.swarms.architectSpecTitle(spec.name)}</p>
-              <pre className="swarm-spec-preview">{JSON.stringify(spec, null, 2)}</pre>
-              <div style={{ marginTop: "var(--ct-space-md)", display: "flex", gap: "var(--ct-space-sm)" }}>
-                <button
-                  type="button"
-                  className="ct-btn ct-btn-primary"
-                  onClick={handleCreateFromSpec}
-                  disabled={createLoading}
-                >
-                  {createLoading ? UI.swarms.architectCreating : UI.swarms.architectCreateCta}
-                </button>
-                <button
-                  type="button"
-                  className="ct-btn ct-btn-secondary"
-                  onClick={() => setSpec(null)}
-                  disabled={createLoading}
-                >
-                  {UI.swarms.architectRegenCta}
-                </button>
+          {/* Colonne droite : spec générée (structurée) ou indice */}
+          {spec ? (
+            <div className="ct-card swarm-arch-spec">
+              <div className="ct-card-body">
+                <p className="ct-card-title">{UI.swarms.architectSpecTitle(spec.name)}</p>
+                <p className="swarm-spec-name">{spec.name}</p>
+                {spec.description && <p className="swarm-spec-desc">{spec.description}</p>}
+
+                <div className="swarm-spec-cols">
+                  <div>
+                    <p className="swarm-form-section-title">
+                      {UI.swarms.agentsCount(spec.agents?.length ?? 0)}
+                    </p>
+                    <div className="swarm-spec-list">
+                      {(spec.agents ?? []).map((a, i) => (
+                        <div key={a.id ?? i} className="swarm-agent-card">
+                          <p className="swarm-agent-name">{a.name}</p>
+                          {a.role && <p className="swarm-agent-role">{a.role}</p>}
+                          {a.goal && <p className="swarm-agent-goal">{a.goal}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="swarm-form-section-title">
+                      {UI.swarms.tasksCount(spec.tasks?.length ?? 0)}
+                    </p>
+                    <div className="swarm-spec-list">
+                      {(spec.tasks ?? []).map((t, i) => (
+                        <div key={t.id ?? i} className="swarm-agent-card">
+                          <p className="swarm-agent-name">{t.name}</p>
+                          {t.description && <p className="swarm-agent-goal">{t.description}</p>}
+                          {t.expected_output && (
+                            <p className="swarm-agent-note">
+                              {UI.swarms.expectedOutputPrefix}{t.expected_output}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <details className="swarm-spec-json">
+                  <summary>{UI.swarms.architectJsonDetails}</summary>
+                  <pre className="swarm-spec-preview">{JSON.stringify(spec, null, 2)}</pre>
+                </details>
+
+                <div className="swarm-spec-actions">
+                  <button
+                    type="button"
+                    className="ct-btn ct-btn-primary"
+                    onClick={handleCreateFromSpec}
+                    disabled={createLoading}
+                  >
+                    {createLoading ? UI.swarms.architectCreating : UI.swarms.architectCreateCta}
+                  </button>
+                  <button
+                    type="button"
+                    className="ct-btn ct-btn-secondary"
+                    onClick={() => setSpec(null)}
+                    disabled={createLoading}
+                  >
+                    {UI.swarms.architectRegenCta}
+                  </button>
+                </div>
+                {createError && <p className="swarm-form-error">{createError}</p>}
               </div>
-              {createError && (
-                <p style={{ color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-sm)", marginTop: "var(--ct-space-sm)" }}>
-                  {createError}
-                </p>
-              )}
+            </div>
+          ) : (
+            <div className="swarm-arch-hint">
+              <span className="swarm-arch-hint-icon">✨</span>
+              <p>{UI.swarms.architectHint}</p>
             </div>
           )}
         </div>
       )}
 
       {tab === "manual" && (
-        <div className="ct-card" style={{ maxWidth: 720, width: "100%" }}>
+        <div className="ct-card swarm-form-card">
           <div className="ct-card-body">
             <div className="swarm-form-section">
               <p className="swarm-form-section-title">{UI.swarms.manualSectionGeneral}</p>
               <input
-                className="crm-input"
+                className="crm-input swarm-field"
                 type="text"
                 placeholder={UI.swarms.manualNamePlaceholder}
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
-                style={{ marginBottom: "var(--ct-space-sm)" }}
               />
               <input
                 className="crm-input"
@@ -229,13 +274,14 @@ export default function NewSwarmPage() {
               />
             </div>
 
+            <div className="swarm-manual-cols">
             <div className="swarm-form-section">
               <p className="swarm-form-section-title">{UI.swarms.manualSectionAgents}</p>
               <div className="swarm-dynamic-list">
                 {agents.map((agent, i) => (
                   <div key={i} className="swarm-dynamic-item">
                     {agents.length > 1 && (
-                      <button type="button" className="swarm-dynamic-remove" onClick={() => removeAgent(i)}>
+                      <button type="button" className="swarm-dynamic-remove" aria-label={UI.swarms.removeAgent} onClick={() => removeAgent(i)}>
                         ×
                       </button>
                     )}
@@ -244,17 +290,13 @@ export default function NewSwarmPage() {
                       type="text"
                       placeholder={UI.swarms.manualAgentNamePlaceholder}
                       value={agent.name}
-                      onChange={(e) => updateAgent(i, "name", e.target.value)}
-                      style={{ marginBottom: "var(--ct-space-xs)" }}
-                    />
+                      onChange={(e) => updateAgent(i, "name", e.target.value)}                    />
                     <input
                       className="crm-input"
                       type="text"
                       placeholder={UI.swarms.manualAgentRolePlaceholder}
                       value={agent.role}
-                      onChange={(e) => updateAgent(i, "role", e.target.value)}
-                      style={{ marginBottom: "var(--ct-space-xs)" }}
-                    />
+                      onChange={(e) => updateAgent(i, "role", e.target.value)}                    />
                     <input
                       className="crm-input"
                       type="text"
@@ -276,7 +318,7 @@ export default function NewSwarmPage() {
                 {tasks.map((task, i) => (
                   <div key={i} className="swarm-dynamic-item">
                     {tasks.length > 1 && (
-                      <button type="button" className="swarm-dynamic-remove" onClick={() => removeTask(i)}>
+                      <button type="button" className="swarm-dynamic-remove" aria-label={UI.swarms.removeTask} onClick={() => removeTask(i)}>
                         ×
                       </button>
                     )}
@@ -285,17 +327,13 @@ export default function NewSwarmPage() {
                       type="text"
                       placeholder={UI.swarms.manualTaskNamePlaceholder}
                       value={task.name}
-                      onChange={(e) => updateTask(i, "name", e.target.value)}
-                      style={{ marginBottom: "var(--ct-space-xs)" }}
-                    />
+                      onChange={(e) => updateTask(i, "name", e.target.value)}                    />
                     <input
                       className="crm-input"
                       type="text"
                       placeholder={UI.swarms.manualTaskDescPlaceholder}
                       value={task.description}
-                      onChange={(e) => updateTask(i, "description", e.target.value)}
-                      style={{ marginBottom: "var(--ct-space-xs)" }}
-                    />
+                      onChange={(e) => updateTask(i, "description", e.target.value)}                    />
                     <input
                       className="crm-input"
                       type="text"
@@ -310,11 +348,10 @@ export default function NewSwarmPage() {
                 {UI.swarms.manualAddTask}
               </button>
             </div>
+            </div>
 
             {manualError && (
-              <p style={{ color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-sm)", marginBottom: "var(--ct-space-sm)" }}>
-                {manualError}
-              </p>
+              <p className="swarm-form-error">{manualError}</p>
             )}
 
             <button

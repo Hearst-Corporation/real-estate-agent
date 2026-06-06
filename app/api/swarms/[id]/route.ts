@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/server/session"
-import { tenantOf } from "@/lib/tenant"
+import { uuidOwnerOf } from "@/lib/tenant"
 import { getSwarm, patchSwarm, deleteSwarm } from "@/lib/swarms/client"
 import type { PatchSwarmPayload } from "@/lib/swarms/types"
 
@@ -16,11 +16,12 @@ export async function GET(_req: Request, { params }: Params) {
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
 
   try {
-    const swarm = await getSwarm(id)
-    if (swarm.owner_id !== ownerId) {
+    const swarm = await getSwarm(id, ownerId)
+    // owner_id null = swarm seed/template global → visible par tous.
+    if (swarm.owner_id != null && swarm.owner_id !== ownerId) {
       return NextResponse.json({ error: "not_found" }, { status: 404 })
     }
     return NextResponse.json({ item: swarm })
@@ -37,7 +38,7 @@ export async function PATCH(req: Request, { params }: Params) {
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
 
   let body: PatchSwarmPayload
   try {
@@ -47,11 +48,12 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 
   try {
-    const swarm = await getSwarm(id)
+    const swarm = await getSwarm(id, ownerId)
+    // Édition réservée au propriétaire (les templates globaux ne sont pas modifiables).
     if (swarm.owner_id !== ownerId) {
       return NextResponse.json({ error: "not_found" }, { status: 404 })
     }
-    const patched = await patchSwarm(id, body)
+    const patched = await patchSwarm(id, body, ownerId)
     return NextResponse.json({ item: patched })
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error"
@@ -66,14 +68,15 @@ export async function DELETE(_req: Request, { params }: Params) {
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
 
   try {
-    const swarm = await getSwarm(id)
+    const swarm = await getSwarm(id, ownerId)
+    // Suppression réservée au propriétaire (les templates globaux sont protégés).
     if (swarm.owner_id !== ownerId) {
       return NextResponse.json({ error: "not_found" }, { status: 404 })
     }
-    await deleteSwarm(id)
+    await deleteSwarm(id, ownerId)
     return new NextResponse(null, { status: 204 })
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error"

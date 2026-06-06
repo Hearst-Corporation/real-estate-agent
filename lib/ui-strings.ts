@@ -20,6 +20,7 @@ export const UI = {
     mandates: "Mandats",
     agenda: "Agenda",
     swarms: "Swarms",
+    invest: "Invest",
     profile: "Profil",
     admin: "Admin",
   },
@@ -69,7 +70,9 @@ export const UI = {
       byValueBand: "Valeur estimée par tranche",
       completion: "Taux de complétion",
       completionSub: "Prêtes",
+      heatmap: "Estimations par ville et statut",
     },
+    heatmapNoCity: "Sans ville",
     table: {
       property: "Bien",
       status: "Statut",
@@ -80,9 +83,20 @@ export const UI = {
     recent: "Estimations récentes",
     seeAll: "Voir toutes les estimations",
     activity: "Activité récente",
+    activityEmpty: "Aucune visite planifiée.",
     visitBadge: "Visite",
     propertyLinked: "Bien lié",
     propertyMissing: "Bien non renseigné",
+    heroMeta: (n: number) =>
+      `${n} estimation${n > 1 ? "s" : ""} suivie${n > 1 ? "s" : ""}`,
+    donutMeta: (ready: number, total: number) =>
+      `${ready} prête${ready > 1 ? "s" : ""} sur ${total}`,
+    kpiHints: {
+      properties: "Au portefeuille",
+      activeLeads: "En cours",
+      upcomingVisits: "Planifiées",
+      activeMandates: "Signés actifs",
+    },
     cards: {
       assistantTitle: "Assistant Kimi",
       assistantBody:
@@ -99,7 +113,7 @@ export const UI = {
       total: "Estimations",
       ready: "Prêtes",
       inProgress: "En cours",
-      avgValue: "Valeur moyenne",
+      avgValue: "Valeur moy. (prêtes)",
     },
     charts: {
       pipeline: "Pipeline",
@@ -115,7 +129,7 @@ export const UI = {
     },
     back: "Retour aux estimations",
     interviewTitle: "Entretien",
-    interviewSub: "Quelques questions à la fois — votre bien, sans rien oublier.",
+    interviewSub: "Décrivez votre bien en quelques mots — l'assistant ne demande que l'essentiel, dans l'ordre.",
     soon: "Bientôt — le moteur d'entretien arrive.",
     generate: "Générer l'estimation",
     generating: "Calcul de l'estimation…",
@@ -150,6 +164,10 @@ export const UI = {
     ficheEmpty: "Les champs se remplissent au fil de l'entretien.",
     toConfirm: "à confirmer",
     blockProgress: (n: number, total: number) => `Bloc ${n} / ${total}`,
+    keyInfoProgress: (n: number, total: number) => `${n} / ${total} infos clés`,
+    nextInfo: (label: string) => `Prochaine info : ${label}`,
+    allKeyInfo: "Infos clés réunies",
+    readyToGenerate: "Prêt à générer l'estimation",
     listingComparablesTitle: "Annonces en cours",
     listingComparablesLink: "Voir l'annonce",
     listingComparablesEmpty: "Aucune annonce comparable trouvée pour ce bien.",
@@ -176,6 +194,15 @@ export const UI = {
       valuating: "Calcul",
       ready: "Prête",
       archived: "Archivée",
+    } as Record<string, string>,
+    // Libellés courts (colonnes de la heatmap dashboard).
+    statusShort: {
+      draft: "Brn",
+      interviewing: "Entr.",
+      recap: "Récap",
+      valuating: "Calc.",
+      ready: "Prête",
+      archived: "Arch.",
     } as Record<string, string>,
   },
   properties: {
@@ -435,6 +462,8 @@ export const UI = {
     scopesTitle: "Scopes",
     sessionTitle: "Session",
     sessionHint: "Fermer la session sur cet appareil.",
+    integrationsTitle: "Intégrations",
+    integrationsHint: "Connectez votre boîte Gmail et votre agenda Google pour que l'assistant puisse retrouver vos emails et vos rendez-vous.",
     fields: {
       email: "Email",
       userId: "User ID",
@@ -472,11 +501,6 @@ export const UI = {
     userAvatar: "VO",
     assistantAvatar: "KI",
     errorPrefix: "Erreur",
-  },
-  accent: {
-    group: "Accent",
-    custom: "Couleur libre",
-    customAria: "Couleur personnalisée",
   },
   common: {
     yes: "Oui",
@@ -528,6 +552,20 @@ export const UI = {
     // Steps
     stepsExpandLess: "Voir moins",
     stepsExpandMore: "Voir plus",
+    // Run status badge labels
+    runStatus: {
+      pending: "En attente",
+      running: "En cours...",
+      done: "Terminé",
+      failed: "Échoué",
+      error: "Erreur",
+    },
+    // Run detail breadcrumb / title
+    runBreadcrumb: "Run",
+    runTitle: "Run",
+    // Dynamic list remove buttons (a11y)
+    removeAgent: "Supprimer cet agent",
+    removeTask: "Supprimer cette tâche",
     // Detail page
     runsTab: "Runs",
     agentsTab: "Agents & Tâches",
@@ -576,6 +614,8 @@ export const UI = {
     architectCreateCta: "Créer ce swarm",
     architectCreating: "Création…",
     architectRegenCta: "Régénérer",
+    architectHint: "Décris ton swarm à gauche : l'IA génère les agents et les tâches, prêts à créer en un clic.",
+    architectJsonDetails: "Voir le JSON brut",
     architectSpecError: "La spec générée ne contient pas d'agents ou de tâches. Relancez la génération.",
     generateError: "Erreur lors de la génération.",
     createError: "Erreur lors de la création.",
@@ -601,5 +641,10 @@ export const UI = {
     runLaunchedAt: (date: string) => `Lancé le ${date}`,
     runRelaunching: "Lancement…",
     runRelaunchCta: "Relancer",
+    reportSelectHint: "Sélectionne un run ci-dessus pour afficher son rapport.",
+    reportTechnicalDetails: "Détails techniques (étapes des agents)",
+    reportEmpty: "Ce run n'a pas encore produit de rapport.",
+    reportTokens: "tokens",
+    reportDurationUnit: "s",
   },
 } as const;

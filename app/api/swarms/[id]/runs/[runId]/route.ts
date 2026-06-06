@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/server/session"
-import { tenantOf } from "@/lib/tenant"
+import { uuidOwnerOf } from "@/lib/tenant"
 import { getSupabaseAdmin } from "@/lib/server/supabase"
 import { getRunStatus } from "@/lib/swarms/client"
 import type { SwarmRunStatus } from "@/lib/swarms/types"
@@ -16,7 +16,7 @@ export async function GET(_req: Request, { params }: Params) {
   const claims = await getSession()
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
 
-  const ownerId = tenantOf(claims)
+  const ownerId = uuidOwnerOf(claims)
   const { id, runId } = await params
 
   const sb = getSupabaseAdmin()
@@ -37,7 +37,7 @@ export async function GET(_req: Request, { params }: Params) {
   // Fetch le statut live depuis l'engine
   let engineRun = null
   try {
-    engineRun = await getRunStatus(id, runId)
+    engineRun = await getRunStatus(id, runId, ownerId)
   } catch {
     // L'engine peut être indisponible — on retourne le record local
   }
@@ -64,6 +64,11 @@ export async function GET(_req: Request, { params }: Params) {
       ...record,
       status: liveStatus,
       output: engineRun?.output ?? null,
+      created_at: engineRun?.created_at ?? record.created_at,
+      updated_at: engineRun?.updated_at ?? record.updated_at,
+      tokens_in: engineRun?.tokens_in ?? null,
+      tokens_out: engineRun?.tokens_out ?? null,
+      cost_usd: engineRun?.cost_usd ?? null,
     },
     steps: liveSteps ?? [],
   })

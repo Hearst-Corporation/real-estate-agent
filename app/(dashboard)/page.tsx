@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
-import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";
+import { Heatmap } from "@/components/cockpit/Heatmap";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
-import { countByStatus, topByCategory, distributeByBand, ratio } from "@/lib/crm/aggregate";
+import { barsByStatus, topByCategory, distributeByBand, autoBands, ratio } from "@/lib/crm/aggregate";
 import { eur, dateFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -22,6 +21,12 @@ const LEADS_CLOSED = ["gagne", "perdu"];
 
 /** Ordre canonique du cycle d'une estimation (pour le funnel). */
 const ESTIMATION_STATUSES = ["draft", "interviewing", "recap", "valuating", "ready", "archived"];
+
+/** Diamètre de l'anneau de complétion (carte donut accent). */
+const DONUT_SIZE = 156;
+
+/** Nombre de villes (lignes) affichées dans la heatmap ville × statut. */
+const HEATMAP_TOP_CITIES = 6;
 
 /** Tonalité d'un statut d'estimation (ready = positif, archived = négatif). */
 function estimationTone(status: string): "is-positive" | "is-negative" | "is-pending" {
@@ -124,10 +129,38 @@ export default async function DashboardPage() {
   }
 
   // ── Agrégations viz (données déjà en mémoire) ──
-  const pipeline = countByStatus(rows, ESTIMATION_STATUSES, UI.estimations.status, estimationTone);
+  const pipeline = barsByStatus(rows, ESTIMATION_STATUSES, UI.estimations.status, estimationTone);
   const byCity = topByCategory(rows, "city");
-  const byValueBand = distributeByBand(rows, "market_value");
+  const byValueBand = distributeByBand(
+    rows,
+    "market_value",
+    autoBands(rows.map((r) => r.market_value))
+  );
   const readyRate = ratio(rows, (r) => r.status === "ready");
+
+  // ── Métriques de l'en-tête ──
+  const nbEstimations = rows.length;
+  const readyCount = rows.filter((r) => r.status === "ready").length;
+  const portfolioValue = rows
+    .filter((r) => r.status === "ready")
+    .reduce((sum, r) => sum + (r.market_value ?? 0), 0);
+
+  // ── Heatmap ville × statut (données réelles : top villes × cycle) ──
+  const cityOf = (r: EstRow) => r.city?.trim() || t.heatmapNoCity;
+  const cityCounts = new Map<string, number>();
+  for (const r of rows) cityCounts.set(cityOf(r), (cityCounts.get(cityOf(r)) ?? 0) + 1);
+  const heatRowLabels = [...cityCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, HEATMAP_TOP_CITIES)
+    .map(([city]) => city);
+  const heatColLabels = ESTIMATION_STATUSES.map(
+    (st) => UI.estimations.statusShort[st] ?? st
+  );
+  const heatMatrix = heatRowLabels.map((city) =>
+    ESTIMATION_STATUSES.map(
+      (st) => rows.filter((r) => cityOf(r) === city && r.status === st).length
+    )
+  );
 
   const recent = rows.slice(0, RECENT_LIMIT);
 
@@ -175,88 +208,153 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+      {/* ── Hero band premium (identité + valeur portefeuille + CTA) ── */}
+      <section className="dash-hero">
+        <div className="dash-hero-main">
+          <p className="ct-eyebrow">{t.eyebrow}</p>
+          <h1 className="ct-title dash-hero-title">{t.title}</h1>
+          <p className="dash-hero-sub">{t.sub}</p>
+        </div>
+        <div className="dash-hero-aside">
+          <div className="dash-hero-metric">
+            <span className="dash-hero-metric-label">{t.kpis.portfolio}</span>
+            <span className="dash-hero-metric-value">{eur(portfolioValue)}</span>
+            <span className="dash-hero-metric-meta">{t.heroMeta(nbEstimations)}</span>
+          </div>
+          <Link href="/estimations/new" className="ct-seg-btn primary dash-hero-cta">
+            {UI.estimations.newCta}
+          </Link>
+        </div>
+      </section>
 
-      {/* ── KPI CRM ── */}
-      <KpiGrid>
-        <KpiCard label={t.kpis.properties} value={String(nbProperties)} accent />
-        <KpiCard label={t.kpis.activeLeads} value={String(nbLeadsActifs)} />
-        <KpiCard label={t.kpis.upcomingVisits} value={String(nbVisitesAVenir)} />
-        <KpiCard label={t.kpis.activeMandates} value={String(nbMandatsActifs)} />
-      </KpiGrid>
-
-      {/* ── Viz rangée 1 : pipeline + villes ── */}
-      <div className="ct-viz-row">
-        <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
-        </Card>
-        <Card title={t.charts.byCity}>
-          <BarList items={byCity} emptyLabel={UI.viz.empty} />
-        </Card>
+      {/* ── KPI CRM enrichis ── */}
+      <div className="dash-kpis">
+        <div className="dash-kpi accent">
+          <span className="dash-kpi-label">{t.kpis.properties}</span>
+          <span className="dash-kpi-value">{nbProperties}</span>
+          <span className="dash-kpi-hint">{t.kpiHints.properties}</span>
+        </div>
+        <div className="dash-kpi">
+          <span className="dash-kpi-label">{t.kpis.activeLeads}</span>
+          <span className="dash-kpi-value">{nbLeadsActifs}</span>
+          <span className="dash-kpi-hint">{t.kpiHints.activeLeads}</span>
+        </div>
+        <div className="dash-kpi">
+          <span className="dash-kpi-label">{t.kpis.upcomingVisits}</span>
+          <span className="dash-kpi-value">{nbVisitesAVenir}</span>
+          <span className="dash-kpi-hint">{t.kpiHints.upcomingVisits}</span>
+        </div>
+        <div className="dash-kpi">
+          <span className="dash-kpi-label">{t.kpis.activeMandates}</span>
+          <span className="dash-kpi-value">{nbMandatsActifs}</span>
+          <span className="dash-kpi-hint">{t.kpiHints.activeMandates}</span>
+        </div>
       </div>
 
-      {/* ── Viz rangée 2 : tranches de valeur + complétion ── */}
-      <div className="ct-viz-row">
-        <Card title={t.charts.byValueBand}>
-          <BarList items={byValueBand} emptyLabel={UI.viz.empty} />
-        </Card>
-        <Card title={t.charts.completion}>
-          <Donut value={readyRate} sublabel={t.charts.completionSub} accent />
-        </Card>
+      {/* ── Pipeline (large) + complétion (donut accent) ── */}
+      <div className="dash-grid">
+        <div className="dash-card">
+          <p className="dash-card-title">{t.charts.pipeline}</p>
+          <div className="dash-card-body">
+            <BarList items={pipeline} emptyLabel={UI.viz.empty} />
+          </div>
+        </div>
+        <div className="dash-card accent dash-donut-card">
+          <p className="dash-card-title">{t.charts.completion}</p>
+          <Donut value={readyRate} sublabel={t.charts.completionSub} accent size={DONUT_SIZE} />
+          <p className="dash-donut-meta">{t.donutMeta(readyCount, nbEstimations)}</p>
+        </div>
       </div>
 
-      {/* ── Activité récente : prochaines visites ── */}
-      {upcomingVisits.length > 0 && (
-        <Card title={t.activity}>
-          {upcomingVisits.map((v) => {
-            const propLabel =
-              v.properties?.title ??
-              v.properties?.city ??
-              (v.property_id ? t.propertyLinked : t.propertyMissing);
-            return (
-              <div className="est-list-row" key={v.id}>
-                <div className="est-list-info">
-                  <div className="est-list-main">{propLabel}</div>
-                  <div className="est-list-meta">
-                    <span className="ct-badge">{t.visitBadge}</span>
-                    <span className="ct-placeholder">{dateFr(v.scheduled_at)}</span>
+      {/* ── Répartition par ville + valeur estimée par tranche ── */}
+      <div className="dash-grid even">
+        <div className="dash-card">
+          <p className="dash-card-title">{t.charts.byCity}</p>
+          <div className="dash-card-body">
+            <BarList items={byCity} emptyLabel={UI.viz.empty} />
+          </div>
+        </div>
+        <div className="dash-card">
+          <p className="dash-card-title">{t.charts.byValueBand}</p>
+          <div className="dash-card-body">
+            <BarList items={byValueBand} emptyLabel={UI.viz.empty} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Heatmap ville × statut (asset catalogue, données réelles) ── */}
+      <div className="dash-card">
+        <p className="dash-card-title">{t.charts.heatmap}</p>
+        <div className="dash-card-body">
+          <Heatmap
+            rowLabels={heatRowLabels}
+            colLabels={heatColLabels}
+            matrix={heatMatrix}
+            emptyLabel={UI.viz.empty}
+          />
+        </div>
+      </div>
+
+      {/* ── Estimations récentes (large) + activité ── */}
+      <div className="dash-grid">
+        <div className="dash-card">
+          <p className="dash-card-title">{t.recent}</p>
+          <div className="dash-card-body">
+            {recent.length === 0 ? (
+              <>
+                <p className="ct-placeholder">{UI.estimations.empty}</p>
+                <Link href="/estimations/new" className="ct-seg-btn primary dash-see-all">
+                  {UI.estimations.newCta}
+                </Link>
+              </>
+            ) : (
+              <>
+                <DataTable
+                  columns={recentColumns}
+                  rows={recent}
+                  emptyLabel={UI.estimations.empty}
+                  getKey={(r) => r.id}
+                />
+                <Link href="/estimations" className="ct-seg-btn dash-see-all">
+                  {t.seeAll}
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="dash-card">
+          <p className="dash-card-title">{t.activity}</p>
+          <div className="dash-card-body">
+            {upcomingVisits.length === 0 ? (
+              <p className="ct-placeholder">{t.activityEmpty}</p>
+            ) : (
+              upcomingVisits.map((v) => {
+                const propLabel =
+                  v.properties?.title ??
+                  v.properties?.city ??
+                  (v.property_id ? t.propertyLinked : t.propertyMissing);
+                return (
+                  <div className="est-list-row" key={v.id}>
+                    <div className="est-list-info">
+                      <div className="est-list-main">{propLabel}</div>
+                      <div className="est-list-meta">
+                        <span className="ct-badge">{t.visitBadge}</span>
+                        <span className="ct-placeholder">{dateFr(v.scheduled_at)}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
-        </Card>
-      )}
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
 
-      {/* ── Estimations récentes (tableau) ── */}
-      <Card title={t.recent}>
-        {recent.length === 0 ? (
-          <>
-            <p className="ct-placeholder">{UI.estimations.empty}</p>
-            <div className="ct-mb-sm" />
-            <Link href="/estimations/new" className="ct-seg-btn primary">
-              {UI.estimations.newCta}
-            </Link>
-          </>
-        ) : (
-          <>
-            <DataTable
-              columns={recentColumns}
-              rows={recent}
-              emptyLabel={UI.estimations.empty}
-              getKey={(r) => r.id}
-            />
-            <div className="ct-mb-sm" />
-            <Link href="/estimations" className="ct-seg-btn">
-              {t.seeAll}
-            </Link>
-          </>
-        )}
-      </Card>
-
-      <Card title={t.cards.assistantTitle}>{t.cards.assistantBody}</Card>
+      {/* ── Assistant ── */}
+      <div className="dash-card">
+        <p className="dash-card-title">{t.cards.assistantTitle}</p>
+        <p className="dash-assistant-body">{t.cards.assistantBody}</p>
+      </div>
     </>
   );
 }
