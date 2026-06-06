@@ -1,6 +1,6 @@
 /**
  * BarList — liste de barres horizontales (label + valeur + piste remplie).
- * Server component. Réutilise la piste .est-fiche-bar-track/.est-fiche-bar-fill.
+ * Server component. Style cockpit dédié, sans dépendance aux vues estimation.
  * Le style inline width est l'unique exception tolérée (largeur data-driven).
  */
 
@@ -24,10 +24,10 @@ export function BarList({ items, emptyLabel }: BarListProps) {
             <span className="ct-chart-barlist-label">{item.label}</span>
             <span className="ct-chart-barlist-value">{item.value}</span>
           </div>
-          <div className="est-fiche-bar-track">
+          <div className="ct-chart-bar-track">
             {/* largeur data-driven : seul style inline toléré (cf. cockpit.css) */}
             <div
-              className="est-fiche-bar-fill"
+              className="ct-chart-bar-fill"
               style={{ width: `${Math.max(0, Math.min(100, item.percent))}%` }}
             />
           </div>

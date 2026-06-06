@@ -1,16 +1,16 @@
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
+import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
-import { DataTable, type Column } from "@/components/cockpit/DataTable";
-import { StatusSelect } from "@/components/cockpit/StatusSelect";
+import { Donut } from "@/components/cockpit/Donut";
+import { LeadsViewToggle } from "./_components/LeadsViewToggle";
 import { countByStatus } from "@/lib/crm/aggregate";
-import { eur, LEAD_STATUSES } from "@/lib/crm/format";
+import { LEAD_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import LeadFormModal from "./_components/LeadForm";
-import { LeadRowActions } from "./_components/LeadRowActions";
 
 type Lead = {
   id: string;
@@ -28,14 +28,6 @@ type Lead = {
   created_at: string;
   updated_at: string;
 };
-
-/** Formate une fourchette de budget en € (gère les bornes manquantes). */
-function budgetRange(min: number | null, max: number | null): string {
-  if (min != null && max != null) return `${eur(min)} – ${eur(max)}`;
-  if (min != null) return `≥ ${eur(min)}`;
-  if (max != null) return `≤ ${eur(max)}`;
-  return "—";
-}
 
 export default async function LeadsPage() {
   const t = UI.leads;
@@ -65,82 +57,43 @@ export default async function LeadsPage() {
     statusTone("lead", s)
   );
 
-  const columns: Column<Lead>[] = [
-    { key: "name", header: t.table.name, render: (l) => l.full_name },
-    {
-      key: "kind",
-      header: t.table.kind,
-      render: (l) => (l.kind ? <Badge>{t.kindLabels[l.kind] ?? l.kind}</Badge> : "—"),
-    },
-    {
-      key: "status",
-      header: t.table.status,
-      render: (l) => (
-        <StatusSelect
-          endpoint={`/api/leads/${l.id}`}
-          value={l.status}
-          options={LEAD_STATUSES}
-          labels={t.statusLabels}
-          ariaLabel={t.table.status}
-        />
-      ),
-    },
-    {
-      key: "budget",
-      header: t.table.budget,
-      align: "right",
-      render: (l) => budgetRange(l.budget_min, l.budget_max),
-    },
-    { key: "source", header: t.table.source, render: (l) => l.source ?? "—" },
-    {
-      key: "action",
-      header: t.table.action,
-      align: "right",
-      render: (l) => (
-        <LeadRowActions
-          id={l.id}
-          fullName={l.full_name}
-          defaultValues={{
-            full_name: l.full_name,
-            email: l.email,
-            phone: l.phone,
-            source: l.source,
-            kind: l.kind,
-            type_personne: l.type_personne,
-            budget_min: l.budget_min,
-            budget_max: l.budget_max,
-            status: l.status,
-          }}
-        />
-      ),
-    },
+  const CRM_TABS = [
+    { href: "/properties", label: UI.nav.properties },
+    { href: "/leads", label: UI.nav.leads },
+    { href: "/visits", label: UI.nav.visits },
+    { href: "/mandates", label: UI.nav.mandates },
+    { href: "/agenda", label: UI.nav.agenda },
   ];
 
   return (
-    <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+    <PageStack>
+      <PageHeader
+        kicker={t.eyebrow}
+        title={t.title}
+        nav={<PageNavTabs tabs={CRM_TABS} />}
+        action={<LeadFormModal cta={t.newCta} />}
+        kpis={[
+          { label: t.kpis.total, value: String(total) },
+          { label: t.kpis.active, value: String(active) },
+          { label: t.kpis.won, value: String(won) },
+          { label: t.kpis.conversion, value: `${conversion}%` },
+        ]}
+      />
 
-      <KpiGrid>
-        <KpiCard label={t.kpis.total} value={String(total)} />
-        <KpiCard label={t.kpis.active} value={String(active)} />
-        <KpiCard label={t.kpis.won} value={String(won)} accent />
-        <KpiCard label={t.kpis.conversion} value={`${conversion}%`} />
-      </KpiGrid>
-
-      <Card title={t.charts.pipeline}>
-        <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
-      </Card>
-
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.cardTitle}</span>
-        <LeadFormModal cta={t.newCta} />
+      <div className="ct-viz-row">
+        <div>
+          <Card title={t.charts.pipeline} variant="chart">
+            <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+          </Card>
+        </div>
+        <div>
+          <Card title="Taux de conversion" variant="chart">
+            <Donut value={conversion} sublabel="Convertis" accent />
+          </Card>
+        </div>
       </div>
 
-      <Card>
-        <DataTable columns={columns} rows={leads} emptyLabel={t.empty} getKey={(l) => l.id} />
-      </Card>
-    </>
+      <LeadsViewToggle leads={leads} />
+    </PageStack>
   );
 }

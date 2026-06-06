@@ -1,4 +1,5 @@
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { Donut } from "@/components/cockpit/Donut";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
@@ -41,7 +42,6 @@ export default async function VisitsPage() {
 
   const now = new Date();
   const upcoming = visits.filter((v) => new Date(v.scheduled_at) >= now);
-  const past = visits.filter((v) => new Date(v.scheduled_at) < now);
   const done = visits.filter((v) => v.status === "realisee").length;
   const noShow = visits.filter((v) => v.status === "no_show").length;
   const noShowRate = visits.length > 0 ? Math.round((noShow / visits.length) * 100) : 0;
@@ -50,6 +50,14 @@ export default async function VisitsPage() {
     statusTone("visit", s)
   );
   const doneRate = ratio(visits, (v) => v.status === "realisee");
+
+  const CRM_TABS = [
+    { href: "/properties", label: UI.nav.properties },
+    { href: "/leads", label: UI.nav.leads },
+    { href: "/visits", label: UI.nav.visits },
+    { href: "/mandates", label: UI.nav.mandates },
+    { href: "/agenda", label: UI.nav.agenda },
+  ];
 
   const columns: Column<VisitRow>[] = [
     {
@@ -86,48 +94,40 @@ export default async function VisitsPage() {
   ];
 
   return (
-    <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
-
-      <KpiGrid>
-        <KpiCard label={t.kpis.total} value={String(visits.length)} />
-        <KpiCard label={t.kpis.upcoming} value={String(upcoming.length)} accent />
-        <KpiCard label={t.kpis.done} value={String(done)} />
-        <KpiCard label={t.kpis.noShow} value={`${noShowRate}%`} />
-      </KpiGrid>
+    <PageStack>
+      <PageHeader
+        kicker={t.eyebrow}
+        title={t.title}
+        nav={<PageNavTabs tabs={CRM_TABS} />}
+        action={<VisitForm cta={t.newCta} />}
+        kpis={[
+          { label: t.kpis.total, value: String(visits.length) },
+          { label: t.kpis.upcoming, value: String(upcoming.length) },
+          { label: t.kpis.done, value: String(done) },
+          { label: t.kpis.noShow, value: `${noShowRate}%` },
+        ]}
+      />
 
       <div className="ct-viz-row">
-        <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
-        </Card>
-        <Card title={t.charts.doneRate}>
-          <Donut value={doneRate} sublabel={t.charts.doneRateSub} accent />
-        </Card>
-      </div>
-
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.title}</span>
-        <VisitForm cta={t.newCta} />
-      </div>
-
-      {visits.length === 0 ? (
-        <Card>
-          <p className="ct-placeholder">{t.empty}</p>
-        </Card>
-      ) : (
-        <>
-          <Card title={t.upcoming}>
-            <DataTable columns={columns} rows={upcoming} emptyLabel={t.empty} getKey={(v) => v.id} />
+        <div>
+          <Card title={t.charts.pipeline} variant="chart">
+            <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
           </Card>
-          {past.length > 0 && (
-            <Card title={t.past}>
-              <DataTable columns={columns} rows={past} emptyLabel={t.empty} getKey={(v) => v.id} />
-            </Card>
-          )}
-        </>
-      )}
-    </>
+        </div>
+        <div>
+          <Card title={t.charts.doneRate} variant="chart">
+            <Donut value={doneRate} sublabel={t.charts.doneRateSub} accent />
+          </Card>
+        </div>
+      </div>
+
+      <Card variant="dense">
+        {visits.length === 0 ? (
+          <p className="ct-placeholder">{t.empty}</p>
+        ) : (
+          <DataTable columns={columns} rows={visits} emptyLabel={t.empty} getKey={(v) => v.id} />
+        )}
+      </Card>
+    </PageStack>
   );
 }

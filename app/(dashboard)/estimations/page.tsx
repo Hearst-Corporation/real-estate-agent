@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
@@ -84,37 +84,39 @@ export default async function EstimationsPage() {
   ];
 
   return (
-    <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
-
-      <KpiGrid>
-        <KpiCard label={t.kpis.total} value={String(estimations.length)} accent />
-        <KpiCard label={t.kpis.ready} value={String(ready)} />
-        <KpiCard label={t.kpis.inProgress} value={String(inProgress)} />
-        <KpiCard label={t.kpis.avgValue} value={eur(avgValue)} />
-      </KpiGrid>
+    <PageStack>
+      <PageHeader
+        kicker={t.eyebrow}
+        title={t.title}
+        action={
+          <Link href="/estimations/new" className="ct-seg-btn primary">
+            {t.newCta}
+          </Link>
+        }
+        kpis={[
+          { label: t.kpis.total, value: String(estimations.length) },
+          { label: t.kpis.ready, value: String(ready) },
+          { label: t.kpis.inProgress, value: String(inProgress) },
+          { label: t.kpis.avgValue, value: eur(avgValue) },
+        ]}
+      />
 
       <div className="ct-viz-row">
-        <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
-        </Card>
-        <Card title={t.charts.byType}>
-          <BarList items={byType} emptyLabel={UI.viz.empty} />
-        </Card>
+        <div>
+          <Card title={t.charts.pipeline} variant="chart">
+            <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+          </Card>
+        </div>
+        <div>
+          <Card title={t.charts.byType} variant="chart">
+            <BarList items={byType} emptyLabel={UI.viz.empty} />
+          </Card>
+        </div>
       </div>
 
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.title}</span>
-        <Link href="/estimations/new" className="ct-seg-btn primary">
-          {t.newCta}
-        </Link>
-      </div>
-
-      <Card>
+      <Card variant="dense">
         <DataTable columns={columns} rows={estimations} emptyLabel={t.empty} getKey={(e) => e.id} />
       </Card>
-    </>
+    </PageStack>
   );
 }

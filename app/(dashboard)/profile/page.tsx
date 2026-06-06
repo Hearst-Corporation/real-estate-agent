@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/server/session";
-import { Eyebrow, Title, Sub, Card, Badge } from "@/components/cockpit/primitives";
+import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
+import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { LogoutButton } from "@/components/cockpit/LogoutButton";
 import { UI } from "@/lib/ui-strings";
 
@@ -11,32 +13,58 @@ export default async function ProfilePage() {
   const t = UI.profile;
   const issued = claims.iat ? new Date(claims.iat * 1000).toLocaleString("fr-FR") : t.empty;
 
+  const identityRows = [
+    { key: t.fields.email, value: claims.email ?? t.empty },
+    { key: t.fields.userId, value: claims.sub },
+    { key: t.fields.tenant, value: claims.tenant_id },
+    { key: t.fields.role, value: claims.role },
+    { key: t.fields.issued, value: issued },
+  ];
+
+  const columns: Column<{ key: string; value: string }>[] = [
+    { key: "key", header: "Propriété", render: (r) => <strong>{r.key}</strong> },
+    { key: "value", header: "Valeur", render: (r) => <code>{r.value}</code> },
+  ];
+
   return (
-    <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+    <PageStack>
+      <PageHeader
+        kicker={t.eyebrow}
+        title={t.title}
+      />
 
-      <Card title={t.identityTitle}>
-        <div className="ct-stack-sm">
-          <div><strong>{t.fields.email}</strong> · {claims.email ?? t.empty}</div>
-          <div><strong>{t.fields.userId}</strong> · <code>{claims.sub}</code></div>
-          <div><strong>{t.fields.tenant}</strong> · <code>{claims.tenant_id}</code></div>
-          <div><strong>{t.fields.role}</strong> · {claims.role}</div>
-          <div><strong>{t.fields.issued}</strong> · {issued}</div>
+      <div className="ct-viz-row">
+        <div>
+          <Card title={t.identityTitle} variant="chart">
+            <p className="ct-placeholder">Informations de session en cours.</p>
+          </Card>
         </div>
-      </Card>
+        <div className="ct-stack-sm" style={{ display: "flex" }}>
+          <Card title={t.scopesTitle} variant="dense">
+            {(claims.scope ?? []).map((s) => (
+              <Badge key={s}>{s}</Badge>
+            ))}
+          </Card>
 
-      <Card title={t.scopesTitle}>
-        {(claims.scope ?? []).map((s) => (
-          <Badge key={s}>{s}</Badge>
-        ))}
-      </Card>
+          <Card title={t.sessionTitle} variant="dense">
+            <p className="ct-mb-sm">{t.sessionHint}</p>
+            <LogoutButton variant="full" />
+          </Card>
 
-      <Card title={t.sessionTitle}>
-        <p className="ct-mb-sm">{t.sessionHint}</p>
-        <LogoutButton variant="full" />
+          {claims.role === "admin" && (
+            <Card title={UI.nav.admin} variant="dense">
+              <p className="ct-mb-sm">Console d&apos;administration : fournisseurs, observabilité, données tenant.</p>
+              <Link href="/admin" className="ct-link-accent">
+                {UI.nav.admin}
+              </Link>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      <Card variant="dense">
+        <DataTable columns={columns} rows={identityRows} emptyLabel="Vide" getKey={(r) => r.key} />
       </Card>
-    </>
+    </PageStack>
   );
 }

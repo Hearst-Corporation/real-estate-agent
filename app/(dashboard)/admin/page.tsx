@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { Eyebrow, Title, Sub, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
+import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -20,36 +21,50 @@ export default async function AdminPage() {
   const providerEntries = Object.entries(providers);
   const configuredCount = providerEntries.filter(([, ok]) => ok).length;
 
+  const providerRows = providerEntries.map(([name, ok]) => ({ name, ok }));
+  const columns: Column<{ name: string; ok: boolean }>[] = [
+    { key: "name", header: "Fournisseur", render: (r) => r.name },
+    {
+      key: "status",
+      header: "Statut",
+      align: "right",
+      render: (r) => (
+        <span className={`ct-badge${r.ok ? "" : " is-muted"}`}>
+          {r.ok ? t.configured : t.absent}
+        </span>
+      ),
+    },
+  ];
+
   return (
-    <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+    <PageStack>
+      <PageHeader
+        kicker={t.eyebrow}
+        title={t.title}
+        kpis={[
+          { label: t.estimations, value: String(counts.estimations) },
+          { label: t.leads, value: String(counts.leads) },
+          { label: t.leadsEnriched, value: String(counts.leadsEnriched) },
+          { label: t.providersConfigured, value: `${configuredCount}/${providerEntries.length}` },
+        ]}
+      />
 
-      {!sb && <Card title={t.title}><p className="ct-placeholder">{t.degraded}</p></Card>}
+      <div className="ct-viz-row">
+        <div>
+          {!sb && <Card title={t.title} variant="chart"><p className="ct-placeholder">{t.degraded}</p></Card>}
+          <Card title={t.providersTitle} variant="chart">
+            <p className="ct-placeholder">Vue d&apos;ensemble des fournisseurs.</p>
+          </Card>
+        </div>
+        <div className="ct-stack-sm" style={{ display: "flex" }}>
+          <Card title={t.obsTitle} variant="dense"><p className="ct-placeholder">{t.obsBody}</p></Card>
+          <Card title={t.jobsTitle} variant="dense"><p className="ct-placeholder">{t.jobsPlaceholder}</p></Card>
+        </div>
+      </div>
 
-      <KpiGrid>
-        <KpiCard label={t.estimations} value={String(counts.estimations)} accent />
-        <KpiCard label={t.leads} value={String(counts.leads)} />
-        <KpiCard label={t.leadsEnriched} value={String(counts.leadsEnriched)} />
-        <KpiCard label={t.providersConfigured} value={`${configuredCount}/${providerEntries.length}`} />
-      </KpiGrid>
-
-      <Card title={t.providersTitle}>
-        {providerEntries.map(([name, ok]) => (
-          <div className="est-list-row" key={name}>
-            <div className="est-list-info">
-              <div className="est-list-main">{name}</div>
-            </div>
-            <span className={`ct-badge${ok ? "" : " is-muted"}`}>
-              {ok ? t.configured : t.absent}
-            </span>
-          </div>
-        ))}
+      <Card variant="dense">
+        <DataTable columns={columns} rows={providerRows} emptyLabel="Aucun fournisseur" getKey={(r) => r.name} />
       </Card>
-
-      <Card title={t.obsTitle}><p className="ct-placeholder">{t.obsBody}</p></Card>
-      <Card title={t.jobsTitle}><p className="ct-placeholder">{t.jobsPlaceholder}</p></Card>
-    </>
+    </PageStack>
   );
 }

@@ -1,9 +1,10 @@
-import { Eyebrow, Title, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
+import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
+import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { getSession } from "@/lib/server/session";
 import { uuidOwnerOf } from "@/lib/tenant";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { listSwarms, SwarmsEngineUnavailableError } from "@/lib/swarms/client";
-import SwarmCard from "@/components/swarms/SwarmCard";
 import type { Swarm } from "@/lib/swarms/types";
 import Link from "next/link";
 import { UI } from "@/lib/ui-strings";
@@ -46,49 +47,87 @@ export default async function SwarmsPage() {
   const active = swarms.filter((s) => s.is_active).length;
   const inactive = total - active;
 
-  return (
-    <>
-      <Eyebrow>{UI.swarms.eyebrow}</Eyebrow>
-      <Title>{UI.swarms.title}</Title>
+  const SWARM_TABS = [
+    { href: "/swarms", label: "Tous les agents" },
+    { href: "/swarms/analytics", label: "Analytique" },
+    { href: "/swarms/prospection", label: "Prospection" },
+  ];
 
-      <KpiGrid className="cols-4">
-        <KpiCard label={UI.swarms.kpis.total} value={String(total)} />
-        <KpiCard label={UI.swarms.kpis.active} value={String(active)} className="accent" />
-        <KpiCard label={UI.swarms.kpis.inactive} value={String(inactive)} />
-        <KpiCard label={UI.swarms.kpis.runsToday} value={String(runsToday)} />
-      </KpiGrid>
-
-      <div className="ct-mb-sm" />
-
-      <div style={{ marginBottom: "var(--ct-space-md)" }}>
-        <Link href="/swarms/new" className="ct-btn ct-btn-primary">
-          {UI.swarms.newCta}
+  const columns: Column<SwarmRow>[] = [
+    {
+      key: "name",
+      header: "Nom",
+      render: (r) => (
+        <Link href={`/swarms/${r.id}`} className="crm-link">
+          {r.name}
         </Link>
+      ),
+    },
+    {
+      key: "status",
+      header: "Statut",
+      render: (r) => (
+        <span className={`ct-badge${r.is_active ? "" : " is-muted"}`}>
+          {r.is_active ? "Actif" : "Inactif"}
+        </span>
+      ),
+    },
+    {
+      key: "agents",
+      header: "Agents",
+      render: (r) => `${r.agents?.length ?? 0} agent(s)`,
+    },
+    {
+      key: "tasks",
+      header: "Tâches",
+      render: (r) => `${r.tasks?.length ?? 0} tâche(s)`,
+    },
+  ];
+
+  return (
+    <PageStack>
+      <PageHeader
+        kicker={UI.swarms.eyebrow}
+        title={UI.swarms.title}
+        nav={<PageNavTabs tabs={SWARM_TABS} />}
+        action={
+          <Link href="/swarms/new" className="ct-seg-btn primary">
+            {UI.swarms.newCta}
+          </Link>
+        }
+        kpis={[
+          { label: UI.swarms.kpis.total, value: String(total) },
+          { label: UI.swarms.kpis.active, value: String(active) },
+          { label: UI.swarms.kpis.inactive, value: String(inactive) },
+          { label: UI.swarms.kpis.runsToday, value: String(runsToday) },
+        ]}
+      />
+
+      <div className="ct-viz-row">
+        <div>
+          <Card title="Activité" variant="chart">
+            <p className="ct-placeholder">Aucune activité récente.</p>
+          </Card>
+        </div>
+        <div>
+          <Card title="Ressources" variant="chart">
+            <p className="ct-placeholder">Aucune ressource allouée.</p>
+          </Card>
+        </div>
       </div>
 
-      {loadError ? (
-        <Card>
+      <Card variant="dense">
+        {loadError ? (
           <p className="ct-error">{loadError}</p>
-        </Card>
-      ) : swarms.length === 0 ? (
-        <Card>
-          <p className="crm-empty">{UI.swarms.empty}</p>
-        </Card>
-      ) : (
-        <div className="crm-grid">
-          {swarms.map((swarm) => (
-            <SwarmCard
-              key={swarm.id}
-              id={swarm.id}
-              name={swarm.name}
-              description={swarm.description}
-              isActive={swarm.is_active}
-              agentCount={swarm.agents?.length ?? 0}
-              taskCount={swarm.tasks?.length ?? 0}
-            />
-          ))}
-        </div>
-      )}
-    </>
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={swarms}
+            emptyLabel={UI.swarms.empty}
+            getKey={(s) => s.id}
+          />
+        )}
+      </Card>
+    </PageStack>
   );
 }

@@ -256,18 +256,18 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
             <p className="ct-card-title">{UI.swarms.manualSectionGeneral}</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-xs)" }}>
               <div>
-                <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{UI.swarms.metaName}</span>
-                <p style={{ fontSize: "var(--ct-fs-md)", color: "var(--ct-text-primary)", margin: 0 }}>{swarm.name}</p>
+                <span className="swarm-meta-label">{UI.swarms.metaName}</span>
+                <p className="swarm-meta-value-lg">{swarm.name}</p>
               </div>
               {swarm.description && (
                 <div>
-                  <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{UI.swarms.metaDescription}</span>
-                  <p style={{ fontSize: "var(--ct-fs-base)", color: "var(--ct-text-body)", margin: 0 }}>{swarm.description}</p>
+                  <span className="swarm-meta-label">{UI.swarms.metaDescription}</span>
+                  <p className="swarm-meta-value">{swarm.description}</p>
                 </div>
               )}
               <div>
-                <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{UI.swarms.metaCreatedAt}</span>
-                <p style={{ fontSize: "var(--ct-fs-base)", color: "var(--ct-text-body)", margin: 0 }}>{createdAt}</p>
+                <span className="swarm-meta-label">{UI.swarms.metaCreatedAt}</span>
+                <p className="swarm-meta-value">{createdAt}</p>
               </div>
             </div>
 
@@ -297,7 +297,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
                   <p className="swarm-agent-role">{agent.role}</p>
                   {agent.goal && <p className="swarm-agent-goal">{agent.goal}</p>}
                   {agent.backstory && (
-                    <p style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)", marginTop: "var(--ct-space-2xs)" }}>{agent.backstory}</p>
+                    <p className="swarm-meta-backstory">{agent.backstory}</p>
                   )}
                 </div>
               ))}
@@ -314,12 +314,12 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
                   <p className="swarm-agent-name">{task.name}</p>
                   {task.description && <p className="swarm-agent-goal">{task.description}</p>}
                   {task.expected_output && (
-                    <p style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)", marginTop: "var(--ct-space-2xs)" }}>
+                    <p className="swarm-meta-backstory">
                       {UI.swarms.expectedOutputPrefix}{task.expected_output}
                     </p>
                   )}
                   {task.agent_name && (
-                    <span className="swarm-tool-badge" style={{ marginTop: 4, display: "inline-block" }}>
+                    <span className="swarm-tool-badge swarm-task-agent-badge">
                       {task.agent_name}
                     </span>
                   )}

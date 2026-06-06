@@ -1,62 +1,42 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
-import { Funnel } from "@/components/cockpit/Funnel";
-import { BarList } from "@/components/cockpit/BarList";
-import { Donut } from "@/components/cockpit/Donut";
+import {
+  KpiGrid,
+  KpiCard,
+  Card,
+  HeroMetric,
+  PageStack,
+} from "@/components/cockpit/primitives";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
-import { countByStatus, topByCategory, distributeByBand, ratio } from "@/lib/crm/aggregate";
-import { eur, dateFr } from "@/lib/crm/format";
-import { UI } from "@/lib/ui-strings";
+import { dateFr } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 
-/** Nombre d'estimations récentes affichées dans le tableau. */
-const RECENT_LIMIT = 5;
-
-/** Nombre de prochaines visites affichées dans l'activité récente. */
-const VISITS_LIMIT = 5;
+/** Nombre de biens récents affichés dans le cockpit. */
+const RECENT_PROPERTIES_LIMIT = 6;
 
 /** Statuts leads considérés comme "terminés" (exclus du count actifs). */
 const LEADS_CLOSED = ["gagne", "perdu"];
 
-/** Ordre canonique du cycle d'une estimation (pour le funnel). */
-const ESTIMATION_STATUSES = ["draft", "interviewing", "recap", "valuating", "ready", "archived"];
-
-/** Tonalité d'un statut d'estimation (ready = positif, archived = négatif). */
-function estimationTone(status: string): "is-positive" | "is-negative" | "is-pending" {
-  if (status === "ready") return "is-positive";
-  if (status === "archived") return "is-negative";
-  return "is-pending";
-}
-
-type EstRow = {
+type PropertyRow = {
   id: string;
+  title: string | null;
   status: string;
   city: string | null;
   property_type: string | null;
-  market_value: number | null;
   updated_at: string;
 };
 
-type UpcomingVisit = {
-  id: string;
-  scheduled_at: string;
-  property_id: string | null;
-  properties: { title: string | null; city: string | null } | null;
-};
-
 export default async function DashboardPage() {
-  const t = UI.dashboard;
   const claims = await getSession();
   const sb = getSupabaseAdmin();
 
-  let rows: EstRow[] = [];
-  let nbProperties = 0;
+  let properties: PropertyRow[] = [];
   let nbLeadsActifs = 0;
   let nbVisitesAVenir = 0;
   let nbMandatsActifs = 0;
-  let upcomingVisits: UpcomingVisit[] = [];
+  let nbBiensEnVente = 0;
+  let nbProperties = 0;
 
   if (claims && sb) {
     const uid = claims.sub;
@@ -64,25 +44,33 @@ export default async function DashboardPage() {
     const now = new Date().toISOString();
 
     const [
-      estimationsRes,
       propertiesRes,
+      propertiesTotalRes,
+      propertiesForSaleRes,
       leadsRes,
       visitsCountRes,
-      visitsUpcomingRes,
       mandatesRes,
     ] = await Promise.all([
       sb
-        .from("estimations")
-        .select("id, status, city, property_type, market_value, updated_at")
+        .from("properties")
+        .select("id, title, status, city, property_type, updated_at")
         .eq("user_id", uid)
         .eq("tenant_id", tid)
-        .order("updated_at", { ascending: false }),
+        .order("updated_at", { ascending: false })
+        .limit(RECENT_PROPERTIES_LIMIT),
 
       sb
         .from("properties")
         .select("id", { count: "exact", head: true })
         .eq("user_id", uid)
         .eq("tenant_id", tid),
+
+      sb
+        .from("properties")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", uid)
+        .eq("tenant_id", tid)
+        .eq("status", "en_vente"),
 
       sb
         .from("leads")
@@ -99,15 +87,6 @@ export default async function DashboardPage() {
         .gte("scheduled_at", now),
 
       sb
-        .from("visits")
-        .select("id, scheduled_at, property_id, properties(title, city)")
-        .eq("user_id", uid)
-        .eq("tenant_id", tid)
-        .gte("scheduled_at", now)
-        .order("scheduled_at", { ascending: true })
-        .limit(VISITS_LIMIT),
-
-      sb
         .from("mandates")
         .select("id", { count: "exact", head: true })
         .eq("user_id", uid)
@@ -115,148 +94,131 @@ export default async function DashboardPage() {
         .eq("status", "actif"),
     ]);
 
-    rows = estimationsRes.data ?? [];
-    nbProperties = propertiesRes.count ?? 0;
+    properties = (propertiesRes.data ?? []) as PropertyRow[];
+    nbProperties = propertiesTotalRes.count ?? 0;
+    nbBiensEnVente = propertiesForSaleRes.count ?? 0;
     nbLeadsActifs = leadsRes.count ?? (leadsRes.data?.length ?? 0);
     nbVisitesAVenir = visitsCountRes.count ?? 0;
     nbMandatsActifs = mandatesRes.count ?? 0;
-    upcomingVisits = (visitsUpcomingRes.data as unknown as UpcomingVisit[]) ?? [];
   }
 
-  // ── Agrégations viz (données déjà en mémoire) ──
-  const pipeline = countByStatus(rows, ESTIMATION_STATUSES, UI.estimations.status, estimationTone);
-  const byCity = topByCategory(rows, "city");
-  const byValueBand = distributeByBand(rows, "market_value");
-  const readyRate = ratio(rows, (r) => r.status === "ready");
-
-  const recent = rows.slice(0, RECENT_LIMIT);
-
-  const recentColumns: Column<EstRow>[] = [
+  const recentColumns: Column<PropertyRow>[] = [
     {
       key: "property",
-      header: t.table.property,
-      render: (r) =>
-        r.city ?? r.property_type ?? UI.estimations.fallbackName,
+      header: "Bien",
+      render: (r) => (
+        <Link href={`/properties/${r.id}`} className="crm-link">
+          {r.title ?? r.city ?? "Bien sans titre"}
+        </Link>
+      ),
     },
     {
       key: "status",
-      header: t.table.status,
-      render: (r) => (
-        <span className={`crm-status ${estimationTone(r.status)}`}>
-          {UI.estimations.status[r.status] ?? r.status}
-        </span>
-      ),
+      header: "Statut",
+      render: (r) => r.status,
     },
-    {
-      key: "value",
-      header: t.table.value,
-      align: "right",
-      render: (r) => eur(r.market_value),
-    },
+    { key: "type", header: "Type", render: (r) => r.property_type ?? "—" },
+    { key: "city", header: "Ville", render: (r) => r.city ?? "—" },
     {
       key: "updated",
-      header: t.table.updated,
+      header: "Maj",
       align: "right",
       render: (r) => dateFr(r.updated_at),
-    },
-    {
-      key: "action",
-      header: t.table.action,
-      align: "right",
-      render: (r) => (
-        <Link href={`/estimations/${r.id}`} className="ct-seg-btn">
-          {r.status === "draft" || r.status === "interviewing"
-            ? UI.estimations.resume
-            : UI.estimations.open}
-        </Link>
-      ),
     },
   ];
 
   return (
-    <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
-
-      {/* ── KPI CRM ── */}
-      <KpiGrid>
-        <KpiCard label={t.kpis.properties} value={String(nbProperties)} accent />
-        <KpiCard label={t.kpis.activeLeads} value={String(nbLeadsActifs)} />
-        <KpiCard label={t.kpis.upcomingVisits} value={String(nbVisitesAVenir)} />
-        <KpiCard label={t.kpis.activeMandates} value={String(nbMandatsActifs)} />
-      </KpiGrid>
-
-      {/* ── Viz rangée 1 : pipeline + villes ── */}
+    <PageStack>
       <div className="ct-viz-row">
-        <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
-        </Card>
-        <Card title={t.charts.byCity}>
-          <BarList items={byCity} emptyLabel={UI.viz.empty} />
-        </Card>
-      </div>
-
-      {/* ── Viz rangée 2 : tranches de valeur + complétion ── */}
-      <div className="ct-viz-row">
-        <Card title={t.charts.byValueBand}>
-          <BarList items={byValueBand} emptyLabel={UI.viz.empty} />
-        </Card>
-        <Card title={t.charts.completion}>
-          <Donut value={readyRate} sublabel={t.charts.completionSub} accent />
-        </Card>
-      </div>
-
-      {/* ── Activité récente : prochaines visites ── */}
-      {upcomingVisits.length > 0 && (
-        <Card title={t.activity}>
-          {upcomingVisits.map((v) => {
-            const propLabel =
-              v.properties?.title ??
-              v.properties?.city ??
-              (v.property_id ? t.propertyLinked : t.propertyMissing);
-            return (
-              <div className="est-list-row" key={v.id}>
-                <div className="est-list-info">
-                  <div className="est-list-main">{propLabel}</div>
-                  <div className="est-list-meta">
-                    <span className="ct-badge">{t.visitBadge}</span>
-                    <span className="ct-placeholder">{dateFr(v.scheduled_at)}</span>
-                  </div>
-                </div>
+        <div>
+          <Card variant="chart">
+            <HeroMetric
+              eyebrow="Cockpit agence"
+              value={String(nbProperties)}
+              label="biens suivis dans le portefeuille"
+            >
+              <div className="ct-hero-visual">
+                <hearst-asset
+                  id="viz:holo-rings"
+                  catalog-base="/cockpit-catalog/catalog/"
+                  aria-label="Visualisation cockpit agence"
+                />
               </div>
-            );
-          })}
-        </Card>
-      )}
-
-      {/* ── Estimations récentes (tableau) ── */}
-      <Card title={t.recent}>
-        {recent.length === 0 ? (
-          <>
-            <p className="ct-placeholder">{UI.estimations.empty}</p>
+            </HeroMetric>
             <div className="ct-mb-sm" />
-            <Link href="/estimations/new" className="ct-seg-btn primary">
-              {UI.estimations.newCta}
+            <div className="ct-card-title">Priorités commerciales</div>
+            <div className="ct-action-list">
+              <Link href="/leads" className="ct-action-row">
+                <span>
+                  <strong>{nbLeadsActifs}</strong>
+                  Leads actifs à traiter
+                </span>
+                <span className="ct-action-arrow">Ouvrir</span>
+              </Link>
+              <Link href="/visits" className="ct-action-row">
+                <span>
+                  <strong>{nbVisitesAVenir}</strong>
+                  Visites à venir à préparer
+                </span>
+                <span className="ct-action-arrow">Ouvrir</span>
+              </Link>
+              <Link href="/mandates" className="ct-action-row">
+                <span>
+                  <strong>{nbMandatsActifs}</strong>
+                  Mandats actifs à piloter
+                </span>
+                <span className="ct-action-arrow">Ouvrir</span>
+              </Link>
+            </div>
+          </Card>
+        </div>
+
+        <div>
+          <Card title="Portefeuille" variant="chart">
+            <KpiGrid className="cols-2">
+              <KpiCard label="En vente" value={String(nbBiensEnVente)} accent />
+              <KpiCard label="Mandats actifs" value={String(nbMandatsActifs)} />
+            </KpiGrid>
+            <div className="ct-mb-sm" />
+            <Link href="/properties" className="ct-seg-btn primary" style={{ width: "fit-content" }}>
+              Voir les biens
+            </Link>
+            <div className="ct-mb-sm" />
+            <div className="ct-card-title">Actions rapides</div>
+            <div className="ct-quick-actions">
+              <Link href="/properties" className="ct-seg-btn">Biens</Link>
+              <Link href="/leads" className="ct-seg-btn">Leads</Link>
+              <Link href="/visits" className="ct-seg-btn">Visites</Link>
+              <Link href="/mandates" className="ct-seg-btn">Mandats</Link>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      <Card variant="dense">
+        {properties.length === 0 ? (
+          <>
+            <p className="ct-placeholder">Aucun bien pour le moment.</p>
+            <div className="ct-mb-sm" />
+            <Link href="/properties" className="ct-seg-btn primary">
+              Ajouter un bien
             </Link>
           </>
         ) : (
           <>
             <DataTable
               columns={recentColumns}
-              rows={recent}
-              emptyLabel={UI.estimations.empty}
+              rows={properties}
+              emptyLabel="Aucun bien pour le moment."
               getKey={(r) => r.id}
             />
             <div className="ct-mb-sm" />
-            <Link href="/estimations" className="ct-seg-btn">
-              {t.seeAll}
+            <Link href="/properties" className="ct-seg-btn">
+              Voir tous les biens
             </Link>
           </>
         )}
       </Card>
-
-      <Card title={t.cards.assistantTitle}>{t.cards.assistantBody}</Card>
-    </>
+    </PageStack>
   );
 }

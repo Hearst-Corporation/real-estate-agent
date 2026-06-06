@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
+import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
+import { DataTable, type Column } from "@/components/cockpit/DataTable";
+import { dateFr, timeFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
-import { dateFr, timeFr } from "@/lib/crm/format";
-import { statusTone } from "@/lib/crm/statusTone";
 
 type VisitRow = {
   id: string;
@@ -16,17 +17,6 @@ type VisitRow = {
   leads: { full_name: string } | null;
 };
 
-/** Groupe un tableau de visites par jour (clé ISO YYYY-MM-DD). */
-function groupByDay(visits: VisitRow[]): Map<string, VisitRow[]> {
-  const map = new Map<string, VisitRow[]>();
-  for (const v of visits) {
-    const key = v.scheduled_at.slice(0, 10);
-    const bucket = map.get(key) ?? [];
-    bucket.push(v);
-    map.set(key, bucket);
-  }
-  return map;
-}
 
 /** Compte les visites planifiées dans les 7 prochains jours (à partir d'aujourd'hui minuit). */
 function countThisWeek(visits: VisitRow[]): number {
@@ -70,78 +60,86 @@ export default async function AgendaPage() {
   const today = countToday(visits);
   const toConfirm = visits.filter((v) => v.status === "planifiee").length;
 
-  const grouped = groupByDay(visits);
-  const days = Array.from(grouped.keys());
+  const CRM_TABS = [
+    { href: "/properties", label: UI.nav.properties },
+    { href: "/leads", label: UI.nav.leads },
+    { href: "/visits", label: UI.nav.visits },
+    { href: "/mandates", label: UI.nav.mandates },
+    { href: "/agenda", label: UI.nav.agenda },
+  ];
+
+  const columns: Column<VisitRow>[] = [
+    {
+      key: "date",
+      header: "Date",
+      render: (r) => (
+        <div>
+          <div>{dateFr(r.scheduled_at)}</div>
+          <div className="ct-subtext">{timeFr(r.scheduled_at)}</div>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Statut",
+      render: (r) => r.status,
+    },
+    {
+      key: "property",
+      header: "Bien",
+      render: (r) => r.properties?.title ?? r.properties?.city ?? "—",
+    },
+    {
+      key: "lead",
+      header: "Contact",
+      render: (r) => r.leads?.full_name ?? "—",
+    },
+  ];
 
   return (
-    <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
+    <PageStack>
+      <PageHeader
+        kicker={t.eyebrow}
+        title={t.title}
+        nav={<PageNavTabs tabs={CRM_TABS} />}
+        kpis={[
+          { label: t.kpis.thisWeek, value: String(thisWeek) },
+          { label: t.kpis.today, value: String(today) },
+          { label: t.kpis.toConfirm, value: String(toConfirm) },
+        ]}
+      />
 
-      <KpiGrid>
-        <KpiCard label={t.kpis.thisWeek} value={String(thisWeek)} />
-        <KpiCard label={t.kpis.today} value={String(today)} />
-        <KpiCard label={t.kpis.toConfirm} value={String(toConfirm)} accent={toConfirm > 0} />
-      </KpiGrid>
+      <div className="ct-viz-row">
+        <div>
+          <Card title="Activité" variant="chart">
+            <p className="ct-placeholder">Aucune activité récente.</p>
+          </Card>
+        </div>
+        <div>
+          <Card title="Rappels" variant="chart">
+            <p className="ct-placeholder">Aucun rappel pour le moment.</p>
+          </Card>
+        </div>
+      </div>
 
-      <div className="ct-mb-sm" />
-
-      {visits.length === 0 ? (
-        <Card>
-          <p className="ct-placeholder">{tv.empty}</p>
-          <div className="ct-mb-sm" />
-          <Link href="/visits" className="ct-seg-btn">
-            {tv.newCta}
-          </Link>
-        </Card>
-      ) : (
-        days.map((day) => {
-          const dayVisits = grouped.get(day)!;
-          return (
-            <div key={day} className="crm-agenda-day">
-              <p className="ct-eyebrow crm-agenda-day-header">
-                {dateFr(day)}
-              </p>
-              {dayVisits.map((v) => {
-                const tone = statusTone("visit", v.status);
-                const propertyLabel =
-                  v.properties?.title ?? v.properties?.city ?? UI.common.empty;
-                const cityLabel = v.properties?.city
-                  ? `${t.locationSeparator}${v.properties.city}`
-                  : "";
-                const leadLabel = v.leads?.full_name ?? null;
-                const statusLabel =
-                  tv.statusLabels[v.status] ?? v.status;
-
-                return (
-                  <Card key={v.id}>
-                    <div className="crm-agenda-row">
-                      <span className="crm-agenda-time">
-                        {timeFr(v.scheduled_at)}
-                      </span>
-                      <div className="crm-agenda-info">
-                        <span className="crm-agenda-property">
-                          {propertyLabel}
-                          {cityLabel}
-                        </span>
-                        {leadLabel && (
-                          <span className="crm-agenda-lead">{leadLabel}</span>
-                        )}
-                      </div>
-                      <Badge>
-                        <span className={`crm-status ${tone}`}>
-                          {statusLabel}
-                        </span>
-                      </Badge>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          );
-        })
-      )}
-    </>
+      <Card variant="dense">
+        {visits.length === 0 ? (
+          <>
+            <p className="ct-placeholder">{tv.empty}</p>
+            <div className="ct-mb-sm" />
+            <Link href="/visits" className="ct-seg-btn">
+              {tv.newCta}
+            </Link>
+          </>
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={visits}
+            emptyLabel={tv.empty}
+            getKey={(v) => v.id}
+          />
+        )}
+      </Card>
+    </PageStack>
   );
 }

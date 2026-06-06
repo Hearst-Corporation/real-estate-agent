@@ -1,5 +1,5 @@
 /**
- * DataTable — tableau générique typé autour de .est-listing-table (déjà stylée).
+ * DataTable — tableau générique typé pour les écrans cockpit.
  * Server component (les colonnes peuvent rendre des composants clients).
  */
 
@@ -26,8 +26,8 @@ export function DataTable<T>({ columns, rows, emptyLabel, getKey }: DataTablePro
   }
 
   return (
-    <div className="est-listing-table-wrap">
-      <table className="est-listing-table">
+    <div className="ct-data-table-wrap">
+      <table className="ct-data-table">
         <thead>
           <tr>
             {columns.map((col) => (

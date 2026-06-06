@@ -1,4 +1,5 @@
-import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
+import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
+import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
@@ -50,6 +51,14 @@ export default async function MandatesPage() {
   );
   const byKind = topByCategory(mandates, "kind", t.kindLabels);
 
+  const CRM_TABS = [
+    { href: "/properties", label: UI.nav.properties },
+    { href: "/leads", label: UI.nav.leads },
+    { href: "/visits", label: UI.nav.visits },
+    { href: "/mandates", label: UI.nav.mandates },
+    { href: "/agenda", label: UI.nav.agenda },
+  ];
+
   const columns: Column<MandateRow>[] = [
     {
       key: "reference",
@@ -87,38 +96,36 @@ export default async function MandatesPage() {
   ];
 
   return (
-    <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-      <Title>{t.title}</Title>
-      <Sub>{t.sub}</Sub>
-
-      <KpiGrid>
-        <KpiCard label={t.kpis.total} value={String(mandates.length)} />
-        <KpiCard label={t.kpis.active} value={String(actifs.length)} accent />
-        <KpiCard label={t.kpis.underMandate} value={eur(underMandate)} />
-        <KpiCard
-          label={t.kpis.avgCommission}
-          value={avgCommission > 0 ? `${avgCommission}${t.commissionUnit}` : "—"}
-        />
-      </KpiGrid>
+    <PageStack>
+      <PageHeader
+        kicker={t.eyebrow}
+        title={t.title}
+        nav={<PageNavTabs tabs={CRM_TABS} />}
+        action={<MandateFormModal cta={t.newCta} />}
+        kpis={[
+          { label: t.kpis.total, value: String(mandates.length) },
+          { label: t.kpis.active, value: String(actifs.length) },
+          { label: t.kpis.underMandate, value: eur(underMandate) },
+          { label: t.kpis.avgCommission, value: avgCommission > 0 ? `${avgCommission}${t.commissionUnit}` : "—" },
+        ]}
+      />
 
       <div className="ct-viz-row">
-        <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
-        </Card>
-        <Card title={t.charts.byKind}>
-          <BarList items={byKind} emptyLabel={UI.viz.empty} />
-        </Card>
+        <div>
+          <Card title={t.charts.pipeline} variant="chart">
+            <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+          </Card>
+        </div>
+        <div>
+          <Card title={t.charts.byKind} variant="chart">
+            <BarList items={byKind} emptyLabel={UI.viz.empty} />
+          </Card>
+        </div>
       </div>
 
-      <div className="crm-toolbar">
-        <span className="ct-card-title">{t.title}</span>
-        <MandateFormModal cta={t.newCta} />
-      </div>
-
-      <Card>
+      <Card variant="dense">
         <DataTable columns={columns} rows={mandates} emptyLabel={t.empty} getKey={(m) => m.id} />
       </Card>
-    </>
+    </PageStack>
   );
 }

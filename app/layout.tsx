@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import "./cockpit.css";
 import { UI } from "@/lib/ui-strings";
@@ -11,10 +12,20 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // data-product = seul switch d'accent autorisé (défaut). L'AccentSelector le surcharge côté client.
+  // data-product reste figé pour la palette Cockpit BienCible.
   return (
     <html lang="fr" data-product="default">
-      <body>{children}</body>
+      <body>
+        <Script
+          id="hearst-catalog-base"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: "window.HEARST_CATALOG_BASE='/cockpit-catalog/catalog/';",
+          }}
+        />
+        <Script src="/hearst-asset.js" strategy="beforeInteractive" />
+        {children}
+      </body>
     </html>
   );
 }

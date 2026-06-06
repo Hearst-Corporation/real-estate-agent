@@ -20,9 +20,10 @@ export function Funnel({ steps, emptyLabel }: FunnelProps) {
 
   return (
     <div className="ct-chart-funnel">
-      {steps.map((step) => (
+      {steps.map((step, index) => (
         <div className="ct-chart-funnel-step" key={step.label}>
           <div className="ct-chart-funnel-head">
+            <span className="ct-chart-funnel-index">{String(index + 1).padStart(2, "0")}</span>
             <span className="ct-chart-funnel-label">{step.label}</span>
             <span className="ct-chart-funnel-count">{step.count}</span>
           </div>
