@@ -53,7 +53,7 @@ export default async function SwarmsPage() {
     { href: "/swarms/prospection", label: "Prospection" },
   ];
 
-  const columns: Column<SwarmRow>[] = [
+  const columns: Column<Swarm>[] = [
     {
       key: "name",
       header: "Nom",
