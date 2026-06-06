@@ -83,7 +83,13 @@ export function LeadRowActions({ id, fullName, defaultValues }: LeadRowActionsPr
       {message ? <span className="ct-placeholder">{message}</span> : null}
 
       {editing && (
-        <div className="crm-form-overlay">
+        <div
+          className="crm-form-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Modifier le lead"
+          onKeyDown={(e) => { if (e.key === "Escape") setEditing(false); }}
+        >
           <div className="crm-form-modal">
             <LeadForm id={id} defaultValues={defaultValues} onClose={() => setEditing(false)} />
           </div>

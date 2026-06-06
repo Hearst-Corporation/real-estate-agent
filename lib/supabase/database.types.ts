@@ -2747,61 +2747,106 @@ export type Database = {
           address: string | null
           asking_price: number | null
           bedrooms: number | null
+          cellar: boolean
+          charges_monthly: number | null
           city: string | null
           created_at: string
+          dpe_letter: string | null
           estimated_value: number | null
           estimation_id: string | null
+          floor: number | null
+          floor_total: number | null
+          ges_letter: string | null
+          has_elevator: boolean
+          has_garden: boolean
+          has_parking: boolean
+          has_pool: boolean
+          has_terrace: boolean
           id: string
           notes: string | null
+          orientation: string | null
+          parking_count: number | null
           postal_code: string | null
           property_type: string | null
           rooms: number | null
           status: string
           surface: number | null
+          taxe_fonciere: number | null
           tenant_id: string
           title: string | null
           updated_at: string
           user_id: string | null
+          year_built: number | null
         }
         Insert: {
           address?: string | null
           asking_price?: number | null
           bedrooms?: number | null
+          cellar?: boolean
+          charges_monthly?: number | null
           city?: string | null
           created_at?: string
+          dpe_letter?: string | null
           estimated_value?: number | null
           estimation_id?: string | null
+          floor?: number | null
+          floor_total?: number | null
+          ges_letter?: string | null
+          has_elevator?: boolean
+          has_garden?: boolean
+          has_parking?: boolean
+          has_pool?: boolean
+          has_terrace?: boolean
           id?: string
           notes?: string | null
+          orientation?: string | null
+          parking_count?: number | null
           postal_code?: string | null
           property_type?: string | null
           rooms?: number | null
           status?: string
           surface?: number | null
+          taxe_fonciere?: number | null
           tenant_id?: string
           title?: string | null
           updated_at?: string
           user_id?: string | null
+          year_built?: number | null
         }
         Update: {
           address?: string | null
           asking_price?: number | null
           bedrooms?: number | null
+          cellar?: boolean
+          charges_monthly?: number | null
           city?: string | null
           created_at?: string
+          dpe_letter?: string | null
           estimated_value?: number | null
           estimation_id?: string | null
+          floor?: number | null
+          floor_total?: number | null
+          ges_letter?: string | null
+          has_elevator?: boolean
+          has_garden?: boolean
+          has_parking?: boolean
+          has_pool?: boolean
+          has_terrace?: boolean
           id?: string
           notes?: string | null
+          orientation?: string | null
+          parking_count?: number | null
           postal_code?: string | null
           property_type?: string | null
           rooms?: number | null
           status?: string
           surface?: number | null
+          taxe_fonciere?: number | null
           tenant_id?: string
           title?: string | null
           updated_at?: string
           user_id?: string | null
+          year_built?: number | null
         }
         Relationships: [
           {
@@ -2809,6 +2854,50 @@ export type Database = {
             columns: ["estimation_id"]
             isOneToOne: false
             referencedRelation: "estimations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_photos: {
+        Row: {
+          created_at: string
+          id: string
+          is_cover: boolean
+          position: number
+          property_id: string
+          storage_key: string
+          tenant_id: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_cover?: boolean
+          position?: number
+          property_id: string
+          storage_key: string
+          tenant_id?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_cover?: boolean
+          position?: number
+          property_id?: string
+          storage_key?: string
+          tenant_id?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_photos_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -2861,9 +2950,6 @@ export type Database = {
           prix_m2: number | null
           prix_original: number | null
           rentabilite_estimee: number | null
-          mandat_eligible: boolean | null
-          score_breakdown: Json | null
-          score_mandat: number | null
           scored_at: string | null
           siren_annonceur: string | null
           source_id: string | null
@@ -2928,9 +3014,6 @@ export type Database = {
           prix_m2?: number | null
           prix_original?: number | null
           rentabilite_estimee?: number | null
-          mandat_eligible?: boolean | null
-          score_breakdown?: Json | null
-          score_mandat?: number | null
           scored_at?: string | null
           siren_annonceur?: string | null
           source_id?: string | null
@@ -2995,9 +3078,6 @@ export type Database = {
           prix_m2?: number | null
           prix_original?: number | null
           rentabilite_estimee?: number | null
-          mandat_eligible?: boolean | null
-          score_breakdown?: Json | null
-          score_mandat?: number | null
           scored_at?: string | null
           siren_annonceur?: string | null
           source_id?: string | null

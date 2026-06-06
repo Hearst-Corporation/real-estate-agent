@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { UI } from "@/lib/ui-strings";
+import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { DataTable, type Column } from "@/components/cockpit/DataTable";
 
 interface Annonce {
   id: string;
@@ -14,8 +16,6 @@ interface Annonce {
   url?: string;
   photos?: string[];
   is_pap: boolean;
-  score_mandat?: number;
-  mandat_eligible?: boolean;
 }
 
 interface Match {
@@ -26,12 +26,31 @@ interface Match {
   annonce: Annonce;
 }
 
-type Tab = "annonces" | "matching" | "criteres";
+interface Critere {
+  id: string;
+  nom: string;
+  zones?: unknown;
+  budget_min?: number | null;
+  budget_max?: number | null;
+  surface_min?: number | null;
+  surface_max?: number | null;
+  pieces_min?: number | null;
+  pieces_max?: number | null;
+  type_bien?: string[] | null;
+  telephone?: string | null;
+  alerte_email?: boolean;
+  alerte_whatsapp?: boolean;
+}
+
+type Tab = "acquereurs" | "matching" | "annonces" | "criteres";
+
+const TABS: Tab[] = ["acquereurs", "matching", "annonces", "criteres"];
 
 export default function ProspectionPage() {
-  const [tab, setTab] = useState<Tab>("annonces");
+  const [tab, setTab] = useState<Tab>("acquereurs");
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
   const [matchs, setMatchs] = useState<Match[]>([]);
+  const [criteres, setCriteres] = useState<Critere[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterEligible, setFilterEligible] = useState(false);
@@ -74,34 +93,52 @@ export default function ProspectionPage() {
     }
   }
 
+  async function loadCriteres() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/prospection/criteres");
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error ?? `Erreur HTTP ${res.status}`);
+        return;
+      }
+      setCriteres(json.data ?? []);
+    } catch {
+      setError(UI.prospection.loadCriteresError);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function selectTab(nextTab: Tab) {
     setTab(nextTab);
     if (nextTab === "annonces" && annonces.length === 0) void loadAnnonces();
     if (nextTab === "matching" && matchs.length === 0) void loadMatchs();
+    if ((nextTab === "acquereurs" || nextTab === "criteres") && criteres.length === 0) void loadCriteres();
   }
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadInitialAnnonces() {
+    async function loadInitialCriteres() {
       try {
-        const res = await fetch("/api/prospection/annonces");
+        const res = await fetch("/api/prospection/criteres");
         const json = await res.json().catch(() => ({}));
         if (cancelled) return;
         if (!res.ok) {
           setError(json.error ?? `Erreur HTTP ${res.status}`);
           return;
         }
-        if (json.degraded) setError(UI.prospection.degradedAnnonces);
-        setAnnonces(json.data ?? []);
+        setCriteres(json.data ?? []);
       } catch {
-        if (!cancelled) setError(UI.prospection.loadAnnoncesError);
+        if (!cancelled) setError(UI.prospection.loadCriteresError);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
-    void loadInitialAnnonces();
+    void loadInitialCriteres();
     return () => {
       cancelled = true;
     };
@@ -126,138 +163,222 @@ export default function ProspectionPage() {
     }
   }
 
-  return (
-    <div className="prospection-page">
-      <div className="prospection-header">
-        <h1 className="ct-title prospection-title">{UI.prospection.title}</h1>
-        <div className="ct-seg-track">
-          {(["annonces","matching","criteres"] as Tab[]).map(t => (
-            <button key={t} className={`ct-seg-btn${tab === t ? " active" : ""}`} onClick={() => selectTab(t)}>
-              {t === "annonces" ? UI.prospection.annonces : t === "matching" ? UI.prospection.matching : UI.prospection.criteres}
-            </button>
-          ))}
+  const acquereurColumns: Column<Critere>[] = [
+    { key: "nom", header: "Nom", render: (c) => <strong>{c.nom}</strong> },
+    { key: "budget", header: "Budget", render: (c) => budgetLabel(c) },
+    { key: "zones", header: "Zones", render: (c) => zonesLabel(c.zones) },
+    { key: "contact", header: "Contact", render: (c) => c.telephone ?? "—" },
+    {
+      key: "criteres",
+      header: "Critères",
+      render: (c) => (
+        <div className="prospection-acquereur-tags" style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+          {c.type_bien?.map((type) => <span key={type} className="prospection-pill" style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--ct-surface-hover)" }}>{type}</span>)}
+          {c.surface_min ? <span className="prospection-pill" style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--ct-surface-hover)" }}>{c.surface_min} m² min</span> : null}
+          {c.pieces_min ? <span className="prospection-pill" style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--ct-surface-hover)" }}>{c.pieces_min} p min</span> : null}
         </div>
-      </div>
+      ),
+    },
+  ];
 
-      {tab === "annonces" && (
+  const annonceColumns: Column<Annonce>[] = [
+    {
+      key: "titre",
+      header: "Annonce",
+      render: (a) => (
         <div>
-          <div className="prospection-toolbar">
-            <label className="prospection-filter">
-              <input
-                type="checkbox"
-                checked={filterEligible}
-                onChange={e => {
-                  const checked = e.target.checked;
-                  setFilterEligible(checked);
-                  void loadAnnonces(checked);
-                }}
-              />
-              {UI.prospection.eligibleOnly}
-            </label>
-            <span className="prospection-count">{annonces.length} annonces</span>
-            <button type="button" className="ct-seg-btn" onClick={() => loadAnnonces()}>
-              {UI.prospection.refresh}
-            </button>
+          <div style={{ fontWeight: 500 }}>{a.titre ?? a.type_bien}</div>
+          <div className="ct-subtext">
+            {[a.surface && `${a.surface}m²`, a.pieces && `${a.pieces}p`, a.ville ?? a.code_postal].filter(Boolean).join(" · ")}
           </div>
-          {error && annonces.length > 0 ? <p className="ct-error">{error}</p> : null}
-          {loading ? <Spinner /> : (
-            <div className="prospection-grid">
-              {annonces.map(a => <AnnonceCard key={a.id} annonce={a} />)}
-              {!annonces.length && (
-                <EmptyState
-                  title={error ?? UI.prospection.emptyAnnonces}
-                  text="Vérifiez l'ingestion ou les providers configurés."
-                />
-              )}
-            </div>
-          )}
         </div>
-      )}
+      ),
+    },
+    { key: "prix", header: "Prix", render: (a) => a.prix ? `${Math.round(a.prix / 1000)}k€` : "NC" },
+    {
+      key: "tags",
+      header: "Tags",
+      render: (a) => (
+        <div style={{ display: "flex", gap: "4px" }}>
+          {a.is_pap && <span className="prospection-pap" style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--ct-surface-accent)", color: "var(--ct-text-accent)" }}>PAP</span>}
+        </div>
+      ),
+    },
+    {
+      key: "action",
+      header: "Action",
+      align: "right",
+      render: (a) => a.url ? <a href={a.url} target="_blank" rel="noopener" className="crm-link">Voir →</a> : "—",
+    },
+  ];
 
-      {tab === "matching" && (
-        <div>
-          <p className="prospection-hint">
-            {UI.prospection.matchingHint}
-          </p>
-          <button type="button" className="ct-seg-btn prospection-refresh" onClick={() => loadMatchs()}>
-            {UI.prospection.refresh}
+  const matchColumns: Column<Match>[] = [
+    {
+      key: "score",
+      header: "Score",
+      render: (m) => (
+        <div className={`prospection-score${m.score_match >= 70 ? " is-good" : ""}`} style={{ fontWeight: "bold", color: m.score_match >= 70 ? "var(--ct-text-success)" : "inherit" }}>
+          {m.score_match}
+        </div>
+      ),
+    },
+    {
+      key: "annonce",
+      header: "Annonce",
+      render: (m) => {
+        const a = m.annonce;
+        const prix = a.prix ? `${Math.round(a.prix / 1000)}k€` : "NC";
+        return (
+          <div>
+            <div style={{ fontWeight: 500 }}>{a.titre ?? a.type_bien}</div>
+            <div className="ct-subtext">
+              {[a.surface && `${a.surface}m²`, a.pieces && `${a.pieces}p`, a.ville ?? a.code_postal, prix].filter(Boolean).join(" · ")}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (m) => (
+        <div className="prospection-match-actions" style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <button className="ct-seg-btn" onClick={() => sendFeedback(m.id, "like")}>👍</button>
+          <button className="ct-seg-btn" onClick={() => sendFeedback(m.id, "dislike")}>👎</button>
+          <button className="ct-seg-btn primary" onClick={() => sendFeedback(m.id, "contact")}>Contacter</button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <PageStack>
+      <PageHeader
+        kicker="BienCible import"
+        title="Acquéreurs"
+        action={
+          <button type="button" className="ct-seg-btn primary" onClick={() => selectTab("criteres")}>
+            + Nouvel acquéreur
           </button>
-          {error && matchs.length > 0 ? <p className="ct-error">{error}</p> : null}
-          {loading ? <Spinner /> : (
-            <div className="prospection-list">
-              {matchs.map(m => (
-                <MatchCard key={m.id} match={m} onFeedback={(signal) => sendFeedback(m.id, signal)} />
-              ))}
-              {!matchs.length && <EmptyState title={error ?? UI.prospection.emptyMatchs} />}
+        }
+        nav={TABS.map(t => (
+          <button key={t} className={`ct-page-header-nav-item${tab === t ? " active" : ""}`} onClick={() => selectTab(t)}>
+            {t === "acquereurs" ? "Acquéreurs" : t === "annonces" ? UI.prospection.annonces : t === "matching" ? UI.prospection.matching : UI.prospection.criteres}
+          </button>
+        ))}
+        kpis={[
+          { label: "Acquéreurs", value: String(criteres.length) },
+          { label: "Matchs", value: String(matchs.length) },
+          { label: "Annonces", value: String(annonces.length) },
+          { label: "Alertes", value: String(criteres.filter(c => c.alerte_email || c.alerte_whatsapp).length) },
+        ]}
+      />
+
+      <div className="ct-viz-row">
+        <div>
+          <Card title="Aperçu" variant="chart">
+            <p className="ct-placeholder">Aperçu de la prospection.</p>
+          </Card>
+        </div>
+        <div>
+          <Card title="Alertes" variant="chart">
+            <p className="ct-placeholder">Aucune alerte récente.</p>
+          </Card>
+        </div>
+      </div>
+
+      <Card variant="dense">
+        {tab === "acquereurs" && (
+          <div className="prospection-list">
+            {error && criteres.length > 0 ? <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p> : null}
+            {loading ? <Spinner /> : (
+              <DataTable
+                columns={acquereurColumns}
+                rows={criteres}
+                emptyLabel={error ?? "Aucun acquéreur importé. Importez vos données BienCible ou créez un profil acquéreur."}
+                getKey={(c) => c.id}
+              />
+            )}
+          </div>
+        )}
+
+        {tab === "annonces" && (
+          <div>
+            <div className="prospection-toolbar" style={{ padding: "var(--ct-space-md)" }}>
+              <label className="prospection-filter" style={{ marginRight: "var(--ct-space-md)" }}>
+                <input
+                  type="checkbox"
+                  checked={filterEligible}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    setFilterEligible(checked);
+                    void loadAnnonces(checked);
+                  }}
+                />
+                {UI.prospection.eligibleOnly}
+              </label>
+              <span className="prospection-count" style={{ marginRight: "var(--ct-space-md)" }}>{annonces.length} annonces</span>
+              <button type="button" className="ct-seg-btn" onClick={() => loadAnnonces()}>
+                {UI.prospection.refresh}
+              </button>
             </div>
-          )}
-        </div>
-      )}
+            {error && annonces.length > 0 ? <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p> : null}
+            {loading ? <Spinner /> : (
+              <DataTable
+                columns={annonceColumns}
+                rows={annonces}
+                emptyLabel={error ?? UI.prospection.emptyAnnonces}
+                getKey={(a) => a.id}
+              />
+            )}
+          </div>
+        )}
 
-      {tab === "criteres" && <CriteresPanel />}
-    </div>
+        {tab === "matching" && (
+          <div>
+            <div style={{ padding: "var(--ct-space-md)", display: "flex", justifyContent: "space-between" }}>
+              <p className="prospection-hint">
+                {UI.prospection.matchingHint}
+              </p>
+              <button type="button" className="ct-seg-btn prospection-refresh" onClick={() => loadMatchs()}>
+                {UI.prospection.refresh}
+              </button>
+            </div>
+            {error && matchs.length > 0 ? <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p> : null}
+            {loading ? <Spinner /> : (
+              <DataTable
+                columns={matchColumns}
+                rows={matchs}
+                emptyLabel={error ?? UI.prospection.emptyMatchs}
+                getKey={(m) => m.id}
+              />
+            )}
+          </div>
+        )}
+
+        {tab === "criteres" && <CriteresPanel onChanged={loadCriteres} />}
+      </Card>
+    </PageStack>
   );
 }
 
-function AnnonceCard({ annonce: a }: { annonce: Annonce }) {
-  const prix = a.prix ? `${Math.round(a.prix / 1000)}k€` : "NC";
-  return (
-    <div className="ct-card prospection-card">
-      {a.mandat_eligible && (
-        <span className="prospection-badge">
-          Mandat {a.score_mandat}/100
-        </span>
-      )}
-      <div className="prospection-card-title">
-        {a.titre ?? a.type_bien}
-      </div>
-      <div className="prospection-card-meta">
-        {[a.surface && `${a.surface}m²`, a.pieces && `${a.pieces}p`, a.ville ?? a.code_postal].filter(Boolean).join(" · ")}
-      </div>
-      <div className="prospection-price">{prix}</div>
-      {a.is_pap && <span className="prospection-pap">PAP</span>}
-      {a.url && (
-        <a href={a.url} target="_blank" rel="noopener" className="prospection-link">
-          Voir l&apos;annonce →
-        </a>
-      )}
-    </div>
-  );
+function zonesLabel(zones: unknown): string {
+  if (Array.isArray(zones)) return zones.join(", ");
+  if (typeof zones === "string") return zones;
+  return "—";
 }
 
-function MatchCard({ match: m, onFeedback }: { match: Match; onFeedback: (s: "like"|"dislike"|"contact"|"visite") => void }) {
-  const a = m.annonce;
-  const prix = a.prix ? `${Math.round(a.prix / 1000)}k€` : "NC";
-  return (
-    <div className="ct-card prospection-match">
-      <div className={`prospection-score${m.score_match >= 70 ? " is-good" : ""}`}>
-        {m.score_match}
-      </div>
-      <div className="prospection-match-body">
-        <div className="prospection-card-title">{a.titre ?? a.type_bien}</div>
-        <div className="prospection-card-meta">
-          {[a.surface && `${a.surface}m²`, a.pieces && `${a.pieces}p`, a.ville ?? a.code_postal, prix].filter(Boolean).join(" · ")}
-        </div>
-      </div>
-      <div className="prospection-feedback">
-        <FeedbackBtn emoji="👍" onClick={() => onFeedback("like")} />
-        <FeedbackBtn emoji="👎" onClick={() => onFeedback("dislike")} />
-        <FeedbackBtn emoji="📞" onClick={() => onFeedback("contact")} />
-      </div>
-    </div>
-  );
+function budgetLabel(critere: Critere): string {
+  const min = critere.budget_min ? `${Number(critere.budget_min).toLocaleString("fr-FR")} €` : null;
+  const max = critere.budget_max ? `${Number(critere.budget_max).toLocaleString("fr-FR")} €` : null;
+  if (min && max) return `${min} - ${max}`;
+  return max ?? min ?? "Budget NC";
 }
 
-function FeedbackBtn({ emoji, onClick }: { emoji: string; onClick: () => void }) {
-  return (
-    <button onClick={onClick} className="prospection-feedback-btn">
-      {emoji}
-    </button>
-  );
-}
 
-function CriteresPanel() {
-  const [criteres, setCriteres] = useState<Record<string, unknown>[]>([]);
+function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
+  const [criteres, setCriteres] = useState<Critere[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [nom, setNom] = useState("");
   const [zones, setZones] = useState("");
@@ -335,6 +456,7 @@ function CriteresPanel() {
         return;
       }
       await loadCriteres();
+      await onChanged();
       setShowForm(false);
       setNom(""); setZones(""); setBudgetMax(""); setSurfaceMin("");
     } catch {
@@ -345,6 +467,8 @@ function CriteresPanel() {
   }
 
   async function deleteCritere(id: string) {
+    const critere = criteres.find(c => c.id === id);
+    if (!confirm(`${UI.prospection.delete} « ${critere?.nom ?? id} » ?`)) return;
     setError(null);
     try {
       const res = await fetch(`/api/prospection/criteres?id=${id}`, { method: "DELETE" });
@@ -359,9 +483,25 @@ function CriteresPanel() {
     }
   }
 
+  const critereColumns: Column<Critere>[] = [
+    { key: "nom", header: "Nom", render: (c) => <strong>{c.nom}</strong> },
+    { key: "zones", header: "Zones", render: (c) => zonesLabel(c.zones) },
+    { key: "budget", header: "Budget Max", render: (c) => c.budget_max ? `${Number(c.budget_max).toLocaleString("fr-FR")} €` : "—" },
+    {
+      key: "action",
+      header: "Action",
+      align: "right",
+      render: (c) => (
+        <button onClick={() => deleteCritere(c.id)} style={{ background: "none", border: "1px solid var(--ct-border)", borderRadius: "var(--ct-radius-sm)", padding: "4px 12px", cursor: "pointer", color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-xs)" }}>
+          {UI.prospection.delete}
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--ct-space-md)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "var(--ct-space-md)" }}>
         <span style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-sm)" }}>{UI.prospection.criteresCount(criteres.length)}</span>
         <div className="ct-seg-track">
           <button className="ct-seg-btn" onClick={loadCriteres}>{UI.prospection.refresh}</button>
@@ -369,7 +509,7 @@ function CriteresPanel() {
         </div>
       </div>
       {showForm && (
-        <div className="ct-card" style={{ padding: "var(--ct-space-md)", marginBottom: "var(--ct-space-md)", display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
+        <div className="ct-card" style={{ margin: "var(--ct-space-md)", padding: "var(--ct-space-md)", display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
           <input className="ct-input" placeholder={UI.prospection.critereNamePlaceholder} value={nom} onChange={e => setNom(e.target.value)} />
           <input className="ct-input" placeholder={UI.prospection.critereZonesPlaceholder} value={zones} onChange={e => setZones(e.target.value)} />
           <input className="ct-input" placeholder={UI.prospection.budgetMaxPlaceholder} type="number" value={budgetMax} onChange={e => setBudgetMax(e.target.value)} />
@@ -378,23 +518,15 @@ function CriteresPanel() {
         </div>
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
-        {error ? <p className="ct-error">{error}</p> : null}
-        {loading ? <Spinner /> : null}
-        {criteres.map(c => (
-          <div key={String(c.id)} className="ct-card" style={{ padding: "var(--ct-space-md)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ fontWeight: 600, color: "var(--ct-text-strong)" }}>{String(c.nom)}</div>
-              <div style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-xs)" }}>
-                Zones : {Array.isArray(c.zones) ? c.zones.join(", ") : "—"}
-                {c.budget_max ? ` · Budget max : ${Number(c.budget_max).toLocaleString("fr-FR")} €` : ""}
-              </div>
-            </div>
-            <button onClick={() => deleteCritere(String(c.id))} style={{ background: "none", border: "1px solid var(--ct-border)", borderRadius: "var(--ct-radius-sm)", padding: "4px 12px", cursor: "pointer", color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-xs)" }}>
-              {UI.prospection.delete}
-            </button>
-          </div>
-        ))}
-        {!loading && !criteres.length && <EmptyState title={UI.prospection.emptyCriteres} />}
+        {error ? <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p> : null}
+        {loading ? <Spinner /> : (
+          <DataTable
+            columns={critereColumns}
+            rows={criteres}
+            emptyLabel={UI.prospection.emptyCriteres}
+            getKey={(c) => c.id}
+          />
+        )}
       </div>
     </div>
   );
@@ -402,12 +534,4 @@ function CriteresPanel() {
 
 function Spinner() {
   return <div className="prospection-spinner">Chargement…</div>;
-}
-function EmptyState({ title, text }: { title: string; text?: string }) {
-  return (
-    <div className="prospection-empty">
-      <p className="prospection-empty-title">{title}</p>
-      {text ? <p className="prospection-empty-text">{text}</p> : null}
-    </div>
-  );
 }

@@ -14,15 +14,12 @@ import { renderAndCacheEstimationPdf } from "@/lib/brochure/generate";
 import { captureFatal } from "@/lib/server/observe";
 import { searchListings, moteurImmoIsConfigured } from "@/lib/providers/moteurimmo";
 import { upsertAnnonces } from "@/lib/prospection/ingest";
-import { scoreMandat } from "@/lib/prospection/scoring/mandat";
 import { matchAnnonce } from "@/lib/prospection/matching/match";
 import { sendMatchAlerte } from "@/lib/prospection/alert";
-import type { MandatConfig, CritereAcquereur, Annonce } from "@/lib/prospection/types";
-import { DEFAULT_MANDAT_CONFIG } from "@/lib/prospection/types";
+import type { CritereAcquereur, Annonce } from "@/lib/prospection/types";
 import type { Database, Json } from "@/lib/supabase/database.types";
 
 type ProspAnnonceRow = Database["public"]["Tables"]["prosp_annonces"]["Row"];
-type ProspAnnonceUpdate = Database["public"]["Tables"]["prosp_annonces"]["Update"];
 
 /** No-op : prouve que la plomberie serve()/event fonctionne. */
 export const ping = inngest.createFunction(
@@ -106,52 +103,18 @@ export const prospScoring = inngest.createFunction(
     const db = getSupabaseAdmin();
     if (!db) return { skipped: "no_db" };
 
-    // 1. Charger config mandat (colonnes réelles : mandat_preset, mandat_poids, mandat_seuil, zones_prioritaires)
-    const { data: cfgRow } = await db
-      .from("prosp_config")
-      .select("mandat_preset,mandat_poids,mandat_seuil,zones_prioritaires")
-      .eq("tenant_id", "real-estate-agent")
-      .maybeSingle();
+    // Scoring mandat désactivé : prosp_annonces n'a pas de colonne score_mandat (le
+    // scoring appartient à prosp_prospects, qui exige user_id). Le matching ci-dessous
+    // reste opérationnel et alimente prosp_matchs.
 
-    const mandatConfig: MandatConfig = cfgRow ? {
-      preset: (cfgRow.mandat_preset as "api"|"doc"|"custom") ?? "api",
-      weights: (cfgRow.mandat_poids as MandatConfig["weights"]) ?? DEFAULT_MANDAT_CONFIG.weights,
-      seuil: cfgRow.mandat_seuil ?? 60,
-      zonesEligibles: cfgRow.zones_prioritaires as string[] | undefined,
-    } : DEFAULT_MANDAT_CONFIG;
-
-    // 2. Score mandat sur les annonces non scorées (batch 200) — schéma réel prosp_annonces
-    const { data: unscoredRaw } = await db
-      .from("prosp_annonces")
-      .select("*")
-      .eq("tenant_id", "real-estate-agent")
-      .is("score_mandat", null)
-      .limit(200);
-    const unscored = (unscoredRaw ?? []) as ProspAnnonceRow[];
-
-    if (unscored.length) {
-      await step.run("score-mandat", async () => {
-        for (const row of unscored) {
-          const annonce = dbRowToAnnonce(row);
-          const { score, eligible, breakdown } = scoreMandat(annonce, mandatConfig);
-          const update: ProspAnnonceUpdate = {
-            score_mandat: score,
-            mandat_eligible: eligible,
-            score_breakdown: breakdown,
-          };
-          await db.from("prosp_annonces").update(update).eq("id", row.id);
-        }
-      });
-    }
-
-    // 3. Critères actifs
+    // Critères actifs
     const { data: criteres } = await db
       .from("prosp_criteres_acquereur")
       .select("*")
       .eq("tenant_id", "real-estate-agent")
       .eq("actif", true);
 
-    if (!criteres?.length) return { scored: unscored.length, matched: 0 };
+    if (!criteres?.length) return { scored: 0, matched: 0 };
 
     let totalMatched = 0;
     for (const critereRow of criteres) {
@@ -201,7 +164,7 @@ export const prospScoring = inngest.createFunction(
       });
     }
 
-    return { scored: unscored.length, matched: totalMatched };
+    return { scored: 0, matched: totalMatched };
   },
 );
 
@@ -228,8 +191,6 @@ function dbRowToAnnonce(row: Record<string, unknown>): Annonce {
     jardin: row.jardin as boolean | undefined,
     piscine: row.piscine as boolean | undefined,
     dpe: (row.dpe_note ?? row.dpe) as string | undefined,
-    scoreMandat: row.score_mandat as number | undefined,
-    mandatEligible: row.mandat_eligible as boolean | undefined,
     url: (row.source_url ?? row.url) as string | undefined,
     photos: (row.photos_urls ?? row.photos) as string[] | undefined,
     isPap: String(row.type_annonceur ?? "").toLowerCase() === "pap",

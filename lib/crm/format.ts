@@ -46,6 +46,13 @@ export function timeFr(d: string | null | undefined): string {
   });
 }
 
+/** Nombre de jours entiers écoulés depuis une date ISO. null si pas de date. */
+export function daysSince(d: string | null | undefined): number | null {
+  if (!d) return null;
+  const MS_PER_DAY = 86_400_000;
+  return Math.floor((Date.now() - new Date(d).getTime()) / MS_PER_DAY);
+}
+
 // ─── Listes de statuts (valeurs CHECK constraints DB) ─────────────────────────
 
 export const PROPERTY_STATUSES = [

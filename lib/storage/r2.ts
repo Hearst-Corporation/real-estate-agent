@@ -4,6 +4,7 @@
  * Fonctions exportées :
  *   putObject(key, body, contentType)  → void
  *   getObject(key)                      → Buffer | null
+ *   deleteObject(key)                   → void
  *   publicUrl(key)                      → string
  *   r2IsConfigured()                    → boolean
  */
@@ -88,6 +89,25 @@ export async function getObject(key: string): Promise<Buffer | null> {
 
   const ab = await res.arrayBuffer();
   return Buffer.from(ab);
+}
+
+/**
+ * Supprime un objet de R2.
+ * No-op silencieux si R2 n'est pas configuré ou si l'objet n'existe pas (404).
+ * Throw si l'erreur est autre que 404.
+ */
+export async function deleteObject(key: string): Promise<void> {
+  const client = getClient();
+  if (!client) return;
+
+  const url = bucketUrl(key);
+  const res = await client.fetch(url, { method: "DELETE" });
+
+  if (res.status === 404) return;
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`R2 deleteObject failed: ${res.status} ${text}`);
+  }
 }
 
 /**

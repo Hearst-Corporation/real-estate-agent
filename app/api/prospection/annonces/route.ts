@@ -29,13 +29,15 @@ export async function GET(req: NextRequest) {
 
   let q = db
     .from("prosp_annonces")
-    .select("id,type_bien,title,prix,surface_m2,nb_pieces,code_postal,commune,source_url,photos_urls,type_annonceur,score_mandat,mandat_eligible,premiere_parution_at,derniere_republication_at", { count: "exact" })
+    .select("id,type_bien,title,prix,surface_m2,nb_pieces,code_postal,commune,source_url,photos_urls,type_annonceur,premiere_parution_at,derniere_republication_at", { count: "exact" })
     .eq("tenant_id", tenantId)
     .order("date_collecte", { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (cp) q = q.like("code_postal", `${cp}%`);
-  if (eligible) q = q.eq("mandat_eligible", true);
+  // Filtre "éligible mandat" : le scoring vit dans prosp_prospects, pas prosp_annonces.
+  // Désactivé tant que le scoring n'est pas rebranché sur ce modèle.
+  void eligible;
 
   const { data, error, count } = await q;
   if (error) {
@@ -57,8 +59,6 @@ export async function GET(req: NextRequest) {
     url: a.source_url,
     photos: a.photos_urls,
     is_pap: String(a.type_annonceur ?? "").toLowerCase() === "pap",
-    score_mandat: a.score_mandat,
-    mandat_eligible: a.mandat_eligible,
   }));
   return NextResponse.json({ data: items, total: count });
 }

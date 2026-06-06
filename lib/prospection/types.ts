@@ -23,9 +23,6 @@ export interface Annonce {
   jardin?: boolean;
   piscine?: boolean;
   dpe?: string;
-  scoreMandat?: number;
-  mandatEligible?: boolean;
-  scoreBreakdown?: Record<string, number>;
   url?: string;
   photos?: string[];
   isPap: boolean;
