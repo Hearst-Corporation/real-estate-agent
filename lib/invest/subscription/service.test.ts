@@ -71,8 +71,8 @@ function fakeEscrow(configured = true): EscrowPort & { refunds: number } {
 
 // ─── Store en mémoire ──────────────────────────────────────────────────────────
 
-interface MemDeal extends DealForSubscription {}
-interface MemProfile extends ProfileForSubscription {}
+type MemDeal = DealForSubscription;
+type MemProfile = ProfileForSubscription;
 
 function memStore(opts?: {
   deal?: Partial<MemDeal>;

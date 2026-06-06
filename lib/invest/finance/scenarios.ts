@@ -192,8 +192,8 @@ export function pointMortPrix(
     runScenario(input, 'central', { delta_prix_revente_pct: delta, retard_mois: 0 })
       .irr_investisseur.irr;
 
-  let irrLo = irrAt(lo);
-  let irrHi = irrAt(hi);
+  const irrLo = irrAt(lo);
+  const irrHi = irrAt(hi);
   // Si le TRI au plancher est null (perte totale, pas de TRI), on traite comme
   // négatif (< 0) car l'investisseur ne récupère pas sa mise.
   const sLo = irrLo == null ? -1 : irrLo;

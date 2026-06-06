@@ -15,15 +15,12 @@ export function RailRight() {
   const open = override ?? (onInterview ? false : userOpen);
 
   useEffect(() => {
-    const saved = localStorage.getItem("cockpit:rail-right-open");
     // Hydratation post-mount depuis localStorage (indispo en SSR) → setState volontaire.
+    const saved = localStorage.getItem("cockpit:rail-right-open");
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (saved !== null) {
-      setUserOpen(saved === "true");
-    } else if (window.innerWidth <= 1024) {
+    if (saved !== null) { setUserOpen(saved === "true"); } else if (window.innerWidth <= 1024) {
       // Mobile/tablette : le chat est un overlay flottant. Replié par défaut (sans
       // préférence sauvée) pour ne pas masquer le contenu au chargement.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUserOpen(false);
     }
   }, []);

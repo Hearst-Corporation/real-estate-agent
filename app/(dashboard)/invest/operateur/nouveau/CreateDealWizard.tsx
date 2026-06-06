@@ -40,6 +40,35 @@ const fmtEur = (n: number) =>
 const fmtPct = (p: number | null) =>
   p == null || Number.isNaN(p) ? "—" : `${(p * 100).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
 
+function Field({
+  label,
+  value,
+  onChange,
+  suffix,
+}: {
+  label: string;
+  value: number;
+  onChange: (n: number) => void;
+  suffix?: string;
+}) {
+  return (
+    <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+      <span className="ct-kpi-label">{label}</span>
+      <span style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-2xs)" }}>
+        <input
+          className="ct-input"
+          type="number"
+          value={value}
+          min={0}
+          onChange={(ev) => onChange(Number(ev.target.value))}
+          style={{ width: "100%" }}
+        />
+        {suffix ? <span className="inv-chart-foot">{suffix}</span> : null}
+      </span>
+    </label>
+  );
+}
+
 export function CreateDealWizard() {
   const router = useRouter();
 
@@ -185,33 +214,6 @@ export function CreateDealWizard() {
       setSubmitting(false);
     }
   }
-
-  const Field = ({
-    label,
-    value,
-    onChange,
-    suffix,
-  }: {
-    label: string;
-    value: number;
-    onChange: (n: number) => void;
-    suffix?: string;
-  }) => (
-    <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
-      <span className="ct-kpi-label">{label}</span>
-      <span style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-2xs)" }}>
-        <input
-          className="ct-input"
-          type="number"
-          value={value}
-          min={0}
-          onChange={(ev) => onChange(Number(ev.target.value))}
-          style={{ width: "100%" }}
-        />
-        {suffix ? <span className="inv-chart-foot">{suffix}</span> : null}
-      </span>
-    </label>
-  );
 
   return (
     <form onSubmit={onSubmit}>
