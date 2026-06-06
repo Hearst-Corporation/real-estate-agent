@@ -67,6 +67,45 @@ const FIELD_LABELS: Partial<Record<keyof PropertyData, string>> = {
   occupation: "occupation",
 };
 
+function knownValue(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (Array.isArray(value)) return value.length ? value.join(", ") : null;
+  return String(value);
+}
+
+function buildEstimationContextBlock(estimation: Awaited<ReturnType<typeof loadOwnedEstimation>>): string {
+  if (!estimation) return "";
+  const property = (estimation.property ?? {}) as Partial<PropertyData>;
+  const facts: Array<[string, unknown]> = [
+    ["id", estimation.id],
+    ["statut", estimation.status],
+    ["type_bien", property.type_bien ?? estimation.property_type],
+    ["ville", property.ville ?? estimation.city],
+    ["code_postal", property.code_postal ?? estimation.postal_code],
+    ["adresse", property.adresse],
+    ["surface_habitable_m2", property.surface_habitable_m2 ?? estimation.surface],
+    ["nombre_pieces", property.nombre_pieces],
+    ["nombre_chambres", property.nombre_chambres],
+    ["etage", property.etage],
+    ["dpe_classe", property.dpe_classe],
+    ["etat_general", property.etat_general],
+    ["occupation", property.occupation],
+    ["market_value", estimation.market_value],
+    ["recommended_price", estimation.recommended_price],
+  ];
+  const lines = facts.flatMap(([label, value]) => {
+    const known = knownValue(value);
+    return known ? [`- ${label}: ${known}`] : [];
+  });
+  const missing = facts.flatMap(([label, value]) => (knownValue(value) ? [] : [label]));
+  return [
+    "Contexte factuel de l'estimation courante (source base de données, prioritaire sur l'historique du chat):",
+    ...(lines.length ? lines : ["- aucune donnée métier renseignée"]),
+    missing.length ? `Champs manquants: ${missing.join(", ")}` : "",
+    "Règle: n'invente jamais une ville, une adresse, un prix ou une caractéristique absente de ce contexte. Si une donnée manque, dis qu'elle est à compléter.",
+  ].filter(Boolean).join("\n");
+}
+
 function estimationIdFromPathname(pathname: string | undefined): string | null {
   const match = pathname?.match(/^\/estimations\/([^/]+)$/);
   return match?.[1] ?? null;
@@ -226,6 +265,10 @@ export async function POST(req: Request) {
   const action = estimationId ? detectEstimationAction(message) : null;
   const operatorAction = detectOperatorAction(message, estimationId);
   let actionHeaders: Record<string, string> = {};
+  const currentEstimation = estimationId
+    ? await loadOwnedEstimation(sb, estimationId, userId, tenant)
+    : null;
+  const estimationContextBlock = buildEstimationContextBlock(currentEstimation);
 
   // Capture mémoire « mémorise: … »
   const mem = message.match(MEMORIZE_RE);
@@ -332,44 +375,55 @@ export async function POST(req: Request) {
       }
 
       if (operatorAction.kind === "create_property_from_estimation") {
-        const estimation = await loadOwnedEstimation(sb, operatorAction.estimationId, userId, tenant);
+        const estimation = currentEstimation?.id === operatorAction.estimationId
+          ? currentEstimation
+          : await loadOwnedEstimation(sb, operatorAction.estimationId, userId, tenant);
         if (!estimation) throw new Error("estimation_not_found");
         const property = (estimation.property ?? {}) as Partial<PropertyData>;
-        const title = [
-          property.type_bien ?? "Bien",
-          property.ville ?? estimation.city ?? "",
-          property.surface_habitable_m2 ? `${property.surface_habitable_m2} m²` : "",
-        ].filter(Boolean).join(" - ");
-        const { data, error } = await sb
-          .from("properties")
-          .insert({
-            user_id: userId,
-            tenant_id: tenant,
-            status: "prospect",
-            title,
-            property_type: property.type_bien ?? estimation.property_type ?? "autre",
-            address: property.adresse ?? "Adresse à compléter",
-            city: property.ville ?? estimation.city ?? "Ville à compléter",
-            postal_code: property.code_postal ?? estimation.postal_code ?? "00000",
-            surface: property.surface_habitable_m2 ?? estimation.surface ?? null,
-            rooms: property.nombre_pieces ?? null,
-            bedrooms: property.nombre_chambres ?? null,
-            estimated_value: estimation.market_value,
-            estimation_id: operatorAction.estimationId,
-            notes: "Fiche créée depuis le chat Cockpit.",
-          })
-          .select("id")
-          .single();
-        if (error || !data) throw error ?? new Error("property_create_failed");
-        actionBlock = `\n\nAction exécutée: fiche produit créée depuis l'estimation courante. Réponds avec l'ID ${data.id} et propose de compléter les champs manquants.`;
-        actionHeaders = { "X-Cockpit-Action": "crm:create_property", "X-Cockpit-Value": data.id };
+        const address = property.adresse;
+        const city = property.ville ?? estimation.city;
+        const postalCode = property.code_postal ?? estimation.postal_code;
+        if (!address || !city || !postalCode) {
+          actionBlock = "\n\nAction non exécutée: impossible de créer la fiche produit car l'adresse, la ville ou le code postal manque dans l'estimation. Demande ces informations avant de réessayer.";
+        } else {
+          const title = [
+            property.type_bien ?? "Bien",
+            city,
+            property.surface_habitable_m2 ? `${property.surface_habitable_m2} m²` : "",
+          ].filter(Boolean).join(" - ");
+          const { data, error } = await sb
+            .from("properties")
+            .insert({
+              user_id: userId,
+              tenant_id: tenant,
+              status: "prospect",
+              title,
+              property_type: property.type_bien ?? estimation.property_type ?? "autre",
+              address,
+              city,
+              postal_code: postalCode,
+              surface: property.surface_habitable_m2 ?? estimation.surface ?? null,
+              rooms: property.nombre_pieces ?? null,
+              bedrooms: property.nombre_chambres ?? null,
+              estimated_value: estimation.market_value,
+              estimation_id: operatorAction.estimationId,
+              notes: "Fiche créée depuis le chat Cockpit.",
+            })
+            .select("id")
+            .single();
+          if (error || !data) throw error ?? new Error("property_create_failed");
+          actionBlock = `\n\nAction exécutée: fiche produit créée depuis l'estimation courante. Réponds avec l'ID ${data.id} et propose de compléter les champs manquants.`;
+          actionHeaders = { "X-Cockpit-Action": "crm:create_property", "X-Cockpit-Value": data.id };
+        }
       }
 
       if (operatorAction.kind === "send_estimation_to_email") {
         if (!operatorAction.confirmed) {
           actionBlock = `\n\nAction non exécutée: envoi demandé à ${operatorAction.email}. Demande une confirmation explicite avec "confirme envoyer fiche à ${operatorAction.email}".`;
         } else {
-          const estimation = await loadOwnedEstimation(sb, operatorAction.estimationId, userId, tenant);
+          const estimation = currentEstimation?.id === operatorAction.estimationId
+            ? currentEstimation
+            : await loadOwnedEstimation(sb, operatorAction.estimationId, userId, tenant);
           if (!estimation) throw new Error("estimation_not_found");
           if (estimation.status !== "ready") {
             actionBlock = "\n\nAction non exécutée: l'estimation n'est pas encore prête. Indique qu'il faut générer l'avis de valeur avant l'envoi.";
@@ -453,7 +507,8 @@ export async function POST(req: Request) {
   }
 
   const system =
-    "Tu es l'assistant Cockpit de Real estate Agent. Réponds en français, de façon concise et actionnable. Tu peux agir sur les données de l'application uniquement via les actions serveur autorisées et confirmées." +
+    "Tu es l'assistant Cockpit de Real estate Agent. Réponds en français, de façon concise et actionnable. Tu peux agir sur les données de l'application uniquement via les actions serveur autorisées et confirmées. Le contexte factuel de la page courante est prioritaire sur l'historique du chat. Si l'historique contredit ce contexte, ignore l'historique." +
+    (estimationContextBlock ? `\n\n${estimationContextBlock}` : "") +
     (memoryBlock ? `\n\nMémoire de l'utilisateur :\n${memoryBlock}` : "") +
     actionBlock;
 
