@@ -231,6 +231,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
               swarmId={swarm.id}
               swarmName={swarm.name}
               onDone={() => { if (id) void loadSwarm(id); }}
+              onLaunched={(runId) => router.push(`/swarms/${swarm.id}/run/${runId}`)}
             />
           </div>
         </div>
@@ -350,6 +351,7 @@ function RunsTab({
   runs: SwarmRun[];
   onRefresh: () => void;
 }) {
+  const router = useRouter();
   const [launching, setLaunching] = useState(false);
 
   async function handleRelaunch() {
@@ -357,6 +359,13 @@ function RunsTab({
     try {
       const res = await fetch(`/api/swarms/${swarmId}/kickoff`, { method: "POST" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Suivi durable : on bascule sur la page run dédiée (URL stable, reprise au
+      // rechargement) plutôt que de rester sur une liste sans suivi live.
+      const data = (await res.json()) as { runId?: string };
+      if (data.runId) {
+        router.push(`/swarms/${swarmId}/run/${data.runId}`);
+        return;
+      }
       onRefresh();
     } catch {
       // ignore

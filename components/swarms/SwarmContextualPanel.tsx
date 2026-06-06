@@ -59,7 +59,9 @@ export default function SwarmContextualPanel({ estimationId }: { estimationId: s
         ))}
       </select>
       {selectedSwarm && (
-        <SwarmKickoffPanel swarmId={selectedSwarm.id} swarmName={selectedSwarm.name} />
+        // key = remount propre quand on change de swarm dans le sélecteur
+        // (sinon l'état du run précédent persisterait).
+        <SwarmKickoffPanel key={selectedSwarm.id} swarmId={selectedSwarm.id} swarmName={selectedSwarm.name} />
       )}
     </div>
   );
