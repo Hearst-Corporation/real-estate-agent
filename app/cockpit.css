@@ -598,6 +598,16 @@ html, body {
   box-shadow: 0 0 12px -2px color-mix(in srgb, var(--ct-accent-strong) 60%, transparent);
   transition: width var(--ct-dur-base) var(--ct-ease);
 }
+/* Tonalité par statut (BarList pipeline avec item.tone) : positive = accent mis
+   en avant, negative/pending = gris atténué sans halo. */
+.est-fiche-bar-fill.is-negative {
+  background: color-mix(in srgb, var(--ct-text-muted) 35%, transparent);
+  box-shadow: none;
+}
+.est-fiche-bar-fill.is-pending {
+  background: color-mix(in srgb, var(--ct-border-strong) 60%, transparent);
+  box-shadow: none;
+}
 
 /* CTA génération — collé sous l'input, dans le même wrap */
 .est-interview-cta {

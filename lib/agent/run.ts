@@ -22,9 +22,9 @@ import type { TraceUsage } from "@/lib/providers/langfuse";
 // ─── Configuration ──────────────────────────────────────────────────────────
 
 /** Plafond de tokens par tour LLM (réponse visible + arguments d'outils). */
-const AGENT_MAX_TOKENS = 2048;
+const AGENT_MAX_TOKENS = 4096;
 /** Nombre de tours d'outils par défaut avant arrêt forcé de la boucle. */
-const DEFAULT_MAX_STEPS = 8;
+const DEFAULT_MAX_STEPS = 12;
 /** Observation de repli quand un outil ne renvoie aucun texte (tool_result jamais vide). */
 const EMPTY_OBSERVATION_FALLBACK = "(aucun résultat)";
 

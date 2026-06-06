@@ -1,7 +1,7 @@
 import { PageHeader, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
-import { Funnel } from "@/components/cockpit/Funnel";
+import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
-import { countByStatus } from "@/lib/crm/aggregate";
+import { barsByStatus } from "@/lib/crm/aggregate";
 import { eur, LEAD_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
@@ -66,9 +66,7 @@ export default async function LeadsPage() {
   const closed = won + lost;
   const conversion = closed > 0 ? Math.round((won / closed) * 100) : 0;
 
-  const pipeline = countByStatus(leads, LEAD_STATUSES, t.statusLabels, (s) =>
-    statusTone("lead", s)
-  );
+  const pipeline = barsByStatus(leads, LEAD_STATUSES, t.statusLabels, (s) => statusTone("lead", s));
 
   const columns: Column<Lead>[] = [
     { key: "name", header: t.table.name, render: (l) => l.full_name },
@@ -134,7 +132,7 @@ export default async function LeadsPage() {
       </KpiGrid>
 
       <Card title={t.charts.pipeline}>
-        <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+        <BarList items={pipeline} emptyLabel={UI.viz.empty} />
       </Card>
 
       <Card title={t.cardTitle}>

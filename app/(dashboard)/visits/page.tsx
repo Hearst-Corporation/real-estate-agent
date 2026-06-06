@@ -1,12 +1,12 @@
 import { PageHeader, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
-import { Funnel } from "@/components/cockpit/Funnel";
+import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { StatusSelect } from "@/components/cockpit/StatusSelect";
 import { DeleteButton } from "@/components/cockpit/DeleteButton";
-import { countByStatus, ratio } from "@/lib/crm/aggregate";
-import { dateTimeFr, VISIT_STATUSES } from "@/lib/crm/format";
+import { barsByStatus, ratio } from "@/lib/crm/aggregate";
 import { statusTone } from "@/lib/crm/statusTone";
+import { dateTimeFr, VISIT_STATUSES } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -51,9 +51,7 @@ export default async function VisitsPage() {
   const noShow = visits.filter((v) => v.status === "no_show").length;
   const noShowRate = visits.length > 0 ? Math.round((noShow / visits.length) * 100) : 0;
 
-  const pipeline = countByStatus(visits, VISIT_STATUSES, t.statusLabels, (s) =>
-    statusTone("visit", s)
-  );
+  const pipeline = barsByStatus(visits, VISIT_STATUSES, t.statusLabels, (s) => statusTone("visit", s));
   const doneRate = ratio(visits, (v) => v.status === "realisee");
 
   const columns: Column<VisitRow>[] = [
@@ -108,7 +106,7 @@ export default async function VisitsPage() {
 
       <div className="ct-viz-row">
         <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+          <BarList items={pipeline} emptyLabel={UI.viz.empty} />
         </Card>
         <Card title={t.charts.doneRate}>
           <Donut value={doneRate} sublabel={t.charts.doneRateSub} accent />

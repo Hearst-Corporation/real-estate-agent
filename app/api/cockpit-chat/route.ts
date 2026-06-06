@@ -20,7 +20,7 @@ const HISTORY_LIMIT = 40;
 const MEMORY_LIMIT = 20;
 
 // Rate-limit léger : N requêtes agent par fenêtre, par utilisateur.
-const RL_LIMIT = 30;
+const RL_LIMIT = 120;
 const RL_WINDOW_SEC = 60;
 
 // ── Aligné sur « la simulation » (entretien d'estimation, lib/ai/interview) ──

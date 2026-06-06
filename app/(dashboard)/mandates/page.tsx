@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { PageHeader, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";
-import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { StatusSelect } from "@/components/cockpit/StatusSelect";
 import { DeleteButton } from "@/components/cockpit/DeleteButton";
-import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
-import { eur, dateFr, MANDATE_STATUSES } from "@/lib/crm/format";
+import { barsByStatus, topByCategory, average } from "@/lib/crm/aggregate";
 import { statusTone } from "@/lib/crm/statusTone";
+import { eur, dateFr, MANDATE_STATUSES } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -50,9 +49,7 @@ export default async function MandatesPage() {
   const underMandate = actifs.reduce((sum, m) => sum + (m.asking_price ?? 0), 0);
   const avgCommission = average(actifs, "commission_pct");
 
-  const pipeline = countByStatus(mandates, MANDATE_STATUSES, t.statusLabels, (s) =>
-    statusTone("mandate", s)
-  );
+  const pipeline = barsByStatus(mandates, MANDATE_STATUSES, t.statusLabels, (s) => statusTone("mandate", s));
   const byKind = topByCategory(mandates, "kind", t.kindLabels);
 
   const columns: Column<MandateRow>[] = [
@@ -116,7 +113,7 @@ export default async function MandatesPage() {
 
       <div className="ct-viz-row">
         <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+          <BarList items={pipeline} emptyLabel={UI.viz.empty} />
         </Card>
         <Card title={t.charts.byKind}>
           <BarList items={byKind} emptyLabel={UI.viz.empty} />

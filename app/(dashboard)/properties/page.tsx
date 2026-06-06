@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { PageHeader, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
-import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { DeleteButton } from "@/components/cockpit/DeleteButton";
-import { countByStatus, topByCategory, distributeByBand, autoBands, ratio } from "@/lib/crm/aggregate";
+import { barsByStatus, topByCategory, distributeByBand, autoBands, ratio } from "@/lib/crm/aggregate";
 import { eur, sqm, PROPERTY_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
@@ -51,9 +50,7 @@ export default async function PropertiesPage() {
   // Valeur portefeuille = somme des prix des biens EN VENTE (exclut vendus/archivés).
   const portfolio = enVente.reduce((sum, p) => sum + (p.asking_price ?? 0), 0);
 
-  const pipeline = countByStatus(properties, PROPERTY_STATUSES, t.statusLabels, (s) =>
-    statusTone("property", s)
-  );
+  const pipeline = barsByStatus(properties, PROPERTY_STATUSES, t.statusLabels, (s) => statusTone("property", s));
   const byType = topByCategory(properties, "property_type", t.typeLabels);
   // Tranches calculées sur les prix réels du portefeuille (pas de bornes figées).
   const prices = properties.map((p) => p.asking_price);
@@ -111,7 +108,7 @@ export default async function PropertiesPage() {
 
       <div className="ct-viz-row">
         <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+          <BarList items={pipeline} emptyLabel={UI.viz.empty} />
         </Card>
         <Card title={t.charts.soldRate}>
           <Donut value={soldRate} sublabel={t.charts.soldRateSub} accent />

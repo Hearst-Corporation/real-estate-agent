@@ -57,7 +57,7 @@ export default async function EstimationsPage() {
     "market_value"
   );
 
-  const pipeline = barsByStatus(estimations, ESTIMATION_STATUSES, t.status);
+  const pipeline = barsByStatus(estimations, ESTIMATION_STATUSES, t.status, estimationTone);
   const byType = topByCategory(estimations, "property_type");
 
   const columns: Column<EstRow>[] = [

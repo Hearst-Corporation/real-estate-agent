@@ -1,7 +1,7 @@
 /**
  * Helpers d'agrégation CRM — purs, server-safe, zéro dépendance React/Cockpit.
  * Transforment des lignes de données en structures consommées par les
- * composants viz (Funnel, BarList, Donut). Tolèrent toujours les jeux vides
+ * composants viz (BarList, Donut). Tolèrent toujours les jeux vides
  * (retour [] / 0, jamais NaN).
  */
 
@@ -10,49 +10,28 @@ import type { StatusTone } from "./statusTone";
 
 // ─── Types consommés par les composants viz ──────────────────────────────────
 
-export type FunnelStep = { label: string; count: number; tone?: StatusTone };
-export type BarItem = { label: string; value: string; percent: number };
+export type BarItem = { label: string; value: string; percent: number; tone?: StatusTone };
 
 type WithStatus = { status: string };
-
-// ─── countByStatus → Funnel ───────────────────────────────────────────────────
-
-/**
- * Compte les lignes par statut, dans l'ordre fourni.
- * @param rows           lignes avec un champ `status`
- * @param orderedStatuses ordre canonique des statuts (ex: LEAD_STATUSES)
- * @param labels         map statut → libellé FR
- * @param toneFn         optionnel : statut → tonalité (.crm-status)
- */
-export function countByStatus<T extends WithStatus>(
-  rows: T[],
-  orderedStatuses: readonly string[],
-  labels: Record<string, string>,
-  toneFn?: (status: string) => StatusTone
-): FunnelStep[] {
-  return orderedStatuses.map((status) => ({
-    label: labels[status] ?? status,
-    count: rows.reduce((n, r) => (r.status === status ? n + 1 : n), 0),
-    tone: toneFn ? toneFn(status) : undefined,
-  }));
-}
 
 // ─── barsByStatus → BarList (tri décroissant, statuts vides masqués) ──────────
 
 /**
- * Variante BarList de countByStatus : même comptage, mais trié par volume
- * décroissant et statuts à 0 retirés. Pour des statuts non strictement
- * séquentiels, c'est plus honnête qu'un Funnel (qui impose un ordre et affiche
- * des étapes vides). `percent` est normalisé sur le plus gros volume (max = 100 %).
+ * Comptage des lignes par statut, trié par volume décroissant, statuts à 0
+ * retirés. `percent` est normalisé sur le plus gros volume (max = 100 %).
+ * `toneFn` optionnel : colore chaque barre selon la tonalité du statut
+ * (is-positive/is-negative/is-pending), comme l'ex-Funnel.
  */
 export function barsByStatus<T extends WithStatus>(
   rows: T[],
   orderedStatuses: readonly string[],
-  labels: Record<string, string>
+  labels: Record<string, string>,
+  toneFn?: (status: string) => StatusTone
 ): BarItem[] {
   const counts = orderedStatuses.map((status) => ({
     label: labels[status] ?? status,
     count: rows.reduce((n, r) => (r.status === status ? n + 1 : n), 0),
+    tone: toneFn ? toneFn(status) : undefined,
   }));
   const max = Math.max(1, ...counts.map((c) => c.count));
   return counts
@@ -62,6 +41,7 @@ export function barsByStatus<T extends WithStatus>(
       label: c.label,
       value: String(c.count),
       percent: Math.round((c.count / max) * 100),
+      tone: c.tone,
     }));
 }
 

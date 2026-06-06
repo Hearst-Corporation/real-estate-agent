@@ -78,7 +78,7 @@ const createLead: AgentTool = {
     properties: {
       full_name: { type: "string", description: "Nom complet du contact (obligatoire)." },
       kind: { type: "string", enum: LEAD_KINDS, description: "acheteur ou vendeur (défaut acheteur)." },
-      type_personne: { type: "string", description: "physique ou morale (optionnel)." },
+      type_personne: { type: "string", enum: ["particulier","professionnel","societe","sci","agence","physique","morale"], description: "Type de personne (défaut particulier). SAS/SCI/société → 'societe' ou 'sci'." },
       email: { type: "string", description: "Email (optionnel)." },
       phone: { type: "string", description: "Téléphone (optionnel)." },
       source: { type: "string", description: "Origine du lead (optionnel)." },
@@ -99,7 +99,7 @@ const createLead: AgentTool = {
       tenant_id: ctx.tenant,
       full_name,
       kind: asEnum(args.kind, LEAD_KINDS) ?? "acheteur",
-      type_personne: asString(args.type_personne),
+      type_personne: asString(args.type_personne) ?? "particulier",
       email: asString(args.email),
       phone: asString(args.phone),
       source: asString(args.source),
