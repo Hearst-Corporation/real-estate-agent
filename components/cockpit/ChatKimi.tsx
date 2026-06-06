@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -24,6 +25,7 @@ function renderLight(text: string) {
 }
 
 export function ChatKimi() {
+  const pathname = usePathname();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -46,7 +48,7 @@ export function ChatKimi() {
       const res = await fetch("/api/cockpit-chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ chatId, message: text }),
+        body: JSON.stringify({ chatId, message: text, context: { pathname } }),
       });
       if (!res.ok || !res.body) {
         const body = await res.json().catch(() => ({}));
@@ -54,6 +56,26 @@ export function ChatKimi() {
       }
       const newChatId = res.headers.get("X-Chat-Id");
       if (newChatId) setChatId(newChatId);
+      const action = res.headers.get("X-Cockpit-Action");
+      if (action?.startsWith("estimation:")) {
+        const value = res.headers.get("X-Cockpit-Value");
+        const valueType = res.headers.get("X-Cockpit-Value-Type");
+        const typedValue =
+          valueType === "number" && value !== null
+            ? Number(value)
+            : valueType === "boolean"
+              ? value === "true"
+              : value;
+        window.dispatchEvent(
+          new CustomEvent("cockpit:estimation-updated", {
+            detail: {
+              estimationId: res.headers.get("X-Estimation-Id"),
+              field: res.headers.get("X-Cockpit-Field"),
+              value: typedValue,
+            },
+          }),
+        );
+      }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();

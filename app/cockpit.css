@@ -175,6 +175,12 @@ html, body {
 .ct-form { display: flex; flex-direction: column; gap: var(--ct-space-md); }
 .ct-mb-sm { margin-bottom: var(--ct-space-sm); }
 .ct-text-center { text-align: center; }
+.est-quick-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ct-space-2xs);
+  margin-bottom: var(--ct-space-xs);
+}
 
 /* ── RAIL DROIT ── */
 .ct-rail-right {

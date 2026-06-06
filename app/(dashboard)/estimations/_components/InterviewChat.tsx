@@ -7,6 +7,15 @@ import type { PropertyData, FieldStatusMap } from "@/lib/estimation/types";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+const QUICK_TYPE_OPTIONS: { value: NonNullable<PropertyData["type_bien"]>; label: string }[] = [
+  { value: "appartement", label: "Appartement" },
+  { value: "maison", label: "Maison" },
+  { value: "immeuble", label: "Immeuble" },
+  { value: "local_commercial", label: "Local commercial" },
+  { value: "terrain", label: "Terrain" },
+  { value: "autre", label: "Autre" },
+];
+
 function renderLight(text: string) {
   const parts: React.ReactNode[] = [];
   const re = /(`[^`]+`|\*\*[^*]+\*\*)/g;
@@ -28,6 +37,8 @@ function renderLight(text: string) {
 type Props = {
   id: string;
   initialMessages: Msg[];
+  property: PropertyData;
+  fieldStatus: FieldStatusMap;
   initialBlock: number;
   initialCanGenerate: boolean;
   generating: boolean;
@@ -45,6 +56,8 @@ type Props = {
 export function InterviewChat({
   id,
   initialMessages,
+  property,
+  fieldStatus,
   initialBlock,
   initialCanGenerate,
   generating,
@@ -59,7 +72,9 @@ export function InterviewChat({
   const [block, setBlock] = useState(initialBlock);
   const [canGenerate, setCanGenerate] = useState(initialCanGenerate);
   const [error, setError] = useState<string | null>(null);
+  const [quickBusy, setQuickBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const showTypeQuickPick = !property.type_bien && fieldStatus.type_bien !== "answered";
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -157,6 +172,44 @@ export function InterviewChat({
     }
   }
 
+  async function sendQuickType(value: NonNullable<PropertyData["type_bien"]>) {
+    if (busy || quickBusy || generating) return;
+    setError(null);
+    setQuickBusy(true);
+
+    const label = QUICK_TYPE_OPTIONS.find((option) => option.value === value)?.label ?? value;
+    setMessages((m) => [...m, { role: "user", content: label }]);
+
+    try {
+      const res = await fetch(`/api/estimations/${id}/quick-answer`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ field: "type_bien", value }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? "quick_answer_failed");
+      }
+
+      const frame = (await res.json()) as {
+        property: PropertyData;
+        fieldStatus: FieldStatusMap;
+        block: number;
+        canGenerate: boolean;
+      };
+
+      setBlock(frame.block);
+      setCanGenerate(frame.canGenerate);
+      onState(frame.property, frame.fieldStatus, frame.block, frame.canGenerate);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : UI.common.error);
+      setMessages((m) => m.slice(0, -1));
+    } finally {
+      setQuickBusy(false);
+    }
+  }
+
   return (
     <div className="ct-chat">
       <div className="ct-chat-status">
@@ -189,11 +242,26 @@ export function InterviewChat({
       </div>
 
       <div className="ct-chat-input-wrap">
+        {showTypeQuickPick ? (
+          <div className="est-quick-picks" aria-label="Sélection rapide du type de bien">
+            {QUICK_TYPE_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className="ct-seg-btn"
+                disabled={busy || quickBusy || generating}
+                onClick={() => sendQuickType(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <input
           className="ct-chat-input"
           placeholder={UI.chat.placeholder}
           value={input}
-          disabled={busy || generating}
+          disabled={busy || quickBusy || generating}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {

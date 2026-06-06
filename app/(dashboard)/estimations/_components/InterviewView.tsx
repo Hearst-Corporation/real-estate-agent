@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { InterviewChat } from "./InterviewChat";
 import { FicheLive } from "./FicheLive";
 import { ValuationPanel } from "./ValuationPanel";
@@ -54,6 +54,22 @@ export function InterviewView({
   const [generating, setGenerating] = useState(false);
   const [progressStep, setProgressStep] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onEstimationUpdated(event: Event) {
+      const detail = (event as CustomEvent<{
+        estimationId?: string | null;
+        field?: keyof PropertyData;
+        value?: PropertyData[keyof PropertyData];
+      }>).detail;
+      if (detail?.estimationId !== id || !detail.field) return;
+      setProperty((current) => ({ ...current, [detail.field!]: detail.value }));
+      setFieldStatus((current) => ({ ...current, [detail.field!]: "answered" }));
+    }
+
+    window.addEventListener("cockpit:estimation-updated", onEstimationUpdated);
+    return () => window.removeEventListener("cockpit:estimation-updated", onEstimationUpdated);
+  }, [id]);
 
   function handleState(
     p: PropertyData,
@@ -146,6 +162,8 @@ export function InterviewView({
         <InterviewChat
           id={id}
           initialMessages={initialMessages}
+          property={property}
+          fieldStatus={fieldStatus}
           initialBlock={block}
           initialCanGenerate={canGenerate}
           generating={generating}

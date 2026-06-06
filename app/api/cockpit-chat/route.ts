@@ -5,6 +5,11 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { kimi, KIMI_MODEL, kimiIsConfigured } from "@/lib/llm/kimi";
 import { tenantOf } from "@/lib/tenant";
 import { trace } from "@/lib/providers/langfuse";
+import { loadOwnedEstimation } from "@/lib/estimation/owned";
+import { signShareToken } from "@/lib/estimation/share";
+import { sendEmail } from "@/lib/providers/resend-email";
+import type { FieldStatusMap, PropertyData } from "@/lib/estimation/types";
+import type { Json } from "@/lib/supabase/database.types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,9 +23,190 @@ const KIMI_MAX_TOKENS = 8192;
 const BodySchema = z.object({
   chatId: z.string().uuid().optional(),
   message: z.string().min(1).max(MESSAGE_MAX),
+  context: z.object({
+    pathname: z.string().max(500).optional(),
+  }).optional(),
 });
 
 const MEMORIZE_RE = /^\s*(?:m[ée]morise|retiens|souviens[- ]toi)\s*:?\s*(.+)/i;
+const TYPE_BIEN_ALIASES: Array<{
+  value: NonNullable<PropertyData["type_bien"]>;
+  pattern: RegExp;
+}> = [
+  { value: "appartement", pattern: /\b(appartement|appart|studio|t[1-6])\b/i },
+  { value: "maison", pattern: /\b(maison|villa|pavillon)\b/i },
+  { value: "immeuble", pattern: /\bimmeuble\b/i },
+  { value: "local_commercial", pattern: /\b(local commercial|commerce|boutique)\b/i },
+  { value: "terrain", pattern: /\bterrain\b/i },
+  { value: "autre", pattern: /\bautre\b/i },
+];
+
+type EstimationAction = {
+  field: keyof PropertyData;
+  value: string | number | boolean;
+  valueType: "string" | "number" | "boolean";
+};
+
+type OperatorAction =
+  | { kind: "create_lead"; fullName: string; email: string | null; phone: string | null }
+  | { kind: "delete_lead"; identifier: string; confirmed: boolean }
+  | { kind: "create_property_from_estimation"; estimationId: string }
+  | { kind: "send_estimation_to_email"; estimationId: string; email: string; confirmed: boolean };
+
+const FIELD_LABELS: Partial<Record<keyof PropertyData, string>> = {
+  type_bien: "type de bien",
+  surface_habitable_m2: "surface habitable",
+  nombre_pieces: "nombre de pièces",
+  nombre_chambres: "nombre de chambres",
+  etage: "étage",
+  ascenseur: "ascenseur",
+  cave: "cave",
+  travaux_votes: "travaux votés",
+  dpe_classe: "DPE",
+  etat_general: "état général",
+  occupation: "occupation",
+};
+
+function estimationIdFromPathname(pathname: string | undefined): string | null {
+  const match = pathname?.match(/^\/estimations\/([^/]+)$/);
+  return match?.[1] ?? null;
+}
+
+function detectTypeBien(message: string): NonNullable<PropertyData["type_bien"]> | null {
+  const normalized = message.trim();
+  const looksLikeQuestion =
+    normalized.includes("?") ||
+    /\b(combien|pourquoi|comment|quand|quelle|quel|peux-tu|explique)\b/i.test(normalized);
+  if (looksLikeQuestion) return null;
+  if (normalized.length > 120) return null;
+  return TYPE_BIEN_ALIASES.find((alias) => alias.pattern.test(normalized))?.value ?? null;
+}
+
+function boolAction(message: string, field: "ascenseur" | "cave" | "travaux_votes"): EstimationAction | null {
+  const hasField = new RegExp(`\\b${field === "travaux_votes" ? "travaux" : field}\\b`, "i").test(message);
+  if (!hasField) return null;
+  const negative = /\b(non|pas|aucun|sans)\b/i.test(message);
+  const positive = /\b(oui|avec|présent|presente|présente|il y a)\b/i.test(message);
+  if (!negative && !positive) return null;
+  return { field, value: positive && !negative, valueType: "boolean" };
+}
+
+function detectEstimationAction(message: string): EstimationAction | null {
+  const normalized = message.trim();
+  const looksLikeQuestion =
+    normalized.includes("?") ||
+    /\b(combien|pourquoi|comment|quand|quelle|quel|peux-tu|explique)\b/i.test(normalized);
+  if (looksLikeQuestion || normalized.length > 160) return null;
+
+  const typeBien = detectTypeBien(normalized);
+  if (typeBien) return { field: "type_bien", value: typeBien, valueType: "string" };
+
+  const dpe = normalized.match(/\b(?:dpe|classe)\s*([A-G])\b/i);
+  if (dpe?.[1]) return { field: "dpe_classe", value: dpe[1].toUpperCase(), valueType: "string" };
+
+  const surface = normalized.match(/\b(\d{1,5}(?:[,.]\d{1,2})?)\s*(?:m2|m²|mètres carrés|metres carres)\b/i);
+  if (surface?.[1]) {
+    const value = Number(surface[1].replace(",", "."));
+    if (value > 0 && value <= 100000) {
+      return { field: "surface_habitable_m2", value, valueType: "number" };
+    }
+  }
+
+  const pieces = normalized.match(/\b(\d{1,2})\s*pi[eè]ces?\b/i);
+  if (pieces?.[1]) return { field: "nombre_pieces", value: Number(pieces[1]), valueType: "number" };
+
+  const chambres = normalized.match(/\b(\d{1,2})\s*chambres?\b/i);
+  if (chambres?.[1]) return { field: "nombre_chambres", value: Number(chambres[1]), valueType: "number" };
+
+  const etage = normalized.match(/\b(?:étage|etage|au)\s*(-?\d{1,3})(?:e|er|ème|eme)?\b/i);
+  if (etage?.[1]) return { field: "etage", value: Number(etage[1]), valueType: "number" };
+
+  const bool =
+    boolAction(normalized, "ascenseur") ??
+    boolAction(normalized, "cave") ??
+    boolAction(normalized, "travaux_votes");
+  if (bool) return bool;
+
+  if (/\b(a renover|à rénover|renover|rénover)\b/i.test(normalized)) {
+    return { field: "etat_general", value: "a_renover", valueType: "string" };
+  }
+  if (/\brafraichissement|rafraîchissement\b/i.test(normalized)) {
+    return { field: "etat_general", value: "rafraichissement", valueType: "string" };
+  }
+  if (/\bbon état|bon etat\b/i.test(normalized)) {
+    return { field: "etat_general", value: "bon", valueType: "string" };
+  }
+  if (/\brénové|renove|rénovée|renovée|renovation récente|rénovation récente\b/i.test(normalized)) {
+    return { field: "etat_general", value: "renove_recemment", valueType: "string" };
+  }
+  if (/\bneuf|vefa\b/i.test(normalized)) {
+    return { field: "etat_general", value: "neuf", valueType: "string" };
+  }
+
+  if (/\blibre\b/i.test(normalized)) return { field: "occupation", value: "libre", valueType: "string" };
+  if (/\blou[ée]\b/i.test(normalized)) return { field: "occupation", value: "loue", valueType: "string" };
+  if (/\brésidence principale|residence principale\b/i.test(normalized)) {
+    return { field: "occupation", value: "residence_principale", valueType: "string" };
+  }
+
+  return null;
+}
+
+function firstEmail(message: string): string | null {
+  return message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] ?? null;
+}
+
+function firstPhone(message: string): string | null {
+  return message.match(/(?:\+33|0)[1-9](?:[\s.-]?\d{2}){4}/)?.[0] ?? null;
+}
+
+function cleanLeadName(raw: string): string {
+  return raw
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "")
+    .replace(/(?:\+33|0)[1-9](?:[\s.-]?\d{2}){4}/g, "")
+    .replace(/\b(client|lead|contact|acheteur|vendeur|crée|cree|ajoute|nouveau|nouvelle)\b/gi, "")
+    .replace(/[,:;-]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function detectOperatorAction(message: string, estimationId: string | null): OperatorAction | null {
+  const normalized = message.trim();
+  const email = firstEmail(normalized);
+
+  if (estimationId && /\b(fiche produit|produit|crée la fiche|cree la fiche|créer la fiche|creer la fiche)\b/i.test(normalized)) {
+    return { kind: "create_property_from_estimation", estimationId };
+  }
+
+  if (estimationId && email && /\b(envoie|envoyer|send|partage|partager)\b/i.test(normalized) && /\b(fiche|avis de valeur|brochure|estimation)\b/i.test(normalized)) {
+    return {
+      kind: "send_estimation_to_email",
+      estimationId,
+      email,
+      confirmed: /\b(confirme|confirmé|confirmez|ok pour envoyer)\b/i.test(normalized),
+    };
+  }
+
+  if (/\b(supprime|supprimer|delete)\b/i.test(normalized) && /\b(client|lead|contact)\b/i.test(normalized)) {
+    const identifier = email ?? normalized.replace(/\b(confirme|supprime|supprimer|delete|client|lead|contact)\b/gi, "").trim();
+    if (identifier) {
+      return {
+        kind: "delete_lead",
+        identifier,
+        confirmed: /\b(confirme|confirmé|confirmez)\b/i.test(normalized),
+      };
+    }
+  }
+
+  if (/\b(crée|cree|ajoute|nouveau|nouvelle)\b/i.test(normalized) && /\b(client|lead|contact)\b/i.test(normalized)) {
+    const fullName = cleanLeadName(normalized);
+    if (fullName) {
+      return { kind: "create_lead", fullName, email, phone: firstPhone(normalized) };
+    }
+  }
+
+  return null;
+}
 
 export async function POST(req: Request) {
   const claims = await getSession();
@@ -35,7 +221,11 @@ export async function POST(req: Request) {
 
   const userId = claims.sub;
   const tenant = tenantOf(claims);
-  const { message } = parsed.data;
+  const { message, context } = parsed.data;
+  const estimationId = estimationIdFromPathname(context?.pathname);
+  const action = estimationId ? detectEstimationAction(message) : null;
+  const operatorAction = detectOperatorAction(message, estimationId);
+  let actionHeaders: Record<string, string> = {};
 
   // Capture mémoire « mémorise: … »
   const mem = message.match(MEMORIZE_RE);
@@ -87,9 +277,185 @@ export async function POST(req: Request) {
     .limit(MEMORY_LIMIT);
 
   const memoryBlock = (memories ?? []).map((m) => `- ${m.content}`).join("\n");
+  let actionBlock = "";
+  if (operatorAction) {
+    try {
+      if (operatorAction.kind === "create_lead") {
+        const { data, error } = await sb
+          .from("leads")
+          .insert({
+            user_id: userId,
+            tenant_id: tenant,
+            full_name: operatorAction.fullName,
+            kind: "acheteur",
+            email: operatorAction.email,
+            phone: operatorAction.phone,
+            source: "cockpit_chat",
+            status: "nouveau",
+          })
+          .select("id")
+          .single();
+        if (error || !data) throw error ?? new Error("lead_create_failed");
+        actionBlock = `\n\nAction exécutée: lead créé (${operatorAction.fullName}). Réponds brièvement et indique que le CRM a été rempli.`;
+        actionHeaders = { "X-Cockpit-Action": "crm:create_lead", "X-Cockpit-Value": data.id };
+      }
+
+      if (operatorAction.kind === "delete_lead") {
+        if (!operatorAction.confirmed) {
+          actionBlock = `\n\nAction non exécutée: suppression demandée pour "${operatorAction.identifier}". Demande une confirmation explicite avec "confirme supprimer client ${operatorAction.identifier}".`;
+        } else {
+          const lookup = sb
+            .from("leads")
+            .select("id,full_name,email")
+            .eq("user_id", userId)
+            .eq("tenant_id", tenant);
+          const { data: candidates, error: lookupError } = operatorAction.identifier.includes("@")
+            ? await lookup.eq("email", operatorAction.identifier)
+            : await lookup.ilike("full_name", `%${operatorAction.identifier}%`).limit(2);
+          if (lookupError) throw lookupError;
+          if (!candidates || candidates.length !== 1) {
+            actionBlock = candidates?.length
+              ? "\n\nAction non exécutée: plusieurs clients correspondent. Demande l'email exact du client à supprimer."
+              : "\n\nAction non exécutée: aucun client correspondant trouvé. Demande de vérifier le nom ou l'email.";
+          } else {
+            const { error } = await sb
+              .from("leads")
+              .delete()
+              .eq("id", candidates[0].id)
+              .eq("user_id", userId)
+              .eq("tenant_id", tenant);
+          if (error) throw error;
+            actionBlock = `\n\nAction exécutée: client "${candidates[0].full_name}" supprimé. Réponds sobrement.`;
+            actionHeaders = { "X-Cockpit-Action": "crm:delete_lead", "X-Cockpit-Value": candidates[0].id };
+          }
+        }
+      }
+
+      if (operatorAction.kind === "create_property_from_estimation") {
+        const estimation = await loadOwnedEstimation(sb, operatorAction.estimationId, userId, tenant);
+        if (!estimation) throw new Error("estimation_not_found");
+        const property = (estimation.property ?? {}) as Partial<PropertyData>;
+        const title = [
+          property.type_bien ?? "Bien",
+          property.ville ?? estimation.city ?? "",
+          property.surface_habitable_m2 ? `${property.surface_habitable_m2} m²` : "",
+        ].filter(Boolean).join(" - ");
+        const { data, error } = await sb
+          .from("properties")
+          .insert({
+            user_id: userId,
+            tenant_id: tenant,
+            status: "prospect",
+            title,
+            property_type: property.type_bien ?? estimation.property_type ?? "autre",
+            address: property.adresse ?? "Adresse à compléter",
+            city: property.ville ?? estimation.city ?? "Ville à compléter",
+            postal_code: property.code_postal ?? estimation.postal_code ?? "00000",
+            surface: property.surface_habitable_m2 ?? estimation.surface ?? null,
+            rooms: property.nombre_pieces ?? null,
+            bedrooms: property.nombre_chambres ?? null,
+            estimated_value: estimation.market_value,
+            estimation_id: operatorAction.estimationId,
+            notes: "Fiche créée depuis le chat Cockpit.",
+          })
+          .select("id")
+          .single();
+        if (error || !data) throw error ?? new Error("property_create_failed");
+        actionBlock = `\n\nAction exécutée: fiche produit créée depuis l'estimation courante. Réponds avec l'ID ${data.id} et propose de compléter les champs manquants.`;
+        actionHeaders = { "X-Cockpit-Action": "crm:create_property", "X-Cockpit-Value": data.id };
+      }
+
+      if (operatorAction.kind === "send_estimation_to_email") {
+        if (!operatorAction.confirmed) {
+          actionBlock = `\n\nAction non exécutée: envoi demandé à ${operatorAction.email}. Demande une confirmation explicite avec "confirme envoyer fiche à ${operatorAction.email}".`;
+        } else {
+          const estimation = await loadOwnedEstimation(sb, operatorAction.estimationId, userId, tenant);
+          if (!estimation) throw new Error("estimation_not_found");
+          if (estimation.status !== "ready") {
+            actionBlock = "\n\nAction non exécutée: l'estimation n'est pas encore prête. Indique qu'il faut générer l'avis de valeur avant l'envoi.";
+          } else {
+            const token = await signShareToken(operatorAction.estimationId);
+            const origin = new URL(req.url).origin;
+            const shareUrl = `${origin}/brochure/${token}`;
+            await sendEmail({
+              to: operatorAction.email,
+              subject: "Votre avis de valeur",
+              html: `<p>Votre avis de valeur est disponible :</p><p><a href="${shareUrl}">Consulter la fiche</a></p>`,
+            });
+            actionBlock = `\n\nAction exécutée: fiche envoyée à ${operatorAction.email}. Réponds brièvement.`;
+            actionHeaders = { "X-Cockpit-Action": "crm:send_estimation", "X-Cockpit-Value": operatorAction.email };
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[cockpit-chat] operator action failed", {
+        tenant,
+        action: operatorAction.kind,
+        message: err instanceof Error ? err.message : "unknown",
+      });
+      actionBlock = "\n\nAction échouée côté serveur. Réponds que l'action n'a pas pu être exécutée et demande de vérifier les informations.";
+    }
+  }
+
+  if (estimationId && action) {
+    try {
+      const estimation = await loadOwnedEstimation(sb, estimationId, userId, tenant);
+      if (estimation) {
+        const property = (estimation.property ?? {}) as PropertyData;
+        const fieldStatus = (estimation.field_status ?? {}) as FieldStatusMap;
+        const newProperty: PropertyData = { ...property, [action.field]: action.value };
+        const newFieldStatus: FieldStatusMap = { ...fieldStatus, [action.field]: "answered" };
+        const promotedCols =
+          action.field === "type_bien"
+            ? { property_type: action.value as string }
+            : action.field === "surface_habitable_m2"
+              ? { surface: action.value as number }
+              : {};
+        const { error } = await sb
+          .from("estimations")
+          .update({
+            property: newProperty as unknown as Json,
+            field_status: newFieldStatus as unknown as Json,
+            ...promotedCols,
+            status: "interviewing",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", estimationId)
+          .eq("user_id", userId)
+          .eq("tenant_id", tenant);
+
+        if (error) {
+          console.error("[cockpit-chat] estimation action failed", {
+            estimationId,
+            tenant,
+            action: action.field,
+            code: error.code,
+          });
+        } else {
+          actionBlock = `\n\nAction exécutée: ${FIELD_LABELS[action.field] ?? action.field} = "${String(action.value)}" sur l'estimation courante. Réponds brièvement que c'est pris en compte et propose la prochaine information utile.`;
+          actionHeaders = {
+            "X-Cockpit-Action": `estimation:${String(action.field)}`,
+            "X-Cockpit-Field": String(action.field),
+            "X-Cockpit-Value": String(action.value),
+            "X-Cockpit-Value-Type": action.valueType,
+            "X-Estimation-Id": estimationId,
+          };
+        }
+      }
+    } catch (err) {
+      console.error("[cockpit-chat] estimation action error", {
+        estimationId,
+        tenant,
+        action: action.field,
+        message: err instanceof Error ? err.message : "unknown",
+      });
+    }
+  }
+
   const system =
-    "Tu es l'assistant Cockpit de Real estate Agent. Réponds en français, de façon concise et actionnable." +
-    (memoryBlock ? `\n\nMémoire de l'utilisateur :\n${memoryBlock}` : "");
+    "Tu es l'assistant Cockpit de Real estate Agent. Réponds en français, de façon concise et actionnable. Tu peux agir sur les données de l'application uniquement via les actions serveur autorisées et confirmées." +
+    (memoryBlock ? `\n\nMémoire de l'utilisateur :\n${memoryBlock}` : "") +
+    actionBlock;
 
   const messages = [
     { role: "system" as const, content: system },
@@ -156,6 +522,7 @@ export async function POST(req: Request) {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       "X-Chat-Id": chatId,
+      ...actionHeaders,
     },
   });
 }
