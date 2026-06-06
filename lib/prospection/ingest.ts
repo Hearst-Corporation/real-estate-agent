@@ -19,8 +19,7 @@ export async function upsertAnnonces(
   listings: MoteurImmoListing[],
   source: string,
 ): Promise<IngestStats> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = getSupabaseAdmin() as any;
+  const db = getSupabaseAdmin();
   if (!db) throw new Error("supabase_not_configured");
 
   const stats: IngestStats = { inserted: 0, updated: 0, duplicates: 0, errors: 0 };

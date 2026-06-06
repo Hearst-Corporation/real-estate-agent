@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
 
@@ -222,10 +223,8 @@ export default function PropertyFormModal() {
   }
 
   return (
-    <div className="crm-form-overlay">
-      <div className="crm-form-modal">
-        <PropertyForm onClose={() => setOpen(false)} />
-      </div>
-    </div>
+    <AccessibleModal title={t.form.title} onClose={() => setOpen(false)}>
+      <PropertyForm onClose={() => setOpen(false)} />
+    </AccessibleModal>
   );
 }

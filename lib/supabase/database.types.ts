@@ -2861,6 +2861,9 @@ export type Database = {
           prix_m2: number | null
           prix_original: number | null
           rentabilite_estimee: number | null
+          mandat_eligible: boolean | null
+          score_breakdown: Json | null
+          score_mandat: number | null
           scored_at: string | null
           siren_annonceur: string | null
           source_id: string | null
@@ -2925,6 +2928,9 @@ export type Database = {
           prix_m2?: number | null
           prix_original?: number | null
           rentabilite_estimee?: number | null
+          mandat_eligible?: boolean | null
+          score_breakdown?: Json | null
+          score_mandat?: number | null
           scored_at?: string | null
           siren_annonceur?: string | null
           source_id?: string | null
@@ -2989,6 +2995,9 @@ export type Database = {
           prix_m2?: number | null
           prix_original?: number | null
           rentabilite_estimee?: number | null
+          mandat_eligible?: boolean | null
+          score_breakdown?: Json | null
+          score_mandat?: number | null
           scored_at?: string | null
           siren_annonceur?: string | null
           source_id?: string | null

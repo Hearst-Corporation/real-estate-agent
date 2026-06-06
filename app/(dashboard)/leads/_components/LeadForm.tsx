@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
 import { UI } from "@/lib/ui-strings";
 import {
   LEAD_KINDS,
@@ -221,10 +222,8 @@ export default function LeadFormModal({ cta }: { cta: string }) {
   }
 
   return (
-    <div className="crm-form-overlay">
-      <div className="crm-form-modal">
-        <LeadForm onClose={() => setOpen(false)} />
-      </div>
-    </div>
+    <AccessibleModal title={UI.leads.form.title} onClose={() => setOpen(false)}>
+      <LeadForm onClose={() => setOpen(false)} />
+    </AccessibleModal>
   );
 }

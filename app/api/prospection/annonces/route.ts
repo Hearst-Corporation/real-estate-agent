@@ -27,8 +27,7 @@ export async function GET(req: NextRequest) {
   const { limit, offset } = parsePaging(searchParams);
   const tenantId = tenantOf(claims);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let q = (db as any)
+  let q = db
     .from("prosp_annonces")
     .select("id,type_bien,title,prix,surface_m2,nb_pieces,code_postal,commune,source_url,photos_urls,type_annonceur,score_mandat,mandat_eligible,premiere_parution_at,derniere_republication_at", { count: "exact" })
     .eq("tenant_id", tenantId)

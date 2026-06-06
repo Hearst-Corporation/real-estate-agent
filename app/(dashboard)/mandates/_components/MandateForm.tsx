@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
 
@@ -179,10 +180,8 @@ export default function MandateFormModal({ cta }: { cta: string }) {
   }
 
   return (
-    <div className="crm-form-overlay">
-      <div className="crm-form-modal">
-        <MandateForm onClose={() => setOpen(false)} />
-      </div>
-    </div>
+    <AccessibleModal title={UI.mandates.form.title} onClose={() => setOpen(false)}>
+      <MandateForm onClose={() => setOpen(false)} />
+    </AccessibleModal>
   );
 }

@@ -10,6 +10,8 @@ const ENV_URLS = {
   prod: "https://real-estate-agent.vercel.app",
 };
 
+type AppEnv = keyof typeof ENV_URLS;
+
 let mainWindow: BrowserWindow | null = null;
 let splashWindow: BrowserWindow | null = null;
 
@@ -29,7 +31,11 @@ function createSplash() {
   splashWindow.loadFile(path.join(__dirname, "splash.html"));
 }
 
-function createMainWindow(env: "local" | "prod") {
+function isAppEnv(value: unknown): value is AppEnv {
+  return value === "local" || value === "prod";
+}
+
+function createMainWindow(env: AppEnv) {
   store.set("env", env);
   const url = ENV_URLS[env];
 
@@ -44,7 +50,7 @@ function createMainWindow(env: "local" | "prod") {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
-      webSecurity: env === "prod",
+      webSecurity: true,
     },
   });
 
@@ -89,7 +95,10 @@ function createMainWindow(env: "local" | "prod") {
   Menu.setApplicationMenu(menu);
 }
 
-ipcMain.handle("select-env", (_event, env: "local" | "prod") => {
+ipcMain.handle("select-env", (_event, env: unknown) => {
+  if (!isAppEnv(env)) {
+    throw new Error("invalid_env");
+  }
   splashWindow?.close();
   createMainWindow(env);
 });

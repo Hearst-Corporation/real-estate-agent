@@ -50,8 +50,7 @@ export async function GET(req: NextRequest) {
   const critereId = searchParams.get("critere_id");
   const { limit, offset } = parsePaging(searchParams);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let q = (db as any)
+  let q = db
     .from("prosp_matchs")
     .select("id,score_match,bonus_breakdown,statut,alerted_at,date_match,annonce:prosp_annonces(id,type_bien,title,prix,surface_m2,nb_pieces,code_postal,commune,source_url,type_annonceur)", { count: "exact" })
     .eq("tenant_id", tenantId)

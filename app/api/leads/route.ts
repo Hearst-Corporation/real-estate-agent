@@ -6,6 +6,8 @@ import { tenantOf } from "@/lib/tenant";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const DEFAULT_LEADS_LIMIT = 200;
+
 // ─── GET /api/leads — liste des leads de l'utilisateur ───────────────────────
 
 export async function GET() {
@@ -20,7 +22,8 @@ export async function GET() {
     .select("id, full_name, email, phone, status, kind, type_personne, source, budget_min, budget_max, property_id, notes, created_at, updated_at")
     .eq("user_id", claims.sub)
     .eq("tenant_id", tenantOf(claims))
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .limit(DEFAULT_LEADS_LIMIT);
 
   if (error) {
     return NextResponse.json({ error: "fetch_failed", detail: error.message }, { status: 500 });

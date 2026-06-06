@@ -19,6 +19,10 @@ import { matchAnnonce } from "@/lib/prospection/matching/match";
 import { sendMatchAlerte } from "@/lib/prospection/alert";
 import type { MandatConfig, CritereAcquereur, Annonce } from "@/lib/prospection/types";
 import { DEFAULT_MANDAT_CONFIG } from "@/lib/prospection/types";
+import type { Database, Json } from "@/lib/supabase/database.types";
+
+type ProspAnnonceRow = Database["public"]["Tables"]["prosp_annonces"]["Row"];
+type ProspAnnonceUpdate = Database["public"]["Tables"]["prosp_annonces"]["Update"];
 
 /** No-op : prouve que la plomberie serve()/event fonctionne. */
 export const ping = inngest.createFunction(
@@ -61,8 +65,6 @@ export const generatePdf = inngest.createFunction(
 );
 
 // ─── Prospection : ingestion horaire ──────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const dbAny = () => getSupabaseAdmin() as any;
 
 export const prospIngestion = inngest.createFunction(
   { id: "prosp-ingestion", triggers: [{ cron: "0 * * * *" }], concurrency: { limit: 1 } },
@@ -119,23 +121,25 @@ export const prospScoring = inngest.createFunction(
     } : DEFAULT_MANDAT_CONFIG;
 
     // 2. Score mandat sur les annonces non scorées (batch 200) — schéma réel prosp_annonces
-    const { data: unscored } = await dbAny()
+    const { data: unscoredRaw } = await db
       .from("prosp_annonces")
       .select("*")
       .eq("tenant_id", "real-estate-agent")
       .is("score_mandat", null)
       .limit(200);
+    const unscored = (unscoredRaw ?? []) as ProspAnnonceRow[];
 
-    if (unscored?.length) {
+    if (unscored.length) {
       await step.run("score-mandat", async () => {
-        for (const row of unscored as Record<string, unknown>[]) {
+        for (const row of unscored) {
           const annonce = dbRowToAnnonce(row);
           const { score, eligible, breakdown } = scoreMandat(annonce, mandatConfig);
-          await dbAny().from("prosp_annonces").update({
+          const update: ProspAnnonceUpdate = {
             score_mandat: score,
             mandat_eligible: eligible,
             score_breakdown: breakdown,
-          }).eq("id", row.id);
+          };
+          await db.from("prosp_annonces").update(update).eq("id", row.id);
         }
       });
     }
@@ -147,30 +151,31 @@ export const prospScoring = inngest.createFunction(
       .eq("tenant_id", "real-estate-agent")
       .eq("actif", true);
 
-    if (!criteres?.length) return { scored: unscored?.length ?? 0, matched: 0 };
+    if (!criteres?.length) return { scored: unscored.length, matched: 0 };
 
     let totalMatched = 0;
     for (const critereRow of criteres) {
       const zones: string[] = Array.isArray(critereRow.zones) ? (critereRow.zones as string[]) : [];
       const critere = dbRowToCritere(critereRow as Record<string, unknown>);
 
-      const { data: annonces } = await dbAny()
+      const { data: annoncesRaw } = await db
         .from("prosp_annonces")
         .select("*")
         .eq("tenant_id", "real-estate-agent")
         .gte("date_collecte", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
         .limit(500);
+      const annonces = (annoncesRaw ?? []) as ProspAnnonceRow[];
 
-      if (!annonces?.length) continue;
+      if (!annonces.length) continue;
 
       await step.run(`match:${critere.id}`, async () => {
-        for (const row of annonces as Record<string, unknown>[]) {
+        for (const row of annonces) {
           if (!zones.some(z => (String(row.code_postal ?? "")).startsWith(z))) continue;
           const annonce = dbRowToAnnonce(row);
           const result = matchAnnonce(critere, annonce);
           if (!result || result.score < 50) continue;
 
-          const { data: matchRow } = await dbAny()
+          const { data: matchRow } = await db
             .from("prosp_matchs")
             .upsert({
               tenant_id:        "real-estate-agent",
@@ -179,7 +184,7 @@ export const prospScoring = inngest.createFunction(
               annonce_id:       annonce.id,
               score_match:      result.score,
               bonus_breakdown:  result.breakdown,
-              features_snapshot: result.features,
+              features_snapshot: result.features as Json,
               statut:           "nouveau",
             }, { onConflict: "tenant_id,critere_id,annonce_id", ignoreDuplicates: false })
             .select("id,statut,alerted_at")
@@ -188,7 +193,7 @@ export const prospScoring = inngest.createFunction(
           if (matchRow && !matchRow.alerted_at && result.score >= 70) {
             const alertResult = await sendMatchAlerte("real-estate-agent", critere, annonce, result.score);
             if (alertResult.sent) {
-              await dbAny().from("prosp_matchs").update({ alerted_at: new Date().toISOString(), statut: "alerte_envoyee" }).eq("id", matchRow.id);
+              await db.from("prosp_matchs").update({ alerted_at: new Date().toISOString(), statut: "alerte_envoyee" }).eq("id", matchRow.id);
             }
           }
           totalMatched++;
@@ -196,7 +201,7 @@ export const prospScoring = inngest.createFunction(
       });
     }
 
-    return { scored: unscored?.length ?? 0, matched: totalMatched };
+    return { scored: unscored.length, matched: totalMatched };
   },
 );
 
