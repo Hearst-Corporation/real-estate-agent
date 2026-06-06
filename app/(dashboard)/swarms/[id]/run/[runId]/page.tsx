@@ -125,7 +125,7 @@ export default function RunDetailPage({
     ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" }).format(
         new Date(run.created_at)
       )
-    : "—";
+    : UI.common.empty;
 
   return (
     <>
@@ -135,19 +135,20 @@ export default function RunDetailPage({
           {id && (
             <>
               <Link href="/swarms" style={{ color: "var(--ct-text-muted)", textDecoration: "none" }}>
-                Swarms
+                {UI.nav.swarms}
               </Link>
               {" / "}
               <Link href={`/swarms/${id}`} style={{ color: "var(--ct-text-muted)", textDecoration: "none" }}>
                 {id}
               </Link>
-              {" / Run"}
+              {" / "}
+              {UI.swarms.runBreadcrumb}
             </>
           )}
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-md)", flexWrap: "wrap" }}>
           <h1 className="ct-title" style={{ marginBottom: 0 }}>
-            Run
+            {UI.swarms.runTitle}
           </h1>
           <code style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-muted)", background: "var(--ct-surface-2)", padding: "var(--ct-space-2xs) var(--ct-space-xs)", borderRadius: "var(--ct-radius-sm)" }}>
             {run.run_id}

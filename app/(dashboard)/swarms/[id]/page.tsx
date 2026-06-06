@@ -319,7 +319,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
                     </p>
                   )}
                   {task.agent_name && (
-                    <span className="swarm-tool-badge" style={{ marginTop: 4, display: "inline-block" }}>
+                    <span className="swarm-tool-badge" style={{ marginTop: "var(--ct-space-2xs)", display: "inline-block" }}>
                       {task.agent_name}
                     </span>
                   )}

@@ -528,6 +528,20 @@ export const UI = {
     // Steps
     stepsExpandLess: "Voir moins",
     stepsExpandMore: "Voir plus",
+    // Run status badge labels
+    runStatus: {
+      pending: "En attente",
+      running: "En cours...",
+      done: "Terminé",
+      failed: "Échoué",
+      error: "Erreur",
+    },
+    // Run detail breadcrumb / title
+    runBreadcrumb: "Run",
+    runTitle: "Run",
+    // Dynamic list remove buttons (a11y)
+    removeAgent: "Supprimer cet agent",
+    removeTask: "Supprimer cette tâche",
     // Detail page
     runsTab: "Runs",
     agentsTab: "Agents & Tâches",

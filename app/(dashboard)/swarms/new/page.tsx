@@ -13,6 +13,10 @@ type TaskDraft = { name: string; description: string; expected_output: string };
 const EMPTY_AGENT: AgentDraft = { name: "", role: "", goal: "" };
 const EMPTY_TASK: TaskDraft = { name: "", description: "", expected_output: "" };
 
+// Largeur max du formulaire (pas de token container dans Cockpit)
+const FORM_MAX_WIDTH = 720;
+const ARCHITECT_TEXTAREA_ROWS = 5;
+
 export default function NewSwarmPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("architect");
@@ -149,12 +153,12 @@ export default function NewSwarmPage() {
       </div>
 
       {tab === "architect" && (
-        <div className="ct-card" style={{ maxWidth: 720, width: "100%" }}>
+        <div className="ct-card" style={{ maxWidth: FORM_MAX_WIDTH, width: "100%" }}>
           <p className="ct-card-title">{UI.swarms.architectTitle}</p>
           <div className="ct-card-body">
             <textarea
               className="crm-input"
-              rows={5}
+              rows={ARCHITECT_TEXTAREA_ROWS}
               placeholder={UI.swarms.architectPlaceholder}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -208,7 +212,7 @@ export default function NewSwarmPage() {
       )}
 
       {tab === "manual" && (
-        <div className="ct-card" style={{ maxWidth: 720, width: "100%" }}>
+        <div className="ct-card" style={{ maxWidth: FORM_MAX_WIDTH, width: "100%" }}>
           <div className="ct-card-body">
             <div className="swarm-form-section">
               <p className="swarm-form-section-title">{UI.swarms.manualSectionGeneral}</p>
@@ -235,7 +239,7 @@ export default function NewSwarmPage() {
                 {agents.map((agent, i) => (
                   <div key={i} className="swarm-dynamic-item">
                     {agents.length > 1 && (
-                      <button type="button" className="swarm-dynamic-remove" onClick={() => removeAgent(i)}>
+                      <button type="button" className="swarm-dynamic-remove" aria-label={UI.swarms.removeAgent} onClick={() => removeAgent(i)}>
                         ×
                       </button>
                     )}
@@ -276,7 +280,7 @@ export default function NewSwarmPage() {
                 {tasks.map((task, i) => (
                   <div key={i} className="swarm-dynamic-item">
                     {tasks.length > 1 && (
-                      <button type="button" className="swarm-dynamic-remove" onClick={() => removeTask(i)}>
+                      <button type="button" className="swarm-dynamic-remove" aria-label={UI.swarms.removeTask} onClick={() => removeTask(i)}>
                         ×
                       </button>
                     )}
