@@ -382,4 +382,249 @@ describe("runDistribution", () => {
       }),
     ).rejects.toThrow();
   });
+
+  // ─── Tests additionnels ──────────────────────────────────────────────────
+
+  it("zéro holders → distribution créée, 0 payouts (montant calculé mais rien à répartir)", async () => {
+    const store = memStore([]); // aucun porteur
+    const res = await runDistribution(null, { tenantId: "real-estate-agent" }, "deal-1", "coupon", {
+      store,
+      escrow: escrowOk(),
+      idempotency: memIdempotency(),
+    });
+    expect(store.distributions).toHaveLength(1);
+    expect(store.payouts).toHaveLength(0);
+    expect(res.holders).toBe(0);
+    expect(res.totalGrossEur).toBeGreaterThan(0); // montant calculé même sans holders
+  });
+
+  it("deal introuvable → InvariantViolationError I2", async () => {
+    const store = memStore(POSITIONS);
+    // On remplace findDealBundle pour renvoyer null (deal absent).
+    store.findDealBundle = async () => null;
+    await expect(
+      runDistribution(null, { tenantId: "real-estate-agent" }, "deal-unknown", "coupon", {
+        store,
+        escrow: escrowOk(),
+        idempotency: memIdempotency(),
+      }),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof Error &&
+        (e as { invariant?: string }).invariant === "I2",
+    );
+  });
+
+  it("deal sans tranche → InvariantViolationError I2", async () => {
+    const store = memStore(POSITIONS);
+    store.findDealBundle = async () => ({ deal: dbDeal(), tranche: null, spv: null });
+    await expect(
+      runDistribution(null, { tenantId: "real-estate-agent" }, "deal-1", "coupon", {
+        store,
+        escrow: escrowOk(),
+        idempotency: memIdempotency(),
+      }),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof Error &&
+        (e as { invariant?: string }).invariant === "I2",
+    );
+  });
+
+  it("tenant mismatch sur le deal → InvariantViolationError I9", async () => {
+    const store = memStore(POSITIONS);
+    // Le deal retourné appartient à un autre tenant.
+    store.findDealBundle = async () => ({
+      deal: { ...dbDeal(), tenant_id: "other-tenant" },
+      tranche: TRANCHE,
+      spv: null,
+    });
+    await expect(
+      runDistribution(null, { tenantId: "real-estate-agent" }, "deal-1", "coupon", {
+        store,
+        escrow: escrowOk(),
+        idempotency: memIdempotency(),
+      }),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof Error &&
+        (e as { invariant?: string }).invariant === "I9",
+    );
+  });
+
+  it("exit waterfall : distributionType='final', audit 'distribution.exit'", async () => {
+    const store = memStore(POSITIONS, 3);
+    const res = await runDistribution(null, { tenantId: "real-estate-agent" }, "deal-1", "exit", {
+      store,
+      escrow: escrowOk(),
+      idempotency: memIdempotency(),
+    });
+    expect(res.distributionType).toBe("final");
+    expect(res.kind).toBe("exit");
+    expect(store.audits.some((a) => a.action === "distribution.exit")).toBe(true);
+    // waterfallRank 3 vérifié dans la distribution créée
+    expect(store.distributions[0].distribution_type).toBe("final");
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// listPayoutsForUser
+// ════════════════════════════════════════════════════════════════════════════
+
+import {
+  listPayoutsForUser,
+  listDistributionsForDeal,
+  type PayoutRow,
+  type DistributionRow,
+} from "./index";
+import { InvariantViolationError } from "../shared/errors";
+
+const ctx = { tenantId: "real-estate-agent" };
+
+/** Crée un store renvoyant des rows PayoutRow arbitraires. */
+function storeWithPayouts(rows: PayoutRow[]): DistributionStore {
+  return {
+    ...memStore([]),
+    async listPayoutsForUser() {
+      return rows;
+    },
+  };
+}
+
+/** Crée un store renvoyant des rows DistributionRow arbitraires. */
+function storeWithDistributions(rows: DistributionRow[]): DistributionStore {
+  return {
+    ...memStore([]),
+    async listDistributionsForDeal() {
+      return rows;
+    },
+  };
+}
+
+function makePayoutRow(overrides: Partial<PayoutRow> = {}): PayoutRow {
+  return {
+    id: "payout-1",
+    tenant_id: "real-estate-agent",
+    distribution_id: "dist-1",
+    holder_profile_id: "profile-1",
+    holder_user_id: "user-1",
+    bond_tranche_id: "tranche-1",
+    units_held: 2,
+    gross_amount_eur: 200,
+    withholding_eur: 0,
+    net_amount_eur: 200,
+    currency: "EUR",
+    status: "paid",
+    paid_at: "2026-06-01T00:00:00Z",
+    created_at: "2026-06-01T00:00:00Z",
+    deal_id: "deal-1",
+    deal_name: "Résidence Test",
+    distribution_type: "coupon",
+    ...overrides,
+  };
+}
+
+function makeDistributionRow(overrides: Partial<DistributionRow> = {}): DistributionRow {
+  return {
+    id: "dist-1",
+    tenant_id: "real-estate-agent",
+    deal_id: "deal-1",
+    bond_tranche_id: "tranche-1",
+    distribution_type: "coupon",
+    gross_amount_eur: 1000,
+    currency: "EUR",
+    waterfall_rank: 4,
+    status: "paid",
+    created_at: "2026-06-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+describe("listPayoutsForUser", () => {
+  it("userId absent → InvariantViolationError I9", async () => {
+    await expect(
+      listPayoutsForUser({ tenantId: "real-estate-agent", userId: null }, { store: storeWithPayouts([]) }),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof InvariantViolationError && (e as InvariantViolationError).invariant === "I9",
+    );
+  });
+
+  it("holder_user_id !== ctx.userId → InvariantViolationError I9", async () => {
+    const row = makePayoutRow({ holder_user_id: "user-other" });
+    await expect(
+      listPayoutsForUser(
+        { tenantId: "real-estate-agent", userId: "user-1" },
+        { store: storeWithPayouts([row]) },
+      ),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof InvariantViolationError && (e as InvariantViolationError).invariant === "I9",
+    );
+  });
+
+  it("tenant mismatch sur la row → InvariantViolationError I9", async () => {
+    const row = makePayoutRow({ tenant_id: "other-tenant", holder_user_id: "user-1" });
+    await expect(
+      listPayoutsForUser(
+        { tenantId: "real-estate-agent", userId: "user-1" },
+        { store: storeWithPayouts([row]) },
+      ),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof InvariantViolationError && (e as InvariantViolationError).invariant === "I9",
+    );
+  });
+
+  it("mapping Row → Payout : champs camelCase présents et exacts", async () => {
+    const row = makePayoutRow();
+    const result = await listPayoutsForUser(
+      { tenantId: "real-estate-agent", userId: "user-1" },
+      { store: storeWithPayouts([row]) },
+    );
+    expect(result).toHaveLength(1);
+    const p = result[0];
+    expect(p.id).toBe("payout-1");
+    expect(p.distributionId).toBe("dist-1");
+    expect(p.holderUserId).toBe("user-1");
+    expect(p.grossAmountEur).toBe(200);
+    expect(p.netAmountEur).toBe(200);
+    expect(p.withholdingEur).toBe(0);
+    expect(p.currency).toBe("EUR");
+    expect(p.status).toBe("paid");
+    expect(p.dealName).toBe("Résidence Test");
+    expect(p.distributionType).toBe("coupon");
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// listDistributionsForDeal
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("listDistributionsForDeal", () => {
+  it("tenant mismatch sur la row → InvariantViolationError I9", async () => {
+    const row = makeDistributionRow({ tenant_id: "other-tenant" });
+    await expect(
+      listDistributionsForDeal(ctx, "deal-1", { store: storeWithDistributions([row]) }),
+    ).rejects.toSatisfy(
+      (e: unknown) =>
+        e instanceof InvariantViolationError && (e as InvariantViolationError).invariant === "I9",
+    );
+  });
+
+  it("mapping Row → Distribution : champs camelCase présents et exacts", async () => {
+    const row = makeDistributionRow();
+    const result = await listDistributionsForDeal(ctx, "deal-1", { store: storeWithDistributions([row]) });
+    expect(result).toHaveLength(1);
+    const d = result[0];
+    expect(d.id).toBe("dist-1");
+    expect(d.tenantId).toBe("real-estate-agent");
+    expect(d.dealId).toBe("deal-1");
+    expect(d.bondTrancheId).toBe("tranche-1");
+    expect(d.distributionType).toBe("coupon");
+    expect(d.grossAmountEur).toBe(1000);
+    expect(d.currency).toBe("EUR");
+    expect(d.waterfallRank).toBe(4);
+    expect(d.status).toBe("paid");
+  });
 });

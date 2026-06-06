@@ -6,7 +6,7 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { kimi } from "@/lib/llm/kimi";
 import { INTERVIEW_MODEL } from "@/lib/ai/interview";
 import { tenantOf } from "@/lib/tenant";
-import { trace } from "@/lib/providers/langfuse";
+import { trace, type TraceUsage } from "@/lib/providers/langfuse";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -125,7 +125,7 @@ export async function POST(req: Request) {
     }));
 
   // Observabilité Langfuse — métadonnées seulement, no-op si non configuré.
-  let t: { end: (output: unknown) => void } = { end: () => {} };
+  let t: ReturnType<typeof trace> = { end: () => {} };
   try {
     t = trace(
       "cockpit-chat",
@@ -145,6 +145,7 @@ export async function POST(req: Request) {
         assistantFull += txt;
         controller.enqueue(encoder.encode(txt));
       };
+      let llmUsage: TraceUsage | undefined;
       try {
         if (useKimi) {
           // Chemin Kimi / OpenAI-compatible (le raisonnement reasoning_content est ignoré).
@@ -158,6 +159,7 @@ export async function POST(req: Request) {
             const delta = chunk.choices?.[0]?.delta?.content ?? "";
             if (delta) push(delta);
           }
+          // Kimi ne remonte pas toujours l'usage en mode stream — on ne passe rien.
         } else {
           // Chemin Anthropic (Claude Opus 4.8 par défaut), comme l'entretien.
           const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -168,7 +170,14 @@ export async function POST(req: Request) {
             messages: convo.map((m) => ({ role: m.role, content: m.content })),
           });
           astream.on("text", (delta) => push(delta));
-          await astream.finalMessage();
+          const finalMsg = await astream.finalMessage();
+          if (finalMsg.usage) {
+            llmUsage = {
+              input: finalMsg.usage.input_tokens,
+              output: finalMsg.usage.output_tokens,
+              model,
+            };
+          }
         }
       } catch {
         controller.enqueue(encoder.encode("\n[Erreur de génération]"));
@@ -178,7 +187,7 @@ export async function POST(req: Request) {
             .from("cockpit_messages")
             .insert({ chat_id: chatId!, tenant_id: tenant, role: "assistant", content: assistantFull });
         }
-        t.end({ outputLen: assistantFull.length });
+        t.end({ outputLen: assistantFull.length }, llmUsage);
         controller.close();
       }
     },

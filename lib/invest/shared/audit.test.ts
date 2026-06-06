@@ -140,6 +140,45 @@ describe("withAudit", () => {
   });
 });
 
+describe("recordAudit — scrub PII avant RPC", () => {
+  it("redacte les champs PII de before/after/metadata avant d'appeler le RPC", async () => {
+    const rpc = vi.fn(async () => ({ data: "audit-scrub-1", error: null }));
+    await recordAudit(fakeSb(rpc), {
+      tenantId: TENANT,
+      action: "kyc.submitted",
+      before: { full_name: "Jean Dupont", email: "jean@dupont.fr", amount: 500 },
+      after: { status: "pending", wallet_address: "0xABC" },
+      metadata: { nationality: "FR", ip: "1.2.3.4" },
+    });
+    const [, args] = rpc.mock.calls[0] as unknown as [string, Record<string, unknown>];
+    // PII dans before redactées.
+    const before = args.p_before as Record<string, unknown>;
+    expect(before.full_name).toBe("[REDACTED]");
+    expect(before.email).toBe("[REDACTED]");
+    // Montant non-PII préservé.
+    expect(before.amount).toBe(500);
+    // PII dans after redactées.
+    const after = args.p_after as Record<string, unknown>;
+    expect(after.wallet_address).toBe("[REDACTED]");
+    expect(after.status).toBe("pending");
+    // PII dans metadata redactées.
+    const meta = args.p_metadata as Record<string, unknown>;
+    expect(meta.nationality).toBe("[REDACTED]");
+  });
+
+  it("ne lève pas quand before/after/metadata sont null", async () => {
+    const rpc = vi.fn(async () => ({ data: "audit-scrub-2", error: null }));
+    const id = await recordAudit(fakeSb(rpc), {
+      tenantId: TENANT,
+      action: "deal.noop",
+      before: null,
+      after: null,
+      metadata: null,
+    });
+    expect(id).toBe("audit-scrub-2");
+  });
+});
+
 describe("hasValidFourEyes (pur)", () => {
   const rows: FourEyesApprovalRow[] = [
     { action: "deal_close", status: "pending", approver_1: "a", approver_2: null },

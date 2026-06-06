@@ -21,6 +21,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../supabase/database.types";
 import { getSupabaseAdmin } from "../../server/supabase";
 import { InvariantViolationError } from "./errors";
+import { scrubObject } from "../../providers/scrub";
 
 /** Client service-role (ou null si non configuré). */
 export type AuditSupabase = SupabaseClient<Database> | null;
@@ -89,6 +90,16 @@ export function mapActorRole(role: string | null | undefined): AuditActorRole {
 export async function recordAudit(sb: AuditSupabase, input: AuditInput): Promise<string | null> {
   const db = sb ?? getSupabaseAdmin();
   if (!db) return null;
+  // Scrub PII/secrets from structured payloads before writing to audit log.
+  const safeBefore = input.before != null
+    ? (scrubObject(input.before) as Record<string, unknown>)
+    : undefined;
+  const safeAfter = input.after != null
+    ? (scrubObject(input.after) as Record<string, unknown>)
+    : undefined;
+  const safeMetadata = input.metadata != null
+    ? (scrubObject(input.metadata) as Record<string, unknown>)
+    : undefined;
   try {
     const { data, error } = await db.rpc("inv_append_audit_log", {
       p_tenant_id: input.tenantId,
@@ -97,9 +108,9 @@ export async function recordAudit(sb: AuditSupabase, input: AuditInput): Promise
       p_actor_role: mapActorRole(input.actorRole),
       p_entity_type: input.entityType ?? undefined,
       p_entity_id: input.entityId ?? undefined,
-      p_before: (input.before ?? undefined) as never,
-      p_after: (input.after ?? undefined) as never,
-      p_metadata: (input.metadata ?? undefined) as never,
+      p_before: (safeBefore ?? undefined) as never,
+      p_after: (safeAfter ?? undefined) as never,
+      p_metadata: (safeMetadata ?? undefined) as never,
       p_request_id: input.requestId ?? undefined,
     });
     if (error) {

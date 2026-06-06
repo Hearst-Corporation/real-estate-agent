@@ -33,21 +33,48 @@ export function getLangfuse(): Langfuse | null {
   return client;
 }
 
+/** Usage LLM optionnel à transmettre à Langfuse (tokens entrée/sortie). */
+export interface TraceUsage {
+  /** Tokens en entrée (prompt). */
+  input: number;
+  /** Tokens en sortie (completion). */
+  output: number;
+  /** Identifiant du modèle utilisé (optionnel). */
+  model?: string;
+}
+
 /**
- * Helper minimal : ouvre une trace, renvoie un `end(output)` à appeler.
+ * Helper minimal : ouvre une trace, renvoie un `end(output, usage?)` à appeler.
  * No-op si Langfuse non configuré.
+ *
+ * Si `usage` est passé à `end()`, les tokens/coûts sont enregistrés via une
+ * génération enfant (seul niveau supportant `usage` dans l'API Langfuse).
  */
 export function trace(
   name: string,
   input: unknown,
   metadata?: Record<string, unknown>,
-): { end: (output: unknown) => void } {
+): { end: (output: unknown, usage?: TraceUsage) => void } {
   const lf = getLangfuse();
   if (!lf) return { end: () => {} };
   const t = lf.trace({ name, input, metadata });
   return {
-    end: (output: unknown) => {
+    end: (output: unknown, usage?: TraceUsage) => {
       t.update({ output });
+      if (usage !== undefined) {
+        // Enregistre les tokens via une génération enfant (seul objet Langfuse
+        // qui accepte `usage` au niveau ingestion).
+        const gen = t.generation({
+          name: `${name}-generation`,
+          model: usage.model,
+          usage: {
+            promptTokens: usage.input,
+            completionTokens: usage.output,
+            totalTokens: usage.input + usage.output,
+          },
+        });
+        gen.end();
+      }
       void lf.flushAsync().catch(() => {});
     },
   };

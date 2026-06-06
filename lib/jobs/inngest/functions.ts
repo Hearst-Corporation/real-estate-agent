@@ -19,10 +19,12 @@ import { generateDealReport } from "@/lib/invest/reporting";
 import { runRefundWatchdog } from "@/lib/invest/subscription";
 import { recordAudit } from "@/lib/invest/shared/audit";
 import { DEFAULT_TENANT_ID } from "@/lib/invest/shared/types";
+import { drainFailedOperations, supabaseDlqDrainStore } from "@/lib/invest/shared/dlq-drain";
+import { getEscrowPort } from "@/lib/invest/adapters";
 
 /** No-op : prouve que la plomberie serve()/event fonctionne. */
 export const ping = inngest.createFunction(
-  { id: "ping", triggers: [{ event: "app/ping" }] },
+  { id: "ping", retries: 1, triggers: [{ event: "app/ping" }] },
   async ({ event }) => {
     return { ok: true, at: event.ts ?? null };
   },
@@ -33,7 +35,7 @@ export const ping = inngest.createFunction(
  * reste le fallback. Idempotence assurée par l'event id côté émetteur.
  */
 export const generatePdf = inngest.createFunction(
-  { id: "generate-pdf", triggers: [{ event: "estimation/pdf.prewarm" }] },
+  { id: "generate-pdf", retries: 2, triggers: [{ event: "estimation/pdf.prewarm" }] },
   async ({ event }) => {
     const estimationId = (event.data as { estimationId?: string })?.estimationId;
     if (!estimationId) return { skipped: "no_id" };
@@ -70,7 +72,7 @@ export const generatePdf = inngest.createFunction(
  * que les souscriptions au bon statut.
  */
 export const invClosingSaga = inngest.createFunction(
-  { id: "inv-closing-saga", triggers: [{ event: "invest/deal.close.requested" }] },
+  { id: "inv-closing-saga", retries: 4, triggers: [{ event: "invest/deal.close.requested" }] },
   async ({ event }) => {
     const data = event.data as { dealId?: string; tenantId?: string; actorUserId?: string | null };
     const dealId = data?.dealId;
@@ -101,7 +103,7 @@ export const invClosingSaga = inngest.createFunction(
  * une passe en échec n'interrompt pas les autres deals.
  */
 export const invReconcileTick = inngest.createFunction(
-  { id: "inv-reconcile-tick", triggers: [{ cron: "*/5 * * * *" }] },
+  { id: "inv-reconcile-tick", retries: 2, triggers: [{ cron: "*/5 * * * *" }] },
   async () => {
     const sb = getSupabaseAdmin();
     if (!sb) return { skipped: "no_db" };
@@ -143,6 +145,7 @@ export const invReconcileTick = inngest.createFunction(
 export const invDistributionRun = inngest.createFunction(
   {
     id: "inv-distribution-run",
+    retries: 4,
     triggers: [{ event: "invest/distribution.requested" }, { event: "invest/deal.exit" }],
   },
   async ({ event }) => {
@@ -190,7 +193,7 @@ export const invDistributionRun = inngest.createFunction(
  * deals. Reporting FACTUEL par deal (aucune NAV consolidée).
  */
 export const invReportingQuarterly = inngest.createFunction(
-  { id: "inv-reporting-quarterly", triggers: [{ cron: "0 6 1 1,4,7,10 *" }] },
+  { id: "inv-reporting-quarterly", retries: 2, triggers: [{ cron: "0 6 1 1,4,7,10 *" }] },
   async () => {
     const sb = getSupabaseAdmin();
     if (!sb) return { skipped: "no_db" };
@@ -230,7 +233,7 @@ export const invReportingQuarterly = inngest.createFunction(
  * (`inv_failed_operations`). Une souscription en échec n'interrompt pas la passe.
  */
 export const invRefundWatchdog = inngest.createFunction(
-  { id: "inv-refund-watchdog", triggers: [{ cron: "*/15 * * * *" }] },
+  { id: "inv-refund-watchdog", retries: 4, triggers: [{ cron: "*/15 * * * *" }] },
   async () => {
     const sb = getSupabaseAdmin();
     if (!sb) return { skipped: "no_db" };
@@ -253,7 +256,7 @@ export const invRefundWatchdog = inngest.createFunction(
  * webhook/job émetteur n'écrit JAMAIS la DLQ inline : il enfile cet event.
  */
 export const invDlqHandler = inngest.createFunction(
-  { id: "inv-dlq-handler", triggers: [{ event: "invest/op.failed" }] },
+  { id: "inv-dlq-handler", retries: 3, triggers: [{ event: "invest/op.failed" }] },
   async ({ event }) => {
     const data = event.data as {
       tenantId?: string;
@@ -302,6 +305,30 @@ export const invDlqHandler = inngest.createFunction(
   },
 );
 
+// DLQ DRAIN (CH2) — cron toutes les heures (cron "0 */1 * * *").
+// Rejoue les entrées "open" de inv_failed_operations via drainFailedOperations
+// (lib/invest/shared/dlq-drain). Seul op_kind="refund" est rejoué ; les autres
+// sont laissés open (skipped). Fail-soft si escrow absent.
+// Idempotent : l'escrow est idempotent par clé (refund:{subscriptionId}, I8).
+export const invDlqDrain = inngest.createFunction(
+  { id: "inv-dlq-drain", retries: 3, triggers: [{ cron: "0 */1 * * *" }] },
+  async () => {
+    const sb = getSupabaseAdmin();
+    if (!sb) return { skipped: "no_db" };
+    try {
+      const result = await drainFailedOperations({
+        store: supabaseDlqDrainStore(),
+        escrow: getEscrowPort(),
+        onError: captureFatal,
+      });
+      return { ok: true, ...result };
+    } catch (err) {
+      captureFatal(err, "inngest/inv-dlq-drain");
+      throw err;
+    }
+  },
+);
+
 export const functions = [
   ping,
   generatePdf,
@@ -311,4 +338,5 @@ export const functions = [
   invReportingQuarterly,
   invRefundWatchdog,
   invDlqHandler,
+  invDlqDrain,
 ];

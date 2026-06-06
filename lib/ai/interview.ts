@@ -14,7 +14,7 @@ import { BLOCKS, DATA_GAPS, PRIORITY_FIELDS } from "@/lib/estimation/spec";
 import { recordPropertyDataTool } from "@/lib/estimation/tool-schema";
 import { PropertyDataSchema } from "@/lib/estimation/schema";
 import type { PropertyData, FieldStatusMap } from "@/lib/estimation/types";
-import { trace } from "@/lib/providers/langfuse";
+import { trace, type TraceUsage } from "@/lib/providers/langfuse";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -176,6 +176,8 @@ interface StreamInterviewTurnResult {
   assistantText: string;
   toolInput: unknown | null;
   stopReason: string;
+  /** Tokens consommés (défini uniquement sur le chemin Anthropic). */
+  usage?: TraceUsage;
 }
 
 /**
@@ -197,7 +199,7 @@ export async function streamInterviewTurn(
   const useKimi = usesKimiPath(model);
 
   // Observabilité Langfuse — no-op si non configuré, jamais bloquant.
-  let t: { end: (output: unknown) => void } = { end: () => {} };
+  let t: ReturnType<typeof trace> = { end: () => {} };
   try {
     t = trace(
       "interview-turn",
@@ -217,11 +219,14 @@ export async function streamInterviewTurn(
     }
     return result;
   } finally {
-    t.end({
-      stopReason: result?.stopReason,
-      hasToolInput: result?.toolInput !== null && result?.toolInput !== undefined,
-      assistantTextLength: result?.assistantText?.length ?? 0,
-    });
+    t.end(
+      {
+        stopReason: result?.stopReason,
+        hasToolInput: result?.toolInput !== null && result?.toolInput !== undefined,
+        assistantTextLength: result?.assistantText?.length ?? 0,
+      },
+      result?.usage,
+    );
   }
 }
 
@@ -374,8 +379,8 @@ async function _streamKimiTurn(params: {
   try {
     const parsed = JSON.parse(argsBuffer) as Record<string, unknown>;
     if (typeof parsed.message === "string") assistantText = parsed.message;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { message: _msg, ...data } = parsed;
-    void _msg;
     toolInput = data;
   } catch {
     // Args tronqués/malformés (souvent stopReason "length") : on ne merge pas,
@@ -440,10 +445,20 @@ async function _streamAnthropicTurn(params: {
     if (block.type === "text") assistantText += block.text;
   }
 
+  const usage: TraceUsage | undefined =
+    finalMessage.usage
+      ? {
+          input: finalMessage.usage.input_tokens,
+          output: finalMessage.usage.output_tokens,
+          model: INTERVIEW_MODEL,
+        }
+      : undefined;
+
   return {
     assistantText,
     toolInput: toolUseBlock ? toolUseBlock.input : null,
     stopReason,
+    usage,
   };
 }
 
