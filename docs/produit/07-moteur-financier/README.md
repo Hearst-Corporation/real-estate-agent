@@ -27,6 +27,8 @@ Le modèle financier découle directement des recadrages de l'étude. Il est
 
 ## Architecture (fonctions pures, zéro IO)
 
+> ⚠️ Implémentation vivante : [`lib/invest/finance/`](../../../lib/invest/finance/). Ce README reste la spec/blueprint ; le code (et ses tests, ramassés par vitest) vit désormais dans `lib/invest/finance/`.
+
 ```
 types.ts                 ── data contracts (inputs + 11 graph contracts + DealSheet)
 dates.ts                 ── utilitaires date ISO/UTC (year fraction ACT/365…)
@@ -49,7 +51,7 @@ strictement égal (testé).
 ## Usage
 
 ```ts
-import { buildDealSheet, RESIDENCE_HAUSSMANN } from '@/docs/produit/07-moteur-financier';
+import { buildDealSheet, RESIDENCE_HAUSSMANN } from '@/lib/invest/finance';
 
 const sheet = buildDealSheet(RESIDENCE_HAUSSMANN);
 
@@ -187,7 +189,7 @@ garde-fous de saisie, pas un avis d'investissement.
 ## Tests
 
 ```bash
-npx vitest run docs/produit/07-moteur-financier   # 89 tests
+npx vitest run lib/invest/finance                 # 89 tests
 npm test                                            # suite complète (sans régression)
 ```
 

@@ -29,17 +29,16 @@ const FORBIDDEN_PATTERNS: Array<{ re: RegExp; label: string }> = [
 // On considère que tout contenu dans une <section> contenant "reserve" ou "reserves-section"
 // appartient à la §9 et est exclu du firewall.
 function extractMainBody(html: string): string {
-  // Découpe le HTML en sections ; conserve tout sauf les sections de réserves.
-  // Approche simple : regex sur les blocs <section class="sheet ..."> ... </section>.
-  // La §9 contient la classe "reserves-section" dans son contenu.
-  // On extrait les sections en stack (non-nested ici).
+  // Scanne les sections <section class="page|sheet ...">. La zone réserves /
+  // mentions légales (.reserves-section, en fin de page) est volontairement
+  // EXEMPTÉE : on tronque chaque section au premier marqueur de réserves, de
+  // sorte qu'une page mêlant contenu principal + mentions reste protégée sur
+  // sa partie principale uniquement.
   const sections: string[] = [];
-  const re = /<section[^>]*class="sheet[^"]*"[^>]*>([\s\S]*?)<\/section>/gi;
+  const re = /<section[^>]*class="(?:sheet|page)[^"]*"[^>]*>([\s\S]*?)<\/section>/gi;
   let match;
   while ((match = re.exec(html)) !== null) {
-    const inner = match[1];
-    // §9 : contient reserves-section ou res-title → exclure du firewall
-    if (/reserves-section|res-title|reserve-item/.test(inner)) continue;
+    const inner = match[1].split(/reserves-section|res-title|reserve-item/)[0];
     sections.push(inner);
   }
   return sections.join('\n');
@@ -84,7 +83,7 @@ export function renderBrochureHtml(estimation: Estimation): string {
 <title>Avis de Valeur — ${estimation.property.adresse ?? 'Brochure'}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
 ${BROCHURE_CSS}
 </style>

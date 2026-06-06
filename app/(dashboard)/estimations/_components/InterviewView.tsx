@@ -176,25 +176,21 @@ export function InterviewView({
   return (
     <div className="est-phase">
       <div className="est-ready">
-        <div className="est-ready-left">
-          {valuation ? (
-            <ValuationHero id={id} valuation={valuation} />
-          ) : (
-            <p className="ct-placeholder">{UI.common.error}</p>
-          )}
-        </div>
-        <div className="est-ready-right">
-          {valuation ? (
-            <SidePanel
-              id={id}
-              valuation={valuation}
-              market={market}
-              property={property}
-              fieldStatus={fieldStatus}
-              coverage={coverage}
-            />
-          ) : null}
-        </div>
+        {valuation ? (
+          <ValuationHero id={id} valuation={valuation} />
+        ) : (
+          <p className="ct-placeholder">{UI.common.error}</p>
+        )}
+        {valuation ? (
+          <SidePanel
+            id={id}
+            valuation={valuation}
+            market={market}
+            property={property}
+            fieldStatus={fieldStatus}
+            coverage={coverage}
+          />
+        ) : null}
       </div>
     </div>
   );

@@ -1,9 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
+import type { AgentFrame } from "@/lib/agent/types";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type ToolChip = {
+  id: string;
+  name: string;
+  status: "running" | "ok" | "error";
+  summary: string;
+};
+
+type Msg = { role: "user" | "assistant"; content: string; tools?: ToolChip[] };
 
 function renderLight(text: string) {
   // Markdown léger : `code` inline + **gras**. Pas de lib lourde.
@@ -30,6 +39,7 @@ export function ChatKimi() {
   const [chatId, setChatId] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -40,7 +50,7 @@ export function ChatKimi() {
     if (!text || busy) return;
     setError(null);
     setInput("");
-    setMessages((m) => [...m, { role: "user", content: text }, { role: "assistant", content: "" }]);
+    setMessages((m) => [...m, { role: "user", content: text }, { role: "assistant", content: "", tools: [] }]);
     setBusy(true);
     try {
       const res = await fetch("/api/cockpit-chat", {
@@ -49,24 +59,100 @@ export function ChatKimi() {
         body: JSON.stringify({ chatId, message: text }),
       });
       if (!res.ok || !res.body) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "stream_failed");
+        const body = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? "stream_failed");
       }
-      const newChatId = res.headers.get("X-Chat-Id");
-      if (newChatId) setChatId(newChatId);
+
+      // Fallback header X-Chat-Id (si pas de frame chat)
+      const headerChatId = res.headers.get("X-Chat-Id");
+      if (headerChatId) setChatId(headerChatId);
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let acc = "";
+      let buffer = "";
+
+      function processLine(line: string) {
+        const trimmed = line.trim();
+        if (!trimmed) return; // ignorer les lignes vides
+        let frame: AgentFrame;
+        try {
+          frame = JSON.parse(trimmed) as AgentFrame;
+        } catch {
+          // ligne partielle ou malformée — on l'ignore sans casser le flux
+          return;
+        }
+
+        switch (frame.type) {
+          case "chat":
+            setChatId(frame.chatId);
+            break;
+
+          case "text":
+            setMessages((msgs) => {
+              const copy = [...msgs];
+              const last = copy[copy.length - 1];
+              if (last?.role === "assistant") {
+                copy[copy.length - 1] = { ...last, content: last.content + frame.delta };
+              }
+              return copy;
+            });
+            break;
+
+          case "tool": {
+            const { id, name, status, summary } = frame;
+            setMessages((msgs) => {
+              const copy = [...msgs];
+              const last = copy[copy.length - 1];
+              if (last?.role === "assistant") {
+                const existingTools: ToolChip[] = last.tools ?? [];
+                const idx = existingTools.findIndex((t) => t.id === id);
+                let newTools: ToolChip[];
+                if (idx >= 0) {
+                  // Mettre à jour le chip existant
+                  newTools = existingTools.map((t, i) =>
+                    i === idx ? { id, name, status, summary } : t
+                  );
+                } else {
+                  // Ajouter un nouveau chip
+                  newTools = [...existingTools, { id, name, status, summary }];
+                }
+                copy[copy.length - 1] = { ...last, tools: newTools };
+              }
+              return copy;
+            });
+            break;
+          }
+
+          case "action":
+            if (frame.action.type === "navigate") {
+              router.push(frame.action.path);
+            }
+            break;
+
+          case "error":
+            setError(frame.message);
+            break;
+
+          case "done":
+            // fin du stream — rien à faire, le finally gère busy
+            break;
+        }
+      }
+
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMessages((m) => {
-          const copy = [...m];
-          copy[copy.length - 1] = { role: "assistant", content: acc };
-          return copy;
-        });
+        if (done) {
+          // Flush : traiter la dernière ligne restante dans le buffer
+          if (buffer.trim()) processLine(buffer);
+          break;
+        }
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        // La dernière entrée peut être incomplète — on la conserve dans le buffer
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          processLine(line);
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
@@ -90,6 +176,15 @@ export function ChatKimi() {
             </div>
             <div className="ct-chat-msg-bubble">
               {m.content ? renderLight(m.content) : <span className="ct-placeholder">…</span>}
+              {m.tools && m.tools.length > 0 ? (
+                <div className="ct-chat-tools">
+                  {m.tools.map((t) => (
+                    <span key={t.id} className="ct-chat-tool" data-status={t.status}>
+                      {t.status === "running" ? `${t.summary} …` : t.summary}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
         ))}

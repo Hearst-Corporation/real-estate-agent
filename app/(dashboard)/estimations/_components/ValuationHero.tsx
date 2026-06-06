@@ -17,6 +17,12 @@ const fmt = new Intl.NumberFormat("fr-FR", {
 
 const SHARE_COPIED_RESET_MS = 2500;
 
+/** Position en % d'une valeur dans la fourchette [low, high], bornée [0, 100]. */
+function pct(value: number, low: number, high: number): number {
+  const span = Math.max(1, high - low);
+  return Math.min(100, Math.max(0, ((value - low) / span) * 100));
+}
+
 export function ValuationHero({ id, valuation }: Props) {
   const [shareLabel, setShareLabel] = useState<string>(UI.estimations.share);
   const [sharing, setSharing] = useState(false);
@@ -49,64 +55,87 @@ export function ValuationHero({ id, valuation }: Props) {
     elevee: "Élevée",
   };
 
+  const marketPct = pct(valuation.marketValue, valuation.lowValue, valuation.highValue);
+  const recoPct = pct(
+    valuation.recommendedListingPrice,
+    valuation.lowValue,
+    valuation.highValue
+  );
+
   return (
     <div className="est-hero">
-      {/* ── Badge confiance ── */}
-      <div className="est-hero-meta">
-        <span className="est-hero-badge">
-          {confidenceBadge[valuation.confidence] ?? valuation.confidence}
-        </span>
-        {valuation.nbComparables > 0 && (
-          <span className="est-hero-comps">
-            {valuation.nbComparables} comparables DVF
+      {/* ── Colonne valeur : badge, valeur, fourchette visuelle ── */}
+      <div className="est-hero-main">
+        <div className="est-hero-meta">
+          <span className="est-hero-badge">
+            {confidenceBadge[valuation.confidence] ?? valuation.confidence}
           </span>
-        )}
-      </div>
+          {valuation.nbComparables > 0 && (
+            <span className="est-hero-comps">
+              {valuation.nbComparables} comparables DVF
+            </span>
+          )}
+        </div>
 
-      {/* ── Valeur centrale ── */}
-      <div className="est-hero-center">
-        <p className="est-hero-label">{UI.estimations.market}</p>
-        <p className="est-hero-value">{fmt.format(valuation.marketValue)}</p>
+        <div className="est-hero-center">
+          <p className="est-hero-label">{UI.estimations.market}</p>
+          <p className="est-hero-value">{fmt.format(valuation.marketValue)}</p>
+        </div>
+
+        <div
+          className="est-hero-bar"
+          role="img"
+          aria-label={`Fourchette ${fmt.format(valuation.lowValue)} à ${fmt.format(
+            valuation.highValue
+          )}, valeur de marché ${fmt.format(valuation.marketValue)}`}
+        >
+          <span className="est-hero-bar-reco" style={{ left: `${recoPct}%` }} />
+          <span className="est-hero-bar-market" style={{ left: `${marketPct}%` }} />
+        </div>
         <p className="est-hero-range">
           <span>{fmt.format(valuation.lowValue)}</span>
-          <span className="est-hero-range-sep">–</span>
+          <span className="reco-lab">
+            Conseillé · {fmt.format(valuation.recommendedListingPrice)}
+          </span>
           <span>{fmt.format(valuation.highValue)}</span>
         </p>
       </div>
 
-      {/* ── KPIs secondaires ── */}
-      <div className="est-hero-kpis">
-        <div className="est-hero-kpi">
-          <span className="est-hero-kpi-label">{UI.estimations.perSqm}</span>
-          <span className="est-hero-kpi-value">
-            {fmt.format(valuation.adjustedPerM2)}{UI.estimations.perSqmUnit}
-          </span>
+      {/* ── Colonne droite : KPIs + actions ── */}
+      <div className="est-hero-side">
+        <div className="est-hero-kpis">
+          <div className="est-hero-kpi">
+            <span className="est-hero-kpi-label">{UI.estimations.perSqm}</span>
+            <span className="est-hero-kpi-value">
+              {fmt.format(valuation.adjustedPerM2)}
+              {UI.estimations.perSqmUnit}
+            </span>
+          </div>
+          <div className="est-hero-kpi">
+            <span className="est-hero-kpi-label">{UI.estimations.recommended}</span>
+            <span className="est-hero-kpi-value">
+              {fmt.format(valuation.recommendedListingPrice)}
+            </span>
+          </div>
         </div>
-        <div className="est-hero-kpi">
-          <span className="est-hero-kpi-label">{UI.estimations.recommended}</span>
-          <span className="est-hero-kpi-value">
-            {fmt.format(valuation.recommendedListingPrice)}
-          </span>
-        </div>
-      </div>
 
-      {/* ── Actions ── */}
-      <div className="est-hero-actions">
-        <a
-          href={`/api/estimations/${id}/pdf`}
-          target="_blank"
-          rel="noreferrer"
-          className="ct-seg-btn primary est-hero-cta"
-        >
-          {UI.estimations.downloadPdf}
-        </a>
-        <button
-          className="ct-seg-btn est-hero-cta"
-          onClick={handleShare}
-          disabled={sharing}
-        >
-          {shareLabel}
-        </button>
+        <div className="est-hero-actions">
+          <a
+            href={`/api/estimations/${id}/pdf`}
+            target="_blank"
+            rel="noreferrer"
+            className="ct-seg-btn primary est-hero-cta"
+          >
+            {UI.estimations.downloadPdf}
+          </a>
+          <button
+            className="ct-seg-btn est-hero-cta"
+            onClick={handleShare}
+            disabled={sharing}
+          >
+            {shareLabel}
+          </button>
+        </div>
       </div>
     </div>
   );

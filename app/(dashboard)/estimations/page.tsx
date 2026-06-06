@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { PageHeader, Card, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
-import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
-import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
+import { barsByStatus, topByCategory, average } from "@/lib/crm/aggregate";
 import { eur, dateFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -58,7 +57,7 @@ export default async function EstimationsPage() {
     "market_value"
   );
 
-  const pipeline = countByStatus(estimations, ESTIMATION_STATUSES, t.status, estimationTone);
+  const pipeline = barsByStatus(estimations, ESTIMATION_STATUSES, t.status);
   const byType = topByCategory(estimations, "property_type");
 
   const columns: Column<EstRow>[] = [
@@ -113,7 +112,7 @@ export default async function EstimationsPage() {
 
       <div className="ct-viz-row">
         <Card title={t.charts.pipeline}>
-          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+          <BarList items={pipeline} emptyLabel={UI.viz.empty} />
         </Card>
         <Card title={t.charts.byType}>
           <BarList items={byType} emptyLabel={UI.viz.empty} />

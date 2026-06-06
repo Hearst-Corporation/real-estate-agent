@@ -52,7 +52,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
   const [marketLoading, setMarketLoading] = useState(false);
   const [marketLoaded, setMarketLoaded] = useState(false);
   const [market, setMarket] = useState<MarketContextData | null>(null);
-  const [ficheOpen, setFicheOpen] = useState(false);
+  const [ficheOpen, setFicheOpen] = useState(true);
 
   const listings = marketProp?.listing_comparables ?? [];
   const listingFetchSource = (marketProp?.listing_source?.source ?? null) as ListingsFetchSource | null;
@@ -86,8 +86,8 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
 
   return (
     <div className="est-side">
-      {/* ── Fiche bien compact (accordéon) ── */}
-      <div className="est-side-section">
+      {/* ── Fiche bien (accordéon, pleine largeur multi-colonnes) ── */}
+      <div className="est-side-section span2">
         <button
           className="est-side-header"
           onClick={() => setFicheOpen((v) => !v)}
@@ -192,7 +192,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
 
       {/* ── Annonces comparables ── */}
       {marketProp != null && (
-        <div className="est-side-section">
+        <div className="est-side-section span2">
           <div className="est-side-header static">
             <span>{UI.estimations.listingComparablesTitle}</span>
           </div>

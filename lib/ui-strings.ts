@@ -81,9 +81,20 @@ export const UI = {
     recent: "Estimations récentes",
     seeAll: "Voir toutes les estimations",
     activity: "Activité récente",
+    activityEmpty: "Aucune visite planifiée.",
     visitBadge: "Visite",
     propertyLinked: "Bien lié",
     propertyMissing: "Bien non renseigné",
+    heroMeta: (n: number) =>
+      `${n} estimation${n > 1 ? "s" : ""} suivie${n > 1 ? "s" : ""}`,
+    donutMeta: (ready: number, total: number) =>
+      `${ready} prête${ready > 1 ? "s" : ""} sur ${total}`,
+    kpiHints: {
+      properties: "Au portefeuille",
+      activeLeads: "En cours",
+      upcomingVisits: "Planifiées",
+      activeMandates: "Signés actifs",
+    },
     cards: {
       assistantTitle: "Assistant Kimi",
       assistantBody:
@@ -440,6 +451,8 @@ export const UI = {
     scopesTitle: "Scopes",
     sessionTitle: "Session",
     sessionHint: "Fermer la session sur cet appareil.",
+    integrationsTitle: "Intégrations",
+    integrationsHint: "Connectez votre boîte Gmail et votre agenda Google pour que l'assistant puisse retrouver vos emails et vos rendez-vous.",
     fields: {
       email: "Email",
       userId: "User ID",

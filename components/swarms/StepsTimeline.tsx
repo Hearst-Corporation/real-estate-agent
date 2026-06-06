@@ -28,7 +28,7 @@ function StepItem({ step }: { step: SwarmStep }) {
         {step.agent && step.task && <span>·</span>}
         {step.task && <span>{step.task}</span>}
         {step.timestamp && (
-          <span style={{ marginLeft: "auto" }}>
+          <span className="swarm-step-time">
             {new Intl.DateTimeFormat("fr-FR", { timeStyle: "short" }).format(new Date(step.timestamp))}
           </span>
         )}

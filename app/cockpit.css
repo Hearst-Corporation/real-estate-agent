@@ -1375,6 +1375,100 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 /* La grille KPI par défaut est déjà 4 colonnes ; alias explicite. */
 .ct-kpi-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
 
+/* ════════════════════════════════
+   DASHBOARD — section centrale premium (hero + grille dense responsive)
+   ════════════════════════════════ */
+.dash-hero {
+  position: relative; overflow: hidden;
+  display: grid; grid-template-columns: 1fr auto; gap: var(--ct-space-xl); align-items: center;
+  border: 1px solid var(--ct-border-accent); border-radius: var(--ct-radius-lg);
+  padding: var(--ct-space-lg) var(--ct-space-xl); margin-bottom: var(--ct-space-lg);
+  background:
+    radial-gradient(130% 150% at 100% 0%, color-mix(in srgb, var(--ct-accent-strong) 24%, transparent) 0%, transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--ct-accent-strong) 12%, transparent) 0%, color-mix(in srgb, var(--ct-accent-maroon) 6%, transparent) 100%),
+    var(--ct-surface-2);
+  box-shadow: var(--ct-shadow-depth);
+}
+.dash-hero::after { content: ""; position: absolute; top: 0; left: 24px; right: 24px; height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ct-accent-strong) 80%, white), transparent); }
+.dash-hero-main { min-width: 0; }
+.dash-hero-title { margin-bottom: var(--ct-space-2xs); }
+.dash-hero-sub { font-size: var(--ct-fs-base); color: var(--ct-text-body); margin: 0; }
+.dash-hero-aside { display: flex; align-items: center; gap: var(--ct-space-xl); flex-shrink: 0; }
+.dash-hero-metric { display: flex; flex-direction: column; gap: 2px; text-align: right; }
+.dash-hero-metric-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ct-text-muted); }
+.dash-hero-metric-value { font-size: 30px; font-weight: 800; letter-spacing: -0.025em; color: var(--ct-text-strong); font-variant-numeric: tabular-nums; line-height: 1; }
+.dash-hero-metric-meta { font-size: var(--ct-fs-xs); color: var(--ct-text-faint); font-variant-numeric: tabular-nums; }
+.dash-hero-cta { white-space: nowrap; }
+
+/* KPI strip enrichi (sous-libellé contextuel) */
+.dash-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ct-space-md); margin-bottom: var(--ct-space-lg); }
+.dash-kpi {
+  position: relative; overflow: hidden;
+  background: linear-gradient(160deg, rgba(255,255,255,0.045) 0%, transparent 42%), var(--ct-surface-1);
+  border: 1px solid var(--ct-border); border-radius: var(--ct-radius-lg);
+  padding: var(--ct-space-md) var(--ct-space-lg); box-shadow: var(--ct-shadow-depth);
+  display: flex; flex-direction: column; gap: var(--ct-space-2xs);
+}
+.dash-kpi::after { content: ""; position: absolute; top: 0; left: 18px; right: 18px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent); }
+.dash-kpi.accent {
+  border-color: var(--ct-border-accent);
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--ct-accent-strong) 30%, transparent) 0%, transparent 58%),
+    linear-gradient(165deg, color-mix(in srgb, var(--ct-accent-strong) 14%, transparent) 0%, color-mix(in srgb, var(--ct-accent-maroon) 6%, transparent) 100%),
+    var(--ct-surface-2);
+}
+.dash-kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ct-text-muted); }
+.dash-kpi-value { font-size: 30px; font-weight: 800; letter-spacing: -0.025em; color: var(--ct-text-strong); font-variant-numeric: tabular-nums; line-height: 1.05; }
+.dash-kpi-hint { font-size: var(--ct-fs-xs); color: var(--ct-text-faint); }
+
+/* Grille viz dense (large + compact) */
+.dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: var(--ct-space-md); margin-bottom: var(--ct-space-md); align-items: stretch; }
+.dash-grid.even { grid-template-columns: 1fr 1fr; }
+
+/* Carte premium (verre dépoli + filet lumineux) */
+.dash-card {
+  position: relative; overflow: hidden;
+  background: linear-gradient(160deg, rgba(255,255,255,0.045) 0%, transparent 44%), var(--ct-surface-1);
+  border: 1px solid var(--ct-border); border-radius: var(--ct-radius-lg);
+  box-shadow: var(--ct-shadow-depth); padding: var(--ct-space-lg) var(--ct-space-xl);
+  display: flex; flex-direction: column;
+}
+.dash-card::after { content: ""; position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent); }
+.dash-card.accent {
+  border-color: var(--ct-border-accent);
+  background:
+    radial-gradient(130% 150% at 100% 0%, color-mix(in srgb, var(--ct-accent-strong) 20%, transparent) 0%, transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--ct-accent-strong) 10%, transparent) 0%, transparent 100%),
+    var(--ct-surface-2);
+}
+.dash-card-title { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ct-text-muted); margin-bottom: var(--ct-space-md); }
+.dash-card-body { flex: 1; min-width: 0; }
+
+/* Carte donut (complétion) — anneau centré + métrique */
+.dash-donut-card { align-items: center; justify-content: center; text-align: center; }
+.dash-donut-card .dash-card-title { align-self: stretch; }
+.dash-donut-meta { font-size: var(--ct-fs-sm); color: var(--ct-text-body); margin-top: var(--ct-space-md); font-variant-numeric: tabular-nums; }
+.dash-donut-meta b { color: var(--ct-text-strong); font-weight: 700; }
+
+.dash-assistant-body { font-size: var(--ct-fs-sm); color: var(--ct-text-body); line-height: 1.6; margin: 0; }
+.dash-see-all { margin-top: var(--ct-space-md); display: inline-block; }
+.dash-card .est-list-row:first-of-type { padding-top: 0; }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .dash-grid, .dash-grid.even { grid-template-columns: 1fr; }
+  .dash-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 760px) {
+  .dash-hero { grid-template-columns: 1fr; gap: var(--ct-space-lg); }
+  .dash-hero-aside { justify-content: space-between; width: 100%; }
+  .dash-hero-metric { text-align: left; }
+  .dash-kpis { grid-template-columns: 1fr; }
+}
+
 /* ── Donut (anneau de progression) ── */
 .ct-chart-donut {
   position: relative;

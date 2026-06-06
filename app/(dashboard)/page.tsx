@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { PageHeader, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";

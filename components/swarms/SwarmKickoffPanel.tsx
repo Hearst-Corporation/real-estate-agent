@@ -154,23 +154,21 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone, onLaunch
             {UI.swarms.kickoffLaunch(swarmName)}
           </button>
           {state.phase === 'error' && (
-            <p className="crm-form-error" style={{ color: 'var(--ct-text-danger)', fontSize: "var(--ct-fs-sm)" }}>
-              {state.message}
-            </p>
+            <p className="swarm-form-error">{state.message}</p>
           )}
         </>
       )}
 
       {state.phase === 'launching' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: "var(--ct-space-xs)" }}>
+        <div className="swarm-inline-row">
           <span className="swarm-spinner" />
-          <span style={{ fontSize: "var(--ct-fs-base)", color: 'var(--ct-text-muted)' }}>{UI.swarms.kickoffLaunching}</span>
+          <span className="swarm-inline-label">{UI.swarms.kickoffLaunching}</span>
         </div>
       )}
 
       {state.phase === 'running' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ct-space-sm)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: "var(--ct-space-xs)" }}>
+        <div className="swarm-stack">
+          <div className="swarm-inline-row">
             {isRunning && <span className="swarm-spinner" />}
             <RunStatusBadge status={state.status} />
           </div>
@@ -179,7 +177,7 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone, onLaunch
       )}
 
       {state.phase === 'done' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ct-space-sm)' }}>
+        <div className="swarm-stack">
           <RunStatusBadge status="done" />
           {state.output && (
             <div className="swarm-kickoff-output">{state.output}</div>
@@ -189,9 +187,9 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone, onLaunch
       )}
 
       {state.phase === 'failed' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ct-space-sm)' }}>
+        <div className="swarm-stack">
           <RunStatusBadge status="failed" />
-          <p style={{ fontSize: "var(--ct-fs-sm)", color: 'var(--ct-text-danger)', margin: 0 }}>{state.message}</p>
+          <p className="swarm-msg-error">{state.message}</p>
           {state.steps.length > 0 && <StepsTimeline steps={state.steps} />}
           <button
             className="ct-btn ct-btn-secondary"

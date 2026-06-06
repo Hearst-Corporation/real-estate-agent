@@ -37,6 +37,34 @@ export function countByStatus<T extends WithStatus>(
   }));
 }
 
+// ─── barsByStatus → BarList (tri décroissant, statuts vides masqués) ──────────
+
+/**
+ * Variante BarList de countByStatus : même comptage, mais trié par volume
+ * décroissant et statuts à 0 retirés. Pour des statuts non strictement
+ * séquentiels, c'est plus honnête qu'un Funnel (qui impose un ordre et affiche
+ * des étapes vides). `percent` est normalisé sur le plus gros volume (max = 100 %).
+ */
+export function barsByStatus<T extends WithStatus>(
+  rows: T[],
+  orderedStatuses: readonly string[],
+  labels: Record<string, string>
+): BarItem[] {
+  const counts = orderedStatuses.map((status) => ({
+    label: labels[status] ?? status,
+    count: rows.reduce((n, r) => (r.status === status ? n + 1 : n), 0),
+  }));
+  const max = Math.max(1, ...counts.map((c) => c.count));
+  return counts
+    .filter((c) => c.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .map((c) => ({
+      label: c.label,
+      value: String(c.count),
+      percent: Math.round((c.count / max) * 100),
+    }));
+}
+
 // ─── topByCategory → BarList ────────────────────────────────────────────────────
 
 /** Libellé du regroupement des catégories hors top N. */

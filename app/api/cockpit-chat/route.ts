@@ -1,35 +1,34 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import Anthropic from "@anthropic-ai/sdk";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
-import { kimi } from "@/lib/llm/kimi";
-import { INTERVIEW_MODEL } from "@/lib/ai/interview";
+import { INTERVIEW_MODEL, usesKimiPath } from "@/lib/ai/interview";
 import { tenantOf } from "@/lib/tenant";
+import { rateLimit } from "@/lib/ratelimit";
 import { trace, type TraceUsage } from "@/lib/providers/langfuse";
+import { runAgent } from "@/lib/agent/run";
+import { buildAgentSystemPrompt } from "@/lib/agent/prompt";
+import type { AgentFrame } from "@/lib/agent/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MESSAGE_MAX = 8000;
+const MESSAGE_MIN = 1;
 const CHAT_TITLE_MAX = 60;
 const HISTORY_LIMIT = 40;
 const MEMORY_LIMIT = 20;
-const KIMI_MAX_TOKENS = 8192;
-const ANTHROPIC_MAX_TOKENS = 2048;
+
+// Rate-limit léger : N requêtes agent par fenêtre, par utilisateur.
+const RL_LIMIT = 30;
+const RL_WINDOW_SEC = 60;
 
 // ── Aligné sur « la simulation » (entretien d'estimation, lib/ai/interview) ──
 // Même modèle par défaut (claude-opus-4-8) et même choix de provider :
 // Anthropic si le modèle est un Claude ET ANTHROPIC_API_KEY présent, sinon
 // chemin Kimi/OpenAI-compatible (Moonshot/Hypercli). Override : COCKPIT_CHAT_MODEL.
 const CHAT_MODEL = process.env.COCKPIT_CHAT_MODEL || INTERVIEW_MODEL;
-function usesKimiPath(model: string): boolean {
-  return (
-    model.startsWith("kimi") ||
-    model.startsWith("moonshot") ||
-    !process.env.ANTHROPIC_API_KEY
-  );
-}
+
 function chatIsConfigured(model: string): boolean {
   return usesKimiPath(model)
     ? Boolean(process.env.MOONSHOT_API_KEY || process.env.HYPERCLI_API_KEY)
@@ -38,7 +37,7 @@ function chatIsConfigured(model: string): boolean {
 
 const BodySchema = z.object({
   chatId: z.string().uuid().optional(),
-  message: z.string().min(1).max(MESSAGE_MAX),
+  message: z.string().min(MESSAGE_MIN).max(MESSAGE_MAX),
 });
 
 const MEMORIZE_RE = /^\s*(?:m[ée]morise|retiens|souviens[- ]toi)\s*:?\s*(.+)/i;
@@ -62,6 +61,10 @@ export async function POST(req: Request) {
   const userId = claims.sub;
   const tenant = tenantOf(claims);
   const { message } = parsed.data;
+
+  // Rate-limit léger (avant de streamer).
+  const allowed = await rateLimit(`cockpit-agent:${userId}`, RL_LIMIT, RL_WINDOW_SEC);
+  if (!allowed) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
 
   // Capture mémoire « mémorise: … »
   const mem = message.match(MEMORIZE_RE);
@@ -95,13 +98,15 @@ export async function POST(req: Request) {
   await sb.from("cockpit_messages").insert({ chat_id: chatId, tenant_id: tenant, role: "user", content: message });
 
   // Historique + mémoire utilisateur pour le system prompt
-  const { data: history } = await sb
+  // Récupère les 40 DERNIERS messages (ordre DESC) puis les remet en ordre chrono.
+  const { data: historyDesc } = await sb
     .from("cockpit_messages")
     .select("role, content")
     .eq("chat_id", chatId)
     .eq("tenant_id", tenant)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
     .limit(HISTORY_LIMIT);
+  const history = (historyDesc ?? []).reverse();
 
   const { data: memories } = await sb
     .from("tenant_memory")
@@ -112,23 +117,29 @@ export async function POST(req: Request) {
     .limit(MEMORY_LIMIT);
 
   const memoryBlock = (memories ?? []).map((m) => `- ${m.content}`).join("\n");
-  const system =
-    "Tu es l'assistant Cockpit de Real estate Agent. Réponds en français, de façon concise et actionnable." +
-    (memoryBlock ? `\n\nMémoire de l'utilisateur :\n${memoryBlock}` : "");
+  const system = buildAgentSystemPrompt(memoryBlock);
 
-  // Conversation user/assistant (le system est placé selon le provider).
-  const convo = (history ?? [])
+  // Conversation user/assistant (le dernier message vient d'être inséré → on
+  // l'exclut de l'historique passé à l'agent et on le fournit comme userMessage).
+  const allConvo = history
     .filter((m) => m.content !== null && (m.role === "user" || m.role === "assistant"))
     .map((m) => ({
       role: (m.role === "assistant" ? "assistant" : "user") as "assistant" | "user",
       content: m.content as string,
     }));
+  // Retire le dernier message s'il s'agit du message utilisateur courant.
+  const convo =
+    allConvo.length > 0 &&
+    allConvo[allConvo.length - 1].role === "user" &&
+    allConvo[allConvo.length - 1].content === message
+      ? allConvo.slice(0, -1)
+      : allConvo;
 
   // Observabilité Langfuse — métadonnées seulement, no-op si non configuré.
   let t: ReturnType<typeof trace> = { end: () => {} };
   try {
     t = trace(
-      "cockpit-chat",
+      "cockpit-agent",
       { model, messageCount: convo.length },
       { provider: useKimi ? "kimi" : "anthropic", model },
     );
@@ -137,57 +148,39 @@ export async function POST(req: Request) {
   }
 
   const encoder = new TextEncoder();
-  let assistantFull = "";
+  const chatIdFinal = chatId;
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const push = (txt: string) => {
-        assistantFull += txt;
-        controller.enqueue(encoder.encode(txt));
+      const writeFrame = (frame: AgentFrame) => {
+        controller.enqueue(encoder.encode(JSON.stringify(frame) + "\n"));
       };
+
+      let assistantText = "";
       let llmUsage: TraceUsage | undefined;
       try {
-        if (useKimi) {
-          // Chemin Kimi / OpenAI-compatible (le raisonnement reasoning_content est ignoré).
-          const completion = await kimi.chat.completions.create({
-            model,
-            stream: true,
-            max_tokens: KIMI_MAX_TOKENS,
-            messages: [{ role: "system" as const, content: system }, ...convo],
-          });
-          for await (const chunk of completion) {
-            const delta = chunk.choices?.[0]?.delta?.content ?? "";
-            if (delta) push(delta);
-          }
-          // Kimi ne remonte pas toujours l'usage en mode stream — on ne passe rien.
-        } else {
-          // Chemin Anthropic (Claude Opus 4.8 par défaut), comme l'entretien.
-          const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-          const astream = anthropic.messages.stream({
-            model,
-            max_tokens: ANTHROPIC_MAX_TOKENS,
-            system,
-            messages: convo.map((m) => ({ role: m.role, content: m.content })),
-          });
-          astream.on("text", (delta) => push(delta));
-          const finalMsg = await astream.finalMessage();
-          if (finalMsg.usage) {
-            llmUsage = {
-              input: finalMsg.usage.input_tokens,
-              output: finalMsg.usage.output_tokens,
-              model,
-            };
-          }
-        }
+        // Frame initiale : id du chat (créé/retrouvé).
+        writeFrame({ type: "chat", chatId: chatIdFinal });
+
+        const result = await runAgent({
+          model,
+          system,
+          history: convo,
+          userMessage: message,
+          ctx: { userId, tenant, sb, emit: writeFrame },
+        });
+        assistantText = result.assistantText;
+        llmUsage = result.usage;
       } catch {
-        controller.enqueue(encoder.encode("\n[Erreur de génération]"));
+        writeFrame({ type: "error", message: "Erreur de génération." });
       } finally {
-        if (assistantFull.trim()) {
+        if (assistantText.trim()) {
           await sb
             .from("cockpit_messages")
-            .insert({ chat_id: chatId!, tenant_id: tenant, role: "assistant", content: assistantFull });
+            .insert({ chat_id: chatIdFinal, tenant_id: tenant, role: "assistant", content: assistantText });
         }
-        t.end({ outputLen: assistantFull.length }, llmUsage);
+        writeFrame({ type: "done" });
+        t.end({ outputLen: assistantText.length }, llmUsage);
         controller.close();
       }
     },
@@ -195,9 +188,9 @@ export async function POST(req: Request) {
 
   return new Response(stream, {
     headers: {
-      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Type": "application/x-ndjson; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
-      "X-Chat-Id": chatId,
+      "X-Chat-Id": chatIdFinal,
     },
   });
 }

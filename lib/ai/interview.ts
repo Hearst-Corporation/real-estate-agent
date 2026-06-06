@@ -24,7 +24,7 @@ import { trace, type TraceUsage } from "@/lib/providers/langfuse";
 const INTERVIEW_MAX_TOKENS = 2048;
 
 /** True si le modèle d'entretien passe par le client OpenAI-compatible (Moonshot/Hypercli). */
-function usesKimiPath(model: string): boolean {
+export function usesKimiPath(model: string): boolean {
   return (
     model.startsWith("kimi") ||
     model.startsWith("moonshot") ||
