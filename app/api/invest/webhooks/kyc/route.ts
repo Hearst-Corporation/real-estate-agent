@@ -21,7 +21,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { getKycPort, getIdentityRegistryPort } from "@/lib/invest/adapters";
 import { applyKycWebhook, supabaseInvestorStore } from "@/lib/invest/investor";
-import { dedupeWebhook, supabaseWebhookStore } from "@/lib/invest/shared/webhooks";
+import { runWithDedup, supabaseWebhookStore } from "@/lib/invest/shared/webhooks";
 import { DEFAULT_TENANT_ID } from "@/lib/invest/shared/types";
 import { hashBody } from "@/lib/invest/shared/idempotency";
 import { recordAudit } from "@/lib/invest/shared/audit";
@@ -70,24 +70,23 @@ export async function POST(req: NextRequest) {
 
   // providerEventId fourni par l'adaptateur ; fallback hash du corps si absent.
   const providerEventId = event.providerEventId || hashBody(rawBody);
-  const isNew = await dedupeWebhook(supabaseWebhookStore(DEFAULT_TENANT_ID), PROVIDER, providerEventId);
-  if (!isNew) {
-    return NextResponse.json({ ok: true, duplicate: true }, { status: 200 });
-  }
 
-  // ── 3. Persistance + claim ONCHAINID (fail-soft) ────────────────────────────
+  // ── 3. Dédup + persistance KYC + claim ONCHAINID — rollback dédup si apply échoue
   try {
-    const result = await applyKycWebhook(
-      supabaseInvestorStore(),
-      DEFAULT_TENANT_ID,
-      {
-        ...event,
-        rawResultHash: hashBody(rawBody),
-      },
-      getIdentityRegistryPort(),
+    const out = await runWithDedup(
+      supabaseWebhookStore(DEFAULT_TENANT_ID),
+      PROVIDER,
+      providerEventId,
+      () => applyKycWebhook(
+        supabaseInvestorStore(),
+        DEFAULT_TENANT_ID,
+        { ...event, rawResultHash: hashBody(rawBody) },
+        getIdentityRegistryPort(),
+      ),
     );
-    // Audit additif de la DÉCISION KYC (best-effort, ne casse jamais l'ACK 200).
-    // Webhook = pas de session → acteur `service` (provider Sumsub).
+    if (!out.isNew) return NextResponse.json({ ok: true, duplicate: true }, { status: 200 });
+    const result = out.result;
+    // Audit additif best-effort (ne casse jamais l'ACK 200).
     await recordAudit(sb, {
       tenantId: DEFAULT_TENANT_ID,
       action: "kyc.decision",
@@ -99,8 +98,6 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ ok: true, ...result }, { status: 200 });
   } catch (e) {
-    // Erreur de persistance : 500 → Sumsub retentera (la dédup laissera passer
-    // car l'event n'a pas été marqué traité ; l'opération applyKycWebhook est sûre).
     return NextResponse.json(
       { error: "apply_failed", detail: e instanceof Error ? e.message : String(e) },
       { status: 500 },

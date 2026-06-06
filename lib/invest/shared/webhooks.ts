@@ -65,6 +65,8 @@ export function verifyHmacSignature(
 export interface WebhookStore {
   /** @returns true si l'événement est NEUF, false si déjà reçu (doublon). */
   insertEvent(provider: string, providerEventId: string): Promise<boolean>;
+  /** Supprime la ligne de dédup — utilisé en rollback si le traitement échoue. */
+  deleteEvent(provider: string, providerEventId: string): Promise<void>;
 }
 
 /**
@@ -79,6 +81,37 @@ export async function dedupeWebhook(
   providerEventId: string,
 ): Promise<boolean> {
   return store.insertEvent(provider, providerEventId);
+}
+
+/**
+ * Exécute `fn` après avoir dédupliqué l'événement.
+ * Si `fn` lève une erreur, la ligne de dédup est supprimée (rollback) afin que
+ * le prochain retry du provider soit accepté et non ignoré comme doublon.
+ *
+ * @returns Le résultat de `fn` si succès.
+ * @throws  L'erreur originale de `fn` après rollback (le caller renvoie 500).
+ */
+export async function runWithDedup<T>(
+  store: WebhookStore,
+  provider: string,
+  providerEventId: string,
+  fn: () => Promise<T>,
+): Promise<{ isNew: false } | { isNew: true; result: T }> {
+  const isNew = await store.insertEvent(provider, providerEventId);
+  if (!isNew) return { isNew: false };
+  try {
+    const result = await fn();
+    return { isNew: true, result };
+  } catch (err) {
+    // Rollback best-effort : si la suppression échoue on swallow l'erreur
+    // (mieux vaut un doublon ignoré qu'une exception masquant l'originale).
+    try {
+      await store.deleteEvent(provider, providerEventId);
+    } catch {
+      // swallow rollback error
+    }
+    throw err;
+  }
 }
 
 // ─── Adaptateur Supabase par défaut (service-role, colonnes 0021) ─────────────
@@ -113,6 +146,14 @@ export function supabaseWebhookStore(
       if (error) throw error;
       // 0 ligne renvoyée = la contrainte unique a absorbé un doublon.
       return Array.isArray(data) && data.length > 0;
+    },
+    async deleteEvent(provider, providerEventId) {
+      await db
+        .from("inv_webhook_events")
+        .delete()
+        .eq("tenant_id", tenantId)
+        .eq("provider", provider)
+        .eq("provider_event_id", providerEventId);
     },
   };
 }

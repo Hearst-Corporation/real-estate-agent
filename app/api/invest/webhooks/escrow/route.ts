@@ -20,7 +20,7 @@ import {
   supabaseSubscriptionStore,
   type EscrowDomainEvent,
 } from "@/lib/invest/subscription";
-import { dedupeWebhook, supabaseWebhookStore } from "@/lib/invest/shared/webhooks";
+import { runWithDedup, supabaseWebhookStore } from "@/lib/invest/shared/webhooks";
 import { DEFAULT_TENANT_ID } from "@/lib/invest/shared/types";
 import { hashBody } from "@/lib/invest/shared/idempotency";
 
@@ -104,15 +104,16 @@ export async function POST(req: NextRequest) {
     bankReference: payload.bank_reference ?? payload.data?.bank_reference ?? null,
   };
 
-  const isNew = await dedupeWebhook(supabaseWebhookStore(DEFAULT_TENANT_ID), PROVIDER, event.providerEventId);
-  if (!isNew) {
-    return NextResponse.json({ ok: true, duplicate: true }, { status: 200 });
-  }
-
-  // ── 3. Avancement machine (signed→funded sur deposit_confirmed) ─────────────
+  // ── 3. Dédup + avancement machine (signed→funded) — rollback dédup si apply échoue
   try {
-    const result = await applyEscrowWebhook(supabaseSubscriptionStore(), DEFAULT_TENANT_ID, event);
-    return NextResponse.json({ ok: true, ...result }, { status: 200 });
+    const out = await runWithDedup(
+      supabaseWebhookStore(DEFAULT_TENANT_ID),
+      PROVIDER,
+      event.providerEventId,
+      () => applyEscrowWebhook(supabaseSubscriptionStore(), DEFAULT_TENANT_ID, event),
+    );
+    if (!out.isNew) return NextResponse.json({ ok: true, duplicate: true }, { status: 200 });
+    return NextResponse.json({ ok: true, ...out.result }, { status: 200 });
   } catch (e) {
     return NextResponse.json(
       { error: "apply_failed", detail: e instanceof Error ? e.message : String(e) },
