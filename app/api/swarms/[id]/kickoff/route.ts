@@ -22,7 +22,7 @@ export async function POST(_req: Request, { params }: Params) {
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 })
 
   try {
-    const result = await kickoffSwarm(id)
+    const result = await kickoffSwarm(id, ownerId)
 
     // Persist dans swarm_runs
     const { error: dbError } = await sb.from("swarm_runs").insert({

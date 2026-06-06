@@ -27,7 +27,7 @@ export type Swarm = {
   id: string
   name: string
   description?: string
-  owner_id: string
+  owner_id: string | null // null = swarm seed/template global (visible par tous)
   is_active: boolean
   agents: SwarmAgent[]
   tasks: SwarmTask[]
@@ -60,6 +60,10 @@ export type SwarmRun = {
   steps?: SwarmStep[]
   created_at?: string
   updated_at?: string
+  // Métriques d'exécution (engine) — affichées dans l'en-tête du rapport.
+  tokens_in?: number
+  tokens_out?: number
+  cost_usd?: number
 }
 
 // Step

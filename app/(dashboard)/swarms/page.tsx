@@ -1,6 +1,6 @@
 import { PageHeader, KpiGrid, KpiCard, Card } from "@/components/cockpit/primitives";
 import { getSession } from "@/lib/server/session";
-import { tenantOf } from "@/lib/tenant";
+import { uuidOwnerOf } from "@/lib/tenant";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { listSwarms } from "@/lib/swarms/client";
 import SwarmCard from "@/components/swarms/SwarmCard";
@@ -10,7 +10,10 @@ import { UI } from "@/lib/ui-strings";
 
 export default async function SwarmsPage() {
   const claims = await getSession();
-  const ownerId = claims ? tenantOf(claims) : null;
+  // Engine MySwarms exige un owner_id UUID — aligné sur toutes les routes API
+  // (qui utilisent uuidOwnerOf). tenantOf renvoyait le slug "real-estate-agent"
+  // → 400 avalé → 0 swarm affiché alors qu'ils existent côté engine.
+  const ownerId = claims ? uuidOwnerOf(claims) : null;
 
   let swarms: Swarm[] = [];
   if (ownerId) {
