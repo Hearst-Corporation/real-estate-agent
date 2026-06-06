@@ -70,7 +70,9 @@ export const UI = {
       byValueBand: "Valeur estimée par tranche",
       completion: "Taux de complétion",
       completionSub: "Prêtes",
+      heatmap: "Estimations par ville et statut",
     },
+    heatmapNoCity: "Sans ville",
     table: {
       property: "Bien",
       status: "Statut",
@@ -192,6 +194,15 @@ export const UI = {
       valuating: "Calcul",
       ready: "Prête",
       archived: "Archivée",
+    } as Record<string, string>,
+    // Libellés courts (colonnes de la heatmap dashboard).
+    statusShort: {
+      draft: "Brn",
+      interviewing: "Entr.",
+      recap: "Récap",
+      valuating: "Calc.",
+      ready: "Prête",
+      archived: "Arch.",
     } as Record<string, string>,
   },
   properties: {

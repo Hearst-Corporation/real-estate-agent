@@ -1479,6 +1479,41 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
   .dash-kpis { grid-template-columns: 1fr; }
 }
 
+/* ── Heatmap (matrice ville × statut — asset catalogue) ── */
+.ct-heatmap {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) repeat(var(--ct-hm-cols), minmax(0, 1fr));
+  gap: 5px;
+  align-items: stretch;
+}
+.ct-heatmap-corner { content: ""; }
+.ct-heatmap-colhead {
+  font-size: 8px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--ct-text-muted); text-align: center; align-self: end; padding-bottom: 4px;
+}
+.ct-heatmap-rowhead {
+  font-size: 11px; font-weight: 600; color: var(--ct-text-body);
+  display: flex; align-items: center; padding-right: var(--ct-space-sm);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ct-heatmap-cell {
+  position: relative; height: 34px; border-radius: 6px;
+  background: var(--ct-surface-2); border: 1px solid var(--ct-border-soft);
+  display: grid; place-items: center; overflow: hidden;
+}
+.ct-heatmap-fill {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--ct-accent-maroon), var(--ct-accent-strong));
+}
+.ct-heatmap-val {
+  position: relative; font-size: 11px; font-weight: 700;
+  color: var(--ct-text-strong); font-variant-numeric: tabular-nums;
+}
+@media (max-width: 600px) {
+  .ct-heatmap-cell { height: 28px; }
+  .ct-heatmap-colhead { font-size: 7px; }
+}
+
 /* ── Donut (anneau de progression) ── */
 .ct-chart-donut {
   position: relative;

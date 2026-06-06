@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";
+import { Heatmap } from "@/components/cockpit/Heatmap";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { barsByStatus, topByCategory, distributeByBand, autoBands, ratio } from "@/lib/crm/aggregate";
 import { eur, dateFr } from "@/lib/crm/format";
@@ -23,6 +24,9 @@ const ESTIMATION_STATUSES = ["draft", "interviewing", "recap", "valuating", "rea
 
 /** Diamètre de l'anneau de complétion (carte donut accent). */
 const DONUT_SIZE = 156;
+
+/** Nombre de villes (lignes) affichées dans la heatmap ville × statut. */
+const HEATMAP_TOP_CITIES = 6;
 
 /** Tonalité d'un statut d'estimation (ready = positif, archived = négatif). */
 function estimationTone(status: string): "is-positive" | "is-negative" | "is-pending" {
@@ -141,6 +145,23 @@ export default async function DashboardPage() {
     .filter((r) => r.status === "ready")
     .reduce((sum, r) => sum + (r.market_value ?? 0), 0);
 
+  // ── Heatmap ville × statut (données réelles : top villes × cycle) ──
+  const cityOf = (r: EstRow) => r.city?.trim() || t.heatmapNoCity;
+  const cityCounts = new Map<string, number>();
+  for (const r of rows) cityCounts.set(cityOf(r), (cityCounts.get(cityOf(r)) ?? 0) + 1);
+  const heatRowLabels = [...cityCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, HEATMAP_TOP_CITIES)
+    .map(([city]) => city);
+  const heatColLabels = ESTIMATION_STATUSES.map(
+    (st) => UI.estimations.statusShort[st] ?? st
+  );
+  const heatMatrix = heatRowLabels.map((city) =>
+    ESTIMATION_STATUSES.map(
+      (st) => rows.filter((r) => cityOf(r) === city && r.status === st).length
+    )
+  );
+
   const recent = rows.slice(0, RECENT_LIMIT);
 
   const recentColumns: Column<EstRow>[] = [
@@ -258,6 +279,19 @@ export default async function DashboardPage() {
           <div className="dash-card-body">
             <BarList items={byValueBand} emptyLabel={UI.viz.empty} />
           </div>
+        </div>
+      </div>
+
+      {/* ── Heatmap ville × statut (asset catalogue, données réelles) ── */}
+      <div className="dash-card">
+        <p className="dash-card-title">{t.charts.heatmap}</p>
+        <div className="dash-card-body">
+          <Heatmap
+            rowLabels={heatRowLabels}
+            colLabels={heatColLabels}
+            matrix={heatMatrix}
+            emptyLabel={UI.viz.empty}
+          />
         </div>
       </div>
 
