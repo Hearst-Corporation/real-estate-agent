@@ -1,13 +1,13 @@
 import { UI } from "@/lib/ui-strings";
 
 const DPE_COLORS: Record<string, string> = {
-  A: "#00C853",
-  B: "#64DD17",
-  C: "#AEEA00",
-  D: "#FFD600",
-  E: "#FF6D00",
-  F: "#DD2C00",
-  G: "#B71C1C",
+  A: "var(--dpe-a)",
+  B: "var(--dpe-b)",
+  C: "var(--dpe-c)",
+  D: "var(--dpe-d)",
+  E: "var(--dpe-e)",
+  F: "var(--dpe-f)",
+  G: "var(--dpe-g)",
 };
 
 interface DpeBadgeProps {

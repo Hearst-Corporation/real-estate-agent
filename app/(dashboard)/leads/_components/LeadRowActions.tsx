@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
 import { UI } from "@/lib/ui-strings";
 import { isEnrichable } from "@/lib/crm/enrichable";
 import { LeadForm, type LeadDefaults } from "./LeadForm";
@@ -83,17 +84,9 @@ export function LeadRowActions({ id, fullName, defaultValues }: LeadRowActionsPr
       {message ? <span className="ct-placeholder">{message}</span> : null}
 
       {editing && (
-        <div
-          className="crm-form-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Modifier le lead"
-          onKeyDown={(e) => { if (e.key === "Escape") setEditing(false); }}
-        >
-          <div className="crm-form-modal">
-            <LeadForm id={id} defaultValues={defaultValues} onClose={() => setEditing(false)} />
-          </div>
-        </div>
+        <AccessibleModal title="Modifier le lead" onClose={() => setEditing(false)}>
+          <LeadForm id={id} defaultValues={defaultValues} onClose={() => setEditing(false)} />
+        </AccessibleModal>
       )}
     </div>
   );

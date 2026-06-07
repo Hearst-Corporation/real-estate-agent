@@ -72,7 +72,7 @@ const rowStyle: CSSProperties = {
   padding: "var(--ct-space-md) var(--ct-space-lg)",
   background: "var(--ct-surface-1)",
   border: "1px solid var(--ct-border)",
-  borderRadius: 12,
+  borderRadius: "var(--ct-radius-lg)",
   flexWrap: "wrap",
 };
 const actionsStyle: CSSProperties = { display: "flex", gap: "var(--ct-space-sm)", flexWrap: "wrap" };
@@ -82,7 +82,7 @@ const primaryBtn: CSSProperties = {
   border: "1px solid var(--ct-border-accent)",
   background: "var(--ct-accent-strong)",
   color: "var(--ct-bg-deep)",
-  fontSize: 12,
+  fontSize: "var(--ct-fs-sm)",
   fontWeight: 700,
   cursor: "pointer",
 };
@@ -92,11 +92,11 @@ const ghostBtn: CSSProperties = {
   border: "1px solid var(--ct-border)",
   background: "transparent",
   color: "var(--ct-text-body)",
-  fontSize: 12,
+  fontSize: "var(--ct-fs-sm)",
   fontWeight: 700,
   cursor: "pointer",
 };
-const metaStyle: CSSProperties = { fontSize: 11, color: "var(--ct-text-muted)" };
+const metaStyle: CSSProperties = { fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" };
 
 export function SubscriptionsList({ initial }: { initial: SubscriptionView[] }) {
   const [items, setItems] = useState<SubscriptionView[]>(initial);

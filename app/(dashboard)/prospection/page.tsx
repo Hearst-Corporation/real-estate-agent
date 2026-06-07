@@ -172,10 +172,10 @@ export default function ProspectionPage() {
       key: "criteres",
       header: "Critères",
       render: (c) => (
-        <div className="prospection-acquereur-tags" style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-          {c.type_bien?.map((type) => <span key={type} className="prospection-pill" style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--ct-surface-hover)" }}>{type}</span>)}
-          {c.surface_min ? <span className="prospection-pill" style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--ct-surface-hover)" }}>{c.surface_min} m² min</span> : null}
-          {c.pieces_min ? <span className="prospection-pill" style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--ct-surface-hover)" }}>{c.pieces_min} p min</span> : null}
+        <div className="prospection-acquereur-tags" style={{ display: "flex", gap: "var(--ct-space-2xs)", flexWrap: "wrap" }}>
+          {c.type_bien?.map((type) => <span key={type} className="prospection-pill" style={{ fontSize: "var(--ct-fs-2xs)", padding: "2px 6px", borderRadius: "var(--ct-radius-xs)", background: "var(--ct-surface-hover)" }}>{type}</span>)}
+          {c.surface_min ? <span className="prospection-pill" style={{ fontSize: "var(--ct-fs-2xs)", padding: "2px 6px", borderRadius: "var(--ct-radius-xs)", background: "var(--ct-surface-hover)" }}>{c.surface_min} m² min</span> : null}
+          {c.pieces_min ? <span className="prospection-pill" style={{ fontSize: "var(--ct-fs-2xs)", padding: "2px 6px", borderRadius: "var(--ct-radius-xs)", background: "var(--ct-surface-hover)" }}>{c.pieces_min} p min</span> : null}
         </div>
       ),
     },
@@ -199,8 +199,8 @@ export default function ProspectionPage() {
       key: "tags",
       header: "Tags",
       render: (a) => (
-        <div style={{ display: "flex", gap: "4px" }}>
-          {a.is_pap && <span className="prospection-pap" style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--ct-surface-accent)", color: "var(--ct-text-accent)" }}>PAP</span>}
+        <div style={{ display: "flex", gap: "var(--ct-space-2xs)" }}>
+          {a.is_pap && <span className="prospection-pap" style={{ fontSize: "var(--ct-fs-2xs)", padding: "2px 6px", borderRadius: "var(--ct-radius-xs)", background: "var(--ct-surface-accent)", color: "var(--ct-text-accent)" }}>PAP</span>}
         </div>
       ),
     },
@@ -217,7 +217,7 @@ export default function ProspectionPage() {
       key: "score",
       header: "Score",
       render: (m) => (
-        <div className={`prospection-score${m.score_match >= 70 ? " is-good" : ""}`} style={{ fontWeight: "bold", color: m.score_match >= 70 ? "var(--ct-text-success)" : "inherit" }}>
+        <div className={`prospection-score${m.score_match >= 70 ? " is-good" : ""}`} style={{ fontWeight: 700, color: m.score_match >= 70 ? "var(--ct-text-success)" : "inherit" }}>
           {m.score_match}
         </div>
       ),
@@ -243,7 +243,7 @@ export default function ProspectionPage() {
       header: "Actions",
       align: "right",
       render: (m) => (
-        <div className="prospection-match-actions" style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+        <div className="prospection-match-actions" style={{ display: "flex", gap: "var(--ct-space-xs)", justifyContent: "flex-end" }}>
           <button className="ct-seg-btn" onClick={() => sendFeedback(m.id, "like")}>👍</button>
           <button className="ct-seg-btn" onClick={() => sendFeedback(m.id, "dislike")}>👎</button>
           <button className="ct-seg-btn primary" onClick={() => sendFeedback(m.id, "contact")}>Contacter</button>

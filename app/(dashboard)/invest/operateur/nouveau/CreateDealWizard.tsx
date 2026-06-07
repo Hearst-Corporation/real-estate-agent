@@ -366,7 +366,7 @@ export function CreateDealWizard() {
           </label>
 
           {error ? (
-            <p className="inv-chart-foot" style={{ color: "var(--ct-danger, crimson)", marginTop: "var(--ct-space-sm)" }}>
+            <p className="inv-chart-foot" style={{ color: "var(--ct-text-danger)", marginTop: "var(--ct-space-sm)" }}>
               {error}
             </p>
           ) : null}

@@ -86,9 +86,9 @@ export function ClosingLauncher({ dealId, ready }: { dealId: string; ready: bool
           style={{
             color:
               tone === "err"
-                ? "var(--ct-danger, #c0392b)"
+                ? "var(--ct-text-danger)"
                 : tone === "warn"
-                  ? "var(--ct-warning, #b8860b)"
+                  ? "var(--ct-warning)"
                   : "var(--ct-text-muted)",
           }}
         >

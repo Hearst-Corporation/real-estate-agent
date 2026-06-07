@@ -29,7 +29,7 @@ import { Stepper, Banner, Gate, StatusPill, Toast, eur } from "@/components/inve
 
 // Styles inline en tokens --ct-* (aucun hex, aucune nouvelle classe dans cockpit.css).
 const fieldLabelStyle: CSSProperties = {
-  fontSize: 11,
+  fontSize: "var(--ct-fs-xs)",
   fontWeight: 700,
   letterSpacing: "0.04em",
   textTransform: "uppercase",
@@ -41,7 +41,7 @@ const amountRowStyle: CSSProperties = {
   gap: "var(--ct-space-sm)",
 };
 const amountCurStyle: CSSProperties = {
-  fontSize: 13,
+  fontSize: "var(--ct-fs-base)",
   fontWeight: 700,
   color: "var(--ct-text-muted)",
 };
@@ -52,7 +52,7 @@ const ghostBtnStyle: CSSProperties = {
   border: "1px solid var(--ct-border)",
   background: "transparent",
   color: "var(--ct-text-body)",
-  fontSize: 12,
+  fontSize: "var(--ct-fs-sm)",
   fontWeight: 700,
   cursor: "pointer",
 };
@@ -68,11 +68,11 @@ const flowStyle: CSSProperties = {
   borderRadius: 10,
 };
 const flowNodeStyle: CSSProperties = {
-  fontSize: 11,
+  fontSize: "var(--ct-fs-xs)",
   fontWeight: 700,
   color: "var(--ct-text-body)",
   padding: "4px 8px",
-  borderRadius: 8,
+  borderRadius: "var(--ct-radius-md)",
   border: "1px solid var(--ct-border-soft)",
   background: "var(--ct-surface-1)",
 };

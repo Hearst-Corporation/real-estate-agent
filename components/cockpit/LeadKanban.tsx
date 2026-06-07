@@ -69,7 +69,7 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
 
   // Helper to generate a consistent color based on string
   const getAvatarColor = (name: string) => {
-    const colors = ["#3FA7E0", "#34D399", "#F87171", "#FBBF24", "#A78BFA", "#818CF8", "#F472B6"];
+    const colors = ["var(--ct-avatar-1)", "var(--ct-avatar-2)", "var(--ct-avatar-3)", "var(--ct-avatar-4)", "var(--ct-avatar-5)", "var(--ct-avatar-6)", "var(--ct-avatar-7)"];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -102,14 +102,10 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
                   onDragStart={(e) => handleDragStart(e, lead.id)}
                 >
                   <div className="crm-lead-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div 
-                        style={{ 
-                          width: 24, height: 24, borderRadius: '50%', 
-                          backgroundColor: getAvatarColor(lead.full_name),
-                          color: '#fff', display: 'flex', alignItems: 'center', 
-                          justifyContent: 'center', fontSize: 10, fontWeight: 'bold'
-                        }}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ct-space-xs)' }}>
+                      <div
+                        className="crm-avatar"
+                        style={{ backgroundColor: getAvatarColor(lead.full_name) }}
                       >
                         {lead.full_name.substring(0, 2).toUpperCase()}
                       </div>

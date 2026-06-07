@@ -56,6 +56,9 @@ function memWebhookStore(): WebhookStore & { seen: Set<string> } {
       seen.add(k);
       return true; // neuf
     },
+    async deleteEvent(provider, providerEventId) {
+      seen.delete(`${provider}:${providerEventId}`);
+    },
   };
 }
 
