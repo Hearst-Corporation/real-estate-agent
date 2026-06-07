@@ -165,7 +165,8 @@ Structurelles utiles : `ct-page-stack`, `ct-page-header*`, `ct-card*`, `ct-kpi-*
 - ❌ Couleur hex / `rgb()` / `rgba()` / `hsl()` dans `app/(dashboard)/**` ou `components/**` (hors `components/brochure`). → `lint:cockpit`.
 - ❌ `style={{ color/background/border: "…" }}` avec une valeur littérale. Seule exception tolérée : **largeur pilotée par la donnée** (ex. `width: ${pct}%` dans Funnel/BarList) — sinon ajoute `// cockpit-lint-allow` sur la ligne, avec justification.
 - ❌ Réimporter `CockpitShell` dans une page.
-- ❌ Texte UI en dur : passe par `lib/ui-strings` (`UI.*`).
+- ❌ Texte UI en dur (texte JSX / props d'affichage) : passe par `lib/ui-strings` (`UI.*`). → `lint:strings` (baseline gelée `gate/strings-baseline.json` : seules les NOUVELLES strings bloquent ; échappatoire `strings-lint-allow`).
+- ❌ Clé/token d'API en dur : toujours `process.env.X`. → `lint:secrets` (tous tiers ; ne logge jamais la valeur).
 - ❌ Page sous `app/(dashboard)/` sans entrée dans `NAV` (`config/nav.ts`) → `lint:nav` (sauf allowlist `profile`/`admin`/`invest`).
 - ❌ Strings juridiques interdites sur le domaine `invest` → `lint:legal` (voir `scripts/lint-legal.mjs`).
 
@@ -182,5 +183,5 @@ Structurelles utiles : `ct-page-stack`, `ct-page-header*`, `ct-card*`, `ct-kpi-*
 npm run lint:cockpit   # tokens DS (couleurs en dur)
 npm run lint:nav       # pages ↔ NAV (aucune page orpheline)
 npm run cockpit:manifest  # SI tu as touché au CSS (app/cockpit/*.css) → régénère le vocabulaire
-npm run check          # lint:cockpit + lint:legal + eslint + lint:nav + manifest --check + typecheck
+npm run check          # lint:cockpit + lint:legal + lint:secrets + eslint + lint:nav + lint:strings + manifest --check + typecheck
 ```

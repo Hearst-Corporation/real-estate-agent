@@ -66,3 +66,6 @@ docs/produit/05-smart-contracts/out/
 
 # scratch / layout test files
 test-layout.html
+
+# enable-adrien backups
+*.bak

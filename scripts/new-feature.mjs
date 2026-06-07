@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @enable-adrien:layer=front-cockpit v=2
 /**
  * SCAFFOLDER DE FEATURE — génère une ressource CRUD conforme à la RECETTE.
  * =================================================================
@@ -15,7 +16,9 @@
  * Garde-fous :
  *   - refuse si l'arg <resource> manque ;
  *   - refuse (et N'ÉCRASE RIEN) si une cible existe déjà ;
- *   - le code généré passe lint:cockpit (zéro couleur en dur) ;
+ *   - le code généré passe lint:cockpit (zéro couleur en dur) ET lint:strings
+ *     (zéro texte en dur : les templates référencent UI.<resource>, et le namespace
+ *     correspondant est injecté dans lib/ui-strings.ts — merge additif) ;
  *   - NE MODIFIE PAS config/nav.ts (keystone fragile) → imprime l'entrée NAV à coller.
  *
  * Timestamp de migration :
@@ -27,7 +30,7 @@
  *   ex : node scripts/new-feature.mjs contacts --ts=20260607120000
  */
 
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { writeFileSync, readFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -134,17 +137,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { UI } from "@/lib/ui-strings";
 import ${Resource}Form from "./_components/${Resource}Form";
-
-// TODO: déplacer vers lib/ui-strings (UI.${resource})
-const STRINGS = {
-  eyebrow: "CRM",
-  title: "${Resource}",
-  newCta: "Nouveau ${Sing}",
-  empty: "Aucun ${Sing} pour le moment.",
-  cols: { label: "Nom", date: "Créé le" },
-  kpis: { total: "Total" },
-};
 
 type ${Resource}Row = {
   id: string;
@@ -153,7 +147,7 @@ type ${Resource}Row = {
 };
 
 export default async function ${Resource}Page() {
-  const t = STRINGS;
+  const t = UI.${resource};
   const claims = await getSession();
   // La table « ${resource} » n'est dans les types Supabase qu'APRÈS migration + génération
   // des types. En attendant, on requête via un client non typé.
@@ -199,26 +193,16 @@ const formTpl = `"use client";
 import { useState } from "react";
 import { CockpitForm, Field, TextInput, Select, MoneyInput, Textarea } from "@/components/cockpit/form";
 import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
-
-// TODO: déplacer vers lib/ui-strings (UI.${resource}.form)
-const STRINGS = {
-  title: "Nouveau ${Sing}",
-  label: "Nom",
-  status: "Statut",
-  amount: "Montant",
-  notes: "Notes",
-  submit: "Créer",
-  cancel: "Annuler",
-};
+import { UI } from "@/lib/ui-strings";
 
 const STATUS_OPTIONS = [
-  { value: "nouveau", label: "Nouveau" },
-  { value: "actif", label: "Actif" },
-  { value: "archive", label: "Archivé" },
+  { value: "nouveau", label: UI.${resource}.statuses.nouveau },
+  { value: "actif", label: UI.${resource}.statuses.actif },
+  { value: "archive", label: UI.${resource}.statuses.archive },
 ];
 
 export default function ${Resource}Form({ cta }: { cta: string }) {
-  const t = STRINGS;
+  const t = UI.${resource}.form;
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -510,6 +494,41 @@ write(targets.form, formTpl);
 write(targets.apiList, apiListTpl);
 write(targets.apiItem, apiItemTpl);
 write(targets.migration, migrationTpl);
+
+// ─── injection du namespace UI.<resource> (corrige A6 : zéro string en dur) ───
+// Le scaffolder N'ÉMET PLUS de STRINGS={...} en dur dans le code généré : les
+// templates référencent UI.<resource> / UI.<resource>.form. On ajoute donc le
+// namespace dans lib/ui-strings.ts (merge additif, jamais d'écrasement de valeur).
+const uiPath = join(ROOT, "lib", "ui-strings.ts");
+const uiBlock = `  ${resource}: {
+    eyebrow: "CRM",
+    title: "${Resource}",
+    newCta: "Nouveau ${Sing}",
+    empty: "Aucun ${Sing} pour le moment.",
+    cols: { label: "Nom", date: "Créé le" },
+    kpis: { total: "Total" },
+    statuses: { nouveau: "Nouveau", actif: "Actif", archive: "Archivé" },
+    form: { title: "Nouveau ${Sing}", label: "Nom", status: "Statut", amount: "Montant", notes: "Notes", submit: "Créer" },
+  },
+`;
+try {
+  let ui = readFileSync(uiPath, "utf8");
+  if (new RegExp(`\\n  ${resource}: \\{`).test(ui)) {
+    console.log(`  = UI.${resource} déjà présent dans lib/ui-strings.ts (inchangé)`);
+  } else {
+    const close = ui.lastIndexOf("} as const;");
+    if (close === -1) {
+      console.log(`  ⚠ « } as const; » introuvable dans lib/ui-strings.ts — colle ce bloc à la main dans UI :`);
+      console.log(uiBlock);
+    } else {
+      ui = ui.slice(0, close) + uiBlock + ui.slice(close);
+      writeFileSync(uiPath, ui, "utf8");
+      console.log(`  + UI.${resource} ajouté dans lib/ui-strings.ts`);
+    }
+  }
+} catch {
+  console.log(`  ⚠ lib/ui-strings.ts illisible — colle le bloc UI.${resource} à la main.`);
+}
 
 // ─── rappels manuels (NAV non touchée) ────────────────────────────────────────
 
