@@ -100,22 +100,22 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
                         <span style={{ fontSize: 'var(--ct-fs-2xs)', color: 'var(--ct-text-faint)' }}>{t.photos.empty}</span>
                       </div>
                     )}
-                    <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                    <div style={{ position: 'absolute', top: 'var(--ct-space-xs)', right: 'var(--ct-space-xs)' }}>
                       <span className="ct-badge ct-badge-overlay">
                         {t.typeLabels[property.property_type ?? ""] || property.property_type || "Bien"}
                       </span>
                     </div>
                   </div>
                   
-                  <div style={{ padding: '12px' }}>
-                    <div className="crm-card-head" style={{ marginBottom: '4px' }}>
+                  <div style={{ padding: 'var(--ct-space-sm)' }}>
+                    <div className="crm-card-head" style={{ marginBottom: 'var(--ct-space-2xs)' }}>
                       <span className="crm-card-title" title={property.title || t.fallbackTitle}>
                         {property.title || t.fallbackTitle}
                       </span>
                     </div>
                     
-                    <div className="crm-card-meta" style={{ marginBottom: '8px' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div className="crm-card-meta" style={{ marginBottom: 'var(--ct-space-xs)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--ct-space-2xs)' }}>
                         <Icon name="search" style={{ width: 12, height: 12 }} /> 
                         {property.city || "—"}
                       </span>
@@ -124,11 +124,11 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
                       )}
                     </div>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--ct-space-xs)' }}>
                       <span className="crm-card-price">{eur(property.asking_price)}</span>
-                      
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        <Link href={`/properties/${property.id}`} className="ct-seg-btn" style={{ padding: '4px 8px', fontSize: '10px' }}>
+
+                      <div style={{ display: 'flex', gap: 'var(--ct-space-2xs)' }}>
+                        <Link href={`/properties/${property.id}`} className="ct-seg-btn" style={{ padding: 'var(--ct-space-2xs) var(--ct-space-xs)', fontSize: 'var(--ct-fs-2xs)' }}>
                           Ouvrir
                         </Link>
                       </div>

@@ -2742,6 +2742,66 @@ export type Database = {
           },
         ]
       }
+      missions: {
+        Row: {
+          created_at: string
+          decisions: Json
+          entity_id: string | null
+          entity_type: string | null
+          error: string | null
+          id: string
+          input: Json
+          objective: string
+          plan: Json | null
+          result: Json | null
+          runs: Json
+          status: string
+          swarm_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          decisions?: Json
+          entity_id?: string | null
+          entity_type?: string | null
+          error?: string | null
+          id?: string
+          input?: Json
+          objective: string
+          plan?: Json | null
+          result?: Json | null
+          runs?: Json
+          status?: string
+          swarm_id?: string | null
+          tenant_id?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          decisions?: Json
+          entity_id?: string | null
+          entity_type?: string | null
+          error?: string | null
+          id?: string
+          input?: Json
+          objective?: string
+          plan?: Json | null
+          result?: Json | null
+          runs?: Json
+          status?: string
+          swarm_id?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       properties: {
         Row: {
           address: string | null

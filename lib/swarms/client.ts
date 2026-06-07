@@ -140,11 +140,15 @@ export async function deleteSwarm(swarmId: string, ownerId: string): Promise<voi
 
 export async function kickoffSwarm(
   swarmId: string,
-  ownerId: string
+  ownerId: string,
+  inputs?: Record<string, unknown>
 ): Promise<KickoffResponse> {
+  // `inputs` est propagé jusqu'au crew (state.inputs) côté moteur — c'est le
+  // canal pour lancer une mission ciblée et réinjecter les réponses humaines
+  // entre deux sous-runs (le moteur ne fait que de l'atomique).
   return engineFetch<KickoffResponse>(
     `/swarms/${encodeURIComponent(swarmId)}/kickoff?owner_id=${encodeURIComponent(ownerId)}`,
-    { method: "POST", body: JSON.stringify({}) }
+    { method: "POST", body: JSON.stringify(inputs && Object.keys(inputs).length ? { inputs } : {}) }
   )
 }
 

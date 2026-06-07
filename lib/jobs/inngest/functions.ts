@@ -21,6 +21,7 @@ import { upsertAnnonces } from "@/lib/prospection/ingest";
 import { matchAnnonce } from "@/lib/prospection/matching/match";
 import { sendMatchAlerte } from "@/lib/prospection/alert";
 import type { CritereAcquereur, Annonce } from "@/lib/prospection/types";
+import { MATCH_SCORE_MIN_PERSIST, MATCH_SCORE_ALERT } from "@/lib/prospection/types";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { runClosingSaga } from "@/lib/invest/closing";
 import { reconcile, supabaseTokenizationStore } from "@/lib/invest/tokenization";
@@ -149,7 +150,7 @@ export const prospScoring = inngest.createFunction(
           if (!zones.some(z => (String(row.code_postal ?? "")).startsWith(z))) continue;
           const annonce = dbRowToAnnonce(row);
           const result = matchAnnonce(critere, annonce);
-          if (!result || result.score < 50) continue;
+          if (!result || result.score < MATCH_SCORE_MIN_PERSIST) continue;
 
           const { data: matchRow } = await db
             .from("prosp_matchs")
@@ -166,7 +167,7 @@ export const prospScoring = inngest.createFunction(
             .select("id,statut,alerted_at")
             .single();
 
-          if (matchRow && !matchRow.alerted_at && result.score >= 70) {
+          if (matchRow && !matchRow.alerted_at && result.score >= MATCH_SCORE_ALERT) {
             const alertResult = await sendMatchAlerte("real-estate-agent", critere, annonce, result.score);
             if (alertResult.sent) {
               await db.from("prosp_matchs").update({ alerted_at: new Date().toISOString(), statut: "alerte_envoyee" }).eq("id", matchRow.id);

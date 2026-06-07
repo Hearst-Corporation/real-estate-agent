@@ -66,12 +66,12 @@ export function GmailConnectButton() {
   }
 
   if (loading) {
-    return <p style={{ fontSize: 13, opacity: 0.6 }}>Chargement…</p>;
+    return <p style={{ fontSize: "var(--ct-fs-base)", opacity: "var(--ct-opacity-muted)" }}>Chargement…</p>;
   }
 
   if (!status?.configured) {
     return (
-      <p style={{ fontSize: 13, opacity: 0.6 }}>
+      <p style={{ fontSize: "var(--ct-fs-base)", opacity: "var(--ct-opacity-muted)" }}>
         Intégration non configurée (clé API Composio manquante).
       </p>
     );
@@ -80,9 +80,9 @@ export function GmailConnectButton() {
   return (
     <div className="ct-stack-sm">
       {/* Gmail */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-sm)" }}>
         {status.gmail ? (
-          <span style={{ fontSize: 13, fontWeight: 600 }}>
+          <span style={{ fontSize: "var(--ct-fs-base)", fontWeight: "var(--ct-fw-semibold)" }}>
             Gmail ✓ connecté
           </span>
         ) : (
@@ -98,9 +98,9 @@ export function GmailConnectButton() {
       </div>
 
       {/* Google Calendar */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-sm)" }}>
         {status.calendar ? (
-          <span style={{ fontSize: 13, fontWeight: 600 }}>
+          <span style={{ fontSize: "var(--ct-fs-base)", fontWeight: "var(--ct-fw-semibold)" }}>
             Agenda Google ✓ connecté
           </span>
         ) : (
@@ -116,7 +116,7 @@ export function GmailConnectButton() {
       </div>
 
       {errorMsg ? (
-        <p style={{ fontSize: 12, color: "var(--ct-text-danger)" }}>
+        <p style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-danger)" }}>
           {errorMsg}
         </p>
       ) : null}

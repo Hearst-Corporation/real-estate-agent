@@ -30,8 +30,8 @@ import { Stepper, Banner, Gate, StatusPill, Toast, eur } from "@/components/inve
 // Styles inline en tokens --ct-* (aucun hex, aucune nouvelle classe dans cockpit.css).
 const fieldLabelStyle: CSSProperties = {
   fontSize: "var(--ct-fs-xs)",
-  fontWeight: 700,
-  letterSpacing: "0.04em",
+  fontWeight: "var(--ct-fw-bold)",
+  letterSpacing: "var(--ct-ls-wide)",
   textTransform: "uppercase",
   color: "var(--ct-text-muted)",
 };
@@ -42,18 +42,18 @@ const amountRowStyle: CSSProperties = {
 };
 const amountCurStyle: CSSProperties = {
   fontSize: "var(--ct-fs-base)",
-  fontWeight: 700,
+  fontWeight: "var(--ct-fw-bold)",
   color: "var(--ct-text-muted)",
 };
 const ghostBtnStyle: CSSProperties = {
   width: "100%",
   padding: "var(--ct-space-sm) var(--ct-space-md)",
-  borderRadius: 10,
+  borderRadius: "var(--ct-radius-md)",
   border: "1px solid var(--ct-border)",
   background: "transparent",
   color: "var(--ct-text-body)",
   fontSize: "var(--ct-fs-sm)",
-  fontWeight: 700,
+  fontWeight: "var(--ct-fw-bold)",
   cursor: "pointer",
 };
 const flowStyle: CSSProperties = {
@@ -65,13 +65,13 @@ const flowStyle: CSSProperties = {
   padding: "var(--ct-space-sm) var(--ct-space-md)",
   background: "var(--ct-surface-0)",
   border: "1px solid var(--ct-border-soft)",
-  borderRadius: 10,
+  borderRadius: "var(--ct-radius-md)",
 };
 const flowNodeStyle: CSSProperties = {
   fontSize: "var(--ct-fs-xs)",
-  fontWeight: 700,
+  fontWeight: "var(--ct-fw-bold)",
   color: "var(--ct-text-body)",
-  padding: "4px 8px",
+  padding: "var(--ct-space-2xs) var(--ct-space-xs)",
   borderRadius: "var(--ct-radius-md)",
   border: "1px solid var(--ct-border-soft)",
   background: "var(--ct-surface-1)",
@@ -82,7 +82,7 @@ const flowNodeAccentStyle: CSSProperties = {
   borderColor: "var(--ct-border-accent)",
   background: "var(--ct-accent-soft)",
 };
-const flowArrowStyle: CSSProperties = { color: "var(--ct-text-muted)", fontWeight: 800 };
+const flowArrowStyle: CSSProperties = { color: "var(--ct-text-muted)", fontWeight: "var(--ct-fw-heavy)" };
 
 /** Statuts de souscription exposés à l'UI (miroir machine serveur). */
 type SubStatus =

@@ -77,23 +77,23 @@ const rowStyle: CSSProperties = {
 };
 const actionsStyle: CSSProperties = { display: "flex", gap: "var(--ct-space-sm)", flexWrap: "wrap" };
 const primaryBtn: CSSProperties = {
-  padding: "6px 12px",
-  borderRadius: 9,
+  padding: "var(--ct-space-xs) var(--ct-space-md)",
+  borderRadius: "var(--ct-radius-md)",
   border: "1px solid var(--ct-border-accent)",
   background: "var(--ct-accent-strong)",
   color: "var(--ct-bg-deep)",
   fontSize: "var(--ct-fs-sm)",
-  fontWeight: 700,
+  fontWeight: "var(--ct-fw-bold)",
   cursor: "pointer",
 };
 const ghostBtn: CSSProperties = {
-  padding: "6px 12px",
-  borderRadius: 9,
+  padding: "var(--ct-space-xs) var(--ct-space-md)",
+  borderRadius: "var(--ct-radius-md)",
   border: "1px solid var(--ct-border)",
   background: "transparent",
   color: "var(--ct-text-body)",
   fontSize: "var(--ct-fs-sm)",
-  fontWeight: 700,
+  fontWeight: "var(--ct-fw-bold)",
   cursor: "pointer",
 };
 const metaStyle: CSSProperties = { fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" };

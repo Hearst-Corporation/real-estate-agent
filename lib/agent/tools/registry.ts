@@ -9,8 +9,16 @@ import type { AgentTool } from "@/lib/agent/types";
 import { crmTools } from "./crm";
 import { navTools } from "./nav";
 import { composioTools } from "./composio";
+import { missionTools } from "./missions";
+import { estimationTools } from "./estimation";
 
-export const ALL_TOOLS: AgentTool[] = [...crmTools, ...navTools, ...composioTools];
+export const ALL_TOOLS: AgentTool[] = [
+  ...crmTools,
+  ...navTools,
+  ...composioTools,
+  ...missionTools,
+  ...estimationTools,
+];
 
 export function getTool(name: string): AgentTool | undefined {
   return ALL_TOOLS.find((t) => t.name === name);

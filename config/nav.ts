@@ -38,6 +38,7 @@ export type NavItem = {
  * `as const satisfies` : garde les littéraux (pour AppRoute) ET valide la forme.
  */
 export const NAV = [
+  { href: "/missions", label: UI.nav.missions, icon: "network", group: "primary" },
   { href: "/estimations", label: UI.nav.estimations, icon: "estimate", group: "primary" },
   { href: "/prospection", label: UI.nav.prospection, icon: "search", group: "primary" },
   { href: "/swarms", label: UI.nav.swarms, icon: "network", group: "primary", tabs: "swarms" },

@@ -236,6 +236,44 @@ const updateLead: AgentTool = {
   },
 };
 
+const deleteLead: AgentTool = {
+  name: "delete_lead",
+  description:
+    "Supprime définitivement un lead. DESTRUCTIF : n'exécute QUE si confirmed=true. Si l'utilisateur n'a pas confirmé explicitement, appelle-le avec confirmed=false pour obtenir le message de confirmation, ne réessaie qu'après accord. Retrouve l'id via list_leads d'abord.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      id: { type: "string", description: "UUID du lead à supprimer (obligatoire). Retrouve-le via list_leads." },
+      confirmed: { type: "boolean", description: "true uniquement si l'utilisateur a confirmé la suppression." },
+    },
+    required: ["id", "confirmed"],
+  },
+  async execute(args, ctx): Promise<ToolResult> {
+    const id = asString(args.id);
+    if (!id) return missing("id");
+    if (args.confirmed !== true) {
+      return {
+        ok: false,
+        summary: "Confirmation requise",
+        observation: "Suppression NON exécutée. Demande à l'utilisateur de confirmer explicitement, puis rappelle delete_lead avec confirmed=true.",
+      };
+    }
+    const { data, error } = await ctx.sb
+      .from("leads")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", ctx.userId)
+      .eq("tenant_id", ctx.tenant)
+      .select("id, full_name")
+      .maybeSingle();
+    if (error) return dbError("suppression du lead");
+    if (!data) {
+      return { ok: false, summary: "Lead introuvable", observation: `Aucun lead avec l'id ${id} pour cet utilisateur.` };
+    }
+    return { ok: true, summary: `Lead ${data.full_name} supprimé`, observation: `Lead « ${data.full_name} » supprimé.` };
+  },
+};
+
 // ─── Properties ───────────────────────────────────────────────────────────────
 
 const createProperty: AgentTool = {
@@ -573,6 +611,7 @@ export const crmTools: AgentTool[] = [
   createLead,
   listLeads,
   updateLead,
+  deleteLead,
   createProperty,
   listProperties,
   createVisit,

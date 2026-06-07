@@ -1,5 +1,15 @@
 export type PrefSouple = "requis" | "exclu" | "indifferent";
 
+/**
+ * Seuils de score de matching (0–100) — source unique partagée par le job
+ * d'alerte (lib/jobs/inngest) ET l'affichage UI (page prospection). Éviter
+ * toute désynchronisation : ne jamais ré-écrire ces valeurs en dur ailleurs.
+ */
+/** En-dessous : match ignoré (non persisté). */
+export const MATCH_SCORE_MIN_PERSIST = 50;
+/** À partir de : alerte WhatsApp envoyée + badge « bon match » en UI. */
+export const MATCH_SCORE_ALERT = 70;
+
 export interface Annonce {
   id: string;
   tenantId: string;

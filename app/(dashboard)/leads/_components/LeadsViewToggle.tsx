@@ -89,7 +89,7 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, minHeight: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ct-space-md)', flex: 1, minHeight: 0 }}>
       <div className="crm-toolbar" style={{ flexShrink: 0 }}>
         <h3 className="ct-card-title" style={{ margin: 0 }}>VOS LEADS</h3>
         <div className="ct-seg-track">
@@ -111,7 +111,7 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
       {view === "kanban" ? (
         <LeadKanban leads={leads} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--ct-surface-1)', border: '1px solid var(--ct-border)', borderRadius: '12px', padding: '16px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--ct-surface-1)', border: '1px solid var(--ct-border)', borderRadius: 'var(--ct-radius-lg)', padding: 'var(--ct-space-md)', overflow: 'hidden' }}>
           <DataTable columns={columns} rows={leads} emptyLabel={t.empty} getKey={(l) => l.id} />
         </div>
       )}

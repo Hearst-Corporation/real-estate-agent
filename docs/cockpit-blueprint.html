@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="fr" data-product="default">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Real Estate Agent — Blueprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07131F; --s0:rgba(255,255,255,.02); --s1:rgba(255,255,255,.04); --s2:rgba(255,255,255,.06); --s3:rgba(255,255,255,.09);
+  --accent:#3FA7E0; --accent2:#6EC6F2; --accent-soft:rgba(63,167,224,.16);
+  --txt:rgba(245,247,250,.94); --muted:rgba(245,247,250,.56); --faint:rgba(245,247,250,.36);
+  --bd:rgba(255,255,255,.10); --bd2:rgba(255,255,255,.16);
+  --ok:#34D399; --warn:#f59e0b; --bad:#f87171;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --r:16px; --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:'Hanken Grotesk',-apple-system,system-ui,sans-serif;color:var(--txt);
+  background:
+    radial-gradient(1200px 700px at 15% -10%,rgba(63,167,224,.16),transparent 60%),
+    radial-gradient(1000px 600px at 110% 10%,rgba(110,198,242,.10),transparent 55%),
+    var(--bg);
+  background-attachment:fixed;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+a{color:var(--accent2);text-decoration:none}
+
+/* top nav */
+.topnav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(7,19,31,.72);border-bottom:1px solid var(--bd)}
+.topnav .wrap{display:flex;align-items:center;gap:18px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.01em}
+.dot{width:11px;height:11px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 14px var(--accent)}
+.topnav nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.topnav nav a{padding:7px 12px;border-radius:9px;color:var(--muted);font-size:13px;font-weight:600;transition:.18s var(--ease)}
+.topnav nav a:hover{color:var(--txt);background:var(--s2)}
+.topnav nav a.on{color:var(--accent2);background:var(--accent-soft)}
+
+/* hero */
+.hero{padding:72px 0 40px;text-align:center}
+.kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent2);font-weight:800;margin-bottom:14px}
+.hero h1{font-size:clamp(34px,5vw,58px);line-height:1.02;margin:0 0 16px;letter-spacing:-.025em;font-weight:800;
+  background:linear-gradient(180deg,#fff,#bcd9ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{max-width:640px;margin:0 auto;color:var(--muted);font-size:17px}
+.stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.stat{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:14px 20px;min-width:120px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.stat b{display:block;font-size:30px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.stat.g b{color:var(--ok)} .stat.a b{color:var(--warn)} .stat.r b{color:var(--bad)}
+
+section{padding:54px 0;border-top:1px solid var(--bd)}
+.h2{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent2);font-weight:800;margin-bottom:8px}
+.lead{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0 0 24px}
+.sub{color:var(--muted);max-width:680px;margin:-16px 0 26px}
+
+/* status chips */
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--bd2)}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%}
+.b-ok{color:var(--ok);background:rgba(52,211,153,.10)} .b-ok::before{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.b-warn{color:var(--warn);background:rgba(245,158,11,.10)} .b-warn::before{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+.b-bad{color:var(--bad);background:rgba(248,113,113,.10)} .b-bad::before{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+
+/* filter pills */
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.pill{cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--muted);font-weight:700;font-size:13px;
+  padding:8px 16px;border-radius:999px;transition:.18s var(--ease)}
+.pill:hover{color:var(--txt);border-color:var(--bd2)}
+.pill.on{color:#07131F;background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
+
+/* capability grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.card{background:linear-gradient(180deg,var(--s2),var(--s0));border:1px solid var(--bd);border-radius:var(--r);padding:20px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);transition:.25s var(--ease);position:relative;overflow:hidden}
+.card:hover{transform:translateY(-3px);border-color:var(--bd2);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 18px 40px -22px rgba(0,0,0,.7)}
+.card.dim{opacity:.28;filter:grayscale(.4)}
+.card .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.card .ico{font-size:22px}
+.card h3{margin:2px 0 8px;font-size:18px;font-weight:800;letter-spacing:-.01em}
+.card ul{margin:10px 0 0;padding:0;list-style:none}
+.card li{font-size:13px;color:var(--muted);padding:3px 0 3px 16px;position:relative}
+.card li::before{content:"›";position:absolute;left:0;color:var(--accent)}
+.card .gap{margin-top:12px;font-size:12px;color:var(--faint);border-top:1px dashed var(--bd);padding-top:10px}
+.card .gap b{color:var(--warn)}
+
+/* chat demo */
+.chatwrap{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:start}
+@media(max-width:880px){.chatwrap{grid-template-columns:1fr}.topnav nav{display:none}}
+.chat{background:linear-gradient(180deg,var(--s2),var(--s0));border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.chat .hd{display:flex;align-items:center;gap:9px;padding:13px 16px;border-bottom:1px solid var(--bd);font-weight:700;font-size:13px}
+.chat .hd .dot{width:8px;height:8px}
+.chat .body{padding:16px;min-height:320px;display:flex;flex-direction:column;gap:10px;font-size:13.5px}
+.msg{max-width:88%;padding:10px 13px;border-radius:13px;animation:pop .35s var(--ease)}
+.msg.u{align-self:flex-end;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06141f;font-weight:600;border-bottom-right-radius:4px}
+.msg.a{align-self:flex-start;background:var(--s2);border:1px solid var(--bd);border-bottom-left-radius:4px}
+.tool{align-self:flex-start;width:88%;font-family:var(--mono);font-size:12px;background:rgba(63,167,224,.07);border:1px solid var(--bd);
+  border-left:3px solid var(--accent);border-radius:9px;padding:9px 11px;animation:pop .35s var(--ease)}
+.tool .n{color:var(--accent2)} .tool .ok{color:var(--ok);font-weight:600} .tool .cf{color:var(--warn);font-weight:600}
+.thinking{align-self:flex-start;color:var(--faint);font-size:12px;font-style:italic}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.chat .ft{border-top:1px solid var(--bd);padding:12px 16px;display:flex;gap:10px}
+.input{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;color:var(--muted);font-size:13px}
+.btn{cursor:pointer;border:none;border-radius:10px;padding:10px 18px;font-weight:700;font-size:13px;font-family:inherit;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06141f;transition:.18s var(--ease);white-space:nowrap}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn.ghost{background:var(--s2);color:var(--txt);border:1px solid var(--bd)}
+.flow{font-family:var(--mono);font-size:12.5px;color:var(--muted);background:var(--s0);border:1px solid var(--bd);border-radius:var(--r);padding:18px;white-space:pre;overflow-x:auto;line-height:1.7}
+.flow .k{color:var(--accent2)} .flow .g{color:var(--ok)} .flow .w{color:var(--warn)} .flow .c{color:var(--faint)}
+
+/* prospection */
+.prosp{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;margin:8px 0 18px}
+.node{flex:1;min-width:150px;text-align:center;background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:16px;transition:.4s var(--ease)}
+.node .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.node .l{font-size:12px;color:var(--muted);margin-top:2px}
+.node.off{border-color:rgba(248,113,113,.4)} .node.off .v{color:var(--bad)}
+.node.lit{border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.07)} .node.lit .v{color:var(--ok)}
+.arrow{color:var(--faint);font-size:22px}
+.keytag{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--warn);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:7px;padding:3px 8px;margin:0 3px}
+
+/* nav before/after */
+.toggle{display:inline-flex;background:var(--s1);border:1px solid var(--bd);border-radius:999px;padding:4px;margin-bottom:20px}
+.toggle button{cursor:pointer;border:none;background:transparent;color:var(--muted);font-weight:700;font-size:13px;padding:8px 18px;border-radius:999px;font-family:inherit;transition:.2s var(--ease)}
+.toggle button.on{color:#06141f;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.railcols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:880px){.railcols{grid-template-columns:1fr}}
+.rail{background:linear-gradient(180deg,var(--s2),var(--s0));border:1px solid var(--bd);border-radius:var(--r);padding:18px}
+.rail h4{margin:0 0 12px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent2)}
+.railitem{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;margin-bottom:5px;font-size:14px;font-weight:600;background:var(--s1);border:1px solid transparent;transition:.18s}
+.railitem:hover{border-color:var(--bd);background:var(--s2)}
+.railitem small{margin-left:auto;color:var(--faint);font-weight:500;font-size:11px}
+
+/* services */
+.svc{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.svc .s{display:flex;align-items:center;gap:9px;background:var(--s1);border:1px solid var(--bd);border-radius:11px;padding:11px 13px;font-size:13px;font-weight:600}
+.sd{width:8px;height:8px;border-radius:50%;flex:none}
+.sd.ok{background:var(--ok);box-shadow:0 0 8px var(--ok)} .sd.warn{background:var(--warn);box-shadow:0 0 8px var(--warn)} .sd.bad{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+.svc .s small{margin-left:auto;color:var(--faint);font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+
+/* sequence footer */
+.seq{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+@media(max-width:880px){.seq{grid-template-columns:1fr}}
+.step{background:linear-gradient(180deg,var(--s2),var(--s0));border:1px solid var(--bd);border-radius:var(--r);padding:20px;position:relative}
+.step .num{font-size:13px;font-weight:800;color:#06141f;background:linear-gradient(135deg,var(--accent),var(--accent2));width:28px;height:28px;border-radius:8px;display:grid;place-items:center;margin-bottom:12px}
+.step h4{margin:0 0 6px;font-size:16px}
+.step p{margin:0;color:var(--muted);font-size:13px}
+footer{padding:40px 0 70px;text-align:center;color:var(--faint);font-size:12px;border-top:1px solid var(--bd)}
+.reveal{opacity:0;transform:translateY(18px);transition:.6s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span> Real Estate Agent · Blueprint</div>
+    <nav>
+      <a href="#capacites">Capacités</a>
+      <a href="#chat">Chat omni-action</a>
+      <a href="#prospection">Prospection</a>
+      <a href="#nav">Nav / Flow</a>
+      <a href="#services">Services</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap hero">
+  <div class="kicker">État réel · audit 3 agents + relevé DB</div>
+  <h1>Ce que la plateforme sait faire,<br>et où on l'emmène.</h1>
+  <p>CRM, estimation et swarms tournent pour de vrai. Le reste s'allume avec 2 clés ou devient le terrain de jeu du chat-agent.</p>
+  <div class="stats">
+    <div class="stat g"><b data-count="6">0</b><span>domaines réels</span></div>
+    <div class="stat"><b data-count="71">0</b><span>routes API</span></div>
+    <div class="stat"><b data-count="25">0</b><span>services ext.</span></div>
+    <div class="stat a"><b data-count="1">0</b><span>feature en veille</span></div>
+    <div class="stat r"><b data-count="1">0</b><span>rail stubbé</span></div>
+  </div>
+</div>
+
+<!-- CAPACITES -->
+<section id="capacites"><div class="wrap reveal">
+  <div class="h2">01 · Carte des capacités</div>
+  <div class="lead">Filtre par état de câblage</div>
+  <div class="pills" id="capPills">
+    <div class="pill on" data-f="all">Tout</div>
+    <div class="pill" data-f="ok"><span class="badge b-ok">Réel</span></div>
+    <div class="pill" data-f="warn"><span class="badge b-warn">Branché, vide</span></div>
+    <div class="pill" data-f="bad"><span class="badge b-bad">Stub</span></div>
+  </div>
+  <div class="grid" id="capGrid"></div>
+</div></section>
+
+<!-- CHAT -->
+<section id="chat"><div class="wrap reveal">
+  <div class="h2">02 · ⭐ Le chat omni-action</div>
+  <div class="lead">Le chat parle déjà. On lui donne les mains.</div>
+  <p class="sub">Les 71 routes API existent. On les expose à Kimi en <b>function-calling</b> : tu dis, il exécute — tenant-scopé, avec confirmation sur les actions sensibles.</p>
+  <div class="chatwrap">
+    <div class="chat">
+      <div class="hd"><span class="dot"></span> Kimi · mode action</div>
+      <div class="body" id="chatBody">
+        <div class="msg a">Donne-moi une instruction, ou lance la démo 👇</div>
+      </div>
+      <div class="ft">
+        <div class="input" id="chatInput">« crée un lead, programme une visite, lance une estimation… »</div>
+        <button class="btn" id="playBtn">▶ Démo</button>
+      </div>
+    </div>
+    <div>
+      <div class="flow"><span class="c">// la boucle agent</span>
+user ──▶ <span class="k">Kimi</span> ──▶ choisit des tools
+            │
+  <span class="k">TOOL REGISTRY</span> (lib/agent/tools.ts)
+  create_lead · schedule_visit
+  run_estimation · enrich_lead
+  run_swarm · send_brochure … (~40)
+            │
+            ▼  <span class="k">DISPATCHER</span> (session)
+  read        ─▶ exécute direct
+  write/destr ─▶ <span class="w">🛑 confirmation</span> ─▶ exécute
+            │
+            ▼
+  résultat ─▶ <span class="g">carte riche</span> dans le chat</div>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge b-ok">tenant-scopé</span>
+        <span class="badge b-warn">confirme les mutations</span>
+        <span class="badge b-ok">contexte page/entité</span>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- PROSPECTION -->
+<section id="prospection"><div class="wrap reveal">
+  <div class="h2">03 · Allumer la prospection</div>
+  <div class="lead">Quasi gratuit : 2 clés + 1 ligne</div>
+  <p class="sub">Tout le code et les routes existent. Il manque juste de quoi alimenter et notifier.</p>
+  <div class="prosp" id="prospFlow">
+    <div class="node lit"><div class="v">32</div><div class="l">acquéreurs ✓</div></div>
+    <div class="arrow">→</div>
+    <div class="node off" data-on="annonces"><div class="v">0</div><div class="l">annonces</div></div>
+    <div class="arrow">→</div>
+    <div class="node off" data-on="matchs"><div class="v">0</div><div class="l">matchs</div></div>
+    <div class="arrow">→</div>
+    <div class="node off" data-on="alertes"><div class="v">✗</div><div class="l">alertes</div></div>
+  </div>
+  <div style="text-align:center">
+    <div style="margin-bottom:14px">Manque : <span class="keytag">MOTEURIMMO_API_KEY</span> <span class="keytag">TWILIO_*</span> <span class="keytag">filtre eligible (décommenter)</span></div>
+    <button class="btn" id="prospBtn">⚡ Brancher les clés</button>
+  </div>
+</div></section>
+
+<!-- NAV -->
+<section id="nav"><div class="wrap reveal">
+  <div class="h2">04 · Nav & flow</div>
+  <div class="lead">Aligner la nav sur le métier</div>
+  <div class="toggle" id="navToggle">
+    <button class="on" data-v="now">Aujourd'hui</button>
+    <button data-v="next">Cible</button>
+  </div>
+  <div class="railcols">
+    <div class="rail">
+      <h4 id="railTitleA">Rail actuel</h4>
+      <div id="railA"></div>
+    </div>
+    <div class="rail">
+      <h4>Le flow métier</h4>
+      <div class="railitem">🔍 Prospecter <small>annonces → match</small></div>
+      <div class="railitem">🎯 Qualifier <small>lead → critères</small></div>
+      <div class="railitem">📊 Estimer <small>interview + valo</small></div>
+      <div class="railitem">📝 Mandater <small>mandat signé</small></div>
+      <div class="railitem">🏘️ Visiter <small>agenda</small></div>
+      <div class="railitem">🤝 Vendre <small>closing</small></div>
+      <div style="margin-top:12px;font-size:12px;color:var(--faint)">+ ⌘K command-bar → ouvre le chat-action partout · + états vides actionnables · + fix 2 onglets swarms morts (404)</div>
+    </div>
+  </div>
+</div></section>
+
+<!-- SERVICES -->
+<section id="services"><div class="wrap reveal">
+  <div class="h2">05 · Services externes</div>
+  <div class="lead">25 intégrations · ce qui tourne</div>
+  <div class="svc" id="svcGrid"></div>
+</div></section>
+
+<!-- SEQUENCE -->
+<section><div class="wrap reveal">
+  <div class="h2">Plan</div>
+  <div class="lead">L'ordre d'attaque</div>
+  <div class="seq">
+    <div class="step"><div class="num">1</div><h4>Chat omni-action</h4><p>Registre de tools dérivé des routes + boucle function-calling + garde-fous. Le différenciant.</p></div>
+    <div class="step"><div class="num">2</div><h4>Allumer prospection</h4><p>MoteurImmo + Twilio + filtre eligible. En parallèle — c'est de la config.</p></div>
+    <div class="step"><div class="num">3</div><h4>Refonte nav/flow</h4><p>IA métier + ⌘K + états vides + fix swarms. Une fois qu'on sait où ça atterrit.</p></div>
+  </div>
+</div></section>
+
+<footer>Real Estate Agent — blueprint généré le 2026-06-07 · Cockpit DS · données issues de l'audit live (3 agents + Supabase)</footer>
+
+<script>
+// ---- data ----
+const CAPS=[
+ {ico:"🗂️",t:"CRM",s:"ok",cap:["Biens · Leads · Visites · Mandats · Agenda","CRUD + kanban + statuts + filtres tenant","Charts dérivés des données réelles"],gap:"27 biens · 68 leads · 19 visites · 23 mandats en DB"},
+ {ico:"📊",t:"Estimation",s:"ok",cap:["Interview LLM (Anthropic/Kimi)","DVF · cadastre IGN · BAN · ADEME","Comparables LeBonCoin · rapport PDF"],gap:"95 estimations · 332 messages — produit phare"},
+ {ico:"🌐",t:"Swarms",s:"ok",cap:["Orchestration d'agents","create · kickoff · runs · architect","Engine MySwarms branché"],gap:"3 runs réels"},
+ {ico:"✨",t:"Enrich & Docs",s:"ok",cap:["Enrich leads (Apollo + PDL)","Parsing documents (LlamaParse)","Upload photos (R2)"],gap:"actifs, clés présentes"},
+ {ico:"💬",t:"Chat Cockpit",s:"ok",cap:["Kimi K2.6 · mémoire tenant","Filtre <think> serveur"],gap:"RÉEL mais PASSIF → cible chantier 1"},
+ {ico:"🎯",t:"Prospection",s:"warn",cap:["Critères acquéreurs (32 ✓)","Ingestion annonces · scoring · alertes","Routes + Inngest OK"],gap:"VIDE : manque MoteurImmo + Twilio → 0 annonce, 0 match"},
+ {ico:"💰",t:"Invest — DB",s:"warn",cap:["Catalogue · souscription · portfolio","Cap-table · ledger · distributions","Services Supabase réels"],gap:"0 ligne inv_* → affiche des données de DÉMO"},
+ {ico:"⛓️",t:"Invest — on-chain",s:"bad",cap:["KYC · e-sign · escrow → 502","Tokeny · chain · OnchainID = stub","settlement / secondary non implémentés"],gap:"Jalon non livré — rail tokenisation au stade squelette"},
+];
+const SVC=[
+ ["Kimi / Hypercli","ok","LLM"],["Anthropic","ok","LLM"],["OpenAI","ok","LLM"],["MySwarms","ok","agents"],
+ ["DVF · IGN · BAN","ok","gouv"],["ADEME","ok","gouv"],["Apify","ok","listings"],["Apollo","ok","enrich"],
+ ["PDL","ok","enrich"],["LlamaParse","ok","docs"],["Composio","ok","gmail/cal"],["R2 storage","ok","fichiers"],
+ ["Upstash","ok","cache"],["Sentry","ok","observ"],["Langfuse","ok","observ"],["Resend","ok","email"],
+ ["MoteurImmo","bad","clé absente"],["Twilio","bad","clé absente"],["Sumsub KYC","bad","502"],["Yousign","bad","502"],
+ ["Escrow EMI","bad","502"],["Tokeny T-REX","bad","stub"],["Chain indexer","bad","stub"],["OnchainID","bad","stub"],["Circle/Monerium","bad","stub"],
+];
+const RAILNOW=[["🏠 Accueil"],["📊 Estimations"],["🔍 Prospection"],["🌐 Swarms"],["🗂️ CRM","biens·leads·visites·mandats·agenda"],["💰 Invest"],["👤 Profil"]];
+
+// ---- render caps ----
+const grid=document.getElementById('capGrid');
+function badge(s){return s==='ok'?'<span class="badge b-ok">Réel</span>':s==='warn'?'<span class="badge b-warn">Branché, vide</span>':'<span class="badge b-bad">Stub</span>'}
+grid.innerHTML=CAPS.map(c=>`<div class="card" data-s="${c.s}">
+  <div class="top"><span class="ico">${c.ico}</span>${badge(c.s)}</div>
+  <h3>${c.t}</h3><ul>${c.cap.map(x=>`<li>${x}</li>`).join('')}</ul>
+  <div class="gap"><b>→</b> ${c.gap}</div></div>`).join('');
+document.querySelectorAll('#capPills .pill').forEach(p=>p.onclick=()=>{
+  document.querySelectorAll('#capPills .pill').forEach(x=>x.classList.remove('on'));p.classList.add('on');
+  const f=p.dataset.f;document.querySelectorAll('#capGrid .card').forEach(c=>c.classList.toggle('dim',f!=='all'&&c.dataset.s!==f));
+});
+
+// ---- services ----
+document.getElementById('svcGrid').innerHTML=SVC.map(([n,s,t])=>`<div class="s"><span class="sd ${s}"></span>${n}<small>${t}</small></div>`).join('');
+
+// ---- rail now/next ----
+const railA=document.getElementById('railA'),railTitle=document.getElementById('railTitleA');
+const RAILNEXT=[["🏠 Accueil","pipeline du jour"],["🔍 Acquisition","prospection + leads"],["🏘️ Biens","propriétés·mandats·estim"],["📅 Activité","visites + agenda"],["🌐 Swarms","+ analytique"],["👤 Profil"]];
+function paintRail(v){const data=v==='now'?RAILNOW:RAILNEXT;railTitle.textContent=v==='now'?'Rail actuel':'Rail cible';
+  railA.innerHTML=data.map(([l,s])=>`<div class="railitem">${l}${s?`<small>${s}</small>`:''}</div>`).join('')}
+paintRail('now');
+document.querySelectorAll('#navToggle button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#navToggle button').forEach(x=>x.classList.remove('on'));b.classList.add('on');paintRail(b.dataset.v)});
+
+// ---- prospection toggle ----
+let prospOn=false;
+document.getElementById('prospBtn').onclick=function(){
+  prospOn=!prospOn;
+  const vals={annonces:'1 240',matchs:'87',alertes:'✓'};
+  document.querySelectorAll('#prospFlow .node[data-on]').forEach((n,i)=>setTimeout(()=>{
+    n.classList.toggle('off',!prospOn);n.classList.toggle('lit',prospOn);
+    n.querySelector('.v').textContent=prospOn?vals[n.dataset.on]:(n.dataset.on==='alertes'?'✗':'0');
+  },i*220));
+  this.textContent=prospOn?'✓ Prospection en ligne':'⚡ Brancher les clés';
+};
+
+// ---- chat demo ----
+const body=document.getElementById('chatBody'),input=document.getElementById('chatInput'),play=document.getElementById('playBtn');
+const SCRIPT=[
+ {d:300,fn:()=>{input.textContent="Crée un lead Jean Dupont (acheteur, 400k), planifie une visite du bien #12 demain 15h, et lance une estimation du 14 rue de Paris.";input.style.color='var(--txt)'}},
+ {d:700,fn:()=>add('u',"Crée un lead Jean Dupont (acheteur 400k), visite bien #12 demain 15h, estime le 14 rue de Paris.")},
+ {d:500,fn:()=>add('thinking',"Kimi sélectionne les outils…")},
+ {d:900,fn:()=>tool('create_lead({name:"Jean Dupont", kind:"acheteur", budget:400000})','ok','→ lead #69 créé')},
+ {d:900,fn:()=>tool('schedule_visit({property:12, when:"2026-06-08T15:00"})','cf','🛑 confirmation… ✓ visite planifiée')},
+ {d:900,fn:()=>tool('run_estimation({address:"14 rue de Paris"})','ok','→ estimation #96 lancée')},
+ {d:600,fn:()=>add('a',"✅ C'est fait : <b>lead #69</b> créé, <b>visite</b> confirmée demain 15h, <b>estimation #96</b> en cours. Je t'ouvre la fiche lead ?")},
+];
+function add(cls,html){const e=document.createElement('div');e.className=cls==='thinking'?'thinking':'msg '+cls;e.innerHTML=html;body.appendChild(e);body.scrollTop=body.scrollHeight;return e}
+function tool(call,st,res){const e=document.createElement('div');e.className='tool';
+  e.innerHTML=`🔧 <span class="n">${call}</span><br><span class="${st}">${res}</span>`;body.appendChild(e);body.scrollTop=body.scrollHeight}
+let playing=false;
+play.onclick=()=>{
+  if(playing)return;playing=true;play.textContent='▶ …';
+  body.innerHTML='';let t=0;
+  SCRIPT.forEach(s=>{t+=s.d;setTimeout(s.fn,t)});
+  setTimeout(()=>{playing=false;play.textContent='▶ Rejouer';input.textContent="« crée un lead, programme une visite, lance une estimation… »";input.style.color='var(--muted)'},t+400);
+};
+
+// ---- count up ----
+function countUp(el){const target=+el.dataset.count;let n=0;const step=Math.max(1,Math.round(target/28));
+  const i=setInterval(()=>{n+=step;if(n>=target){n=target;clearInterval(i)}el.textContent=n},28)}
+// ---- reveal + scrollspy ----
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');
+  e.target.querySelectorAll('[data-count]').forEach(countUp)}}),{threshold:.12});
+document.querySelectorAll('.reveal,.hero').forEach(s=>io.observe(s));
+document.querySelectorAll('[data-count]').forEach(c=>countUp(c)); // hero immediate
+const links=[...document.querySelectorAll('.topnav nav a')];
+const spy=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){
+  links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id))}}),{rootMargin:'-45% 0px -50% 0px'});
+document.querySelectorAll('section[id]').forEach(s=>spy.observe(s));
+</script>
+</body>
+</html>

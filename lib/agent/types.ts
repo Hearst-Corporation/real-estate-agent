@@ -9,8 +9,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 
-/** Action déclenchée côté client (ex : navigation après création d'une estimation). */
-export type ClientAction = { type: "navigate"; path: string };
+/** Action déclenchée côté client (navigation, ou mise à jour live d'un champ d'estimation). */
+export type ClientAction =
+  | { type: "navigate"; path: string }
+  | { type: "estimation_field"; estimationId: string; field: string; value: string | number | boolean };
 
 /**
  * Frame émise dans le flux NDJSON (une frame JSON par ligne).
@@ -37,6 +39,9 @@ export type AgentFrame =
 export interface ToolContext {
   userId: string;
   tenant: string;
+  /** owner_id attendu par le moteur MySwarms (uuidOwnerOf) — pour les outils
+   *  qui lancent/pilotent des missions (sinon égal à userId). */
+  ownerId: string;
   sb: SupabaseClient<Database>;
   emit: (frame: AgentFrame) => void;
 }

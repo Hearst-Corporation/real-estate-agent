@@ -57,11 +57,11 @@
   align-items: center; justify-content: center; gap: var(--ct-space-2xs);
 }
 .ct-chart-donut-value {
-  font-size: 24px; font-weight: 800;
-  color: var(--ct-text-primary); letter-spacing: -0.02em;
+  font-size: var(--ct-fs-2xl); font-weight: var(--ct-fw-heavy);
+  color: var(--ct-text-primary); letter-spacing: var(--ct-ls-tight);
 }
 .ct-chart-donut-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  font-size: var(--ct-fs-2xs); font-weight: var(--ct-fw-bold); letter-spacing: var(--ct-ls-widest);
   text-transform: uppercase; color: var(--ct-text-muted);
 }
 
@@ -72,15 +72,15 @@
   display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-sm);
 }
 .ct-chart-barlist-label {
-  font-size: 13px; font-weight: 650; color: var(--ct-text-body);
+  font-size: var(--ct-fs-base); font-weight: var(--ct-fw-semibold); color: var(--ct-text-body);
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.ct-chart-barlist-value { font-size: 12px; font-weight: 800; color: var(--ct-text-primary); flex-shrink: 0; }
+.ct-chart-barlist-value { font-size: var(--ct-fs-sm); font-weight: var(--ct-fw-heavy); color: var(--ct-text-primary); flex-shrink: 0; }
 .ct-chart-bar-track {
   position: relative;
   height: 10px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--ct-radius-pill);
   background: var(--ct-surface-2);
   box-shadow: inset 0 0 0 1px var(--ct-border-soft);
 }
@@ -100,8 +100,8 @@
   border: 1px dashed var(--ct-border);
   border-radius: var(--ct-radius-lg);
   color: var(--ct-text-muted);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: var(--ct-fs-sm);
+  line-height: var(--ct-lh-relaxed);
   text-align: center;
 }
 
@@ -121,29 +121,29 @@
 }
 .ct-chart-funnel-index {
   color: var(--ct-text-faint);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-size: var(--ct-fs-2xs);
+  font-weight: var(--ct-fw-heavy);
+  letter-spacing: var(--ct-ls-widest);
 }
 .ct-chart-funnel-label {
   min-width: 0;
   overflow: hidden;
   color: var(--ct-text-body);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--ct-fs-sm);
+  font-weight: var(--ct-fw-bold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ct-chart-funnel-count { font-size: 13px; font-weight: 800; color: var(--ct-text-primary); }
+.ct-chart-funnel-count { font-size: var(--ct-fs-base); font-weight: var(--ct-fw-heavy); color: var(--ct-text-primary); }
 .ct-chart-funnel-track {
   height: 34px;
-  border-radius: 12px;
+  border-radius: var(--ct-radius-lg);
   background: var(--ct-surface-1);
   box-shadow: inset 0 0 0 1px var(--ct-border-soft);
   overflow: hidden;
 }
 .ct-chart-funnel-bar {
-  height: 100%; min-width: 3px; border-radius: 12px;
+  height: 100%; min-width: 3px; border-radius: var(--ct-radius-lg);
   background: linear-gradient(90deg, color-mix(in srgb, var(--ct-accent-strong) 18%, transparent), color-mix(in srgb, var(--ct-accent-strong) 44%, transparent));
   border: 1px solid var(--ct-border-accent);
   box-shadow: 0 0 22px color-mix(in srgb, var(--ct-accent-strong) 18%, transparent);
@@ -183,18 +183,18 @@
   min-width: 620px;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 12px;
+  font-size: var(--ct-fs-sm);
 }
 .ct-data-table th {
   position: sticky;
   top: 0;
   background: var(--ct-surface-1);
-  z-index: 10;
+  z-index: var(--ct-z-panels);
   padding: var(--ct-space-xs) var(--ct-space-sm);
   color: var(--ct-text-muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: var(--ct-fs-2xs);
+  font-weight: var(--ct-fw-heavy);
+  letter-spacing: var(--ct-ls-widest);
   text-align: left;
   text-transform: uppercase;
 }
@@ -206,7 +206,7 @@
   background: var(--ct-border-soft);
 }
 .ct-data-table td {
-  padding: 12px var(--ct-space-sm);
+  padding: var(--ct-space-sm) var(--ct-space-sm);
   border-top: 1px solid var(--ct-border-soft);
   color: var(--ct-text-body);
   vertical-align: middle;

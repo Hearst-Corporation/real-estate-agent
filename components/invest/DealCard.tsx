@@ -32,8 +32,7 @@ export interface DealCardData {
 
 function Skyline() {
   return (
-    <svg className="inv-deal-thumb-skyline" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden
-      style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "70px", opacity: 0.5 }}>
+    <svg className="inv-deal-thumb-skyline" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden>
       <path
         fill="var(--ct-bg-deep)"
         d="M0 70 V40 h20 V52 h14 V30 h22 V46 h16 V22 h24 V44 h18 V34 h20 V50 h16 V26 h26 V48 h18 V38 h22 V52 h16 V44 h32 V70 Z"

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { UI } from "@/lib/ui-strings";
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
+import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
 
 interface Annonce {
   id: string;
@@ -217,7 +218,7 @@ export default function ProspectionPage() {
       key: "score",
       header: "Score",
       render: (m) => (
-        <div className={`prospection-score${m.score_match >= 70 ? " is-good" : ""}`} style={{ fontWeight: 700, color: m.score_match >= 70 ? "var(--ct-text-success)" : "inherit" }}>
+        <div className={`prospection-score${m.score_match >= MATCH_SCORE_ALERT ? " is-good" : ""}`} style={{ fontWeight: "var(--ct-fw-bold)", color: m.score_match >= MATCH_SCORE_ALERT ? "var(--ct-text-success)" : "inherit" }}>
           {m.score_match}
         </div>
       ),

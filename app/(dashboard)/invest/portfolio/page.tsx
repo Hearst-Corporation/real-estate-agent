@@ -127,7 +127,7 @@ export default async function PortfolioPage() {
                 <span>LTV actuelle</span>
                 <b>{p.ltv != null ? pct(p.ltv) : "—"}</b>
               </div>
-              <Link href={`/invest/${p.dealSlug}`} className="inv-doc-row" style={{ color: "var(--ct-accent-strong)", fontWeight: 700, fontSize: "12px", borderBottom: "none" }}>
+              <Link href={`/invest/${p.dealSlug}`} className="inv-doc-row" style={{ color: "var(--ct-accent-strong)", fontWeight: "var(--ct-fw-bold)", fontSize: "var(--ct-fs-sm)", borderBottom: "none" }}>
                 Voir le détail ›
               </Link>
             </div>
@@ -143,7 +143,7 @@ export default async function PortfolioPage() {
             {payouts.map((po) => (
               <div key={po.id} className="inv-doc-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--ct-space-sm)" }}>
                 <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                  <span style={{ fontWeight: 600 }}>{po.dealName ?? "Opération"}</span>
+                  <span style={{ fontWeight: "var(--ct-fw-semibold)" }}>{po.dealName ?? "Opération"}</span>
                   <span className="inv-fineprint">
                     {DISTRIB_LABEL[po.distributionType ?? ""] ?? "Versement"} · {po.unitsHeld} obligations
                   </span>

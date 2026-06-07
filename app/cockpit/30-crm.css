@@ -11,7 +11,7 @@
 .crm-card {
   background: var(--ct-surface-1);
   border: 1px solid var(--ct-border);
-  border-radius: 12px;
+  border-radius: var(--ct-radius-lg);
   padding: var(--ct-space-md) var(--ct-space-md);
   box-shadow: var(--ct-shadow-depth);
   cursor: pointer;
@@ -41,16 +41,16 @@
   gap: var(--ct-space-xs);
 }
 .crm-card-title {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--ct-fs-base);
+  font-weight: var(--ct-fw-bold);
   color: var(--ct-text-primary);
-  line-height: 1.3;
+  line-height: var(--ct-lh-snug);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .crm-card-meta {
-  font-size: 11px;
+  font-size: var(--ct-fs-xs);
   color: var(--ct-text-muted);
   display: flex;
   align-items: center;
@@ -58,10 +58,10 @@
   flex-wrap: wrap;
 }
 .crm-card-price {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: var(--ct-fs-md);
+  font-weight: var(--ct-fw-heavy);
   color: var(--ct-accent-strong);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--ct-ls-tight);
 }
 
 /* 4. Kanban — layout horizontal scrollable */
@@ -81,7 +81,7 @@
   min-width: 260px;
   background: var(--ct-surface-1);
   border: 1px solid var(--ct-border);
-  border-radius: 12px;
+  border-radius: var(--ct-radius-lg);
   padding: var(--ct-space-sm) var(--ct-space-sm) var(--ct-space-md);
   display: flex;
   flex-direction: column;
@@ -96,9 +96,9 @@
   padding-bottom: var(--ct-space-xs);
   border-bottom: 1px solid var(--ct-border-soft);
   margin-bottom: var(--ct-space-2xs);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-size: var(--ct-fs-2xs);
+  font-weight: var(--ct-fw-heavy);
+  letter-spacing: var(--ct-ls-widest);
   text-transform: uppercase;
   color: var(--ct-text-muted);
   flex-shrink: 0;
@@ -110,7 +110,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: var(--ct-space-2xs);
 }
 
 /* 5. Ligne liste */
@@ -134,8 +134,8 @@
   flex: 1;
 }
 .crm-row-main {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--ct-fs-base);
+  font-weight: var(--ct-fw-semibold);
   color: var(--ct-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -146,7 +146,7 @@
   align-items: center;
   gap: var(--ct-space-sm);
   flex-wrap: wrap;
-  font-size: 11px;
+  font-size: var(--ct-fs-xs);
   color: var(--ct-text-muted);
 }
 
@@ -154,7 +154,7 @@
 .crm-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--ct-space-xs);
 }
 .crm-field-row {
   display: flex;
@@ -166,11 +166,11 @@
 }
 /* Label hérite du style .ct-field-label */
 .crm-field > label {
-  font-size: 10px;
+  font-size: var(--ct-fs-2xs);
   color: var(--ct-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 700;
+  letter-spacing: var(--ct-ls-wide);
+  font-weight: var(--ct-fw-bold);
 }
 
 /* 7. Inputs CRM — même look que .ct-field-input, déclarés séparément pour portabilité.
@@ -179,12 +179,12 @@
 .crm-select,
 .crm-textarea,
 .ct-input {
-  padding: 11px var(--ct-space-md);
+  padding: var(--ct-space-sm) var(--ct-space-md);
   background: var(--ct-surface-1);
   border: 1px solid var(--ct-border);
-  border-radius: 10px;
+  border-radius: var(--ct-radius-md);
   color: var(--ct-text-primary);
-  font-size: 13px;
+  font-size: var(--ct-fs-base);
   font-family: inherit;
   outline: none;
   width: 100%;
@@ -203,20 +203,20 @@
 .crm-textarea::placeholder,
 .ct-input::placeholder { color: var(--ct-text-faint); }
 .crm-select { appearance: none; cursor: pointer; }
-.crm-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+.crm-textarea { resize: vertical; min-height: 80px; line-height: var(--ct-lh-base); }
 /* .ct-input posé sur <select>/<textarea> hérite des mêmes comportements. */
 select.ct-input { appearance: none; cursor: pointer; }
-textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
+textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh-base); }
 
 /* 8. Badge de statut CRM */
 .crm-status {
   display: inline-flex;
   align-items: center;
   padding: 3px var(--ct-space-sm);
-  border-radius: 9999px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  border-radius: var(--ct-radius-pill);
+  font-size: var(--ct-fs-2xs);
+  font-weight: var(--ct-fw-bold);
+  letter-spacing: var(--ct-ls-wide);
   text-transform: uppercase;
   background: var(--ct-surface-2);
   border: 1px solid var(--ct-border);
@@ -251,14 +251,14 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
   padding: var(--ct-space-xl) var(--ct-space-lg);
   text-align: center;
   color: var(--ct-text-muted);
-  font-size: 13px;
+  font-size: var(--ct-fs-base);
 }
 .crm-empty > svg,
 .crm-empty > .crm-empty-icon {
-  opacity: 0.35;
+  opacity: var(--ct-opacity-ghost);
   margin-bottom: var(--ct-space-2xs);
 }
-.crm-empty > p { margin: 0; line-height: 1.6; }
+.crm-empty > p { margin: 0; line-height: var(--ct-lh-relaxed); }
 
 /* 10. Barre toolbar */
 .crm-toolbar {
@@ -280,13 +280,13 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
   width: 100%;
   min-width: 400px;
   border-collapse: collapse;
-  font-size: 10px;
+  font-size: var(--ct-fs-2xs);
 }
 .est-listing-table th {
   text-align: left;
   padding: var(--ct-space-xs) var(--ct-space-sm);
-  opacity: 0.6;
-  font-weight: 500;
+  opacity: var(--ct-opacity-muted);
+  font-weight: var(--ct-fw-medium);
 }
 .est-listing-table td {
   padding: var(--ct-space-xs) var(--ct-space-sm);
@@ -303,9 +303,9 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 /* Champs de formulaire — wrapper label + libellé unifié (canon .ct-field-label) */
 .ct-form label,
-.crm-form-field { display: flex; flex-direction: column; gap: 6px; }
+.crm-form-field { display: flex; flex-direction: column; gap: var(--ct-space-xs); }
 .ct-form label > span {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  font-size: var(--ct-fs-2xs); font-weight: var(--ct-fw-bold); letter-spacing: var(--ct-ls-wide);
   text-transform: uppercase; color: var(--ct-text-muted);
 }
 .crm-form-actions {
@@ -315,17 +315,17 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 /* Modale formulaire (PropertyFormModal) */
 .crm-form-overlay {
-  position: fixed; inset: 0; z-index: 100;
+  position: fixed; inset: 0; z-index: var(--ct-z-overlay);
   display: flex; align-items: flex-start; justify-content: center;
   padding: var(--ct-space-xl) var(--ct-space-md);
   background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(var(--ct-overlay-blur)); -webkit-backdrop-filter: blur(var(--ct-overlay-blur));
   overflow-y: auto;
 }
 .crm-form-modal {
   width: 100%; max-width: 480px;
   background: var(--ct-surface-2); border: 1px solid var(--ct-border-strong);
-  border-radius: 12px; padding: var(--ct-space-lg);
+  border-radius: var(--ct-radius-lg); padding: var(--ct-space-lg);
   box-shadow: var(--ct-shadow-depth);
 }
 
@@ -333,13 +333,13 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 .crm-status-select {
   width: auto; flex-shrink: 0;
   padding: var(--ct-space-2xs) var(--ct-space-sm);
-  font-size: 11px;
+  font-size: var(--ct-fs-xs);
 }
 
 /* Kanban leads — carte + entête de colonne */
 .crm-lead-card {
   background: var(--ct-surface-1); border: 1px solid var(--ct-border);
-  border-radius: 12px; padding: var(--ct-space-sm) var(--ct-space-md);
+  border-radius: var(--ct-radius-lg); padding: var(--ct-space-sm) var(--ct-space-md);
   display: flex; flex-direction: column; gap: var(--ct-space-2xs);
   box-shadow: var(--ct-shadow-depth);
   transition: border-color var(--ct-dur-base) var(--ct-ease), background var(--ct-dur-base) var(--ct-ease);
@@ -347,11 +347,11 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 .crm-lead-card:hover { background: var(--ct-surface-2); border-color: var(--ct-border-accent); }
 .crm-lead-header { display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-xs); }
 .crm-lead-name {
-  font-size: 13px; font-weight: 700; color: var(--ct-text-primary); line-height: 1.3;
+  font-size: var(--ct-fs-base); font-weight: var(--ct-fw-bold); color: var(--ct-text-primary); line-height: var(--ct-lh-snug);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .crm-lead-contact { display: flex; flex-direction: column; gap: var(--ct-space-2xs); }
-.crm-lead-budget { font-weight: 600; color: var(--ct-text-body); }
+.crm-lead-budget { font-weight: var(--ct-fw-semibold); color: var(--ct-text-body); }
 .crm-lead-actions { display: flex; gap: var(--ct-space-2xs); margin-top: var(--ct-space-2xs); }
 .crm-col-header {
   display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-xs);
@@ -367,8 +367,8 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
   padding: var(--ct-space-sm) 0; border-bottom: 1px solid var(--ct-border-soft);
 }
 .crm-list-row:last-child { border-bottom: none; }
-.crm-list-name { font-size: 13px; font-weight: 600; color: var(--ct-text-primary); flex: 1; min-width: 0; }
-.crm-list-meta { font-size: 11px; color: var(--ct-text-muted); margin-left: auto; white-space: nowrap; }
+.crm-list-name { font-size: var(--ct-fs-base); font-weight: var(--ct-fw-semibold); color: var(--ct-text-primary); flex: 1; min-width: 0; }
+.crm-list-meta { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); margin-left: auto; white-space: nowrap; }
 .crm-card-footer {
   margin-top: var(--ct-space-sm); padding-top: var(--ct-space-sm);
   border-top: 1px solid var(--ct-border-soft);
@@ -382,12 +382,12 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
   display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ct-space-md);
 }
 .crm-detail-price {
-  font-size: 20px; font-weight: 800; color: var(--ct-accent-strong);
-  letter-spacing: -0.01em; margin-top: var(--ct-space-2xs);
+  font-size: var(--ct-fs-xl); font-weight: var(--ct-fw-heavy); color: var(--ct-accent-strong);
+  letter-spacing: var(--ct-ls-tight); margin-top: var(--ct-space-2xs);
 }
 .crm-detail-dl {
   display: grid; grid-template-columns: max-content 1fr;
-  gap: var(--ct-space-xs) var(--ct-space-md); margin: 0; font-size: 13px;
+  gap: var(--ct-space-xs) var(--ct-space-md); margin: 0; font-size: var(--ct-fs-base);
 }
 .crm-detail-dl dt { color: var(--ct-text-muted); }
 .crm-detail-dl dd { color: var(--ct-text-primary); margin: 0; }
@@ -397,10 +397,10 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 .crm-agenda-day-header { margin-top: var(--ct-space-sm); margin-bottom: var(--ct-space-xs); }
 .crm-agenda-row { display: flex; align-items: center; gap: var(--ct-space-md); }
 .crm-agenda-time {
-  font-size: 13px; font-weight: 700; color: var(--ct-accent-strong);
+  font-size: var(--ct-fs-base); font-weight: var(--ct-fw-bold); color: var(--ct-accent-strong);
   flex-shrink: 0; font-variant-numeric: tabular-nums;
 }
 .crm-agenda-info { display: flex; flex-direction: column; gap: var(--ct-space-2xs); flex: 1; min-width: 0; }
-.crm-agenda-property { font-size: 13px; font-weight: 600; color: var(--ct-text-primary); }
-.crm-agenda-lead { font-size: 11px; color: var(--ct-text-muted); }
+.crm-agenda-property { font-size: var(--ct-fs-base); font-weight: var(--ct-fw-semibold); color: var(--ct-text-primary); }
+.crm-agenda-lead { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); }
 
