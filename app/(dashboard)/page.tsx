@@ -64,83 +64,21 @@ function TodayBlock({
   href: string;
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--ct-space-xs, 0.5rem)",
-        padding: "var(--ct-space-sm, 0.75rem)",
-        background: "var(--ct-surface-1)",
-        borderRadius: "var(--ct-radius-md)",
-        border: "1px solid var(--ct-border-soft)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "var(--ct-text-sm, 0.8125rem)",
-            fontWeight: 600,
-            color: "var(--ct-text-primary)",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          {label}
-        </span>
-        <Link
-          href={href}
-          style={{
-            fontSize: "var(--ct-text-xs, 0.75rem)",
-            color: "var(--ct-accent)",
-            textDecoration: "none",
-            opacity: 0.85,
-          }}
-        >
+    <div className="ct-today-block">
+      <div className="ct-today-block-head">
+        <span className="ct-today-block-label">{label}</span>
+        <Link href={href} className="ct-today-block-all">
           {UI.dashboard.today.seeAll}
         </Link>
       </div>
       {items.length === 0 ? (
         <p className="ct-placeholder">{empty}</p>
       ) : (
-        <ul
-          style={{
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ct-space-xxs, 0.25rem)",
-          }}
-        >
+        <ul className="ct-today-list">
           {items.map((item) => (
             <li key={item.id}>
-              <Link
-                href={item.href}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  padding:
-                    "var(--ct-space-xxs, 0.25rem) var(--ct-space-xs, 0.5rem)",
-                  borderRadius: "var(--ct-radius-sm, 4px)",
-                  textDecoration: "none",
-                  transition: "background 0.15s",
-                }}
-                className="ct-today-item-link"
-              >
-                <span
-                  style={{
-                    fontSize: "var(--ct-text-sm, 0.8125rem)",
-                    color: "var(--ct-text-primary)",
-                  }}
-                >
-                  {item.line1}
-                </span>
+              <Link href={item.href} className="ct-today-item-link">
+                <span className="ct-today-item-line1">{item.line1}</span>
                 {item.line2 ? (
                   <span className="ct-subtext">{item.line2}</span>
                 ) : null}
@@ -404,13 +342,7 @@ export default async function DashboardPage() {
       />
 
       <Card title={t.today.title} titleAs="section">
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-            gap: "var(--ct-space-sm, 0.75rem)",
-          }}
-        >
+        <div className="ct-today-grid">
           <TodayBlock
             label={t.today.leadsLabel}
             items={leadItems}

@@ -292,11 +292,67 @@ html, body {
 }
 .ct-home-action-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--ct-space-xs);
 }
 .ct-home-quick .ct-home-action-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ── Accueil : grille "À faire maintenant" + blocs ── */
+.ct-today-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--ct-space-md);
+}
+.ct-today-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-xs);
+  padding: var(--ct-space-md);
+  background: var(--ct-surface-1);
+  border: 1px solid var(--ct-border-soft);
+  border-radius: var(--ct-radius-xl);
+}
+.ct-today-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ct-today-block-label {
+  font-size: var(--ct-fs-sm);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ct-ls-wide);
+}
+.ct-today-block-all {
+  font-size: var(--ct-fs-xs);
+  color: var(--ct-accent);
+  text-decoration: none;
+  opacity: var(--ct-opacity-dim);
+}
+.ct-today-block-all:hover { opacity: 1; }
+.ct-today-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-2xs);
+}
+.ct-today-item-link {
+  display: flex;
+  flex-direction: column;
+  padding: var(--ct-space-2xs) var(--ct-space-xs);
+  border-radius: var(--ct-radius-sm);
+  text-decoration: none;
+  transition: background var(--ct-dur-base) var(--ct-ease);
+}
+.ct-today-item-link:hover { background: var(--ct-surface-2); }
+.ct-today-item-line1 {
+  font-size: var(--ct-fs-sm);
+  color: var(--ct-text-primary);
 }
 .ct-home-action {
   display: flex;
