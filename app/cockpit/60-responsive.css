@@ -16,7 +16,7 @@
     transform: translateX(calc(min(380px, 88vw) - 48px));
   }
   .ct-page-area {
-    padding: var(--ct-space-lg) var(--ct-space-lg) var(--ct-space-xl);
+    padding: var(--ct-space-lg) var(--ct-space-lg) 0;
   }
   .ct-page-area.chat-open {
     padding-right: calc(min(380px, 88vw) + var(--ct-space-lg));

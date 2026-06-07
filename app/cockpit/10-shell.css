@@ -79,7 +79,7 @@ html, body {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  padding: var(--ct-space-xl) var(--ct-space-2xl) var(--ct-space-2xl);
+  padding: var(--ct-space-xl) var(--ct-space-2xl) 0;
 }
 
 /* Quand le drawer chat est ouvert, réserver de l'espace à droite
@@ -217,6 +217,15 @@ html, body {
   gap: var(--ct-space-lg);
   flex: 1;
   min-height: 0;
+}
+/* Spacer de fin de scroll : garantit la marge basse même quand le centre
+   scrolle (padding-bottom d'un flex-container scrollable est ignoré par
+   Chrome/Safari en fin de scroll). */
+.ct-page-stack::after {
+  content: "";
+  display: block;
+  height: var(--ct-space-2xl);
+  flex-shrink: 0;
 }
 .ct-dashboard-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--ct-space-lg); align-items: stretch; flex-shrink: 0; }
 .ct-home-grid {
