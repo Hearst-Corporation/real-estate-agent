@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { MissionView, PhaseStatus } from "@/lib/missions/types";
 import { UI } from "@/lib/ui-strings";
 
@@ -28,7 +28,7 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
     };
   }, []);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     try {
       const r = await fetch(`/api/missions/${id}`, { cache: "no-store" });
       if (!r.ok) return;
@@ -37,7 +37,7 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
     } catch {
       /* moteur indispo : on garde l'état connu */
     }
-  }
+  }, [id]);
 
   /** Soumet le choix d'un moment de décision, puis re-poll immédiatement. */
   async function choose(value: string) {
@@ -65,8 +65,7 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
     if (!ACTIVE.has(v.status)) return;
     const iv = setInterval(refresh, POLL_MS);
     return () => clearInterval(iv);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, v.status]);
+  }, [refresh, v.status]);
 
   const headPill =
     v.status === "done"
