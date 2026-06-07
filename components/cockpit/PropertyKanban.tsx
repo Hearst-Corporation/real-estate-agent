@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { eur, sqm, PROPERTY_STATUSES } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import Link from "next/link";
@@ -24,7 +25,9 @@ interface PropertyKanbanProps {
 
 export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanProps) {
   const t = UI.properties;
-  
+  const router = useRouter();
+  const [dropError, setDropError] = React.useState<string | null>(null);
+
   // Group properties by status
   const columns = PROPERTY_STATUSES.map(status => ({
     id: status,
@@ -49,21 +52,30 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
       onStatusChange(propertyId, newStatus);
     } else if (propertyId) {
       // Fallback if no handler provided: call API directly
+      setDropError(null);
       try {
-        await fetch(`/api/properties/${propertyId}`, {
+        const res = await fetch(`/api/properties/${propertyId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: newStatus }),
         });
-        window.location.reload();
-      } catch (err) {
-        console.error("Failed to update status", err);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        // Refresh serveur sans recharger la page (conserve scroll & état).
+        router.refresh();
+      } catch {
+        setDropError(t.statusUpdateError);
       }
     }
   };
 
   return (
-    <div className="crm-kanban">
+    <div className="crm-kanban-wrap">
+      {dropError && (
+        <div className="ct-error-danger crm-kanban-error" role="alert">
+          {dropError}
+        </div>
+      )}
+      <div className="crm-kanban">
       {columns.map(col => (
         <div 
           key={col.id} 
@@ -138,6 +150,7 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }

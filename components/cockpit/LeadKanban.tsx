@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { eur, LEAD_STATUSES } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { LeadRowActions } from "@/app/(dashboard)/leads/_components/LeadRowActions";
@@ -29,7 +30,9 @@ interface LeadKanbanProps {
 
 export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
   const t = UI.leads;
-  
+  const router = useRouter();
+  const [dropError, setDropError] = React.useState<string | null>(null);
+
   // Group leads by status
   const columns = LEAD_STATUSES.map(status => ({
     id: status,
@@ -54,15 +57,18 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
       onStatusChange(leadId, newStatus);
     } else if (leadId) {
       // Fallback if no handler provided: call API directly
+      setDropError(null);
       try {
-        await fetch(`/api/leads/${leadId}`, {
+        const res = await fetch(`/api/leads/${leadId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: newStatus }),
         });
-        window.location.reload();
-      } catch (err) {
-        console.error("Failed to update status", err);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        // Refresh serveur sans recharger la page (conserve scroll & état).
+        router.refresh();
+      } catch {
+        setDropError(t.statusUpdateError);
       }
     }
   };
@@ -77,8 +83,18 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
     return colors[Math.abs(hash) % colors.length];
   };
 
+  // full_name peut arriver null malgré le type (données legacy / import).
+  const initials = (name: string | null) =>
+    name?.trim() ? name.trim().substring(0, 2).toUpperCase() : t.fallbackInitials;
+
   return (
-    <div className="crm-kanban">
+    <div className="crm-kanban-wrap">
+      {dropError && (
+        <div className="ct-error-danger crm-kanban-error" role="alert">
+          {dropError}
+        </div>
+      )}
+      <div className="crm-kanban">
       {columns.map(col => (
         <div 
           key={col.id} 
@@ -105,11 +121,11 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
                     <div className="crm-lead-row">
                       <div
                         className="crm-avatar"
-                        style={{ backgroundColor: getAvatarColor(lead.full_name) }}
+                        style={{ backgroundColor: getAvatarColor(lead.full_name ?? "") }}
                       >
-                        {lead.full_name.substring(0, 2).toUpperCase()}
+                        {initials(lead.full_name)}
                       </div>
-                      <span className="crm-lead-name" title={lead.full_name}>{lead.full_name}</span>
+                      <span className="crm-lead-name" title={lead.full_name ?? ""}>{lead.full_name ?? t.fallbackInitials}</span>
                     </div>
                   </div>
                   <div className="crm-lead-contact">
@@ -145,6 +161,7 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }

@@ -90,6 +90,20 @@
 }
 
 /* 4. Kanban — layout horizontal scrollable */
+.crm-kanban-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-sm);
+  flex: 1;
+  min-height: 0;
+}
+.crm-kanban-error {
+  padding: var(--ct-space-sm) var(--ct-space-md);
+  background: var(--ct-surface-2);
+  border: 1px solid var(--ct-border);
+  border-left: 3px solid var(--ct-text-danger);
+  border-radius: var(--ct-radius-md);
+}
 .crm-kanban {
   display: flex;
   flex-direction: row;

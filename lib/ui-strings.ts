@@ -750,6 +750,7 @@ export const UI = {
     delete: "Supprimer",
     fallbackTitle: "Bien sans titre",
     statusAria: "Statut du bien",
+    statusUpdateError: "Le statut n'a pas pu être mis à jour. Réessayez.",
     cardCaracteristiques: "Caractéristiques",
     seeEstimation: "Voir l'estimation",
     fields: {
@@ -878,6 +879,8 @@ export const UI = {
     newCta: "Nouveau lead",
     empty: "Aucun lead. Ajoutez votre premier contact.",
     delete: "Supprimer",
+    statusUpdateError: "Le statut n'a pas pu être mis à jour. Réessayez.",
+    fallbackInitials: "—",
     enrich: "Enrichir",
     enriching: "Enrichissement…",
     enrichDone: "Lead enrichi.",
