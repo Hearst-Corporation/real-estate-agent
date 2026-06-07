@@ -78,6 +78,16 @@ function isCommentLine(line) {
   return t.startsWith("*") || t.startsWith("//") || t.startsWith("/*");
 }
 
+/**
+ * Retire un commentaire de FIN de ligne avant l'analyse couleur — un hex
+ * légitimement cité en commentaire (`// fallback #ff0000`) ne doit pas faire
+ * échouer le lint. Le `//` doit être précédé d'un espace/début pour ne pas
+ * tronquer une URL (`https://…`).
+ */
+function stripTrailingComment(line) {
+  return line.replace(/\/\*.*?\*\//g, "").replace(/(^|\s)\/\/.*$/, "$1");
+}
+
 /** ERREUR — couleurs en dur dans le code UI. */
 function scanCode() {
   const files = [];
@@ -89,9 +99,10 @@ function scanCode() {
     const lines = readFileSync(file, "utf8").split("\n");
     lines.forEach((line, idx) => {
       if (isCommentLine(line) || line.includes(ALLOW_MARK)) return;
+      const code = stripTrailingComment(line);
       let kind = null;
-      if (HEX_RE.test(line)) kind = "couleur hex en dur";
-      else if (FUNC_RE.test(line)) kind = "fonction couleur en dur (rgb/hsl)";
+      if (HEX_RE.test(code)) kind = "couleur hex en dur";
+      else if (FUNC_RE.test(code)) kind = "fonction couleur en dur (rgb/hsl)";
       if (kind) violations.push({ file: rel, line: idx + 1, kind, text: line.trim() });
     });
   }
@@ -136,6 +147,7 @@ function scanCss() {
         if (depth === 0) selector = (pending + " " + line.split("{")[0]).trim();
         depth += (line.match(/{/g) || []).length;
         depth -= (line.match(/}/g) || []).length;
+        if (depth < 0) depth = 0; // accolade en string (content:"}") → jamais négatif, sinon le scan s'aveugle
         pending = "";
       } else if (line.includes("}")) {
         depth -= (line.match(/}/g) || []).length;

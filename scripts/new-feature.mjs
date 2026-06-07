@@ -61,6 +61,18 @@ if (!resource) {
 if (!/^[a-z][a-z0-9_]*$/.test(resource)) {
   fail(`ressource invalide « ${resource} » — attendu : minuscules / chiffres / underscore (ex. "contacts").`);
 }
+// Mots-clés SQL réservés : injectés en identifiants nus, ils rendent la migration
+// ingénérable (`create table order(...)`). On refuse tôt avec un message clair.
+const SQL_RESERVED = new Set([
+  "order", "user", "group", "select", "table", "from", "where", "default", "column",
+  "index", "view", "role", "grant", "primary", "references", "constraint", "unique",
+  "foreign", "key", "check", "into", "values", "set", "case", "when", "then", "else",
+  "end", "null", "true", "false", "all", "and", "or", "not", "limit", "offset", "as",
+  "on", "in", "create", "drop", "alter", "insert", "update", "delete",
+]);
+if (SQL_RESERVED.has(resource)) {
+  fail(`« ${resource} » est un mot-clé SQL réservé — choisis un autre nom (ex. "${resource}s", "${resource}_items").`);
+}
 
 // ─── helpers de nommage ───────────────────────────────────────────────────────
 
@@ -72,10 +84,10 @@ function pascal(s) {
     .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
     .join("");
 }
-/** Singulier naïf pour libellés ("contacts" → "contact"). */
+/** Singulier naïf pour libellés ("contacts" → "contact"). Jamais vide. */
 function singular(s) {
-  if (s.endsWith("ies")) return s.slice(0, -3) + "y";
-  if (s.endsWith("s")) return s.slice(0, -1);
+  if (s.endsWith("ies") && s.length > 3) return s.slice(0, -3) + "y";
+  if (s.endsWith("s") && s.length > 1) return s.slice(0, -1);
   return s;
 }
 
