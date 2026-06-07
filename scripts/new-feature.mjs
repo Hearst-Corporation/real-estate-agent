@@ -197,7 +197,7 @@ export default async function ${Resource}Page() {
 const formTpl = `"use client";
 
 import { useState } from "react";
-import { CockpitForm, Field, TextInput, Select, MoneyInput } from "@/components/cockpit/form";
+import { CockpitForm, Field, TextInput, Select, MoneyInput, Textarea } from "@/components/cockpit/form";
 import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
 
 // TODO: déplacer vers lib/ui-strings (UI.${resource}.form)
@@ -206,6 +206,7 @@ const STRINGS = {
   label: "Nom",
   status: "Statut",
   amount: "Montant",
+  notes: "Notes",
   submit: "Créer",
   cancel: "Annuler",
 };
@@ -233,6 +234,7 @@ export default function ${Resource}Form({ cta }: { cta: string }) {
         label: String(form.get("label") ?? ""),
         status: String(form.get("status") ?? "nouveau"),
         amount: form.get("amount") ? Number(form.get("amount")) : null,
+        notes: String(form.get("notes") ?? "") || null,
       }),
     });
     setBusy(false);
@@ -258,6 +260,9 @@ export default function ${Resource}Form({ cta }: { cta: string }) {
             </Field>
             <Field label={t.amount} htmlFor="${resource}-amount">
               <MoneyInput id="${resource}-amount" name="amount" />
+            </Field>
+            <Field label={t.notes} htmlFor="${resource}-notes">
+              <Textarea id="${resource}-notes" name="notes" rows={3} />
             </Field>
             <button type="submit" className="ct-btn ct-btn-primary ct-btn-block" disabled={busy}>
               {t.submit}
