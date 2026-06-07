@@ -27,9 +27,7 @@ export async function GET(_req: Request, { params }: Params) {
     .from("swarm_runs")
     .select("*")
     .eq("run_id", runId)
-    .eq("swarm_id", id)
     .eq("tenant_id", ownerId)
-    .eq("user_id", claims.sub)
     .single()
 
   if (dbError || !record) {
@@ -39,36 +37,38 @@ export async function GET(_req: Request, { params }: Params) {
   // Fetch le statut live depuis l'engine
   let engineRun = null
   try {
-    engineRun = await getRunStatus(id, runId)
+    engineRun = await getRunStatus(id, runId, ownerId)
   } catch {
     // L'engine peut être indisponible — on retourne le record local
   }
 
-  // Merge + mise à jour DB si l'engine apporte un état plus récent.
+  // Merge + mise à jour DB si le statut a changé
   const liveStatus = (engineRun?.status ?? record.status) as SwarmRunStatus
   const liveSteps = engineRun?.steps ?? record.steps
-  const liveOutput = engineRun?.output ?? record.result ?? null
 
-  if (engineRun) {
+  if (engineRun && engineRun.status !== record.status) {
     await sb
       .from("swarm_runs")
       .update({
         status: liveStatus,
         steps: liveSteps ? JSON.parse(JSON.stringify(liveSteps)) : null,
-        result: liveOutput,
+        result: engineRun.output ? engineRun.output : null,
         updated_at: new Date().toISOString(),
       })
       .eq("run_id", runId)
-      .eq("swarm_id", id)
       .eq("tenant_id", ownerId)
-      .eq("user_id", claims.sub)
   }
 
   return NextResponse.json({
     run: {
       ...record,
       status: liveStatus,
-      output: liveOutput,
+      output: engineRun?.output ?? null,
+      created_at: engineRun?.created_at ?? record.created_at,
+      updated_at: engineRun?.updated_at ?? record.updated_at,
+      tokens_in: engineRun?.tokens_in ?? null,
+      tokens_out: engineRun?.tokens_out ?? null,
+      cost_usd: engineRun?.cost_usd ?? null,
     },
     steps: liveSteps ?? [],
   })

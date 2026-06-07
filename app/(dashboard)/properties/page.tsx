@@ -1,10 +1,9 @@
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
-import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";
 import { PropertiesViewToggle } from "./_components/PropertiesViewToggle";
-import { countByStatus, topByCategory, distributeByBand, ratio } from "@/lib/crm/aggregate";
+import { barsByStatus, topByCategory, distributeByBand, autoBands, ratio } from "@/lib/crm/aggregate";
 import { eur, PROPERTY_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
@@ -30,13 +29,15 @@ export default async function PropertiesPage() {
   const sb = getSupabaseAdmin();
 
   let properties: Property[] = [];
+  let total = 0;
 
   if (claims && sb) {
-    const { data } = await sb
+    const { data, count } = await sb
       .from("properties")
       .select(
         `id, status, title, property_type, city, surface, asking_price,
-        property_photos!property_photos_property_id_fkey(url, is_cover, position)`
+        property_photos!property_photos_property_id_fkey(url, is_cover, position)`,
+        { count: "exact" }
       )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
@@ -66,18 +67,20 @@ export default async function PropertiesPage() {
         p.property_photos?.slice().sort((a, b) => a.position - b.position)[0]?.url ??
         null,
     }));
+    total = count ?? properties.length;
   }
 
-  const total = properties.length;
-  const forSale = properties.filter((p) => p.status === "en_vente").length;
+  const enVente = properties.filter((p) => p.status === "en_vente");
+  const forSale = enVente.length;
   const sold = properties.filter((p) => p.status === "vendu").length;
-  const portfolio = properties.reduce((sum, p) => sum + (p.asking_price ?? 0), 0);
+  // Valeur portefeuille = somme des prix des biens EN VENTE (exclut vendus/archivés).
+  const portfolio = enVente.reduce((sum, p) => sum + (p.asking_price ?? 0), 0);
 
-  const pipeline = countByStatus(properties, PROPERTY_STATUSES, t.statusLabels, (s) =>
-    statusTone("property", s)
-  );
+  const pipeline = barsByStatus(properties, PROPERTY_STATUSES, t.statusLabels, (s) => statusTone("property", s));
   const byType = topByCategory(properties, "property_type", t.typeLabels);
-  const byValueBand = distributeByBand(properties, "asking_price");
+  // Tranches calculées sur les prix réels du portefeuille (pas de bornes figées).
+  const prices = properties.map((p) => p.asking_price);
+  const byValueBand = distributeByBand(properties, "asking_price", autoBands(prices));
   const soldRate = ratio(properties, (p) => p.status === "vendu");
 
   const CRM_TABS = [
@@ -106,7 +109,7 @@ export default async function PropertiesPage() {
       <div className="ct-viz-row">
         <div>
           <Card title={t.charts.pipeline} variant="chart">
-            <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+            <BarList items={pipeline} emptyLabel={UI.viz.empty} />
           </Card>
         </div>
         <div>

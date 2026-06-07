@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="fr" data-product="default">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Avis de valeur — Real Estate Agent · EV-2026-0418</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ============================================================
+   Tokens Cockpit — copiés à l'identique depuis app/cockpit.css
+   (shell bordeaux verre dépoli). Inlinés pour autonomie PDF.
+   ============================================================ */
+:root{
+  --ct-bg-deep:#1A050B;
+  --ct-accent-maroon:#8A1538;
+  --ct-accent:#be123c;
+  --ct-accent-strong:#e11d48;
+  --ct-accent-soft:rgba(225,29,72,0.18);
+  --ct-border-accent:rgba(225,29,72,0.55);
+  --ct-surface-0:rgba(255,255,255,0.02);
+  --ct-surface-1:rgba(255,255,255,0.04);
+  --ct-surface-2:rgba(255,255,255,0.06);
+  --ct-surface-3:rgba(255,255,255,0.09);
+  --ct-text-strong:#ffffff;
+  --ct-text-primary:rgba(245,245,245,0.92);
+  --ct-text-body:rgba(245,245,245,0.72);
+  --ct-text-muted:rgba(245,245,245,0.48);
+  --ct-text-faint:rgba(245,245,245,0.40);
+  --ct-border-soft:rgba(255,255,255,0.06);
+  --ct-border:rgba(255,255,255,0.10);
+  --ct-border-strong:rgba(255,255,255,0.16);
+  --ct-shadow-depth:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 -1px 0 rgba(0,0,0,0.45),
+    0 20px 60px -24px rgba(0,0,0,0.65);
+  --ct-text-danger:#f87171;
+  --ct-success:#10b981;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--ct-bg-deep);font-family:var(--sans);color:var(--ct-text-primary);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+@page{size:A4;margin:0}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ---------- toolbar (écran uniquement) ---------- */
+.toolbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:11px 22px;background:rgba(8,3,5,.86);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--ct-border)}
+.tb-brand{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--ct-text-body)}
+.tb-brand b{color:var(--ct-accent-strong);font-weight:700}
+#printBtn{display:inline-flex;align-items:center;gap:8px;font:700 12px/1 var(--sans);color:#fff;
+  background:linear-gradient(135deg,var(--ct-accent),var(--ct-accent-maroon));border:1px solid var(--ct-border-accent);
+  border-radius:8px;padding:10px 16px;cursor:pointer;letter-spacing:.01em;box-shadow:0 4px 18px -4px rgba(225,29,72,.55)}
+#printBtn:disabled{opacity:.6;cursor:progress}
+#printBtn .spin{width:11px;height:11px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;
+  border-radius:50%;animation:sp .7s linear infinite}
+#printBtn:not(.loading) .spin{display:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- pages (shell bordeaux ambient) ---------- */
+.doc{display:flex;flex-direction:column;align-items:center;gap:22px;padding:24px 0 64px}
+.page{position:relative;width:210mm;height:297mm;color:var(--ct-text-primary);
+  padding:13mm;display:flex;flex-direction:column;overflow:hidden;
+  background:
+    radial-gradient(ellipse 92% 52% at 50% -4%, rgba(138,21,56,.55) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 44% at 102% 104%, rgba(225,29,72,.14) 0%, transparent 55%),
+    var(--ct-bg-deep);
+  box-shadow:0 24px 70px -20px rgba(0,0,0,.7)}
+
+/* verre dépoli générique (sans backdrop-filter → imprimable) */
+.glass{background:linear-gradient(160deg,rgba(255,255,255,.045) 0%,transparent 44%),var(--ct-surface-1);
+  border:1px solid var(--ct-border);border-radius:12px;box-shadow:var(--ct-shadow-depth)}
+.glass-top{position:relative}
+.glass-top::after{content:"";position:absolute;top:0;left:18px;right:18px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent)}
+
+/* ---------- running head ---------- */
+.rhead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+  padding-bottom:8px;border-bottom:2px solid var(--ct-accent);position:relative;margin-bottom:11px}
+.rhead::after{content:"";position:absolute;left:0;right:0;bottom:-3.5px;height:1px;background:var(--ct-border)}
+.brand{display:flex;align-items:center;gap:9px}
+.mono{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;
+  background:linear-gradient(140deg,var(--ct-accent-strong),var(--ct-accent-maroon));color:#fff;font-weight:800;
+  font-size:14px;letter-spacing:-.03em;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 2px 8px -2px rgba(225,29,72,.6)}
+.bn{display:flex;flex-direction:column;line-height:1.08}
+.bn b{font-size:11.5px;font-weight:800;letter-spacing:.01em;color:var(--ct-text-strong)}
+.bn i{font-style:normal;font-size:7.5px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--ct-accent-strong)}
+.rmeta{display:flex;align-items:center;gap:8px;font-size:8px;font-weight:600;letter-spacing:.05em;
+  color:var(--ct-text-muted);font-variant-numeric:tabular-nums}
+.rmeta .conf{color:var(--ct-accent-strong);text-transform:uppercase;letter-spacing:.14em;font-weight:800}
+.rmeta .sep{color:var(--ct-text-faint)}
+
+/* ---------- hero ---------- */
+.hero{display:grid;grid-template-columns:1.32fr 1fr;gap:20px;margin-bottom:12px}
+.kdoc{font-size:8px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--ct-accent-strong);margin-bottom:8px}
+.hero h1{font-size:29px;font-weight:800;letter-spacing:-.02em;line-height:1.08;color:var(--ct-text-strong)}
+.hero h1 .addr-line{color:var(--ct-text-primary);font-weight:700}
+.addr{font-size:10px;color:var(--ct-text-muted);font-weight:500;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.chip{font-size:8.5px;font-weight:600;letter-spacing:.01em;color:var(--ct-text-body);background:var(--ct-surface-2);
+  border:1px solid var(--ct-border);border-radius:6px;padding:3px 8px;font-variant-numeric:tabular-nums}
+.chip b{color:var(--ct-accent-strong);font-weight:800}
+.demo{display:inline-flex;align-items:center;gap:5px;margin-top:12px;font-size:7px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ct-text-faint)}
+.demo::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ct-accent-strong)}
+
+.valuebox{position:relative;overflow:hidden;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;
+  border:1px solid var(--ct-border-accent);box-shadow:var(--ct-shadow-depth);
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb,var(--ct-accent-strong) 30%,transparent) 0%, transparent 58%),
+    linear-gradient(165deg, color-mix(in srgb,var(--ct-accent-strong) 14%,transparent) 0%, color-mix(in srgb,var(--ct-accent-maroon) 7%,transparent) 100%),
+    var(--ct-surface-2)}
+.valuebox::after{content:"";position:absolute;top:0;left:16px;right:16px;height:1px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ct-accent-strong) 80%,white),transparent)}
+.vb-lab{font-size:8px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--ct-text-muted)}
+.bigval{font-size:43px;font-weight:800;letter-spacing:-.03em;line-height:1;margin:3px 0 12px;
+  font-variant-numeric:tabular-nums;color:var(--ct-text-strong);
+  background:linear-gradient(180deg,#ffffff 0%,#ffd7e0 130%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.bigval .cur{font-size:.46em;font-weight:700;letter-spacing:0}
+.vb-range{margin-bottom:12px}
+.vr-row{display:flex;justify-content:space-between;align-items:baseline;font-size:8px;color:var(--ct-text-muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em}
+.vr-row .num{color:var(--ct-text-strong);font-weight:700;letter-spacing:0;text-transform:none}
+.rangebar{position:relative;height:6px;border-radius:3px;
+  background:linear-gradient(90deg,rgba(255,255,255,.16),var(--ct-accent-strong))}
+.rb-cur{position:absolute;top:-3.5px;width:2.5px;height:13px;background:#fff;border-radius:1px;transform:translateX(-1.25px);box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+.rb-reco{position:absolute;top:-2px;width:9px;height:9px;border-radius:50%;background:#fff;transform:translate(-4.5px,0);box-shadow:0 0 0 2px var(--ct-accent-strong)}
+.vr-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:7.5px;color:var(--ct-text-faint);font-variant-numeric:tabular-nums}
+.reco-tag{font-size:7.5px;font-weight:800;color:#fff;letter-spacing:.02em}
+.vmeta{display:grid;grid-template-columns:1fr 1fr;gap:9px 12px;margin-top:auto;padding-top:11px;border-top:1px solid var(--ct-border)}
+.vmeta>div{display:flex;flex-direction:column;gap:1px}
+.vm-l{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ct-text-muted)}
+.vm-v{font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--ct-text-strong);font-variant-numeric:tabular-nums;line-height:1.05}
+.vm-v small{font-size:.48em;font-weight:600;color:var(--ct-text-faint);letter-spacing:0}
+
+/* ---------- KPI strip ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border-radius:12px;overflow:hidden;margin-bottom:13px;
+  background:linear-gradient(160deg,rgba(255,255,255,.045) 0%,transparent 44%),var(--ct-surface-1);
+  border:1px solid var(--ct-border);box-shadow:var(--ct-shadow-depth);position:relative}
+.kpis::after{content:"";position:absolute;top:0;left:18px;right:18px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent)}
+.kpi{padding:10px 13px;border-right:1px solid var(--ct-border);display:flex;flex-direction:column;gap:3px}
+.kpi:last-child{border-right:0}
+.kl{font-size:7px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ct-text-muted)}
+.kv{font-size:23px;font-weight:800;letter-spacing:-.025em;color:var(--ct-text-strong);font-variant-numeric:tabular-nums;line-height:1.04}
+.kv.up{color:var(--ct-success)}
+.kd{font-size:7px;color:var(--ct-text-faint);font-weight:500}
+
+/* ---------- eyebrow ---------- */
+.eb{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.eb .n{font-size:15px;font-weight:800;color:var(--ct-accent-strong);font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.eb .tx{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--ct-text-primary);text-transform:uppercase;white-space:nowrap}
+.eb .ln{flex:1;height:1px;background:var(--ct-border)}
+
+/* ---------- page 1 : carte + bien ---------- */
+.split{display:grid;grid-template-columns:1.22fr 1fr;gap:14px}
+.mapwrap{position:relative;border:1px solid var(--ct-border);border-radius:12px;overflow:hidden;background:#0c0408;box-shadow:var(--ct-shadow-depth)}
+#map{height:110mm;width:100%;background:#0c0408}
+.maplegend{position:absolute;left:8px;bottom:8px;z-index:500;background:rgba(10,4,7,.86);
+  border:1px solid var(--ct-border-strong);border-radius:9px;padding:8px 10px;box-shadow:0 8px 24px -8px rgba(0,0,0,.8);max-width:62%}
+.lr{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:7.5px;color:var(--ct-text-body);font-weight:500}
+.lr:last-of-type{margin-bottom:0}
+.lr .d{width:9px;height:9px;border-radius:50%;flex:none;border:1px solid rgba(255,255,255,.3)}
+.lr .pin{width:9px;height:9px;border-radius:50%;background:#ff3b3b;border:2px solid #fff;box-shadow:0 0 0 1px #ff3b3b;flex:none}
+.lr .grad{background:linear-gradient(90deg,hsl(150,70%,50%),hsl(0,75%,55%));border:0}
+.lr b{color:var(--ct-text-strong);font-weight:700}
+.maplegend .lnote{margin-top:5px;padding-top:5px;border-top:1px solid var(--ct-border);font-size:6.5px;color:var(--ct-text-muted);letter-spacing:.02em}
+.maplegend .lnote b{color:var(--ct-accent-strong)}
+
+.sidecol{display:flex;flex-direction:column}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;border-radius:12px;padding:4px 12px;
+  background:linear-gradient(160deg,rgba(255,255,255,.045) 0%,transparent 44%),var(--ct-surface-1);
+  border:1px solid var(--ct-border);box-shadow:var(--ct-shadow-depth)}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4.5px 0;
+  border-bottom:1px solid var(--ct-border-soft);font-size:8.8px}
+.srow:nth-last-child(-n+2){border-bottom:0}
+.srow span{color:var(--ct-text-muted);font-weight:500}
+.srow b{color:var(--ct-text-strong);font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.srow b em{font-style:normal;color:var(--ct-accent-strong)}
+.expert{margin-top:11px}
+.expert h3{font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ct-accent-strong);margin-bottom:4px}
+.expert p{font-size:9px;line-height:1.5;color:var(--ct-text-body)}
+.expert p b{color:var(--ct-text-strong);font-weight:700}
+.expert .warn{color:var(--ct-accent-strong);font-weight:700}
+.dvfnote{margin-top:auto;border:1px solid var(--ct-border-accent);border-left:3px solid var(--ct-accent-strong);
+  background:var(--ct-accent-soft);border-radius:0 10px 10px 0;padding:8px 11px}
+.dvfnote h4{font-size:7.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ct-accent-strong);margin-bottom:3px}
+.dvfnote p{font-size:7.8px;line-height:1.45;color:var(--ct-text-body)}
+.dvfnote b{color:var(--ct-text-strong);font-weight:700}
+.dvfnote i{color:var(--ct-text-muted);font-style:italic}
+
+/* ---------- page 2 : charts ---------- */
+.charts{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:12px;margin-bottom:13px}
+.panel{border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;
+  background:linear-gradient(160deg,rgba(255,255,255,.045) 0%,transparent 44%),var(--ct-surface-1);
+  border:1px solid var(--ct-border);box-shadow:var(--ct-shadow-depth)}
+.pt{font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ct-text-primary);margin-bottom:1px}
+.ps{font-size:7px;color:var(--ct-text-faint);font-weight:500;margin-bottom:7px}
+.spark{width:100%;height:58px;display:block;overflow:visible}
+.spark .area{fill:rgba(225,29,72,.14);stroke:none}
+.spark .line{fill:none;stroke:var(--ct-accent-strong);stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+.spark .grid{stroke:var(--ct-border-soft);stroke-width:1;vector-effect:non-scaling-stroke}
+.spark .dot{fill:var(--ct-accent-strong);stroke:#fff;stroke-width:1.4}
+.axis{display:flex;justify-content:space-between;font-size:6.5px;color:var(--ct-text-faint);margin-top:4px;font-variant-numeric:tabular-nums}
+.psum{font-size:7.8px;line-height:1.4;color:var(--ct-text-body);margin-top:auto;padding-top:7px}
+.psum b{color:var(--ct-accent-strong);font-weight:800;font-variant-numeric:tabular-nums}
+.posbar{position:relative;height:8px;border-radius:4px;margin-top:6px;
+  background:linear-gradient(90deg,#10b981,#a8853f 50%,var(--ct-accent-strong))}
+.posbar i{position:absolute;top:-3.5px;width:3px;height:15px;background:#fff;border-radius:1.5px;transform:translateX(-1.5px);box-shadow:0 0 0 2px rgba(0,0,0,.4)}
+.posax{display:flex;justify-content:space-between;font-size:6.5px;color:var(--ct-text-faint);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+.dist{display:flex;align-items:flex-end;gap:3px;height:50px;margin-top:6px}
+.dist .bar{flex:1;background:var(--ct-surface-3);border-radius:2px 2px 0 0;position:relative}
+.dist .bar.me{background:linear-gradient(180deg,var(--ct-accent-strong),var(--ct-accent-maroon))}
+.dist .bar.me::after{content:"BIEN";position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+  font-size:5.5px;font-weight:800;letter-spacing:.06em;color:var(--ct-accent-strong);white-space:nowrap}
+.distx{display:flex;justify-content:space-between;font-size:5.8px;color:var(--ct-text-faint);margin-top:3px;font-variant-numeric:tabular-nums}
+
+/* ---------- page 2 : table + annonces ---------- */
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-bottom:13px}
+.dvf{width:100%;border-collapse:collapse;font-size:9px}
+.dvf th{font-size:7px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ct-text-muted);
+  text-align:left;padding:0 7px 5px;border-bottom:1.6px solid var(--ct-accent-strong)}
+.dvf th.r,.dvf td.r{text-align:right}
+.dvf td{padding:5px 7px;border-bottom:1px solid var(--ct-border-soft);color:var(--ct-text-body)}
+.dvf tbody tr:last-child td{border-bottom:0}
+.dvf .pm{color:var(--ct-accent-strong);font-weight:800}
+.dvf .ty{color:var(--ct-text-strong);font-weight:600}
+.tnote{font-size:7px;color:var(--ct-text-muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.tnote b{color:var(--ct-accent-strong)}
+.lst{border-radius:10px;padding:7px 11px;margin-bottom:6px;
+  background:linear-gradient(160deg,rgba(255,255,255,.045) 0%,transparent 44%),var(--ct-surface-1);
+  border:1px solid var(--ct-border)}
+.lst:nth-child(3){margin-bottom:0}
+.lst-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.lst-q{font-size:8.5px;font-weight:700;color:var(--ct-text-strong)}
+.lst-q .ap{font-weight:500;color:var(--ct-text-muted);font-size:7px;letter-spacing:.04em}
+.lst-px{font-size:13px;font-weight:800;color:var(--ct-accent-strong);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.lst-meta{font-size:8px;color:var(--ct-text-muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.lst-meta b{color:var(--ct-text-body);font-weight:600}
+
+/* ---------- page 2 : stratégies ---------- */
+.strat{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:13px}
+.stratc{border-radius:12px;padding:12px 14px;position:relative;
+  background:linear-gradient(160deg,rgba(255,255,255,.045) 0%,transparent 44%),var(--ct-surface-1);
+  border:1px solid var(--ct-border);box-shadow:var(--ct-shadow-depth)}
+.stratc.reco{border-color:var(--ct-border-accent);
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb,var(--ct-accent-strong) 22%,transparent) 0%, transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb,var(--ct-accent-strong) 10%,transparent) 0%, transparent 100%),
+    var(--ct-surface-2)}
+.stratc h3{font-size:12.5px;font-weight:800;color:var(--ct-text-strong);letter-spacing:-.01em}
+.stratc .p{font-size:21px;font-weight:800;color:var(--ct-accent-strong);font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:3px 0 1px;line-height:1}
+.stratc.reco .p{color:#fff}
+.stratc .sd{font-size:8px;color:var(--ct-text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.stratc .sd b{color:var(--ct-text-primary);font-weight:800}
+.stratc .desc{font-size:8.3px;line-height:1.45;color:var(--ct-text-body);margin-top:7px}
+.reco-badge{position:absolute;top:11px;right:13px;font-size:6.5px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:#fff;background:var(--ct-accent-strong);padding:3px 8px;border-radius:6px;box-shadow:0 2px 10px -2px rgba(225,29,72,.7)}
+
+/* ---------- page 2 : méthodo + disclaimer ---------- */
+.metho{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.metho h3{font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ct-accent-strong);margin-bottom:5px}
+.metho p{font-size:8.2px;line-height:1.5;color:var(--ct-text-body)}
+.metho p b{color:var(--ct-text-strong);font-weight:700}
+.sources{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.src{font-size:7.5px;font-weight:600;color:var(--ct-text-body);background:var(--ct-surface-2);border:1px solid var(--ct-border);border-radius:6px;padding:3px 8px}
+.src b{color:var(--ct-accent-strong);font-weight:800}
+.mnote{font-size:7.5px;color:var(--ct-text-muted);margin-top:8px;line-height:1.4}
+.mnote b{color:var(--ct-text-primary);font-weight:700}
+.disc{margin-top:11px;border:1px solid var(--ct-border-accent);border-left:3px solid var(--ct-accent-strong);
+  background:var(--ct-accent-soft);padding:9px 12px;border-radius:0 10px 10px 0;font-size:7.5px;line-height:1.48;color:var(--ct-text-muted)}
+.disc b{color:var(--ct-text-primary);font-weight:700}
+
+/* ---------- footer ---------- */
+.foot{margin-top:auto;padding-top:9px;border-top:1px solid var(--ct-border);display:flex;
+  justify-content:space-between;align-items:center;font-size:7.5px;color:var(--ct-text-muted);font-weight:500;letter-spacing:.03em}
+.foot .fp{font-variant-numeric:tabular-nums}
+.foot .fp b{color:var(--ct-accent-strong);font-weight:800}
+
+/* ---------- print ---------- */
+@media print{
+  .toolbar{display:none}
+  .doc{padding:0;gap:0}
+  .page{box-shadow:none;margin:0;page-break-after:always;break-after:page}
+  .page:last-child{page-break-after:auto;break-after:auto}
+  .leaflet-control-container{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="tb-brand"><b>Real Estate Agent</b> · Avis de valeur — EV-2026-0418</div>
+  <button id="printBtn" class="loading" disabled><span class="spin"></span><span class="lbl">Préparation de la carte…</span></button>
+</div>
+
+<div class="doc">
+
+  <!-- ============================ PAGE 1 ============================ -->
+  <section class="page">
+    <header class="rhead">
+      <div class="brand">
+        <span class="mono">R</span>
+        <span class="bn"><b>Real Estate Agent</b><i>Avis de valeur</i></span>
+      </div>
+      <div class="rmeta">
+        <span>Réf. EV-2026-0418</span><span class="sep">·</span>
+        <span class="num">05 juin 2026</span><span class="sep">·</span>
+        <span class="conf">Confidentiel</span>
+      </div>
+    </header>
+
+    <div class="hero">
+      <div class="hero-l">
+        <div class="kdoc">Avis de valeur vénale · Appartement</div>
+        <h1>Appartement 3 pièces, vue mer<br><span class="addr-line">Avenue de l'Estérel, Juan-les-Pins</span></h1>
+        <div class="addr">06160 Antibes — Alpes-Maritimes (06) · Côte d'Azur</div>
+        <div class="chips">
+          <span class="chip num">74 m²</span>
+          <span class="chip">3 pièces</span>
+          <span class="chip">2ᵉ étage</span>
+          <span class="chip">DPE <b>C</b></span>
+          <span class="chip num">Terrasse 12 m²</span>
+          <span class="chip">Vue mer partielle</span>
+        </div>
+        <div class="demo">Données de démonstration</div>
+      </div>
+
+      <aside class="valuebox">
+        <div class="vb-lab">Valeur vénale estimée</div>
+        <div class="bigval num">372 000<span class="cur"> €</span></div>
+        <div class="vb-range">
+          <div class="vr-row"><span>Fourchette d'estimation</span><span class="num">358 000 – 389 000 €</span></div>
+          <div class="rangebar"><i class="rb-cur" style="left:45%"></i><i class="rb-reco" style="left:68%"></i></div>
+          <div class="vr-foot"><span>358 k€</span><span class="reco-tag">● Recommandé · 379 000 €</span><span>389 k€</span></div>
+        </div>
+        <div class="vmeta">
+          <div><span class="vm-l">Prix recommandé</span><span class="vm-v num">379 000 €</span></div>
+          <div><span class="vm-l">Prix au m²</span><span class="vm-v num">5 027 €</span></div>
+          <div><span class="vm-l">Indice de confiance</span><span class="vm-v num">87<small> / 100</small></span></div>
+          <div><span class="vm-l">Délai de vente estimé</span><span class="vm-v num">78 j</span></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><span class="kl">Prix médian / m²</span><span class="kv num">5 030 €</span><span class="kd">Ventes réelles &lt; 1,2 km</span></div>
+      <div class="kpi"><span class="kl">Tendance annuelle</span><span class="kv num up">+4,2 %</span><span class="kd">Marché haussier · 5 ans</span></div>
+      <div class="kpi"><span class="kl">Transactions / an</span><span class="kv num">90</span><span class="kd">Secteur analysé</span></div>
+      <div class="kpi"><span class="kl">Rayon d'analyse</span><span class="kv num">1,2 km</span><span class="kd">Autour du bien</span></div>
+    </div>
+
+    <div class="eb"><span class="n">01</span><span class="tx">Cartographie &amp; caractéristiques</span><span class="ln"></span></div>
+
+    <div class="split">
+      <div class="mapwrap">
+        <div id="map"></div>
+        <div class="maplegend">
+          <div class="lr"><span class="pin"></span> <b>Le bien estimé</b> — adresse exacte</div>
+          <div class="lr"><span class="d grad"></span> <b>Ventes réelles DVF</b> — €/m² bas → haut</div>
+          <div class="lr"><span class="d" style="background:#e11d48"></span> <b>Annonce en cours</b> — ≈ quartier</div>
+          <div class="lnote"><b>DVF</b> = socle du calcul (géoloc parcelle) · <b>Annonces</b> = marché actif</div>
+        </div>
+      </div>
+
+      <div class="sidecol">
+        <div class="specs">
+          <div class="srow"><span>Type</span><b>Appartement</b></div>
+          <div class="srow"><span>Surface</span><b class="num">74 m²</b></div>
+          <div class="srow"><span>Pièces / ch.</span><b class="num">3 / 2</b></div>
+          <div class="srow"><span>Étage</span><b class="num">2ᵉ / 4</b></div>
+          <div class="srow"><span>Ascenseur</span><b>Non</b></div>
+          <div class="srow"><span>Exposition</span><b>Sud-Ouest</b></div>
+          <div class="srow"><span>Terrasse</span><b class="num">12 m²</b></div>
+          <div class="srow"><span>Vue</span><b>Mer partielle</b></div>
+          <div class="srow"><span>DPE / GES</span><b><em>C</em> / C</b></div>
+          <div class="srow"><span>Année · état</span><b class="num">1972 · Bon</b></div>
+        </div>
+
+        <div class="expert">
+          <h3>Lecture de l'expert</h3>
+          <p>Micro-secteur <b>recherché</b> de Juan-les-Pins : proximité immédiate des plages (8 min à pied) et <b>vue mer partielle</b> justifient une prime de <b>+6 à +9 %</b> sur le médian du quartier. La terrasse de 12 m² différencie nettement le bien des comparables. <span class="warn">Vigilance :</span> copropriété ancienne <span class="warn">sans ascenseur</span> — frein pour une partie de la demande, qui pondère la valorisation d'un 2ᵉ étage.</p>
+        </div>
+
+        <div class="dvfnote">
+          <h4>Comment la valeur est calculée</h4>
+          <p>Les <b>ventes réelles DVF</b> (données de l'État, géocodées <b>BAN + cadastre IGN</b> à la parcelle) constituent le socle du calcul — chaque point est positionné précisément. Les <b>annonces</b> (marché actif) sont placées au quartier, en complément concurrentiel. <i>Google Maps n'est pas utilisé.</i></p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="foot">
+      <span>Real Estate Agent — Avis de valeur · EV-2026-0418 · Établi le 05.06.2026</span>
+      <span class="fp">Page <b>1</b> / 2</span>
+    </footer>
+  </section>
+
+  <!-- ============================ PAGE 2 ============================ -->
+  <section class="page">
+    <header class="rhead">
+      <div class="brand">
+        <span class="mono">R</span>
+        <span class="bn"><b>Real Estate Agent</b><i>Avis de valeur</i></span>
+      </div>
+      <div class="rmeta">
+        <span>Avenue de l'Estérel, Juan-les-Pins</span><span class="sep">·</span>
+        <span>Réf. EV-2026-0418</span><span class="sep">·</span>
+        <span class="conf">Confidentiel</span>
+      </div>
+    </header>
+
+    <div class="eb"><span class="n">02</span><span class="tx">Dynamique de prix du secteur</span><span class="ln"></span></div>
+    <div class="charts">
+      <div class="panel">
+        <div class="pt">Prix médian €/m² — 5 ans</div>
+        <div class="ps">Évolution du marché local</div>
+        <svg class="spark" viewBox="0 0 300 72" preserveAspectRatio="none">
+          <line class="grid" x1="0" y1="12" x2="300" y2="12"></line>
+          <line class="grid" x1="0" y1="36" x2="300" y2="36"></line>
+          <line class="grid" x1="0" y1="60" x2="300" y2="60"></line>
+          <path class="area" d="M8,56 L65,46 L122,35 L179,24 L236,17 L292,11 L292,66 L8,66 Z"></path>
+          <path class="line" d="M8,56 L65,46 L122,35 L179,24 L236,17 L292,11"></path>
+          <circle class="dot" cx="292" cy="11" r="3"></circle>
+        </svg>
+        <div class="axis"><span>2021</span><span>2022</span><span>2023</span><span>2024</span><span>2025</span><span>2026</span></div>
+        <div class="psum"><b>4 050 €</b> → <b>5 030 €/m²</b> · soit <b>+24 %</b> cumulés sur 5 ans.</div>
+      </div>
+
+      <div class="panel">
+        <div class="pt">Positionnement du bien</div>
+        <div class="ps">vs marché local (€/m²)</div>
+        <div class="posbar"><i style="left:68%"></i></div>
+        <div class="posax"><span>Bas</span><span>Médian</span><span>Haut</span></div>
+        <div class="psum">Le bien se situe dans le <b>tiers supérieur</b> du marché (≈ <b>68ᵉ</b> centile €/m²), porté par la vue et la terrasse.</div>
+      </div>
+
+      <div class="panel">
+        <div class="pt">Distribution €/m²</div>
+        <div class="ps">90 comparables DVF</div>
+        <div class="dist">
+          <div class="bar" style="height:36%"></div>
+          <div class="bar" style="height:62%"></div>
+          <div class="bar" style="height:90%"></div>
+          <div class="bar me" style="height:100%"></div>
+          <div class="bar" style="height:50%"></div>
+          <div class="bar" style="height:33%"></div>
+        </div>
+        <div class="distx"><span>&lt;4k</span><span>4,5k</span><span>5k</span><span>5,5k</span><span>6k</span><span>6k+</span></div>
+        <div class="psum">Le bien (<b>5 027 €/m²</b>) se place dans la <b>moitié haute</b> de la distribution.</div>
+      </div>
+    </div>
+
+    <div class="eb"><span class="n">03</span><span class="tx">Comparables réels &amp; marché actif</span><span class="ln"></span></div>
+    <div class="two">
+      <div class="dvfblock">
+        <table class="dvf">
+          <thead><tr><th>Date</th><th>Type</th><th class="r">Surface</th><th class="r">Prix</th><th class="r">€/m²</th><th class="r">Dist.</th></tr></thead>
+          <tbody>
+            <tr><td class="num">09 / 25</td><td class="ty">3 p.</td><td class="r num">62 m²</td><td class="r num">340 000 €</td><td class="r num pm">5 484</td><td class="r num">22 m</td></tr>
+            <tr><td class="num">01 / 25</td><td class="ty">2 p.</td><td class="r num">70 m²</td><td class="r num">345 000 €</td><td class="r num pm">4 929</td><td class="r num">31 m</td></tr>
+            <tr><td class="num">06 / 25</td><td class="ty">3 p.</td><td class="r num">51 m²</td><td class="r num">309 850 €</td><td class="r num pm">6 075</td><td class="r num">33 m</td></tr>
+            <tr><td class="num">07 / 23</td><td class="ty">3 p.</td><td class="r num">74 m²</td><td class="r num">385 000 €</td><td class="r num pm">5 203</td><td class="r num">75 m</td></tr>
+            <tr><td class="num">03 / 23</td><td class="ty">3 p.</td><td class="r num">75 m²</td><td class="r num">390 000 €</td><td class="r num pm">5 200</td><td class="r num">75 m</td></tr>
+          </tbody>
+        </table>
+        <p class="tnote"><b>90 ventes</b> analysées · DVF Etalab · géolocalisées à la parcelle</p>
+      </div>
+
+      <div class="lstblock">
+        <div class="lst">
+          <div class="lst-top"><span class="lst-q">Juan-les-Pins <span class="ap">· T3/4</span></span><span class="lst-px num">298 000 €</span></div>
+          <div class="lst-meta"><b class="num">74 m²</b> · <span class="num">4 027 €/m²</span> · 3 pièces · terrasse</div>
+        </div>
+        <div class="lst">
+          <div class="lst-top"><span class="lst-q">Juan-les-Pins <span class="ap">· T3</span></span><span class="lst-px num">369 000 €</span></div>
+          <div class="lst-meta"><b class="num">65 m²</b> · <span class="num">5 677 €/m²</span> · 3 pièces</div>
+        </div>
+        <div class="lst">
+          <div class="lst-top"><span class="lst-q">Trianon <span class="ap">· T4</span></span><span class="lst-px num">610 000 €</span></div>
+          <div class="lst-meta"><b class="num">112 m²</b> · <span class="num">5 446 €/m²</span> · 4 pièces</div>
+        </div>
+        <p class="tnote"><b>18 annonces</b> détectées (LeBonCoin) · locations exclues · ≈ quartier</p>
+      </div>
+    </div>
+
+    <div class="eb"><span class="n">04</span><span class="tx">Stratégies de mise en vente</span><span class="ln"></span></div>
+    <div class="strat">
+      <div class="stratc">
+        <h3>Vente rapide</h3>
+        <div class="p num">361 000 €</div>
+        <div class="sd">Délai estimé <b>&lt; 60 jours</b></div>
+        <p class="desc">Prix d'appel positionné sous la fourchette basse pour déclencher une décision rapide. Maximise la liquidité ; concession de ≈ 3 % sur la valeur de marché.</p>
+      </div>
+      <div class="stratc reco">
+        <span class="reco-badge">Recommandé</span>
+        <h3>Valorisation</h3>
+        <div class="p num">379 000 €</div>
+        <div class="sd">Délai estimé <b>90 – 120 jours</b></div>
+        <p class="desc">Prix aligné sur le haut de fourchette, soutenu par la prime vue mer et la terrasse. Capte la pleine valeur auprès d'acquéreurs ciblés — stratégie retenue par l'expert.</p>
+      </div>
+    </div>
+
+    <div class="eb"><span class="n">05</span><span class="tx">Méthodologie &amp; sources</span><span class="ln"></span></div>
+    <div class="metho">
+      <div>
+        <h3>Méthode de calcul</h3>
+        <p>Géocodage de l'adresse via la <b>Base Adresse Nationale</b>, résolution de la parcelle au <b>cadastre IGN</b>, puis extraction des <b>ventes réelles DVF</b> (Etalab) géolocalisées. La valeur résulte de la <b>médiane €/m²</b> des comparables (type, surface ±25 %, 24 mois), ajustée selon DPE, étage, exposition et vue. La fourchette est calibrée sur l'indice de confiance.</p>
+      </div>
+      <div>
+        <h3>Sources &amp; données</h3>
+        <div class="sources">
+          <span class="src"><b>BAN</b> · géocodage</span>
+          <span class="src"><b>IGN</b> · cadastre</span>
+          <span class="src"><b>DVF Etalab</b> · ventes</span>
+          <span class="src"><b>ADEME</b> · DPE</span>
+          <span class="src"><b>LeBonCoin</b> · marché actif</span>
+        </div>
+        <p class="mnote">Sources publiques officielles françaises. <b>Google Maps n'est pas utilisé.</b> Présent document établi à partir de <b>données de démonstration</b>.</p>
+      </div>
+    </div>
+
+    <div class="disc">
+      <b>Avis de valeur indicatif.</b> Ce document constitue une estimation fondée sur des données de marché et ne saurait être assimilé à une expertise immobilière au sens réglementaire (charte de l'expertise en évaluation immobilière). Il n'engage pas son émetteur, ne préjuge pas du prix de transaction effectif et exclut les frais d'acquisition. Établi le <b>05.06.2026</b> — valable 6 mois.
+    </div>
+
+    <footer class="foot">
+      <span>Real Estate Agent — Avis de valeur · EV-2026-0418 · Établi le 05.06.2026</span>
+      <span class="fp">Page <b>2</b> / 2</span>
+    </footer>
+  </section>
+
+</div>
+
+<script>
+const SUBJECT={"label":"Avenue de l'Estérel 06160 Antibes","lat":43.570167,"lon":7.109342,"insee":"06004"},
+DVF=[{"lat":43.570213,"lon":7.10908,"prix_m2":5484},{"lat":43.570213,"lon":7.10908,"prix_m2":4790},{"lat":43.570213,"lon":7.10908,"prix_m2":7575},{"lat":43.570213,"lon":7.10908,"prix_m2":5458},{"lat":43.570213,"lon":7.10908,"prix_m2":5457},{"lat":43.570213,"lon":7.10908,"prix_m2":7417},{"lat":43.570213,"lon":7.10908,"prix_m2":5471},{"lat":43.570213,"lon":7.10908,"prix_m2":6250},{"lat":43.570007,"lon":7.109162,"prix_m2":3866},{"lat":43.569985,"lon":7.109538,"prix_m2":4386},{"lat":43.569985,"lon":7.109538,"prix_m2":4435},{"lat":43.569985,"lon":7.109538,"prix_m2":5511},{"lat":43.569901,"lon":7.109448,"prix_m2":5062},{"lat":43.569901,"lon":7.109448,"prix_m2":4929},{"lat":43.569901,"lon":7.109448,"prix_m2":2881},{"lat":43.569901,"lon":7.109448,"prix_m2":4688},{"lat":43.569901,"lon":7.109448,"prix_m2":6198},{"lat":43.56992,"lon":7.109123,"prix_m2":5158},{"lat":43.56992,"lon":7.109123,"prix_m2":6075},{"lat":43.56992,"lon":7.109123,"prix_m2":5314},{"lat":43.56992,"lon":7.109123,"prix_m2":5263},{"lat":43.56992,"lon":7.109123,"prix_m2":5294},{"lat":43.56992,"lon":7.109123,"prix_m2":5844},{"lat":43.56992,"lon":7.109123,"prix_m2":4990},{"lat":43.56992,"lon":7.109123,"prix_m2":5532},{"lat":43.56992,"lon":7.109123,"prix_m2":5256},{"lat":43.570435,"lon":7.109749,"prix_m2":5917},{"lat":43.570435,"lon":7.109749,"prix_m2":1667},{"lat":43.570435,"lon":7.109749,"prix_m2":6022},{"lat":43.569868,"lon":7.108875,"prix_m2":5455},{"lat":43.569868,"lon":7.108875,"prix_m2":4068},{"lat":43.569868,"lon":7.108875,"prix_m2":3475},{"lat":43.570208,"lon":7.110193,"prix_m2":3434},{"lat":43.570208,"lon":7.110193,"prix_m2":3683},{"lat":43.570208,"lon":7.110193,"prix_m2":4339},{"lat":43.570208,"lon":7.110193,"prix_m2":12191},{"lat":43.570208,"lon":7.110193,"prix_m2":4833},{"lat":43.570208,"lon":7.110193,"prix_m2":4125},{"lat":43.570208,"lon":7.110193,"prix_m2":5890},{"lat":43.570208,"lon":7.110193,"prix_m2":3256},{"lat":43.570208,"lon":7.110193,"prix_m2":2943},{"lat":43.570208,"lon":7.110193,"prix_m2":3733},{"lat":43.570208,"lon":7.110193,"prix_m2":2500},{"lat":43.570208,"lon":7.110193,"prix_m2":5600},{"lat":43.570208,"lon":7.110193,"prix_m2":5946},{"lat":43.570491,"lon":7.110083,"prix_m2":9762},{"lat":43.570083,"lon":7.108417,"prix_m2":5488},{"lat":43.570083,"lon":7.108417,"prix_m2":5203},{"lat":43.570083,"lon":7.108417,"prix_m2":5200},{"lat":43.570083,"lon":7.108417,"prix_m2":3721},{"lat":43.570083,"lon":7.108417,"prix_m2":4911},{"lat":43.570083,"lon":7.108417,"prix_m2":6250},{"lat":43.570176,"lon":7.108397,"prix_m2":5312},{"lat":43.570176,"lon":7.108397,"prix_m2":4018},{"lat":43.570176,"lon":7.108397,"prix_m2":3571},{"lat":43.56953,"lon":7.108948,"prix_m2":3865},{"lat":43.56953,"lon":7.108948,"prix_m2":5200},{"lat":43.56953,"lon":7.108948,"prix_m2":4788},{"lat":43.56953,"lon":7.108948,"prix_m2":5081},{"lat":43.56953,"lon":7.108948,"prix_m2":3790},{"lat":43.56953,"lon":7.108948,"prix_m2":4600},{"lat":43.56953,"lon":7.108948,"prix_m2":3800},{"lat":43.570285,"lon":7.108376,"prix_m2":10526},{"lat":43.569575,"lon":7.108778,"prix_m2":4532},{"lat":43.569575,"lon":7.108778,"prix_m2":4720},{"lat":43.569575,"lon":7.108778,"prix_m2":4048},{"lat":43.569575,"lon":7.108778,"prix_m2":4250},{"lat":43.569575,"lon":7.108778,"prix_m2":4107},{"lat":43.569575,"lon":7.108778,"prix_m2":3500},{"lat":43.569575,"lon":7.108778,"prix_m2":6216},{"lat":43.569575,"lon":7.108778,"prix_m2":3716},{"lat":43.570124,"lon":7.108227,"prix_m2":5000},{"lat":43.570124,"lon":7.108227,"prix_m2":5517},{"lat":43.570124,"lon":7.108227,"prix_m2":4565},{"lat":43.569322,"lon":7.109035,"prix_m2":8523},{"lat":43.569322,"lon":7.109035,"prix_m2":8914},{"lat":43.569322,"lon":7.109035,"prix_m2":10938},{"lat":43.569322,"lon":7.109035,"prix_m2":12353},{"lat":43.569322,"lon":7.109035,"prix_m2":8724},{"lat":43.569322,"lon":7.109035,"prix_m2":6290},{"lat":43.56998,"lon":7.108154,"prix_m2":6850},{"lat":43.56998,"lon":7.108154,"prix_m2":4412},{"lat":43.56998,"lon":7.108154,"prix_m2":5217},{"lat":43.56998,"lon":7.108154,"prix_m2":4478},{"lat":43.56998,"lon":7.108154,"prix_m2":5962},{"lat":43.56998,"lon":7.108154,"prix_m2":4957},{"lat":43.56998,"lon":7.108154,"prix_m2":1887},{"lat":43.56998,"lon":7.108154,"prix_m2":4172},{"lat":43.56998,"lon":7.108154,"prix_m2":3704},{"lat":43.56998,"lon":7.108154,"prix_m2":3088}],
+LISTINGS=[{"lat":43.57526,"lon":7.10653},{"lat":43.565502,"lon":7.1365952},{"lat":43.570606,"lon":7.1084046},{"lat":43.57122,"lon":7.1115155},{"lat":43.567833,"lon":7.11414},{"lat":43.574814,"lon":7.1213727},{"lat":43.57365,"lon":7.11579},{"lat":43.57309,"lon":7.116746},{"lat":43.577694,"lon":7.100982},{"lat":43.571747,"lon":7.0981565},{"lat":43.551693,"lon":7.122253},{"lat":43.569447,"lon":7.1103363},{"lat":43.571377,"lon":7.1060944},{"lat":43.554264,"lon":7.1343975},{"lat":43.57136,"lon":7.1095896},{"lat":43.572308,"lon":7.1169424},{"lat":43.574604,"lon":7.1039715},{"lat":43.571606,"lon":7.103263}],
+STATS={"p25":4063,"p75":5856};
+const C=[SUBJECT.lat,SUBJECT.lon];
+const map=L.map('map',{zoomControl:false,scrollWheelZoom:false,dragging:false,doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,attributionControl:false}).setView(C,16);
+const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:21,maxNativeZoom:19});
+const labels=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{maxZoom:21,detectRetina:true});
+const satHybrid=L.layerGroup([sat,labels]).addTo(map);
+const dark=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:21,detectRetina:true});
+const clair=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:21,detectRetina:true});
+L.control.layers({'🛰 Satellite HD':satHybrid,'🌙 Plan sombre':dark,'☀ Plan clair':clair},null,{position:'topright',collapsed:true}).addTo(map);
+function col(v){const lo=STATS.p25,hi=STATS.p75;let t=(v-lo)/Math.max(1,(hi-lo));t=Math.max(0,Math.min(1,t));return 'hsl('+((1-t)*150)+',72%,52%)';}
+DVF.forEach(s=>{L.circleMarker([s.lat,s.lon],{radius:5,weight:1.2,color:'#ffffff',fillColor:col(s.prix_m2),fillOpacity:.95}).addTo(map);});
+LISTINGS.forEach(a=>{if(!a.lat)return;L.circleMarker([a.lat,a.lon],{radius:5.5,weight:1.4,color:'#ffffff',fillColor:'#e11d48',fillOpacity:.95}).addTo(map);});
+L.marker(C,{icon:L.divIcon({className:'',html:'<div style="width:18px;height:18px;background:#ff3b3b;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #ff3b3b"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);
+
+/* ---- impression fiable : attendre les tuiles avant d'activer le bouton ---- */
+const btn=document.getElementById('printBtn');
+let ready=false;
+function enablePrint(){if(ready)return;ready=true;btn.disabled=false;btn.classList.remove('loading');btn.querySelector('.lbl').textContent='Imprimer / Exporter en PDF';}
+const guard=setTimeout(enablePrint,2800);
+sat.on('load',()=>{setTimeout(()=>{clearTimeout(guard);enablePrint();},250);});
+btn.addEventListener('click',()=>{if(!btn.disabled)window.print();});
+requestAnimationFrame(()=>requestAnimationFrame(()=>map.invalidateSize()));
+window.addEventListener('load',()=>setTimeout(()=>map.invalidateSize(),300));
+window.addEventListener('beforeprint',()=>map.invalidateSize());
+</script>
+</body>
+</html>

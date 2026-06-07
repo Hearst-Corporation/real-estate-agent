@@ -251,6 +251,12 @@ export const recordPropertyDataTool = {
         maximum: 9,
         description: "Index du bloc d'interview en cours (1–9)",
       },
+      suggestions: {
+        type: 'array',
+        items: { type: 'string' },
+        description:
+          "OBLIGATOIRE dès que la réponse appartient à une liste finie : boîtes de sélection cliquables (1-3 mots) pour la 1re question fermée non répondue. Toute question oui/non → ['Oui','Non','Je ne sais pas']. Utilise le catalogue d'options du system prompt tel quel. N'omets ce champ QUE pour les saisies libres (adresse, surface, année, montant, commentaires).",
+      },
     },
     additionalProperties: false,
   },

@@ -4,7 +4,7 @@ import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { getSession } from "@/lib/server/session";
 import { uuidOwnerOf } from "@/lib/tenant";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
-import { listSwarms, SwarmsEngineUnavailableError } from "@/lib/swarms/client";
+import { listSwarms } from "@/lib/swarms/client";
 import type { Swarm } from "@/lib/swarms/types";
 import Link from "next/link";
 import { UI } from "@/lib/ui-strings";
@@ -18,11 +18,8 @@ export default async function SwarmsPage() {
   if (ownerId) {
     try {
       swarms = await listSwarms(ownerId);
-    } catch (err) {
-      loadError =
-        err instanceof SwarmsEngineUnavailableError
-          ? UI.swarms.engineUnavailable
-          : UI.swarms.engineFetchFailed;
+    } catch {
+      loadError = UI.swarms.engineFetchFailed;
       swarms = [];
     }
   }

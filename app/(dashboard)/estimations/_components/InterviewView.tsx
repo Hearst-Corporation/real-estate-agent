@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { InterviewChat } from "./InterviewChat";
-import { FicheLive } from "./FicheLive";
-import { ValuationPanel } from "./ValuationPanel";
+import { useState } from "react";
+import { EstimationWizard } from "./EstimationWizard";
+import { GeneratingScreen } from "./GeneratingScreen";
+import { ValuationHero } from "./ValuationHero";
+import { SidePanel } from "./SidePanel";
 import { UI } from "@/lib/ui-strings";
+import type { Coverage } from "@/lib/estimation/spec";
 import type {
   PropertyData,
   FieldStatusMap,
@@ -13,14 +15,23 @@ import type {
 } from "@/lib/estimation/types";
 
 type Msg = { role: "user" | "assistant"; content: string };
+type Phase = "wizard" | "generating" | "ready";
+
+function resolvePhase(status: string): Phase {
+  if (status === "ready") return "ready";
+  if (status === "valuating") return "generating";
+  return "wizard";
+}
 
 type Props = {
   id: string;
   initialMessages: Msg[];
   initialProperty: PropertyData;
   initialFieldStatus: FieldStatusMap;
-  initialBlock: number;
+  initialCoverage: Coverage;
   initialCanGenerate: boolean;
+  initialSuggestions?: string[];
+  initialNextLabel?: string | null;
   initialStatus: string;
   initialValuation?: Valuation | null;
   initialMarket?: MarketAnalysis | null;
@@ -31,61 +42,41 @@ export function InterviewView({
   initialMessages,
   initialProperty,
   initialFieldStatus,
-  initialBlock,
+  initialCoverage,
   initialCanGenerate,
+  initialSuggestions,
+  initialNextLabel,
   initialStatus,
   initialValuation,
   initialMarket,
 }: Props) {
+  const [phase, setPhase] = useState<Phase>(resolvePhase(initialStatus));
   const [property, setProperty] = useState<PropertyData>(initialProperty);
-  const [fieldStatus, setFieldStatus] =
-    useState<FieldStatusMap>(initialFieldStatus);
-  const [block, setBlock] = useState(initialBlock);
+  const [fieldStatus, setFieldStatus] = useState<FieldStatusMap>(initialFieldStatus);
+  const [coverage, setCoverage] = useState<Coverage>(initialCoverage);
+  const [nextLabel, setNextLabel] = useState<string | null>(initialNextLabel ?? null);
   const [canGenerate, setCanGenerate] = useState(initialCanGenerate);
-
-  // Valuation state
-  const [status, setStatus] = useState(initialStatus);
-  const [valuation, setValuation] = useState<Valuation | null>(
-    initialValuation ?? null
-  );
-  const [market, setMarket] = useState<MarketAnalysis | null>(
-    initialMarket ?? null
-  );
-  const [generating, setGenerating] = useState(false);
+  const [valuation, setValuation] = useState<Valuation | null>(initialValuation ?? null);
+  const [market, setMarket] = useState<MarketAnalysis | null>(initialMarket ?? null);
   const [progressStep, setProgressStep] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
-
-  useEffect(() => {
-    function onEstimationUpdated(event: Event) {
-      const detail = (event as CustomEvent<{
-        estimationId?: string | null;
-        field?: keyof PropertyData;
-        value?: PropertyData[keyof PropertyData];
-      }>).detail;
-      if (detail?.estimationId !== id || !detail.field) return;
-      setProperty((current) => ({ ...current, [detail.field!]: detail.value }));
-      setFieldStatus((current) => ({ ...current, [detail.field!]: "answered" }));
-    }
-
-    window.addEventListener("cockpit:estimation-updated", onEstimationUpdated);
-    return () => window.removeEventListener("cockpit:estimation-updated", onEstimationUpdated);
-  }, [id]);
 
   function handleState(
     p: PropertyData,
     fs: FieldStatusMap,
-    b: number,
-    cg: boolean
+    cov: Coverage,
+    cg: boolean,
+    nl: string | null
   ) {
     setProperty(p);
     setFieldStatus(fs);
-    setBlock(b);
+    setCoverage(cov);
     setCanGenerate(cg);
+    setNextLabel(nl);
   }
 
   async function handleGenerate() {
-    if (generating) return;
-    setGenerating(true);
+    setPhase("generating");
     setGenerateError(null);
     setProgressStep(UI.estimations.generating);
 
@@ -131,13 +122,12 @@ export function InterviewView({
             if (frame.type === "progress") {
               setProgressStep(frame.step);
             } else if (frame.type === "error") {
-              // Non-fatal error from pipeline — keep going but show the message
               setGenerateError(frame.message);
             } else if (frame.type === "done") {
               setValuation(frame.valuation);
               setMarket(frame.market);
-              setStatus("ready");
               setProgressStep(null);
+              setPhase("ready");
             }
           } catch (e) {
             if (e instanceof SyntaxError) continue;
@@ -148,42 +138,60 @@ export function InterviewView({
     } catch (err) {
       setGenerateError(err instanceof Error ? err.message : UI.common.error);
       setProgressStep(null);
-    } finally {
-      setGenerating(false);
+      setPhase("wizard");
     }
   }
 
-  const isReady = status === "ready";
-
-  return (
-    <div className="est-grid-escape">
-    <div className="est-grid">
-      <div className="est-grid-chat">
-        <InterviewChat
+  // ── Phase 1 : Wizard ──────────────────────────────────────────────────────
+  if (phase === "wizard") {
+    return (
+      <div className="est-phase fill">
+        <EstimationWizard
           id={id}
           initialMessages={initialMessages}
-          property={property}
-          fieldStatus={fieldStatus}
-          initialBlock={block}
+          initialCoverage={coverage}
           initialCanGenerate={canGenerate}
-          generating={generating}
-          progressStep={progressStep}
+          initialSuggestions={initialSuggestions ?? []}
+          initialNextLabel={nextLabel}
+          initialProperty={property}
+          initialFieldStatus={fieldStatus}
           generateError={generateError}
           onState={handleState}
           onGenerate={handleGenerate}
         />
       </div>
-      <div className="est-grid-fiche">
-        <FicheLive
-          property={property}
-          fieldStatus={fieldStatus}
-          block={block}
-        />
-        {isReady && valuation ? (
-          <ValuationPanel id={id} valuation={valuation} market={market} />
+    );
+  }
+
+  // ── Phase 2 : Generating ──────────────────────────────────────────────────
+  if (phase === "generating") {
+    return (
+      <div className="est-phase fill">
+        <GeneratingScreen currentStep={progressStep} />
+      </div>
+    );
+  }
+
+  // ── Phase 3 : Ready ───────────────────────────────────────────────────────
+  return (
+    <div className="est-phase">
+      <div className="est-ready">
+        {valuation ? (
+          <ValuationHero id={id} valuation={valuation} />
+        ) : (
+          <p className="ct-placeholder">{UI.common.error}</p>
+        )}
+        {valuation ? (
+          <SidePanel
+            id={id}
+            valuation={valuation}
+            market={market}
+            property={property}
+            fieldStatus={fieldStatus}
+            coverage={coverage}
+          />
         ) : null}
       </div>
-    </div>
     </div>
   );
 }

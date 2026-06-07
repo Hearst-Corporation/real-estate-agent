@@ -36,6 +36,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# claude / agents
+.claude/worktrees/
+.playwright-mcp/
+
+# ui artefacts (screenshots générés par les audits)
+estimation-layout-*.png
+ui-architect-*.png
+ui-test-architect-*.png
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

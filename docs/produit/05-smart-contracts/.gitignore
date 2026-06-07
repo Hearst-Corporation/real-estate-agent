@@ -1,0 +1,10 @@
+# Foundry build artefacts
+out/
+cache/
+broadcast/
+
+# Dépendances (réinstallables : forge install foundry-rs/forge-std --no-git)
+lib/
+
+# Env
+.env

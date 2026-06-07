@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { getSession } from "@/lib/server/session"
 import { uuidOwnerOf } from "@/lib/tenant"
 import { getSupabaseAdmin } from "@/lib/server/supabase"
-import { getSwarm, kickoffSwarm } from "@/lib/swarms/client"
+import { kickoffSwarm } from "@/lib/swarms/client"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -22,12 +22,7 @@ export async function POST(_req: Request, { params }: Params) {
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 })
 
   try {
-    const swarm = await getSwarm(id)
-    if (swarm.owner_id !== ownerId) {
-      return NextResponse.json({ error: "not_found" }, { status: 404 })
-    }
-
-    const result = await kickoffSwarm(id)
+    const result = await kickoffSwarm(id, ownerId)
 
     // Persist dans swarm_runs
     const { error: dbError } = await sb.from("swarm_runs").insert({

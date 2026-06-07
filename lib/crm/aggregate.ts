@@ -1,7 +1,7 @@
 /**
  * Helpers d'agrégation CRM — purs, server-safe, zéro dépendance React/Cockpit.
  * Transforment des lignes de données en structures consommées par les
- * composants viz (Funnel, BarList, Donut). Tolèrent toujours les jeux vides
+ * composants viz (BarList, Donut). Tolèrent toujours les jeux vides
  * (retour [] / 0, jamais NaN).
  */
 
@@ -10,19 +10,48 @@ import type { StatusTone } from "./statusTone";
 
 // ─── Types consommés par les composants viz ──────────────────────────────────
 
+export type BarItem = { label: string; value: string; percent: number; tone?: StatusTone };
 export type FunnelStep = { label: string; count: number; tone?: StatusTone };
-export type BarItem = { label: string; value: string; percent: number };
 
 type WithStatus = { status: string };
 
-// ─── countByStatus → Funnel ───────────────────────────────────────────────────
+// ─── barsByStatus → BarList (tri décroissant, statuts vides masqués) ──────────
 
 /**
- * Compte les lignes par statut, dans l'ordre fourni.
- * @param rows           lignes avec un champ `status`
- * @param orderedStatuses ordre canonique des statuts (ex: LEAD_STATUSES)
- * @param labels         map statut → libellé FR
- * @param toneFn         optionnel : statut → tonalité (.crm-status)
+ * Comptage des lignes par statut, trié par volume décroissant, statuts à 0
+ * retirés. `percent` est normalisé sur le plus gros volume (max = 100 %).
+ * `toneFn` optionnel : colore chaque barre selon la tonalité du statut
+ * (is-positive/is-negative/is-pending), comme l'ex-Funnel.
+ */
+export function barsByStatus<T extends WithStatus>(
+  rows: T[],
+  orderedStatuses: readonly string[],
+  labels: Record<string, string>,
+  toneFn?: (status: string) => StatusTone
+): BarItem[] {
+  const counts = orderedStatuses.map((status) => ({
+    label: labels[status] ?? status,
+    count: rows.reduce((n, r) => (r.status === status ? n + 1 : n), 0),
+    tone: toneFn ? toneFn(status) : undefined,
+  }));
+  const max = Math.max(1, ...counts.map((c) => c.count));
+  return counts
+    .filter((c) => c.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .map((c) => ({
+      label: c.label,
+      value: String(c.count),
+      percent: Math.round((c.count / max) * 100),
+      tone: c.tone,
+    }));
+}
+
+// ─── countByStatus → Funnel (ordre canonique conservé, statuts vides inclus) ──
+
+/**
+ * Comptage par statut dans l'ordre fourni, statuts à 0 conservés. Consommé par
+ * le composant Funnel (steps verticaux). Conservé en parallèle de barsByStatus
+ * pour les vues pipeline ordonnées (leads, visits, mandates, estimations).
  */
 export function countByStatus<T extends WithStatus>(
   rows: T[],
@@ -39,9 +68,15 @@ export function countByStatus<T extends WithStatus>(
 
 // ─── topByCategory → BarList ────────────────────────────────────────────────────
 
+/** Libellé du regroupement des catégories hors top N. */
+const OTHER_LABEL = "autres";
+
 /**
  * Top N catégories d'un champ texte, triées par fréquence décroissante.
- * Les valeurs nulles/vides sont ignorées. percent = part relative au max.
+ * Les valeurs nulles/vides sont ignorées. `percent` = PART DU TOTAL (la somme
+ * des barres ≈ 100 %), pas part du max → c'est une vraie répartition. Les
+ * catégories au-delà du top N sont regroupées en un item « +N autres » (jamais
+ * masquées silencieusement).
  */
 export function topByCategory<T>(
   rows: T[],
@@ -50,27 +85,42 @@ export function topByCategory<T>(
   top = 5
 ): BarItem[] {
   const counts = new Map<string, number>();
+  let total = 0;
   for (const row of rows) {
     const raw = row[field];
     if (raw == null) continue;
     const key = String(raw).trim();
     if (!key) continue;
     counts.set(key, (counts.get(key) ?? 0) + 1);
+    total += 1;
   }
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, top);
-  const max = sorted[0]?.[1] ?? 1;
-  return sorted.map(([key, n]) => ({
+  if (total === 0) return [];
+
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const head = sorted.slice(0, top);
+  const items: BarItem[] = head.map(([key, n]) => ({
     label: labels?.[key] ?? key,
     value: String(n),
-    percent: Math.round((n / max) * 100),
+    percent: Math.round((n / total) * 100),
   }));
+
+  const rest = sorted.slice(top);
+  const restCount = rest.reduce((s, [, n]) => s + n, 0);
+  if (restCount > 0) {
+    items.push({
+      label: `+${rest.length} ${OTHER_LABEL}`,
+      value: String(restCount),
+      percent: Math.round((restCount / total) * 100),
+    });
+  }
+  return items;
 }
 
 // ─── distributeByBand → BarList ─────────────────────────────────────────────────
 
 export type Band = [min: number, max: number];
 
-/** Tranches de montant par défaut (€). */
+/** Tranches de montant par défaut (€) — fallback si pas assez de données. */
 export const PRICE_BANDS: Band[] = [
   [0, 200_000],
   [200_000, 400_000],
@@ -78,6 +128,37 @@ export const PRICE_BANDS: Band[] = [
   [600_000, 1_000_000],
   [1_000_000, Infinity],
 ];
+
+/**
+ * Construit `n` tranches « jolies » couvrant la plage réelle des valeurs
+ * (min → max), au lieu de bornes figées inadaptées au marché. La dernière
+ * tranche est ouverte (→ Infinity). Fallback sur PRICE_BANDS si < 2 valeurs
+ * exploitables ou plage nulle.
+ */
+export function autoBands(values: (number | null | undefined)[], n = 5): Band[] {
+  const nums = values.filter(
+    (v): v is number => typeof v === "number" && Number.isFinite(v)
+  );
+  if (nums.length < 2) return PRICE_BANDS;
+
+  const min = Math.min(...nums);
+  const max = Math.max(...nums);
+  if (min === max) return PRICE_BANDS;
+
+  const rawStep = (max - min) / n;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const niceStep = Math.ceil(rawStep / mag) * mag;
+  const start = Math.floor(min / niceStep) * niceStep;
+
+  const bands: Band[] = [];
+  let lo = start;
+  for (let i = 0; i < n; i++) {
+    const hi = lo + niceStep;
+    bands.push([lo, i === n - 1 ? Infinity : hi]);
+    lo = hi;
+  }
+  return bands;
+}
 
 /** Libellé FR d'une tranche, formaté via eur(). */
 function bandLabel([min, max]: Band): string {
@@ -88,7 +169,7 @@ function bandLabel([min, max]: Band): string {
 
 /**
  * Distribue les lignes par tranche de valeur (champ numérique).
- * percent = part relative à la tranche la plus peuplée.
+ * `percent` = PART DU TOTAL des lignes valorisées (somme ≈ 100 %).
  */
 export function distributeByBand<T>(
   rows: T[],
@@ -101,11 +182,11 @@ export function distributeByBand<T>(
       return typeof v === "number" && v >= min && v < max ? n + 1 : n;
     }, 0)
   );
-  const max = Math.max(...counts, 1);
+  const total = counts.reduce((a, b) => a + b, 0) || 1;
   return bands.map((band, i) => ({
     label: bandLabel(band),
     value: String(counts[i]),
-    percent: Math.round((counts[i] / max) * 100),
+    percent: Math.round((counts[i] / total) * 100),
   }));
 }
 
