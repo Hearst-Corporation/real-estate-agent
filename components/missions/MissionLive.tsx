@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { MissionView, PhaseStatus } from "@/lib/missions/types";
 import { UI } from "@/lib/ui-strings";
 
@@ -18,21 +18,54 @@ const POLL_MS = 3000;
 /** Mission View réelle : poll l'état traduit et l'affiche en langage humain. */
 export function MissionLive({ initial, id }: { initial: MissionView; id: string }) {
   const [v, setV] = useState<MissionView>(initial);
+  const [sending, setSending] = useState<string | null>(null);
+  const [decisionErr, setDecisionErr] = useState(false);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+
+  const refresh = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/missions/${id}`, { cache: "no-store" });
+      if (!r.ok) return;
+      const json = (await r.json()) as { view?: MissionView };
+      if (json.view && alive.current) setV(json.view);
+    } catch {
+      /* moteur indispo : on garde l'état connu */
+    }
+  }, [id]);
+
+  /** Soumet le choix d'un moment de décision, puis re-poll immédiatement. */
+  async function choose(value: string) {
+    setSending(value);
+    setDecisionErr(false);
+    try {
+      const r = await fetch(`/api/missions/${id}/decision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value }),
+      });
+      if (!r.ok) {
+        if (alive.current) setDecisionErr(true);
+        return;
+      }
+      await refresh();
+    } catch {
+      if (alive.current) setDecisionErr(true);
+    } finally {
+      if (alive.current) setSending(null);
+    }
+  }
 
   useEffect(() => {
     if (!ACTIVE.has(v.status)) return;
-    const iv = setInterval(async () => {
-      try {
-        const r = await fetch(`/api/missions/${id}`, { cache: "no-store" });
-        if (!r.ok) return;
-        const json = (await r.json()) as { view?: MissionView };
-        if (json.view) setV(json.view);
-      } catch {
-        /* moteur indispo : on garde l'état connu */
-      }
-    }, POLL_MS);
+    const iv = setInterval(refresh, POLL_MS);
     return () => clearInterval(iv);
-  }, [id, v.status]);
+  }, [refresh, v.status]);
 
   const headPill =
     v.status === "done"
@@ -88,7 +121,7 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
                           <div className="mv-nm">{p.nm}</div>
                           <div className="mv-one">{p.story}</div>
                         </div>
-                        <span style={{ marginLeft: "auto" }} className={`mv-pill ${PHASE_PILL[p.status]}`}>
+                        <span className={`mv-pill mv-ch-pill ${PHASE_PILL[p.status]}`}>
                           {t.phase[p.status]}
                         </span>
                       </div>
@@ -130,7 +163,7 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
         </div>
       )}
 
-      {/* Moment de décision (Slice 2 : actuellement jamais émis) */}
+      {/* Moment de décision — émis par le moteur (status paused_hitl) */}
       {v.decision && (
         <div className="mv-dock">
           <span className="mv-pill mv-pill-ask">{t.decisionPill}</span>
@@ -138,11 +171,19 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
           {v.decision.hint && <div className="mv-hint">{v.decision.hint}</div>}
           <div className="mv-choices">
             {v.decision.options.map((o) => (
-              <button key={o.value} type="button" className="mv-choice">
-                {o.label}
+              <button
+                key={o.value}
+                type="button"
+                className="mv-choice"
+                disabled={sending !== null}
+                aria-busy={sending === o.value}
+                onClick={() => choose(o.value)}
+              >
+                {sending === o.value ? t.decisionBusy : o.label}
               </button>
             ))}
           </div>
+          {decisionErr && <div className="mv-hint mv-dock-err">{t.decisionError}</div>}
         </div>
       )}
 

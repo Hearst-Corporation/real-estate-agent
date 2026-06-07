@@ -8,9 +8,10 @@
 .swarm-status-badge.swarm-status-done    { background: color-mix(in srgb, var(--ct-success) 20%, transparent); color: var(--ct-success); }
 .swarm-status-badge.swarm-status-failed  { background: color-mix(in srgb, var(--ct-text-danger) 20%, transparent); color: var(--ct-text-danger); }
 .swarm-status-badge.swarm-status-error   { background: color-mix(in srgb, var(--ct-text-danger) 20%, transparent); color: var(--ct-text-danger); }
+.swarm-status-badge.swarm-status-paused_hitl { background: color-mix(in srgb, var(--ct-warning) 20%, transparent); color: var(--ct-warning); }
 
 .swarm-tool-badge {
-  display: inline-block; padding: 1px var(--ct-space-xs); border-radius: var(--ct-radius-xs); font-size: var(--ct-fs-2xs); font-weight: var(--ct-fw-medium);
+  display: inline-block; padding: var(--ct-space-3xs) var(--ct-space-xs); border-radius: var(--ct-radius-xs); font-size: var(--ct-fs-2xs); font-weight: var(--ct-fw-medium);
   background: var(--ct-surface-2); color: var(--ct-text-muted); border: 1px solid var(--ct-border);
 }
 

@@ -2,7 +2,7 @@
 
 import { UI } from "@/lib/ui-strings"
 
-type Status = 'pending' | 'running' | 'done' | 'failed' | 'error'
+type Status = 'pending' | 'running' | 'done' | 'failed' | 'error' | 'paused_hitl'
 type Props = { status: Status; size?: 'sm' | 'md' }
 
 export default function RunStatusBadge({ status, size = 'md' }: Props) {
