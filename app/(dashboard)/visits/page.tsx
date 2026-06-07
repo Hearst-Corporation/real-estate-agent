@@ -8,6 +8,7 @@ import { DeleteButton } from "@/components/cockpit/DeleteButton";
 import { countByStatus, ratio } from "@/lib/crm/aggregate";
 import { dateTimeFr, VISIT_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
+import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -51,14 +52,6 @@ export default async function VisitsPage() {
   );
   const doneRate = ratio(visits, (v) => v.status === "realisee");
 
-  const CRM_TABS = [
-    { href: "/properties", label: UI.nav.properties },
-    { href: "/leads", label: UI.nav.leads },
-    { href: "/visits", label: UI.nav.visits },
-    { href: "/mandates", label: UI.nav.mandates },
-    { href: "/agenda", label: UI.nav.agenda },
-  ];
-
   const columns: Column<VisitRow>[] = [
     {
       key: "property",
@@ -98,7 +91,7 @@ export default async function VisitsPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={CRM_TABS} />}
+        nav={<PageNavTabs tabs={TAB_GROUPS.crm} />}
         action={<VisitForm cta={t.newCta} />}
         kpis={[
           { label: t.kpis.total, value: String(visits.length) },

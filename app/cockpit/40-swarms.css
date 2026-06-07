@@ -1,0 +1,69 @@
+/* ── SWARMS ── */
+.swarm-status-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600;
+}
+.swarm-status-badge.swarm-status-pending { background: var(--ct-surface-3); color: var(--ct-text-muted); }
+.swarm-status-badge.swarm-status-running { background: color-mix(in srgb, var(--ct-accent) 20%, transparent); color: var(--ct-accent); }
+.swarm-status-badge.swarm-status-done    { background: color-mix(in srgb, var(--ct-success) 20%, transparent); color: var(--ct-success); }
+.swarm-status-badge.swarm-status-failed  { background: color-mix(in srgb, var(--ct-text-danger) 20%, transparent); color: var(--ct-text-danger); }
+.swarm-status-badge.swarm-status-error   { background: color-mix(in srgb, var(--ct-text-danger) 20%, transparent); color: var(--ct-text-danger); }
+
+.swarm-tool-badge {
+  display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 500;
+  background: var(--ct-surface-2); color: var(--ct-text-muted); border: 1px solid var(--ct-border);
+}
+
+.swarm-card { display: block; text-decoration: none; }
+.swarm-card .crm-card-title { font-size: 14px; }
+
+.swarm-steps-timeline { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--ct-space-sm); }
+.swarm-step-item { background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: 8px; padding: var(--ct-space-sm) var(--ct-space-md); }
+.swarm-step-header { font-size: 11px; font-weight: 600; color: var(--ct-text-muted); margin-bottom: var(--ct-space-xs); display: flex; gap: var(--ct-space-xs); flex-wrap: wrap; }
+.swarm-step-output { font-size: 12px; color: var(--ct-text-body); white-space: pre-wrap; word-break: break-word; }
+.swarm-step-toggle { background: none; border: none; color: var(--ct-accent); font-size: 11px; cursor: pointer; padding: 0; margin-top: 4px; }
+
+.swarm-kickoff-panel { display: flex; flex-direction: column; gap: var(--ct-space-md); }
+.swarm-kickoff-output { background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: 8px; padding: var(--ct-space-md); font-size: 12px; color: var(--ct-text-body); white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; }
+.swarm-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--ct-border); border-top-color: var(--ct-accent); border-radius: 50%; animation: swarm-spin 0.8s linear infinite; }
+@keyframes swarm-spin { to { transform: rotate(360deg); } }
+
+/* Swarms pages */
+.swarm-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--ct-border); margin-bottom: var(--ct-space-lg); }
+.swarm-tab-btn {
+  background: none; border: none; color: var(--ct-text-muted); font-size: 13px; font-weight: 500;
+  padding: var(--ct-space-sm) var(--ct-space-md); cursor: pointer; border-bottom: 2px solid transparent;
+  font-family: inherit; transition: color var(--ct-dur-base) var(--ct-ease);
+}
+.swarm-tab-btn:hover { color: var(--ct-text-primary); }
+.swarm-tab-btn.active { color: var(--ct-text-primary); border-bottom-color: var(--ct-accent); }
+
+.swarm-agents-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ct-space-md); }
+@media (max-width: 900px) { .swarm-agents-grid { grid-template-columns: 1fr; } }
+
+.swarm-agent-card { background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: 10px; padding: var(--ct-space-md); }
+.swarm-agent-name { font-size: 13px; font-weight: 700; color: var(--ct-text-primary); margin-bottom: 4px; }
+.swarm-agent-role { font-size: 11px; font-weight: 600; color: var(--ct-accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--ct-space-xs); }
+.swarm-agent-goal { font-size: 12px; color: var(--ct-text-body); }
+/* Meta label/value pairs in swarm detail page (replaces repeated inline styles) */
+.swarm-meta-label { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); }
+.swarm-meta-value { font-size: var(--ct-fs-base); color: var(--ct-text-body); margin: 0; }
+.swarm-meta-value-lg { font-size: var(--ct-fs-md); color: var(--ct-text-primary); margin: 0; }
+.swarm-meta-backstory { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); margin-top: var(--ct-space-2xs); }
+.swarm-task-agent-badge { margin-top: var(--ct-space-xs); display: inline-block; }
+
+.swarm-run-row { display: flex; align-items: center; gap: var(--ct-space-md); padding: var(--ct-space-sm) 0; border-bottom: 1px solid var(--ct-border-soft); }
+.swarm-run-row:last-child { border-bottom: none; }
+.swarm-run-id { font-size: 11px; color: var(--ct-text-muted); font-family: monospace; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.swarm-spec-preview { background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: 8px; padding: var(--ct-space-md); font-size: 11px; font-family: monospace; color: var(--ct-text-body); white-space: pre; overflow-x: auto; max-height: 400px; overflow-y: auto; }
+
+.swarm-form-section { margin-bottom: var(--ct-space-lg); }
+.swarm-form-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ct-text-muted); margin-bottom: var(--ct-space-sm); }
+.swarm-dynamic-list { display: flex; flex-direction: column; gap: var(--ct-space-sm); }
+.swarm-dynamic-item { background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: 8px; padding: var(--ct-space-md); position: relative; }
+.swarm-dynamic-remove { position: absolute; top: var(--ct-space-xs); right: var(--ct-space-xs); background: none; border: none; color: var(--ct-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+.swarm-dynamic-remove:hover { color: var(--ct-text-danger); }
+.swarm-add-btn { background: none; border: 1px dashed var(--ct-border); color: var(--ct-text-muted); font-size: 12px; cursor: pointer; padding: var(--ct-space-xs) var(--ct-space-md); border-radius: 8px; font-family: inherit; width: 100%; margin-top: var(--ct-space-xs); }
+.swarm-add-btn:hover { border-color: var(--ct-accent); color: var(--ct-accent); }
+

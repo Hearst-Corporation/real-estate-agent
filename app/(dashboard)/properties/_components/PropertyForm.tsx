@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
+import { CockpitForm, Field, TextInput, Textarea, Select, MoneyInput } from "@/components/cockpit/form";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
 
@@ -126,168 +127,155 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
   }
 
   return (
-    <form className="ct-form" onSubmit={handleSubmit}>
+    <CockpitForm onSubmit={handleSubmit}>
       <p className="ct-card-title">{t.form.title}</p>
 
-      <label>
-        <span>{t.form.name}</span>
-        <input
-          className="ct-input"
+      <Field label={t.form.name} htmlFor="property-title" required>
+        <TextInput
+          id="property-title"
           name="title"
           required
           defaultValue={defaultValues.title ?? ""}
         />
-      </label>
+      </Field>
 
-      <label>
-        <span>{t.form.type}</span>
-        <input
-          className="ct-input"
+      <Field label={t.form.type} htmlFor="property-type" required>
+        <TextInput
+          id="property-type"
           name="property_type"
           required
           defaultValue={defaultValues.property_type ?? ""}
         />
-      </label>
+      </Field>
 
-      <label>
-        <span>{t.form.address}</span>
-        <input
-          className="ct-input"
+      <Field label={t.form.address} htmlFor="property-address" required>
+        <TextInput
+          id="property-address"
           name="address"
           required
           defaultValue={defaultValues.address ?? ""}
         />
-      </label>
+      </Field>
 
-      <label>
-        <span>{t.form.city}</span>
-        <input
-          className="ct-input"
+      <Field label={t.form.city} htmlFor="property-city" required>
+        <TextInput
+          id="property-city"
           name="city"
           required
           defaultValue={defaultValues.city ?? ""}
         />
-      </label>
+      </Field>
 
-      <label>
-        <span>{t.form.postalCode}</span>
-        <input
-          className="ct-input"
+      <Field label={t.form.postalCode} htmlFor="property-postal-code" required>
+        <TextInput
+          id="property-postal-code"
           name="postal_code"
           required
           defaultValue={defaultValues.postal_code ?? ""}
         />
-      </label>
+      </Field>
 
-      <label>
-        <span>{t.form.surface}</span>
-        <input
-          className="ct-input"
+      <Field label={t.form.surface} htmlFor="property-surface">
+        <TextInput
+          id="property-surface"
           name="surface"
           type="number"
           min={0}
           defaultValue={defaultValues.surface ?? ""}
         />
-      </label>
+      </Field>
 
-      <label>
-        <span>{t.form.rooms}</span>
-        <input
-          className="ct-input"
+      <Field label={t.form.rooms} htmlFor="property-rooms">
+        <TextInput
+          id="property-rooms"
           name="rooms"
           type="number"
           min={0}
           defaultValue={defaultValues.rooms ?? ""}
         />
-      </label>
+      </Field>
 
-      <label>
-        <span>{t.form.bedrooms}</span>
-        <input
-          className="ct-input"
+      <Field label={t.form.bedrooms} htmlFor="property-bedrooms">
+        <TextInput
+          id="property-bedrooms"
           name="bedrooms"
           type="number"
           min={0}
           defaultValue={defaultValues.bedrooms ?? ""}
         />
-      </label>
+      </Field>
 
-      <label>
-        <span>{t.form.askingPrice}</span>
-        <input
-          className="ct-input"
+      <Field label={t.form.askingPrice} htmlFor="property-asking-price">
+        <MoneyInput
+          id="property-asking-price"
           name="asking_price"
-          type="number"
           min={0}
           defaultValue={defaultValues.asking_price ?? ""}
         />
-      </label>
+      </Field>
 
-      <label>
-        <span>{t.form.notes}</span>
-        <textarea
-          className="ct-input"
+      <Field label={t.form.notes} htmlFor="property-notes">
+        <Textarea
+          id="property-notes"
           name="notes"
           rows={FORM_LIMITS.textareaRows}
           defaultValue={defaultValues.notes ?? ""}
         />
-      </label>
+      </Field>
 
       {/* Informations complémentaires */}
       <fieldset className="ct-form-fieldset">
         <legend>{t.enrichissement.title}</legend>
 
         <div className="ct-form-row-2col">
-          <label>
-            <span>{t.form.dpeLabel}</span>
-            <select className="ct-input" name="dpe_letter" defaultValue={defaultValues.dpe_letter ?? ""}>
-              <option value="">—</option>
-              {["A","B","C","D","E","F","G"].map(l => <option key={l} value={l}>{l}</option>)}
-            </select>
-          </label>
-          <label>
-            <span>{t.form.gesLabel}</span>
-            <select className="ct-input" name="ges_letter" defaultValue={defaultValues.ges_letter ?? ""}>
-              <option value="">—</option>
-              {["A","B","C","D","E","F","G"].map(l => <option key={l} value={l}>{l}</option>)}
-            </select>
-          </label>
+          <Field label={t.form.dpeLabel} htmlFor="property-dpe-letter">
+            <Select
+              id="property-dpe-letter"
+              name="dpe_letter"
+              defaultValue={defaultValues.dpe_letter ?? ""}
+              options={[{ value: "", label: "—" }, ...["A","B","C","D","E","F","G"].map(l => ({ value: l, label: l }))]}
+            />
+          </Field>
+          <Field label={t.form.gesLabel} htmlFor="property-ges-letter">
+            <Select
+              id="property-ges-letter"
+              name="ges_letter"
+              defaultValue={defaultValues.ges_letter ?? ""}
+              options={[{ value: "", label: "—" }, ...["A","B","C","D","E","F","G"].map(l => ({ value: l, label: l }))]}
+            />
+          </Field>
         </div>
 
         <div className="ct-form-row-2col">
-          <label>
-            <span>{t.form.yearBuilt}</span>
-            <input className="ct-input" name="year_built" type="number" min={1800} max={2030} defaultValue={defaultValues.year_built ?? ""} />
-          </label>
-          <label>
-            <span>{t.form.orientation}</span>
-            <select className="ct-input" name="orientation" defaultValue={defaultValues.orientation ?? ""}>
-              <option value="">—</option>
-              {["N","S","E","O","NE","NO","SE","SO"].map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </label>
+          <Field label={t.form.yearBuilt} htmlFor="property-year-built">
+            <TextInput id="property-year-built" name="year_built" type="number" min={1800} max={2030} defaultValue={defaultValues.year_built ?? ""} />
+          </Field>
+          <Field label={t.form.orientation} htmlFor="property-orientation">
+            <Select
+              id="property-orientation"
+              name="orientation"
+              defaultValue={defaultValues.orientation ?? ""}
+              options={[{ value: "", label: "—" }, ...["N","S","E","O","NE","NO","SE","SO"].map(o => ({ value: o, label: o }))]}
+            />
+          </Field>
         </div>
 
         <div className="ct-form-row-2col">
-          <label>
-            <span>{t.form.floor}</span>
-            <input className="ct-input" name="floor" type="number" min={0} defaultValue={defaultValues.floor ?? ""} />
-          </label>
-          <label>
-            <span>{t.form.floorTotal}</span>
-            <input className="ct-input" name="floor_total" type="number" min={1} defaultValue={defaultValues.floor_total ?? ""} />
-          </label>
+          <Field label={t.form.floor} htmlFor="property-floor">
+            <TextInput id="property-floor" name="floor" type="number" min={0} defaultValue={defaultValues.floor ?? ""} />
+          </Field>
+          <Field label={t.form.floorTotal} htmlFor="property-floor-total">
+            <TextInput id="property-floor-total" name="floor_total" type="number" min={1} defaultValue={defaultValues.floor_total ?? ""} />
+          </Field>
         </div>
 
         <div className="ct-form-row-2col">
-          <label>
-            <span>{t.form.chargesMonthly}</span>
-            <input className="ct-input" name="charges_monthly" type="number" min={0} defaultValue={defaultValues.charges_monthly ?? ""} />
-          </label>
-          <label>
-            <span>{t.form.taxeFonciere}</span>
-            <input className="ct-input" name="taxe_fonciere" type="number" min={0} defaultValue={defaultValues.taxe_fonciere ?? ""} />
-          </label>
+          <Field label={t.form.chargesMonthly} htmlFor="property-charges-monthly">
+            <MoneyInput id="property-charges-monthly" name="charges_monthly" min={0} defaultValue={defaultValues.charges_monthly ?? ""} />
+          </Field>
+          <Field label={t.form.taxeFonciere} htmlFor="property-taxe-fonciere">
+            <MoneyInput id="property-taxe-fonciere" name="taxe_fonciere" min={0} defaultValue={defaultValues.taxe_fonciere ?? ""} />
+          </Field>
         </div>
 
         <div className="ct-form-checkboxes">
@@ -306,10 +294,9 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
           ))}
         </div>
 
-        <label>
-          <span>{t.form.parkingCount}</span>
-          <input className="ct-input" name="parking_count" type="number" min={0} defaultValue={defaultValues.parking_count ?? ""} />
-        </label>
+        <Field label={t.form.parkingCount} htmlFor="property-parking-count">
+          <TextInput id="property-parking-count" name="parking_count" type="number" min={0} defaultValue={defaultValues.parking_count ?? ""} />
+        </Field>
       </fieldset>
 
       {error && <p className="ct-error">{error}</p>}
@@ -324,7 +311,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
           </button>
         )}
       </div>
-    </form>
+    </CockpitForm>
   );
 }
 

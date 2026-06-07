@@ -21,6 +21,7 @@ export const UI = {
     agenda: "Agenda",
     prospection: "Prospection",
     swarms: "Swarms",
+    crm: "CRM",
     invest: "Invest",
     profile: "Profil",
     admin: "Admin",

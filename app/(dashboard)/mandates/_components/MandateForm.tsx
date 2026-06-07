@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
+import { CockpitForm, Field, TextInput, Select, MoneyInput } from "@/components/cockpit/form";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
 
@@ -73,81 +74,85 @@ function MandateForm({ onClose }: { onClose?: () => void }) {
   }
 
   return (
-    <form className="ct-form" onSubmit={handleSubmit}>
+    <CockpitForm onSubmit={handleSubmit}>
       <p className="ct-card-title">{t.form.title}</p>
 
-      <label className="ct-eyebrow">{t.form.property}</label>
-      <select
-        className="ct-input"
-        value={propertyId}
-        onChange={(e) => setPropertyId(e.target.value)}
-        required
-      >
-        <option value="">—</option>
-        {properties.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.title ?? p.city ?? p.id}
-          </option>
-        ))}
-      </select>
+      <Field label={t.form.property} htmlFor="mandate-property" required>
+        <Select
+          id="mandate-property"
+          options={[
+            { value: "", label: "—" },
+            ...properties.map((p) => ({
+              value: p.id,
+              label: p.title ?? p.city ?? p.id,
+            })),
+          ]}
+          value={propertyId}
+          onChange={(e) => setPropertyId(e.target.value)}
+          required
+        />
+      </Field>
 
-      <label className="ct-eyebrow">{t.form.kind}</label>
-      <select
-        className="ct-input"
-        value={kind}
-        onChange={(e) => setKind(e.target.value)}
-      >
-        {Object.entries(t.kindLabels).map(([k, label]) => (
-          <option key={k} value={k}>
-            {label}
-          </option>
-        ))}
-      </select>
+      <Field label={t.form.kind} htmlFor="mandate-kind">
+        <Select
+          id="mandate-kind"
+          options={Object.entries(t.kindLabels).map(([k, label]) => ({
+            value: k,
+            label,
+          }))}
+          value={kind}
+          onChange={(e) => setKind(e.target.value)}
+        />
+      </Field>
 
-      <label className="ct-eyebrow">{t.form.reference}</label>
-      <input
-        className="ct-input"
-        type="text"
-        value={reference}
-        onChange={(e) => setReference(e.target.value)}
-        placeholder={t.form.reference}
-      />
+      <Field label={t.form.reference} htmlFor="mandate-reference">
+        <TextInput
+          id="mandate-reference"
+          type="text"
+          value={reference}
+          onChange={(e) => setReference(e.target.value)}
+          placeholder={t.form.reference}
+        />
+      </Field>
 
-      <label className="ct-eyebrow">{t.form.askingPrice}</label>
-      <input
-        className="ct-input"
-        type="number"
-        min={FORM_LIMITS.priceMin}
-        value={askingPrice}
-        onChange={(e) => setAskingPrice(e.target.value)}
-      />
+      <Field label={t.form.askingPrice} htmlFor="mandate-asking-price">
+        <MoneyInput
+          id="mandate-asking-price"
+          min={FORM_LIMITS.priceMin}
+          value={askingPrice}
+          onChange={(e) => setAskingPrice(e.target.value)}
+        />
+      </Field>
 
-      <label className="ct-eyebrow">{t.form.commissionPct}</label>
-      <input
-        className="ct-input"
-        type="number"
-        min={FORM_LIMITS.commissionMin}
-        max={FORM_LIMITS.commissionMax}
-        step={FORM_LIMITS.commissionStep}
-        value={commissionPct}
-        onChange={(e) => setCommissionPct(e.target.value)}
-      />
+      <Field label={t.form.commissionPct} htmlFor="mandate-commission-pct">
+        <TextInput
+          id="mandate-commission-pct"
+          type="number"
+          min={FORM_LIMITS.commissionMin}
+          max={FORM_LIMITS.commissionMax}
+          step={FORM_LIMITS.commissionStep}
+          value={commissionPct}
+          onChange={(e) => setCommissionPct(e.target.value)}
+        />
+      </Field>
 
-      <label className="ct-eyebrow">{t.form.signedAt}</label>
-      <input
-        className="ct-input"
-        type="date"
-        value={signedAt}
-        onChange={(e) => setSignedAt(e.target.value)}
-      />
+      <Field label={t.form.signedAt} htmlFor="mandate-signed-at">
+        <TextInput
+          id="mandate-signed-at"
+          type="date"
+          value={signedAt}
+          onChange={(e) => setSignedAt(e.target.value)}
+        />
+      </Field>
 
-      <label className="ct-eyebrow">{t.form.expiresAt}</label>
-      <input
-        className="ct-input"
-        type="date"
-        value={expiresAt}
-        onChange={(e) => setExpiresAt(e.target.value)}
-      />
+      <Field label={t.form.expiresAt} htmlFor="mandate-expires-at">
+        <TextInput
+          id="mandate-expires-at"
+          type="date"
+          value={expiresAt}
+          onChange={(e) => setExpiresAt(e.target.value)}
+        />
+      </Field>
 
       {error && <p className="ct-error">{error}</p>}
 
@@ -164,7 +169,7 @@ function MandateForm({ onClose }: { onClose?: () => void }) {
           {t.form.cancel}
         </button>
       </div>
-    </form>
+    </CockpitForm>
   );
 }
 

@@ -101,7 +101,7 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
                       </div>
                     )}
                     <div style={{ position: 'absolute', top: 8, right: 8 }}>
-                      <span className="ct-badge" style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', margin: 0 }}>
+                      <span className="ct-badge ct-badge-overlay">
                         {t.typeLabels[property.property_type ?? ""] || property.property_type || "Bien"}
                       </span>
                     </div>

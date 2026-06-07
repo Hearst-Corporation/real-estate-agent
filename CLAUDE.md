@@ -75,10 +75,12 @@ Tunnel SSH si besoin GPU : `ssh -L 8188:localhost:8188 gpu2-remote -N &`. Doc : 
 ## Conventions
 - Pas de magic numbers. Tout via `.env.local` ou `config/`.
 - RLS activée sur toutes les tables — toute nouvelle table DOIT avoir une policy + index sur chaque FK.
-- Design : tokens `--ct-*` uniquement, aucune couleur hex hors `cockpit.css`. `data-product` = seul switch d'accent.
+- **UI / Cockpit** : avant de créer une page ou un composant, lire **[components/cockpit/AGENTS.md](components/cockpit/AGENTS.md)** (recette de page, primitives, tokens, interdits). On compose les primitives — pas de CSS/inline brut.
+- Design : tokens `--ct-*` uniquement, aucune couleur hex hors `cockpit.css`. `data-product` = seul switch d'accent. Garde-fou : `npm run lint:cockpit` (inclus dans `npm run check`).
 - Secrets dans `.env.local` (gitignored) + `docs/api-config/SERVICES.md` (gitignored).
 
 ## Référentiels
 - Services & API keys : [docs/api-config/SERVICES.md](docs/api-config/SERVICES.md) *(gitignored)*
 - Variables locales : [.env.local](.env.local) *(gitignored)*
+- Guide UI agent : [components/cockpit/AGENTS.md](components/cockpit/AGENTS.md)
 - Design system : `~/.claude/assets/cockpit/SPEC.md`

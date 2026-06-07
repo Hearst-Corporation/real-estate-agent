@@ -1,0 +1,196 @@
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE — adaptation tablette / mobile du shell + grilles.
+   Le shell est un flex 3 colonnes (rail gauche 88px · centre · rail
+   droit 420px) sans breakpoint à l'origine : le rail droit dépassait
+   l'écran < 500px. Ici on passe le rail droit en overlay flottant et
+   on dégrade les grilles KPI / fiches.
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  /* Rail droit (chat) : overlay au-dessus du contenu plutôt que colonne
+     fixe de 420px qui écrase le centre. Le toggle collapse/reopen existant
+     (RailRight) continue de fonctionner. */
+  .ct-rail-right {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: min(380px, 88vw);
+    box-shadow: -12px 0 40px -16px rgba(0,0,0,0.7);
+  }
+  .ct-rail-right.collapsed { width: 48px; box-shadow: none; }
+  .ct-page-area { 
+    padding: 24px 24px 96px; 
+    overflow-y: auto; /* Rétablir le scroll sur tablette/mobile */
+  }
+  .ct-page-stack, .prospection-page {
+    flex: none; /* Laisser grandir le contenu */
+  }
+  .ct-dashboard-grid { grid-template-columns: 1fr; }
+  /* KPI : 4 colonnes illisibles sur tablette → 2 colonnes. */
+  .ct-kpi-grid,
+  .ct-kpi-grid.cols-4,
+  .ct-kpi-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  /* Rail gauche caché sur mobile, remplacé par la BottomBar */
+  .ct-rail-left { display: none; }
+  .ct-page-area { padding: 20px 16px 92px; }
+  .ct-dashboard-grid { gap: var(--ct-space-md); }
+  .ct-hero-metric { align-items: flex-start; flex-direction: column; }
+  .ct-hero-extra { min-width: 0; text-align: left; }
+  .ct-chart-funnel-step { grid-template-columns: 1fr; gap: var(--ct-space-xs); }
+  .ct-card-hero { min-height: 220px; }
+  /* Tout en une colonne. */
+  .ct-kpi-grid,
+  .ct-kpi-grid.cols-4,
+  .ct-kpi-grid.cols-3,
+  .ct-kpi-grid.cols-2 { grid-template-columns: 1fr; }
+  .swarm-agents-grid { grid-template-columns: 1fr; }
+  /* Fiche bien : la grille label/valeur empile au lieu de déborder. */
+  .crm-detail-dl { grid-template-columns: 1fr; gap: var(--ct-space-2xs) 0; }
+  .crm-detail-dl dt { margin-top: var(--ct-space-xs); }
+  /* Titres dégradés pour tenir sur petit écran. */
+  .ct-title { font-size: 22px; }
+  /* Bottom bar : affichée sur mobile */
+  .ct-bottom-bar { display: block; padding: 12px; }
+  .ct-bottom-bar-inner { gap: 0; justify-content: space-around; overflow-x: visible; }
+}
+
+/* ─── Property Gallery ─────────────────────────────────────────────────────── */
+.property-photo-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  border: 1px dashed var(--ct-border);
+  border-radius: var(--ct-radius-md);
+  color: var(--ct-text-muted);
+}
+.property-gallery { display: flex; flex-direction: column; gap: var(--ct-space-sm); }
+.property-gallery-main {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: var(--ct-surface-2);
+  border-radius: var(--ct-radius-md);
+  overflow: hidden;
+}
+.property-gallery-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.property-gallery-cover-badge {
+  position: absolute;
+  top: var(--ct-space-xs);
+  left: var(--ct-space-xs);
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  color: var(--ct-text-strong);
+  font-size: var(--ct-fs-xs);
+  padding: var(--ct-space-2xs) var(--ct-space-xs);
+  border-radius: var(--ct-radius-sm);
+}
+.property-gallery-thumbs {
+  display: flex;
+  gap: var(--ct-space-xs);
+  flex-wrap: wrap;
+}
+.property-gallery-thumb {
+  position: relative;
+  width: 72px;
+  height: 54px;
+  border-radius: var(--ct-radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+.property-gallery-thumb.active { border-color: var(--ct-accent); }
+.property-gallery-thumb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.property-gallery-thumb-del {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(0,0,0,0.7);
+  color: var(--ct-text-strong);
+  border: none;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+/* ─── Photo Uploader ─────────────────────────────────────────────────────── */
+.property-uploader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  border: 1px dashed var(--ct-border);
+  border-radius: var(--ct-radius-md);
+  cursor: pointer;
+  transition: border-color var(--ct-dur-base) var(--ct-ease), background var(--ct-dur-base) var(--ct-ease);
+  gap: var(--ct-space-xs);
+  padding: var(--ct-space-md);
+}
+.property-uploader:hover, .property-uploader:focus, .property-uploader.drag-over {
+  border-color: var(--ct-accent);
+  background: var(--ct-surface-accent);
+  outline: none;
+}
+/* ─── DPE Badge ──────────────────────────────────────────────────────────── */
+.property-dpe-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ct-radius-sm);
+  font-weight: 700;
+  font-size: var(--ct-fs-md);
+  color: var(--ct-text-strong);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+/* ─── Form helpers ─────────────────────────────────────────────────────── */
+.ct-form-fieldset {
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-md);
+  padding: var(--ct-space-md);
+  margin: 0;
+}
+.ct-form-fieldset legend {
+  font-size: var(--ct-fs-xs);
+  color: var(--ct-text-muted);
+  padding: 0 var(--ct-space-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.ct-form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ct-space-sm);
+}
+.ct-form-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ct-space-sm);
+  margin: var(--ct-space-xs) 0;
+}
+.ct-form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-xs);
+  cursor: pointer;
+  font-size: var(--ct-fs-sm);
+  color: var(--ct-text-body);
+}
+.ct-form-checkbox input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--ct-accent);
+  cursor: pointer;
+}
+
+
+

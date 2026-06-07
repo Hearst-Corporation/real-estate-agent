@@ -3,6 +3,7 @@ import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { dateFr, timeFr } from "@/lib/crm/format";
+import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -60,14 +61,6 @@ export default async function AgendaPage() {
   const today = countToday(visits);
   const toConfirm = visits.filter((v) => v.status === "planifiee").length;
 
-  const CRM_TABS = [
-    { href: "/properties", label: UI.nav.properties },
-    { href: "/leads", label: UI.nav.leads },
-    { href: "/visits", label: UI.nav.visits },
-    { href: "/mandates", label: UI.nav.mandates },
-    { href: "/agenda", label: UI.nav.agenda },
-  ];
-
   const columns: Column<VisitRow>[] = [
     {
       key: "date",
@@ -101,7 +94,7 @@ export default async function AgendaPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={CRM_TABS} />}
+        nav={<PageNavTabs tabs={TAB_GROUPS.crm} />}
         kpis={[
           { label: t.kpis.thisWeek, value: String(thisWeek) },
           { label: t.kpis.today, value: String(today) },

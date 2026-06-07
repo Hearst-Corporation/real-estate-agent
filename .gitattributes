@@ -1,0 +1,3 @@
+# Le manifeste cockpit est généré en LF. Le figer évite un faux échec de
+# `npm run cockpit:manifest -- --check` sur un checkout Windows (core.autocrlf).
+components/cockpit/manifest.json text eol=lf

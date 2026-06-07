@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  CockpitForm,
+  Field,
+  TextInput,
+  Select,
+} from "@/components/cockpit/form";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
 
@@ -71,39 +77,36 @@ export default function VisitForm({ cta }: { cta: string }) {
   return (
     <div className="ct-card">
       <div className="ct-card-title">{t.title}</div>
-      <form className="ct-form" onSubmit={handleSubmit}>
-        <label>
-          <span className="ct-kpi-label">{t.property}</span>
-          <select
-            className="ct-input"
+      <CockpitForm onSubmit={handleSubmit}>
+        <Field label={t.property} htmlFor="visit-property" required>
+          <Select
+            id="visit-property"
             value={propertyId}
             onChange={(e) => setPropertyId(e.target.value)}
             required
-          >
-            <option value="">—</option>
-            {properties.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title ?? p.city ?? p.id}
-              </option>
-            ))}
-          </select>
-        </label>
+            options={[
+              { value: "", label: "—" },
+              ...properties.map((p) => ({
+                value: p.id,
+                label: p.title ?? p.city ?? p.id,
+              })),
+            ]}
+          />
+        </Field>
 
-        <label>
-          <span className="ct-kpi-label">{t.scheduledAt}</span>
-          <input
-            className="ct-input"
+        <Field label={t.scheduledAt} htmlFor="visit-scheduled-at" required>
+          <TextInput
+            id="visit-scheduled-at"
             type="datetime-local"
             value={scheduledAt}
             onChange={(e) => setScheduledAt(e.target.value)}
             required
           />
-        </label>
+        </Field>
 
-        <label>
-          <span className="ct-kpi-label">{t.duration}</span>
-          <input
-            className="ct-input"
+        <Field label={t.duration} htmlFor="visit-duration">
+          <TextInput
+            id="visit-duration"
             type="number"
             min={FORM_LIMITS.visitDurationMin}
             max={FORM_LIMITS.visitDurationMax}
@@ -111,17 +114,16 @@ export default function VisitForm({ cta }: { cta: string }) {
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
           />
-        </label>
+        </Field>
 
-        <label>
-          <span className="ct-kpi-label">{t.notes}</span>
-          <input
-            className="ct-input"
+        <Field label={t.notes} htmlFor="visit-notes">
+          <TextInput
+            id="visit-notes"
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
-        </label>
+        </Field>
 
         {error && <p className="ct-error">{error}</p>}
 
@@ -137,7 +139,7 @@ export default function VisitForm({ cta }: { cta: string }) {
             {t.cancel}
           </button>
         </div>
-      </form>
+      </CockpitForm>
     </div>
   );
 }

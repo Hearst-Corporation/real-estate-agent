@@ -6,6 +6,7 @@ import { LeadsViewToggle } from "./_components/LeadsViewToggle";
 import { countByStatus } from "@/lib/crm/aggregate";
 import { LEAD_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
+import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -57,20 +58,12 @@ export default async function LeadsPage() {
     statusTone("lead", s)
   );
 
-  const CRM_TABS = [
-    { href: "/properties", label: UI.nav.properties },
-    { href: "/leads", label: UI.nav.leads },
-    { href: "/visits", label: UI.nav.visits },
-    { href: "/mandates", label: UI.nav.mandates },
-    { href: "/agenda", label: UI.nav.agenda },
-  ];
-
   return (
     <PageStack>
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={CRM_TABS} />}
+        nav={<PageNavTabs tabs={TAB_GROUPS.crm} />}
         action={<LeadFormModal cta={t.newCta} />}
         kpis={[
           { label: t.kpis.total, value: String(total) },
