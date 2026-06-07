@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { UI } from "@/lib/ui-strings";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,32 +60,28 @@ export function GmailConnectButton() {
         );
       }
     } catch {
-      setErrorMsg("Impossible de contacter le serveur. Réessayez.");
+      setErrorMsg(UI.profile.integrations.serverError);
     } finally {
       setConnecting(null);
     }
   }
 
   if (loading) {
-    return <p style={{ fontSize: "var(--ct-fs-base)", opacity: "var(--ct-opacity-muted)" }}>Chargement…</p>;
+    return <p className="ct-subtext">{UI.common.loading}</p>;
   }
 
   if (!status?.configured) {
     return (
-      <p style={{ fontSize: "var(--ct-fs-base)", opacity: "var(--ct-opacity-muted)" }}>
-        Intégration non configurée (clé API Composio manquante).
-      </p>
+      <p className="ct-muted-text">{UI.profile.integrations.notConfigured}</p>
     );
   }
 
   return (
     <div className="ct-stack-sm">
       {/* Gmail */}
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-sm)" }}>
+      <div className="ct-row-sm">
         {status.gmail ? (
-          <span style={{ fontSize: "var(--ct-fs-base)", fontWeight: "var(--ct-fw-semibold)" }}>
-            Gmail ✓ connecté
-          </span>
+          <span className="ct-status-text">{UI.profile.integrations.gmailConnected}</span>
         ) : (
           <button
             type="button"
@@ -92,17 +89,14 @@ export function GmailConnectButton() {
             disabled={connecting === "gmail"}
             onClick={() => connect("gmail")}
           >
-            {connecting === "gmail" ? "Connexion…" : "Connecter Gmail"}
+            {connecting === "gmail" ? UI.profile.integrations.connectGmailBusy : UI.profile.integrations.connectGmail}
           </button>
         )}
       </div>
 
-      {/* Google Calendar */}
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-sm)" }}>
+      <div className="ct-row-sm">
         {status.calendar ? (
-          <span style={{ fontSize: "var(--ct-fs-base)", fontWeight: "var(--ct-fw-semibold)" }}>
-            Agenda Google ✓ connecté
-          </span>
+          <span className="ct-status-text">{UI.profile.integrations.calendarConnected}</span>
         ) : (
           <button
             type="button"
@@ -110,16 +104,12 @@ export function GmailConnectButton() {
             disabled={connecting === "googlecalendar"}
             onClick={() => connect("googlecalendar")}
           >
-            {connecting === "googlecalendar" ? "Connexion…" : "Connecter l'agenda Google"}
+            {connecting === "googlecalendar" ? UI.profile.integrations.connectCalendarBusy : UI.profile.integrations.connectCalendar}
           </button>
         )}
       </div>
 
-      {errorMsg ? (
-        <p style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-danger)" }}>
-          {errorMsg}
-        </p>
-      ) : null}
+      {errorMsg ? <p className="ct-error-danger">{errorMsg}</p> : null}
     </div>
   );
 }

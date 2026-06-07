@@ -62,6 +62,7 @@
   --ct-space-md: 16px;
   --ct-space-lg: 24px;
   --ct-space-xl: 32px;
+  --ct-space-2xl: 48px;
 
   /* Échelle typographique canonique — consommée inline par les composants
      (style={{ fontSize: "var(--ct-fs-sm)" }}), évite tout px brut dans les .tsx. */

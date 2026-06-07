@@ -63,7 +63,7 @@ export default async function LeadsPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={TAB_GROUPS.crm} />}
+        nav={<PageNavTabs tabs={TAB_GROUPS.clients} />}
         action={<LeadFormModal cta={t.newCta} />}
         kpis={[
           { label: t.kpis.total, value: String(total) },

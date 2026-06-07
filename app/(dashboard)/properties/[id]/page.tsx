@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Eyebrow, Title, Sub, Card, Badge } from "@/components/cockpit/primitives";
+import { Caption, Eyebrow, Title, Sub, Card, Badge } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateTimeFr, dateFr, daysSince } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
@@ -144,7 +144,7 @@ export default async function PropertyDetailPage({
       <div className="crm-detail-header">
         <div className="crm-detail-title-row">
           <Title>{property.title ?? t.fallbackTitle}</Title>
-          <div style={{ display: "flex", gap: "var(--ct-space-xs)", alignItems: "center", flexWrap: "wrap" }}>
+          <div className="crm-detail-actions">
             <PropertyStatusControl
               id={id}
               currentStatus={property.status}
@@ -189,22 +189,20 @@ export default async function PropertyDetailPage({
           <p className="crm-detail-price">{eur(displayPrice)}</p>
         )}
         {daysOnMarket !== null && (
-          <p style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)", marginTop: "var(--ct-space-2xs)" }}>
-            {t.daysOnMarket(daysOnMarket)}
-          </p>
+          <p className="crm-detail-meta">{t.daysOnMarket(daysOnMarket)}</p>
         )}
       </div>
 
       {/* Photos */}
-      <Card title={t.photos.title}>
+      <Card title={t.photos.title} titleAs="section">
         <PhotoGallery photos={photoList} propertyId={id} />
-        <div style={{ marginTop: "var(--ct-space-sm)" }}>
+        <div className="ct-mt-sm">
           <PhotoUploader propertyId={id} />
         </div>
       </Card>
 
       {/* Caractéristiques */}
-      <Card title={t.cardCaracteristiques}>
+      <Card title={t.cardCaracteristiques} titleAs="section">
         <dl className="crm-detail-dl">
           {property.property_type && (
             <><dt>{t.fields.type}</dt><dd>{t.typeLabels[property.property_type] ?? property.property_type}</dd></>
@@ -236,14 +234,14 @@ export default async function PropertyDetailPage({
 
       {/* DPE / GES */}
       {(property.dpe_letter || property.ges_letter) && (
-        <Card title={t.dpe.title}>
-          <div style={{ display: "flex", gap: "var(--ct-space-lg)", alignItems: "center", flexWrap: "wrap" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ct-space-xs)" }}>
-              <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{t.dpe.label}</span>
+        <Card title={t.dpe.title} titleAs="section">
+          <div className="crm-dpe-row">
+            <div className="ct-col-stack-xs">
+              <Caption as="span">{t.dpe.label}</Caption>
               <DpeBadge letter={property.dpe_letter} label={t.dpe.label} />
             </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ct-space-xs)" }}>
-              <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{t.dpe.gesLabel}</span>
+            <div className="ct-col-stack-xs">
+              <Caption as="span">{t.dpe.gesLabel}</Caption>
               <DpeBadge letter={property.ges_letter} label={t.dpe.gesLabel} />
             </div>
           </div>
@@ -254,7 +252,7 @@ export default async function PropertyDetailPage({
       {(property.year_built != null || property.floor != null || property.charges_monthly != null ||
         property.has_elevator || property.has_parking || property.has_garden || property.has_terrace ||
         property.has_pool || property.cellar) && (
-        <Card title={t.enrichissement.title}>
+        <Card title={t.enrichissement.title} titleAs="section">
           <dl className="crm-detail-dl">
             {property.year_built != null && (
               <><dt>{t.enrichissement.yearBuilt}</dt><dd>{property.year_built}</dd></>
@@ -296,7 +294,7 @@ export default async function PropertyDetailPage({
       )}
 
       {/* Leads */}
-      <Card title={tLeads.cardTitle}>
+      <Card title={tLeads.cardTitle} titleAs="section">
         {leads && leads.length > 0 ? (
           <ul className="crm-list">
             {leads.map((lead) => (
@@ -322,7 +320,7 @@ export default async function PropertyDetailPage({
       </Card>
 
       {/* Visites */}
-      <Card title={tVisits.cardTitle}>
+      <Card title={tVisits.cardTitle} titleAs="section">
         {visits && visits.length > 0 ? (
           <ul className="crm-list">
             {visits.map((visit) => (
@@ -341,7 +339,7 @@ export default async function PropertyDetailPage({
       </Card>
 
       {/* Mandats */}
-      <Card title={tMandates.cardTitle}>
+      <Card title={tMandates.cardTitle} titleAs="section">
         {mandates && mandates.length > 0 ? (
           <ul className="crm-list">
             {mandates.map((mandate) => (

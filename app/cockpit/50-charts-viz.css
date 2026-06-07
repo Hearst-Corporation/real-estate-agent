@@ -9,22 +9,16 @@
   display: grid;
   grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
   gap: var(--ct-space-lg);
-  align-items: stretch;
-  margin-bottom: 0;
-  height: 220px;
-  min-height: 220px;
-  max-height: 220px;
+  align-items: start;
   flex-shrink: 0;
 }
 .ct-viz-row > * {
   min-height: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--ct-space-lg);
 }
 @media (max-width: 1100px) {
-  .ct-viz-row { grid-template-columns: 1fr; height: auto; min-height: auto; max-height: none; }
+  .ct-viz-row { grid-template-columns: 1fr; }
 }
 
 /* La grille KPI par défaut est déjà 4 colonnes ; alias explicite. */
@@ -66,7 +60,7 @@
 }
 
 /* ── BarList (barres horizontales label + valeur + piste) ── */
-.ct-chart-barlist { display: flex; flex-direction: column; gap: var(--ct-space-md); flex: 1; justify-content: center; }
+.ct-chart-barlist { display: flex; flex-direction: column; gap: var(--ct-space-md); min-height: 140px; justify-content: center; }
 .ct-chart-barlist-item { display: flex; flex-direction: column; gap: var(--ct-space-xs); }
 .ct-chart-barlist-head {
   display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-sm);
@@ -106,7 +100,7 @@
 }
 
 /* ── Funnel (entonnoir vertical par statut) ── */
-.ct-chart-funnel { display: flex; flex-direction: column; gap: var(--ct-space-sm); flex: 1; justify-content: center; }
+.ct-chart-funnel { display: flex; flex-direction: column; gap: var(--ct-space-sm); min-height: 140px; }
 .ct-chart-funnel-step {
   display: grid;
   grid-template-columns: minmax(150px, 0.42fr) minmax(180px, 1fr);

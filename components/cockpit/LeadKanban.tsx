@@ -102,7 +102,7 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
                   onDragStart={(e) => handleDragStart(e, lead.id)}
                 >
                   <div className="crm-lead-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ct-space-xs)' }}>
+                    <div className="crm-lead-row">
                       <div
                         className="crm-avatar"
                         style={{ backgroundColor: getAvatarColor(lead.full_name) }}
@@ -119,8 +119,8 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
                       <span className="crm-lead-budget">≥ {eur(lead.budget_min)}</span>
                     ) : null}
                   </div>
-                  <div className="crm-lead-actions" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span className="ct-badge is-muted" style={{ margin: 0, fontSize: 9 }}>
+                  <div className="crm-lead-actions crm-lead-actions-row">
+                    <span className="ct-badge is-muted ct-badge-2xs">
                       {lead.kind ? (t.kindLabels[lead.kind] || lead.kind) : "Lead"}
                     </span>
                     <LeadRowActions

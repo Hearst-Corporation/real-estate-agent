@@ -81,7 +81,7 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
         Le porteur est créancier obligataire ; rendement non garanti, risque de perte en capital.
       </Sub>
 
-      <div className="inv-mk-toolbar" style={{ justifyContent: "space-between", alignItems: "center" }}>
+      <div className="inv-mk-toolbar inv-toolbar-between">
         <span>
           Statut du deal : <StatusPill tone="neutral">{state.dealStatus}</StatusPill>
         </span>
@@ -98,7 +98,7 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
       </Banner>
 
       {/* ── KPIs ───────────────────────────────────────────────────────────── */}
-      <div className="ct-kpi-grid cols-4" style={{ margin: "var(--ct-space-md) 0" }}>
+      <div className="ct-kpi-grid cols-4 inv-kpi-my">
         <div className="ct-kpi-card">
           <div className="ct-kpi-label">Conditions suspensives</div>
           <div className="ct-kpi-value">
@@ -121,25 +121,25 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* ── Conditions suspensives ─────────────────────────────────────────── */}
-      <div className="inv-chart-card" style={{ marginBottom: "var(--ct-space-md)" }}>
+      <div className="inv-chart-card inv-chart-mb">
         <h3 className="inv-chart-title">Conditions suspensives</h3>
         {state.conditions.length === 0 ? (
           <p className="inv-chart-foot">Aucune condition suspensive paramétrée pour ce deal.</p>
         ) : (
-          <table className="inv-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table className="inv-table">
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "var(--ct-space-2xs)" }}>Code</th>
-                <th style={{ textAlign: "left", padding: "var(--ct-space-2xs)" }}>Libellé</th>
-                <th style={{ textAlign: "right", padding: "var(--ct-space-2xs)" }}>État</th>
+                <th>Code</th>
+                <th>Libellé</th>
+                <th className="r">État</th>
               </tr>
             </thead>
             <tbody>
               {state.conditions.map((c) => (
-                <tr key={c.code} style={{ borderTop: "1px solid var(--ct-border)" }}>
-                  <td style={{ padding: "var(--ct-space-2xs)" }}>{c.code}</td>
-                  <td style={{ padding: "var(--ct-space-2xs)" }}>{c.label}</td>
-                  <td style={{ padding: "var(--ct-space-2xs)", textAlign: "right" }}>
+                <tr key={c.code}>
+                  <td>{c.code}</td>
+                  <td>{c.label}</td>
+                  <td className="r">
                     <StatusPill tone={c.isMet ? "open" : "soon"}>{c.isMet ? "remplie" : "en attente"}</StatusPill>
                   </td>
                 </tr>
@@ -150,9 +150,9 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* ── Lancement de la saga ───────────────────────────────────────────── */}
-      <div className="inv-chart-card" style={{ marginBottom: "var(--ct-space-md)" }}>
+      <div className="inv-chart-card inv-chart-mb">
         <h3 className="inv-chart-title">Lancer le closing (DvP)</h3>
-        <p className="inv-chart-foot" style={{ marginBottom: "var(--ct-space-xs)" }}>
+        <p className="inv-chart-foot inv-chart-intro">
           Ordre exécuté : fonds en séquestre confirmés → inscription DEEP → mint miroir (idempotent) →
           réconciliation → libération du séquestre vers le SPV (en dernier). En cas d&apos;échec avant
           la libération, remboursement intégral des souscriptions.
@@ -161,7 +161,7 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* ── Réconciliation DEEP↔chaîne ─────────────────────────────────────── */}
-      <div className="inv-chart-card" style={{ marginBottom: "var(--ct-space-md)" }}>
+      <div className="inv-chart-card inv-chart-mb">
         <h3 className="inv-chart-title">Réconciliation DEEP ↔ chaîne</h3>
         {state.lastReconciliation ? (
           <p className="inv-chart-foot">
@@ -189,20 +189,18 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
         {state.holdings.length === 0 ? (
           <p className="inv-chart-foot">Aucune position inscrite. Le registre se remplit à l&apos;étape DEEP du closing.</p>
         ) : (
-          <table className="inv-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table className="inv-table">
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "var(--ct-space-2xs)" }}>Porteur (créancier)</th>
-                <th style={{ textAlign: "right", padding: "var(--ct-space-2xs)" }}>Obligations</th>
+                <th>Porteur (créancier)</th>
+                <th className="r">Obligations</th>
               </tr>
             </thead>
             <tbody>
               {state.holdings.map((h) => (
-                <tr key={h.walletAddress} style={{ borderTop: "1px solid var(--ct-border)" }}>
-                  <td style={{ padding: "var(--ct-space-2xs)", fontFamily: "var(--ct-font-mono, monospace)" }}>
-                    {h.walletAddress}
-                  </td>
-                  <td style={{ padding: "var(--ct-space-2xs)", textAlign: "right" }}>{h.units}</td>
+                <tr key={h.walletAddress}>
+                  <td className="mono">{h.walletAddress}</td>
+                  <td className="r">{h.units}</td>
                 </tr>
               ))}
             </tbody>

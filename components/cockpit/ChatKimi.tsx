@@ -164,7 +164,7 @@ function ChatKimiSession({ pathname }: { pathname: string }) {
             <div className="ct-chat-msg-avatar">{m.role === "user" ? UI.chat.userAvatar : UI.chat.assistantAvatar}</div>
             <div className="ct-chat-msg-bubble">
               {m.tools && m.tools.length > 0 ? (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--ct-space-2xs)", marginBottom: "var(--ct-space-2xs)" }}>
+                <div className="ct-chip-row">
                   {m.tools.map((t) => (
                     <span key={t.id} className="ct-badge" title={t.name}>
                       {TOOL_ICON[t.status]} {t.summary}

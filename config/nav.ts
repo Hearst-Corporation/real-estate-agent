@@ -6,11 +6,11 @@
  * les onglets de sous-nav (PageNavTabs) et le typage des routes (AppRoute)
  * en dérivent. Ajouter une page = ajouter UNE entrée ici.
  *
- *   - `NAV`         : items du rail gauche (groupes "primary" + "crm").
- *   - `TAB_GROUPS`  : groupes d'onglets de sous-nav, partagés entre pages
- *                     (fini la duplication de `CRM_TABS` dans chaque page).
- *   - `AppRoute`    : union typée de toutes les routes connues → un href
- *                     fautif casse `tsc` au lieu de partir en prod.
+ *   - `NAV`              : items du rail gauche + tabs (groupe "main").
+ *   - `navRail`          : les 5 items affichés dans le rail (filtré de NAV).
+ *   - `MOBILE_SHORTCUTS` : items de la bottom bar, dérivés du même manifeste.
+ *   - `TAB_GROUPS`       : groupes d'onglets de sous-nav.
+ *   - `AppRoute`         : union typée de toutes les routes connues.
  *
  * Le rendu ne doit jamais coder une route en dur : passer par ce fichier.
  */
@@ -18,11 +18,11 @@
 import type { IconName } from "@/components/cockpit/Icon";
 import { UI } from "@/lib/ui-strings";
 
-/** Groupes visuels du rail gauche. */
-export type NavGroup = "primary" | "crm";
+/** Groupe visuel unique du rail gauche. */
+export type NavGroup = "main";
 
 /** Clé d'un groupe d'onglets de sous-nav. */
-export type TabGroupKey = "crm" | "swarms";
+export type TabGroupKey = "portefeuille" | "clients" | "swarms";
 
 export type NavItem = {
   href: string;
@@ -34,53 +34,68 @@ export type NavItem = {
 };
 
 /**
- * Items du rail gauche, dans l'ordre d'affichage.
- * `as const satisfies` : garde les littéraux (pour AppRoute) ET valide la forme.
+ * Tous les items de navigation connus.
+ * Les items sans `tabs` sont dans le rail direct.
+ * Les items avec `tabs` partagés (ex: portefeuille) peuvent n'être affichés
+ * que comme onglets et non comme entrée de rail directe.
  */
 export const NAV = [
-  { href: "/missions", label: UI.nav.missions, icon: "network", group: "primary" },
-  { href: "/estimations", label: UI.nav.estimations, icon: "estimate", group: "primary" },
-  { href: "/prospection", label: UI.nav.prospection, icon: "search", group: "primary" },
-  { href: "/swarms", label: UI.nav.swarms, icon: "network", group: "primary", tabs: "swarms" },
-  { href: "/properties", label: UI.nav.properties, icon: "properties", group: "crm", tabs: "crm" },
-  { href: "/leads", label: UI.nav.leads, icon: "leads", group: "crm", tabs: "crm" },
-  { href: "/visits", label: UI.nav.visits, icon: "visits", group: "crm", tabs: "crm" },
-  { href: "/mandates", label: UI.nav.mandates, icon: "mandates", group: "crm", tabs: "crm" },
-  { href: "/agenda", label: UI.nav.agenda, icon: "agenda", group: "crm", tabs: "crm" },
+  { href: "/",            label: UI.nav.home,         icon: "home",       group: "main" },
+  { href: "/prospection", label: UI.nav.prospection,  icon: "search",     group: "main" },
+  { href: "/properties",  label: UI.nav.portefeuille, icon: "properties", group: "main", tabs: "portefeuille" },
+  { href: "/estimations", label: UI.nav.estimations,  icon: "estimate",   group: "main", tabs: "portefeuille" },
+  { href: "/mandates",    label: UI.nav.mandates,     icon: "mandates",   group: "main", tabs: "portefeuille" },
+  { href: "/leads",       label: UI.nav.clients,      icon: "leads",      group: "main", tabs: "clients" },
+  { href: "/visits",      label: UI.nav.visits,       icon: "visits",     group: "main", tabs: "clients" },
+  { href: "/agenda",      label: UI.nav.agenda,       icon: "agenda",     group: "main" },
 ] as const satisfies readonly NavItem[];
 
-/** Sélecteurs de groupe (rail). */
-export const navPrimary = NAV.filter((i) => i.group === "primary");
-export const navCrm = NAV.filter((i) => i.group === "crm");
+/** Alias complet du manifeste. */
+export const navMain = NAV;
 
-/** Item-cible du raccourci "CRM" du rail (premier de son groupe). */
-export const CRM_ENTRY = navCrm[0];
+/** Les 5 items affichés dans le rail gauche (entry points des groupes). */
+const RAIL_HREFS = ["/", "/prospection", "/properties", "/leads", "/agenda"] as const;
+export const navRail = NAV.filter((i) =>
+  (RAIL_HREFS as readonly string[]).includes(i.href)
+);
+
+/** Raccourcis de la bottom bar mobile. */
+export const MOBILE_SHORTCUTS = [
+  ...navRail,
+  { href: "/profile", label: UI.nav.profile, icon: "user", group: "main" },
+] as const satisfies readonly NavItem[];
 
 /**
- * Routes typées. Dérivées du manifeste (rail) + routes hors-rail connues
- * (racine, profil, admin, invest, sous-routes swarms). Ajouter une route
- * hors-rail ici pour qu'un `<Link href>` typé l'accepte.
+ * Routes typées. Dérivées du manifeste + routes hors-rail connues.
  */
 export type AppRoute =
   | (typeof NAV)[number]["href"]
-  | "/"
+  | (typeof MOBILE_SHORTCUTS)[number]["href"]
   | "/profile"
   | "/admin"
+  | "/missions"
+  | "/swarms"
+  | "/swarms/new"
   | "/invest"
-  | "/swarms/analytics"
-  | "/swarms/prospection";
+  | "/invest/subscriptions"
+  | "/invest/onboarding";
 
 export type TabItem = { href: AppRoute; label: string };
 
 /**
- * Groupes d'onglets de sous-nav. `crm` est dérivé de NAV (mêmes pages que le
- * groupe rail). `swarms` ajoute des sous-routes absentes du rail.
+ * Groupes d'onglets de sous-nav.
  */
 export const TAB_GROUPS: Record<TabGroupKey, readonly TabItem[]> = {
-  crm: navCrm.map((i) => ({ href: i.href, label: i.label })),
+  portefeuille: [
+    { href: "/properties",  label: UI.nav.properties },
+    { href: "/estimations", label: UI.nav.estimations },
+    { href: "/mandates",    label: UI.nav.mandates },
+  ],
+  clients: [
+    { href: "/leads",  label: UI.nav.leads },
+    { href: "/visits", label: UI.nav.visits },
+  ],
   swarms: [
-    { href: "/swarms", label: "Tous les agents" },
-    { href: "/swarms/analytics", label: "Analytique" },
-    { href: "/swarms/prospection", label: "Prospection" },
+    { href: "/swarms", label: UI.nav.swarms },
   ],
 };

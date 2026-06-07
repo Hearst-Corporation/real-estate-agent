@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
 
 const t = UI.missions;
@@ -10,7 +10,8 @@ const t = UI.missions;
  *  Note : l'architect prend 60-90s, donc le clic attend (« Je prépare… »). */
 export function MissionLauncher() {
   const router = useRouter();
-  const [objective, setObjective] = useState("");
+  const searchParams = useSearchParams();
+  const [objective, setObjective] = useState(searchParams.get("objective") ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,7 +50,7 @@ export function MissionLauncher() {
       <button type="button" className="ct-btn ct-btn-primary" onClick={launch} disabled={busy || !objective.trim()}>
         {busy ? t.launchBusy : t.launchBtn}
       </button>
-      {error && <p className="ct-error" style={{ width: "100%" }}>{error}</p>}
+      {error && <p className="ct-error ct-error-full">{error}</p>}
     </div>
   );
 }

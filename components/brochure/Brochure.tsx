@@ -470,7 +470,7 @@ function PageTwo({ estimation }: { estimation: Estimation }): React.JSX.Element 
         <div className="res-title">Mentions & réserves</div>
         <p className="disc"><b>Avis de valeur indicatif.</b> Ce document constitue une estimation fondée sur des données de marché et ne saurait être assimilé à une expertise immobilière au sens réglementaire. Il n&apos;engage pas son émetteur, ne préjuge pas du prix de transaction effectif et exclut les frais d&apos;acquisition. Établi le {date} — valable 6 mois.</p>
         {toConfirm.length > 0 && (
-          <div className="reserve-item" style={{ marginTop: '6px' }}>
+          <div className="reserve-item" style={{ marginTop: 'var(--ct-space-2xs)' }}>
             <span className="reserve-field">Données à confirmer :</span>
             <span className="reserve-note">{toConfirm.join(' · ')}.</span>
           </div>

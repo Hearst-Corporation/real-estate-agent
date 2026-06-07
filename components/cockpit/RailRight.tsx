@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { ChatKimi } from "./ChatKimi";
 import { UI } from "@/lib/ui-strings";
@@ -40,6 +40,13 @@ export function RailRight() {
   // Dérivé en render : identique au SSR (usePathname est hydration-stable) → aucun flash.
   const interviewOverride = override?.pathname === pathname ? override.open : null;
   const open = interviewOverride ?? (onInterview ? false : userOpen);
+
+  useEffect(() => {
+    const area = document.querySelector(".ct-page-area");
+    if (!area) return;
+    area.classList.toggle("chat-open", open);
+    return () => area.classList.remove("chat-open");
+  }, [open]);
 
   function toggle() {
     if (onInterview) {

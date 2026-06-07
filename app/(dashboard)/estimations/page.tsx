@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
 import { eur, dateFr } from "@/lib/crm/format";
+import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -88,6 +90,7 @@ export default async function EstimationsPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
+        nav={<PageNavTabs tabs={TAB_GROUPS.portefeuille} />}
         action={
           <Link href="/estimations/new" className="ct-seg-btn primary">
             {t.newCta}

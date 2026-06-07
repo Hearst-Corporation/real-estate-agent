@@ -8,6 +8,31 @@
 }
 
 /* 2. Card cliquable compacte */
+.crm-card-media {
+  height: 120px;
+  width: 100%;
+  background-color: var(--ct-surface-2);
+  position: relative;
+  overflow: hidden;
+}
+.crm-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.crm-card-media-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.crm-card-media-badge {
+  position: absolute;
+  top: var(--ct-space-xs);
+  right: var(--ct-space-xs);
+}
+
 .crm-card {
   background: var(--ct-surface-1);
   border: 1px solid var(--ct-border);
@@ -381,6 +406,11 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
 .crm-detail-title-row {
   display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ct-space-md);
 }
+.crm-detail-actions { display: flex; gap: var(--ct-space-xs); align-items: center; flex-wrap: wrap; }
+.crm-detail-meta { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); margin-top: var(--ct-space-2xs); }
+.crm-dpe-row { display: flex; gap: var(--ct-space-lg); align-items: center; flex-wrap: wrap; }
+.crm-view-panel { display: flex; flex-direction: column; gap: var(--ct-space-md); flex: 1; min-height: 0; }
+.crm-toolbar-shrink { flex-shrink: 0; }
 .crm-detail-price {
   font-size: var(--ct-fs-xl); font-weight: var(--ct-fw-heavy); color: var(--ct-accent-strong);
   letter-spacing: var(--ct-ls-tight); margin-top: var(--ct-space-2xs);

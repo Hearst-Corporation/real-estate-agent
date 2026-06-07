@@ -30,7 +30,7 @@ export function GeneratingScreen({ currentStep }: Props) {
           <span className="est-generating-pulse" />
         </div>
 
-        <h2 className="est-generating-title">Analyse en cours…</h2>
+        <h2 className="ct-h2 est-generating-title">Analyse en cours…</h2>
         <p className="est-generating-sub">
           Nous interrogeons les bases DVF, DPE et les annonces du marché.
         </p>

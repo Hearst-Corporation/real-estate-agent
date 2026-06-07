@@ -4,28 +4,34 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
 import { Icon } from "./Icon";
+import { MOBILE_SHORTCUTS } from "@/config/nav";
+
+const PORTEFEUILLE_ROUTES = ["/properties", "/estimations", "/mandates"];
+const CLIENTS_ROUTES = ["/leads", "/visits"];
+
+function isActive(itemHref: string, pathname: string): boolean {
+  if (itemHref === "/") return pathname === "/";
+  if (itemHref === "/properties") {
+    return PORTEFEUILLE_ROUTES.some(
+      (r) => pathname === r || pathname.startsWith(r + "/")
+    );
+  }
+  if (itemHref === "/leads") {
+    return CLIENTS_ROUTES.some(
+      (r) => pathname === r || pathname.startsWith(r + "/")
+    );
+  }
+  return pathname === itemHref || pathname.startsWith(itemHref + "/");
+}
 
 export function BottomBar() {
   const pathname = usePathname();
 
-  const NAV_ITEMS = [
-    { href: "/estimations", label: UI.nav.estimations, icon: "estimate" as const },
-    { href: "/prospection", label: UI.nav.prospection, icon: "search" as const },
-    { href: "/properties", label: "CRM", icon: "crm" as const },
-    { href: "/swarms", label: UI.nav.swarms, icon: "network" as const },
-    { href: "/profile", label: UI.nav.profile, icon: "user" as const },
-  ];
-
   return (
-    <div className="ct-bottom-bar">
+    <nav className="ct-bottom-bar" aria-label={UI.nav.home}>
       <div className="ct-bottom-bar-inner">
-        {NAV_ITEMS.map((item) => {
-          // Pour le CRM, on allume l'onglet si on est sur n'importe quelle page CRM
-          const isCrm = item.icon === "crm";
-          const crmHrefs = ["/properties", "/leads", "/visits", "/mandates", "/agenda"];
-          const active = isCrm 
-            ? crmHrefs.some(h => pathname === h || pathname.startsWith(h + "/"))
-            : pathname === item.href || pathname.startsWith(item.href + "/");
+        {MOBILE_SHORTCUTS.map((item) => {
+          const active = isActive(item.href, pathname);
 
           return (
             <Link
@@ -34,6 +40,7 @@ export function BottomBar() {
               className={`ct-bottom-nav-item${active ? " active" : ""}`}
               title={item.label}
               aria-label={item.label}
+              aria-current={active ? "page" : undefined}
             >
               <Icon name={item.icon} />
               <span>{item.label}</span>
@@ -41,6 +48,6 @@ export function BottomBar() {
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

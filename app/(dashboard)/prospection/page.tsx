@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
+import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
@@ -44,11 +46,15 @@ interface Critere {
 }
 
 type Tab = "acquereurs" | "matching" | "annonces" | "criteres";
+const TABS: readonly Tab[] = ["acquereurs", "matching", "annonces", "criteres"];
 
-const TABS: Tab[] = ["acquereurs", "matching", "annonces", "criteres"];
+function tabFromParam(value: string | null): Tab {
+  return TABS.includes(value as Tab) ? (value as Tab) : "acquereurs";
+}
 
 export default function ProspectionPage() {
-  const [tab, setTab] = useState<Tab>("acquereurs");
+  const searchParams = useSearchParams();
+  const [tab, setTab] = useState<Tab>(() => tabFromParam(searchParams.get("tab")));
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
   const [matchs, setMatchs] = useState<Match[]>([]);
   const [criteres, setCriteres] = useState<Critere[]>([]);
@@ -122,16 +128,25 @@ export default function ProspectionPage() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadInitialCriteres() {
+    async function loadInitial() {
       try {
-        const res = await fetch("/api/prospection/criteres");
+        const initialTab = tabFromParam(searchParams.get("tab"));
+        const endpoint =
+          initialTab === "annonces"
+            ? "/api/prospection/annonces"
+            : initialTab === "matching"
+              ? "/api/prospection/matchs"
+              : "/api/prospection/criteres";
+        const res = await fetch(endpoint);
         const json = await res.json().catch(() => ({}));
         if (cancelled) return;
         if (!res.ok) {
           setError(json.error ?? `Erreur HTTP ${res.status}`);
           return;
         }
-        setCriteres(json.data ?? []);
+        if (initialTab === "annonces") setAnnonces(json.data ?? []);
+        else if (initialTab === "matching") setMatchs(json.data ?? []);
+        else setCriteres(json.data ?? []);
       } catch {
         if (!cancelled) setError(UI.prospection.loadCriteresError);
       } finally {
@@ -139,11 +154,11 @@ export default function ProspectionPage() {
       }
     }
 
-    void loadInitialCriteres();
+    void loadInitial();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [searchParams]);
 
   async function sendFeedback(matchId: string, signal: "like" | "dislike" | "contact" | "visite") {
     setError(null);
@@ -173,10 +188,10 @@ export default function ProspectionPage() {
       key: "criteres",
       header: "Critères",
       render: (c) => (
-        <div className="prospection-acquereur-tags" style={{ display: "flex", gap: "var(--ct-space-2xs)", flexWrap: "wrap" }}>
-          {c.type_bien?.map((type) => <span key={type} className="prospection-pill" style={{ fontSize: "var(--ct-fs-2xs)", padding: "2px 6px", borderRadius: "var(--ct-radius-xs)", background: "var(--ct-surface-hover)" }}>{type}</span>)}
-          {c.surface_min ? <span className="prospection-pill" style={{ fontSize: "var(--ct-fs-2xs)", padding: "2px 6px", borderRadius: "var(--ct-radius-xs)", background: "var(--ct-surface-hover)" }}>{c.surface_min} m² min</span> : null}
-          {c.pieces_min ? <span className="prospection-pill" style={{ fontSize: "var(--ct-fs-2xs)", padding: "2px 6px", borderRadius: "var(--ct-radius-xs)", background: "var(--ct-surface-hover)" }}>{c.pieces_min} p min</span> : null}
+        <div className="prospection-acquereur-tags">
+          {c.type_bien?.map((type) => <span key={type} className="prospection-pill">{type}</span>)}
+          {c.surface_min ? <span className="prospection-pill">{c.surface_min} m² min</span> : null}
+          {c.pieces_min ? <span className="prospection-pill">{c.pieces_min} p min</span> : null}
         </div>
       ),
     },
@@ -188,7 +203,7 @@ export default function ProspectionPage() {
       header: "Annonce",
       render: (a) => (
         <div>
-          <div style={{ fontWeight: 500 }}>{a.titre ?? a.type_bien}</div>
+          <div className="prospection-annonce-title">{a.titre ?? a.type_bien}</div>
           <div className="ct-subtext">
             {[a.surface && `${a.surface}m²`, a.pieces && `${a.pieces}p`, a.ville ?? a.code_postal].filter(Boolean).join(" · ")}
           </div>
@@ -200,8 +215,8 @@ export default function ProspectionPage() {
       key: "tags",
       header: "Tags",
       render: (a) => (
-        <div style={{ display: "flex", gap: "var(--ct-space-2xs)" }}>
-          {a.is_pap && <span className="prospection-pap" style={{ fontSize: "var(--ct-fs-2xs)", padding: "2px 6px", borderRadius: "var(--ct-radius-xs)", background: "var(--ct-surface-accent)", color: "var(--ct-text-accent)" }}>PAP</span>}
+        <div className="prospection-acquereur-tags">
+          {a.is_pap && <span className="prospection-pap">PAP</span>}
         </div>
       ),
     },
@@ -218,7 +233,7 @@ export default function ProspectionPage() {
       key: "score",
       header: "Score",
       render: (m) => (
-        <div className={`prospection-score${m.score_match >= MATCH_SCORE_ALERT ? " is-good" : ""}`} style={{ fontWeight: "var(--ct-fw-bold)", color: m.score_match >= MATCH_SCORE_ALERT ? "var(--ct-text-success)" : "inherit" }}>
+        <div className={`prospection-score${m.score_match >= MATCH_SCORE_ALERT ? " is-good" : ""}`}>
           {m.score_match}
         </div>
       ),
@@ -231,7 +246,7 @@ export default function ProspectionPage() {
         const prix = a.prix ? `${Math.round(a.prix / 1000)}k€` : "NC";
         return (
           <div>
-            <div style={{ fontWeight: 500 }}>{a.titre ?? a.type_bien}</div>
+            <div className="prospection-annonce-title">{a.titre ?? a.type_bien}</div>
             <div className="ct-subtext">
               {[a.surface && `${a.surface}m²`, a.pieces && `${a.pieces}p`, a.ville ?? a.code_postal, prix].filter(Boolean).join(" · ")}
             </div>
@@ -244,7 +259,7 @@ export default function ProspectionPage() {
       header: "Actions",
       align: "right",
       render: (m) => (
-        <div className="prospection-match-actions" style={{ display: "flex", gap: "var(--ct-space-xs)", justifyContent: "flex-end" }}>
+        <div className="prospection-match-actions">
           <button className="ct-seg-btn" onClick={() => sendFeedback(m.id, "like")}>👍</button>
           <button className="ct-seg-btn" onClick={() => sendFeedback(m.id, "dislike")}>👎</button>
           <button className="ct-seg-btn primary" onClick={() => sendFeedback(m.id, "contact")}>Contacter</button>
@@ -256,43 +271,37 @@ export default function ProspectionPage() {
   return (
     <PageStack>
       <PageHeader
-        kicker="BienCible import"
-        title="Acquéreurs"
+        kicker={UI.prospection.eyebrow}
+        title={UI.prospection.title}
         action={
           <button type="button" className="ct-seg-btn primary" onClick={() => selectTab("criteres")}>
             + Nouvel acquéreur
           </button>
         }
-        nav={TABS.map(t => (
-          <button key={t} className={`ct-page-header-nav-item${tab === t ? " active" : ""}`} onClick={() => selectTab(t)}>
-            {t === "acquereurs" ? "Acquéreurs" : t === "annonces" ? UI.prospection.annonces : t === "matching" ? UI.prospection.matching : UI.prospection.criteres}
-          </button>
-        ))}
+        nav={
+          <PageSegmentTabs
+            tabs={[
+              { id: "acquereurs", label: UI.prospection.acquereurs },
+              { id: "annonces", label: UI.prospection.annonces },
+              { id: "matching", label: UI.prospection.matching },
+              { id: "criteres", label: UI.prospection.criteres },
+            ]}
+            active={tab}
+            onSelect={selectTab}
+          />
+        }
         kpis={[
-          { label: "Acquéreurs", value: String(criteres.length) },
+          { label: UI.prospection.acquereurs, value: String(criteres.length) },
           { label: "Matchs", value: String(matchs.length) },
           { label: "Annonces", value: String(annonces.length) },
           { label: "Alertes", value: String(criteres.filter(c => c.alerte_email || c.alerte_whatsapp).length) },
         ]}
       />
 
-      <div className="ct-viz-row">
-        <div>
-          <Card title="Aperçu" variant="chart">
-            <p className="ct-placeholder">Aperçu de la prospection.</p>
-          </Card>
-        </div>
-        <div>
-          <Card title="Alertes" variant="chart">
-            <p className="ct-placeholder">Aucune alerte récente.</p>
-          </Card>
-        </div>
-      </div>
-
       <Card variant="dense">
         {tab === "acquereurs" && (
           <div className="prospection-list">
-            {error && criteres.length > 0 ? <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p> : null}
+            {error && criteres.length > 0 ? <p className="ct-error ct-error-pad">{error}</p> : null}
             {loading ? <Spinner /> : (
               <DataTable
                 columns={acquereurColumns}
@@ -306,8 +315,8 @@ export default function ProspectionPage() {
 
         {tab === "annonces" && (
           <div>
-            <div className="prospection-toolbar" style={{ padding: "var(--ct-space-md)" }}>
-              <label className="prospection-filter" style={{ marginRight: "var(--ct-space-md)" }}>
+            <div className="prospection-toolbar inset">
+              <label className="prospection-filter">
                 <input
                   type="checkbox"
                   checked={filterEligible}
@@ -319,12 +328,12 @@ export default function ProspectionPage() {
                 />
                 {UI.prospection.eligibleOnly}
               </label>
-              <span className="prospection-count" style={{ marginRight: "var(--ct-space-md)" }}>{annonces.length} annonces</span>
+              <span className="prospection-count">{annonces.length} annonces</span>
               <button type="button" className="ct-seg-btn" onClick={() => loadAnnonces()}>
                 {UI.prospection.refresh}
               </button>
             </div>
-            {error && annonces.length > 0 ? <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p> : null}
+            {error && annonces.length > 0 ? <p className="ct-error ct-error-pad">{error}</p> : null}
             {loading ? <Spinner /> : (
               <DataTable
                 columns={annonceColumns}
@@ -338,7 +347,7 @@ export default function ProspectionPage() {
 
         {tab === "matching" && (
           <div>
-            <div style={{ padding: "var(--ct-space-md)", display: "flex", justifyContent: "space-between" }}>
+            <div className="prospection-panel-head">
               <p className="prospection-hint">
                 {UI.prospection.matchingHint}
               </p>
@@ -346,7 +355,7 @@ export default function ProspectionPage() {
                 {UI.prospection.refresh}
               </button>
             </div>
-            {error && matchs.length > 0 ? <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p> : null}
+            {error && matchs.length > 0 ? <p className="ct-error ct-error-pad">{error}</p> : null}
             {loading ? <Spinner /> : (
               <DataTable
                 columns={matchColumns}
@@ -493,7 +502,7 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
       header: "Action",
       align: "right",
       render: (c) => (
-        <button onClick={() => deleteCritere(c.id)} style={{ background: "none", border: "1px solid var(--ct-border)", borderRadius: "var(--ct-radius-sm)", padding: "4px 12px", cursor: "pointer", color: "var(--ct-text-danger)", fontSize: "var(--ct-fs-xs)" }}>
+        <button type="button" className="prospection-delete-btn" onClick={() => deleteCritere(c.id)}>
           {UI.prospection.delete}
         </button>
       ),
@@ -502,15 +511,15 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "var(--ct-space-md)" }}>
-        <span style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-sm)" }}>{UI.prospection.criteresCount(criteres.length)}</span>
+      <div className="prospection-panel-head">
+        <span className="ct-subtext">{UI.prospection.criteresCount(criteres.length)}</span>
         <div className="ct-seg-track">
           <button className="ct-seg-btn" onClick={loadCriteres}>{UI.prospection.refresh}</button>
           <button className="ct-seg-btn primary" onClick={() => setShowForm(v => !v)}>{UI.prospection.newCritere}</button>
         </div>
       </div>
       {showForm && (
-        <div className="ct-card" style={{ margin: "var(--ct-space-md)", padding: "var(--ct-space-md)", display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
+        <div className="ct-card prospection-form-card">
           <input className="ct-input" placeholder={UI.prospection.critereNamePlaceholder} value={nom} onChange={e => setNom(e.target.value)} />
           <input className="ct-input" placeholder={UI.prospection.critereZonesPlaceholder} value={zones} onChange={e => setZones(e.target.value)} />
           <input className="ct-input" placeholder={UI.prospection.budgetMaxPlaceholder} type="number" value={budgetMax} onChange={e => setBudgetMax(e.target.value)} />
@@ -518,8 +527,8 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
           <button className="ct-seg-btn primary" onClick={save} disabled={saving}>{saving ? UI.prospection.saving : UI.prospection.save}</button>
         </div>
       )}
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
-        {error ? <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p> : null}
+      <div className="ct-col-stack-sm">
+        {error ? <p className="ct-error ct-error-pad">{error}</p> : null}
         {loading ? <Spinner /> : (
           <DataTable
             columns={critereColumns}

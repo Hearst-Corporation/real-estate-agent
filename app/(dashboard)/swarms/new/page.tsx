@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
+import { PageHeader, PageStack } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import type { SwarmAgent, SwarmTask, ArchitectSpec } from "@/lib/swarms/types";
 
@@ -129,26 +131,21 @@ export default function NewSwarmPage() {
   }
 
   return (
-    <>
-      <p className="ct-eyebrow">{UI.swarms.eyebrow}</p>
-      <h1 className="ct-title">{UI.swarms.newTitle}</h1>
-
-      <div className="swarm-tabs">
-        <button
-          type="button"
-          className={`swarm-tab-btn${tab === "architect" ? " active" : ""}`}
-          onClick={() => setTab("architect")}
-        >
-          {UI.swarms.tabArchitect}
-        </button>
-        <button
-          type="button"
-          className={`swarm-tab-btn${tab === "manual" ? " active" : ""}`}
-          onClick={() => setTab("manual")}
-        >
-          {UI.swarms.tabManual}
-        </button>
-      </div>
+    <PageStack>
+      <PageHeader
+        kicker={UI.swarms.eyebrow}
+        title={UI.swarms.newTitle}
+        nav={
+          <PageSegmentTabs
+            tabs={[
+              { id: "architect", label: UI.swarms.tabArchitect },
+              { id: "manual", label: UI.swarms.tabManual },
+            ]}
+            active={tab}
+            onSelect={setTab}
+          />
+        }
+      />
 
       {tab === "architect" && (
         <div className="swarm-create-arch">
@@ -365,6 +362,6 @@ export default function NewSwarmPage() {
           </div>
         </div>
       )}
-    </>
+    </PageStack>
   );
 }

@@ -17,6 +17,7 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { renderAndCacheEstimationPdf } from "@/lib/brochure/generate";
 import { captureFatal } from "@/lib/server/observe";
 import { searchListings, moteurImmoIsConfigured } from "@/lib/providers/moteurimmo";
+import { searchListingsApify, apifyProspectionIsConfigured } from "@/lib/prospection/apify-source";
 import { upsertAnnonces } from "@/lib/prospection/ingest";
 import { matchAnnonce } from "@/lib/prospection/matching/match";
 import { sendMatchAlerte } from "@/lib/prospection/alert";
@@ -90,13 +91,20 @@ export const prospIngestion = inngest.createFunction(
       .maybeSingle();
 
     const zones: string[] = (cfg?.zones_prioritaires as string[]) ?? ["75011","75012","75013","75014","75015"];
-    const provider = moteurImmoIsConfigured() ? "moteurimmo" : "apify_lbc";
+    const useMoteurImmo = moteurImmoIsConfigured();
+    const provider = useMoteurImmo ? "moteurimmo" : "apify_lbc";
+    if (!useMoteurImmo && !apifyProspectionIsConfigured()) {
+      return { skipped: "no_listings_provider" };
+    }
 
     let totalInserted = 0, totalDups = 0, totalErrors = 0;
 
     for (const zone of zones) {
       const listings = await step.run(`ingest:${zone}`, async () => {
-        return searchListings({ codePostal: zone, perPage: 50 });
+        // MoteurImmo si configuré, sinon scraper Apify LeBonCoin (fallback réel).
+        return useMoteurImmo
+          ? searchListings({ codePostal: zone, perPage: 50 })
+          : searchListingsApify(zone);
       });
       const stats = await step.run(`upsert:${zone}`, async () => {
         return upsertAnnonces("real-estate-agent", listings, provider);

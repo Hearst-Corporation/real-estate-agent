@@ -93,7 +93,7 @@ export default async function MandatesPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={TAB_GROUPS.crm} />}
+        nav={<PageNavTabs tabs={TAB_GROUPS.portefeuille} />}
         action={<MandateFormModal cta={t.newCta} />}
         kpis={[
           { label: t.kpis.total, value: String(mandates.length) },

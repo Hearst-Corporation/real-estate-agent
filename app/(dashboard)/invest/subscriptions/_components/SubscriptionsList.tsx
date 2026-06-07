@@ -155,7 +155,7 @@ export function SubscriptionsList({ initial }: { initial: SubscriptionView[] }) 
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-md)" }}>
+    <div className="inv-stack-md">
       {error ? <Toast tone="error">{error}</Toast> : null}
       {notice ? <Toast tone="success">{notice}</Toast> : null}
 
@@ -163,7 +163,7 @@ export function SubscriptionsList({ initial }: { initial: SubscriptionView[] }) 
         const busy = busyId === s.id;
         return (
           <div key={s.id} style={rowStyle}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div className="inv-stack-2xs">
               <StatusPill tone={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</StatusPill>
               <span style={metaStyle}>
                 {eur(s.amountEur)} {s.settlementCurrency} · {s.units} obligation(s)

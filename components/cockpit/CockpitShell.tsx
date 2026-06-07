@@ -6,18 +6,16 @@ import { RailRight } from "./RailRight";
 export function CockpitShell({
   children,
   userEmail,
-  isAdmin = false,
 }: {
   children: ReactNode;
   userEmail?: string;
-  isAdmin?: boolean;
 }) {
   return (
     <div className="ct-root">
       <div className="ct-ambient-deep" />
       <div className="ct-ambient-glow" />
       <div className="ct-panels-row">
-        <RailLeft userEmail={userEmail} isAdmin={isAdmin} />
+        <RailLeft userEmail={userEmail} />
         <CenterPanel>{children}</CenterPanel>
         <RailRight />
       </div>

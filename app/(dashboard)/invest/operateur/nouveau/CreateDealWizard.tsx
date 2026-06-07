@@ -52,16 +52,15 @@ function Field({
   suffix?: string;
 }) {
   return (
-    <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+    <label className="inv-field">
       <span className="ct-kpi-label">{label}</span>
-      <span style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-2xs)" }}>
+      <span className="inv-field-row">
         <input
-          className="ct-input"
+          className="ct-input inv-w-full"
           type="number"
           value={value}
           min={0}
           onChange={(ev) => onChange(Number(ev.target.value))}
-          style={{ width: "100%" }}
         />
         {suffix ? <span className="inv-chart-foot">{suffix}</span> : null}
       </span>
@@ -217,23 +216,23 @@ export function CreateDealWizard() {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="inv-grid-2" style={{ gap: "var(--ct-space-lg)" }}>
+      <div className="inv-grid-2 loose">
         {/* Colonne saisie */}
         <div className="inv-chart-card">
           <div className="inv-chart-head">
             <span className="inv-chart-title">Identité & économie de l’opération</span>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+          <div className="inv-grid-form">
+            <label className="inv-field" >
               <span className="ct-kpi-label">SAS émettrice (raison sociale)</span>
               <input className="ct-input" value={legalName} onChange={(e) => setLegalName(e.target.value)} required />
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+            <label className="inv-field" >
               <span className="ct-kpi-label">Nom commercial du deal</span>
               <input className="ct-input" value={name} onChange={(e) => setName(e.target.value)} required />
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+            <label className="inv-field" >
               <span className="ct-kpi-label">Slug (URL)</span>
               <input
                 className="ct-input"
@@ -243,11 +242,11 @@ export function CreateDealWizard() {
                 required
               />
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+            <label className="inv-field" >
               <span className="ct-kpi-label">Ville</span>
               <input className="ct-input" value={city} onChange={(e) => setCity(e.target.value)} />
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+            <label className="inv-field" >
               <span className="ct-kpi-label">Type d’opération</span>
               <select className="ct-input" value={dealType} onChange={(e) => setDealType(e.target.value as DealTypeDb)}>
                 <option value="marchand_de_biens">Marchand de biens</option>
@@ -260,20 +259,20 @@ export function CreateDealWizard() {
             <Field label="Durée cible" value={durationMonths} onChange={setDurationMonths} suffix="mois" />
           </div>
 
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-lg)" }}>
+          <div className="inv-chart-head inv-chart-head-mt">
             <span className="inv-chart-title">Postes de coût</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
+          <div className="inv-grid-form">
             <Field label="Prix d’acquisition" value={acquisition} onChange={setAcquisition} suffix="€" />
             <Field label="Frais de notaire" value={notary} onChange={setNotary} suffix="€" />
             <Field label="Budget travaux" value={works} onChange={setWorks} suffix="€" />
             <Field label="Frais divers / portage" value={other} onChange={setOther} suffix="€" />
           </div>
 
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-lg)" }}>
+          <div className="inv-chart-head inv-chart-head-mt">
             <span className="inv-chart-title">Financement</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
+          <div className="inv-grid-form">
             <Field label="Dette senior" value={seniorDebt} onChange={setSeniorDebt} suffix="€" />
             <Field label="Taux dette senior" value={seniorRatePct} onChange={setSeniorRatePct} suffix="%/an" />
             <Field label="Equity sponsor" value={sponsorEquity} onChange={setSponsorEquity} suffix="€" />
@@ -282,19 +281,19 @@ export function CreateDealWizard() {
             <Field label="Ticket minimum" value={minTicket} onChange={setMinTicket} suffix="€" />
           </div>
 
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-lg)" }}>
+          <div className="inv-chart-head inv-chart-head-mt">
             <span className="inv-chart-title">Sortie & valorisation</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
+          <div className="inv-grid-form">
             <Field label="Prix de revente central" value={resalePrice} onChange={setResalePrice} suffix="€" />
             <Field label="Valeur d’expertise (base LTV)" value={appraised} onChange={setAppraised} suffix="€" />
           </div>
 
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-lg)" }}>
+          <div className="inv-chart-head inv-chart-head-mt">
             <span className="inv-chart-title">Règlement & token (cadre anti-FIA)</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+          <div className="inv-grid-form">
+            <label className="inv-field" >
               <span className="ct-kpi-label">Devise de règlement</span>
               <select className="ct-input" value={settlement} onChange={(e) => setSettlement(e.target.value as SettlementCurrency)}>
                 <option value="EUR">EUR (séquestre)</option>
@@ -302,7 +301,7 @@ export function CreateDealWizard() {
                 <option value="EURe">EURe (stablecoin régulé)</option>
               </select>
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+            <label className="inv-field" >
               <span className="ct-kpi-label">Standard du token</span>
               <select className="ct-input" value={tokenStandard} onChange={(e) => setTokenStandard(e.target.value as TokenStandard)}>
                 <option value="ERC-3643">ERC-3643 (T-REX permissionné)</option>
@@ -313,7 +312,7 @@ export function CreateDealWizard() {
         </div>
 
         {/* Colonne prévisualisation moteur (pessimiste avant publication) */}
-        <div className="inv-chart-card" style={{ alignSelf: "flex-start" }}>
+        <div className="inv-chart-card inv-chart-self-start">
           <div className="inv-chart-head">
             <span className="inv-chart-title">Prévisualisation moteur (avant publication)</span>
           </div>
@@ -329,7 +328,7 @@ export function CreateDealWizard() {
             <dd>{fmtPct(central?.irr_investisseur.irr ?? null)}</dd>
           </dl>
 
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-md)" }}>
+          <div className="inv-chart-head inv-chart-head-mt-sm">
             <span className="inv-chart-title">Scénario PESSIMISTE (pire cas)</span>
           </div>
           {pess ? (
@@ -346,9 +345,9 @@ export function CreateDealWizard() {
           )}
 
           {preview.sheet && preview.sheet.warnings.length > 0 ? (
-            <div className="inv-banner inv-banner-warn" style={{ marginTop: "var(--ct-space-md)", padding: "var(--ct-space-sm)", border: "1px solid var(--ct-border)" }}>
+            <div className="inv-banner inv-banner-warn inv-banner-compact">
               <b>Points d’attention du moteur :</b>
-              <ul style={{ margin: "var(--ct-space-2xs) 0 0", paddingLeft: "var(--ct-space-md)" }}>
+              <ul className="inv-list-ul">
                 {preview.sheet.warnings.map((w, i) => (
                   <li key={i} className="inv-chart-foot">{w}</li>
                 ))}
@@ -356,7 +355,7 @@ export function CreateDealWizard() {
             </div>
           ) : null}
 
-          <label style={{ display: "flex", gap: "var(--ct-space-2xs)", marginTop: "var(--ct-space-md)", alignItems: "flex-start" }}>
+          <label className="inv-check-row">
             <input type="checkbox" checked={escrowAck} onChange={(e) => setEscrowAck(e.target.checked)} />
             <span className="inv-chart-foot">
               Je confirme que les versements transiteront par un <b>séquestre tiers</b> (notaire ou EMI
@@ -366,16 +365,15 @@ export function CreateDealWizard() {
           </label>
 
           {error ? (
-            <p className="inv-chart-foot" style={{ color: "var(--ct-text-danger)", marginTop: "var(--ct-space-sm)" }}>
+            <p className="inv-chart-foot inv-error-note">
               {error}
             </p>
           ) : null}
 
           <button
             type="submit"
-            className="inv-btn-reserve"
+            className={`inv-btn-reserve inv-submit-btn${submitting || !escrowAck ? " is-disabled" : ""}`}
             disabled={submitting || !escrowAck}
-            style={{ marginTop: "var(--ct-space-md)", width: "100%", opacity: submitting || !escrowAck ? 0.6 : 1 }}
           >
             {submitting ? "Création…" : "Créer le deal (brouillon)"}
           </button>

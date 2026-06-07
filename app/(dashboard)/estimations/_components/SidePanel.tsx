@@ -198,7 +198,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
           </div>
           <div className="est-side-body">
             {listingFetchSource != null && (
-              <p className="ct-placeholder" style={{ marginBottom: "var(--ct-space-xs)", fontSize: "var(--ct-fs-xs)" }}>
+              <p className="ct-placeholder ct-placeholder-sm ct-mb-sm">
                 {UI.estimations.listingFetchSourcePrefix}{" "}
                 <strong>
                   {listingFallbackUsed && listingFetchSource !== "none"
