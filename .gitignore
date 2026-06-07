@@ -49,3 +49,11 @@ out/
 
 # claude code session artifacts
 .claude/scheduled_tasks.lock
+
+# smart-contracts vendor & build artifacts (forge-std, cache)
+docs/produit/05-smart-contracts/lib/
+docs/produit/05-smart-contracts/cache/
+docs/produit/05-smart-contracts/out/
+
+# scratch / layout test files
+test-layout.html
