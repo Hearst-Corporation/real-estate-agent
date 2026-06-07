@@ -5,6 +5,7 @@ import type {
   PatchSwarmPayload,
   KickoffResponse,
   SwarmRun,
+  SwarmRunDecision,
   SwarmRunStatus,
   SwarmStep,
   ArchitectSpec,
@@ -56,6 +57,7 @@ function mapRunStatus(s: unknown): SwarmRunStatus {
     case "cancelled":
     case "canceled":
       return "error"
+    case "paused_hitl":
     case "pending":
     case "running":
     case "done":
@@ -64,6 +66,28 @@ function mapRunStatus(s: unknown): SwarmRunStatus {
       return s
     default:
       return "running"
+  }
+}
+
+function normalizeDecision(raw: unknown): SwarmRunDecision | undefined {
+  if (!raw || typeof raw !== "object") return undefined
+  const d = raw as Record<string, unknown>
+  const question = typeof d.question === "string" ? d.question : ""
+  if (!question || !Array.isArray(d.options)) return undefined
+  const options = (d.options as unknown[])
+    .filter((o): o is Record<string, unknown> => !!o && typeof o === "object")
+    .map((o) => ({
+      value: String(o.value ?? ""),
+      label: String(o.label ?? o.value ?? ""),
+      sub: typeof o.sub === "string" ? o.sub : undefined,
+    }))
+    .filter((o) => o.value)
+  if (!options.length) return undefined
+  return {
+    id: typeof d.id === "string" ? d.id : undefined,
+    question,
+    hint: typeof d.hint === "string" ? d.hint : undefined,
+    options,
   }
 }
 
@@ -86,6 +110,7 @@ function normalizeRun(raw: Record<string, unknown>): SwarmRun {
     swarm_id: raw.swarm_id as string,
     status: mapRunStatus(raw.status),
     output: (raw.result_text ?? raw.output) as string | undefined,
+    decision: normalizeDecision(raw.decision),
     steps,
     created_at: (raw.started_at ?? raw.created_at) as string | undefined,
     updated_at: (raw.finished_at ?? raw.updated_at) as string | undefined,
@@ -179,6 +204,23 @@ export async function getRun(runId: string, ownerId: string): Promise<SwarmRun> 
     `/runs/${encodeURIComponent(runId)}?owner_id=${encodeURIComponent(ownerId)}`
   )
   return normalizeRun(raw)
+}
+
+/**
+ * Reprend un run en pause HITL après la réponse de l'humain (moment de décision).
+ * Cible le MÊME run (pas un nouveau kickoff) : le moteur réinjecte la `value`,
+ * repasse le run en `running` et reprend à la task suivante. 202, idempotent.
+ */
+export async function resumeRun(
+  swarmId: string,
+  runId: string,
+  ownerId: string,
+  body: { decision_id: string; value: string }
+): Promise<{ run_id: string; swarm_id: string; status: string }> {
+  return engineFetch(
+    `/swarms/${encodeURIComponent(swarmId)}/runs/${encodeURIComponent(runId)}/resume?owner_id=${encodeURIComponent(ownerId)}`,
+    { method: "POST", body: JSON.stringify(body) }
+  )
 }
 
 export async function generateSpec(

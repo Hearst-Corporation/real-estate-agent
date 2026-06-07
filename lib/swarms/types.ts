@@ -50,7 +50,15 @@ export type CreateSwarmPayload = {
 export type PatchSwarmPayload = Partial<Omit<CreateSwarmPayload, "owner_id">>
 
 // Run
-export type SwarmRunStatus = "pending" | "running" | "done" | "failed" | "error"
+export type SwarmRunStatus = "pending" | "running" | "done" | "failed" | "error" | "paused_hitl"
+
+/** Demande de décision émise par le moteur quand un run est en pause (HITL). */
+export type SwarmRunDecision = {
+  id?: string
+  question: string
+  hint?: string
+  options: { value: string; label: string; sub?: string }[]
+}
 
 export type SwarmRun = {
   run_id: string
@@ -58,6 +66,8 @@ export type SwarmRun = {
   status: SwarmRunStatus
   output?: string
   steps?: SwarmStep[]
+  // Décision en attente quand status === "paused_hitl" (sinon undefined).
+  decision?: SwarmRunDecision
   created_at?: string
   updated_at?: string
   // Métriques d'exécution (engine) — affichées dans l'en-tête du rapport.
