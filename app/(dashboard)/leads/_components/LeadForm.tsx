@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
+import {
+  CockpitForm,
+  Field,
+  TextInput,
+  Select,
+  MoneyInput,
+} from "@/components/cockpit/form";
 import { UI } from "@/lib/ui-strings";
 import {
   LEAD_KINDS,
@@ -104,94 +111,84 @@ export function LeadForm({
   }
 
   return (
-    <form className="ct-form" onSubmit={handleSubmit}>
+    <CockpitForm onSubmit={handleSubmit}>
       <p className="ct-card-title">{t.title}</p>
 
-      <label className="crm-form-field">
-        <span className="ct-eyebrow">{t.fullName}</span>
-        <input
-          className="ct-input"
+      <Field label={t.fullName} htmlFor="lead-full-name" required>
+        <TextInput
+          id="lead-full-name"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           required
         />
-      </label>
+      </Field>
 
-      <label className="crm-form-field">
-        <span className="ct-eyebrow">{t.email}</span>
-        <input
-          className="ct-input"
+      <Field label={t.email} htmlFor="lead-email">
+        <TextInput
+          id="lead-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-      </label>
+      </Field>
 
-      <label className="crm-form-field">
-        <span className="ct-eyebrow">{t.phone}</span>
-        <input
-          className="ct-input"
+      <Field label={t.phone} htmlFor="lead-phone">
+        <TextInput
+          id="lead-phone"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
-      </label>
+      </Field>
 
-      <label className="crm-form-field">
-        <span className="ct-eyebrow">{t.source}</span>
-        <input
-          className="ct-input"
+      <Field label={t.source} htmlFor="lead-source">
+        <TextInput
+          id="lead-source"
           value={source}
           onChange={(e) => setSource(e.target.value)}
         />
-      </label>
+      </Field>
 
-      <label className="crm-form-field">
-        <span className="ct-eyebrow">{t.kind}</span>
-        <select
-          className="ct-input"
+      <Field label={t.kind} htmlFor="lead-kind">
+        <Select
+          id="lead-kind"
           value={kind}
           onChange={(e) => setKind(e.target.value)}
-        >
-          {LEAD_KINDS.map((k) => (
-            <option key={k} value={k}>{UI.leads.kindLabels[k]}</option>
-          ))}
-        </select>
-      </label>
+          options={LEAD_KINDS.map((k) => ({
+            value: k,
+            label: UI.leads.kindLabels[k],
+          }))}
+        />
+      </Field>
 
-      <label className="crm-form-field">
-        <span className="ct-eyebrow">{t.typePersonne}</span>
-        <select
-          className="ct-input"
+      <Field label={t.typePersonne} htmlFor="lead-type-personne">
+        <Select
+          id="lead-type-personne"
           value={typePersonne}
           onChange={(e) => setTypePersonne(e.target.value)}
-        >
-          {LEAD_TYPE_PERSONNE.map((t) => (
-            <option key={t} value={t}>{UI.leads.typePersonneLabels[t]}</option>
-          ))}
-        </select>
-      </label>
+          options={LEAD_TYPE_PERSONNE.map((tp) => ({
+            value: tp,
+            label: UI.leads.typePersonneLabels[tp],
+          }))}
+        />
+      </Field>
 
-      <label className="crm-form-field">
-        <span className="ct-eyebrow">{t.budgetMin}</span>
-        <input
-          className="ct-input"
-          type="number"
+      <Field label={t.budgetMin} htmlFor="lead-budget-min">
+        <MoneyInput
+          id="lead-budget-min"
           min={FORM_LIMITS.priceMin}
           value={budgetMin}
           onChange={(e) => setBudgetMin(e.target.value)}
         />
-      </label>
+      </Field>
 
-      <label className="crm-form-field">
-        <span className="ct-eyebrow">{t.budgetMax}</span>
-        <input
-          className="ct-input"
-          type="number"
+      <Field label={t.budgetMax} htmlFor="lead-budget-max">
+        <MoneyInput
+          id="lead-budget-max"
           min={0}
           value={budgetMax}
           onChange={(e) => setBudgetMax(e.target.value)}
         />
-      </label>
+      </Field>
 
       {error && <p className="ct-error">{error}</p>}
 
@@ -205,7 +202,7 @@ export function LeadForm({
           </button>
         )}
       </div>
-    </form>
+    </CockpitForm>
   );
 }
 

@@ -1,0 +1,135 @@
+/* ════════════════════════════════════════════════════════════════════════
+   WRITE — classes absentes du stash ET de HEAD (Étape 3)
+   Tokens --ct-* uniquement. Aucun hex/px hors token.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Boutons génériques (P0 critique) ── */
+.ct-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ct-space-xs);
+  padding: var(--ct-space-xs) var(--ct-space-md);
+  font-family: inherit;
+  font-size: var(--ct-fs-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: var(--ct-radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--ct-dur-base) var(--ct-ease),
+              border-color var(--ct-dur-base) var(--ct-ease),
+              color var(--ct-dur-base) var(--ct-ease),
+              box-shadow var(--ct-dur-base) var(--ct-ease);
+}
+.ct-btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
+.ct-btn-primary {
+  background: var(--ct-accent-soft);
+  border-color: var(--ct-border-accent);
+  color: var(--ct-accent-strong);
+}
+.ct-btn-primary:hover {
+  background: color-mix(in srgb, var(--ct-accent) 28%, transparent);
+  border-color: var(--ct-accent);
+}
+.ct-btn-secondary {
+  background: var(--ct-surface-1);
+  border-color: var(--ct-border);
+  color: var(--ct-text-primary);
+}
+.ct-btn-secondary:hover {
+  background: var(--ct-surface-2);
+  border-color: var(--ct-border-strong);
+}
+
+/* ── Rendu markdown (rapports de run, bulles agent) ── */
+.md-h1 { font-size: var(--ct-fs-md); font-weight: 800; color: var(--ct-text-strong); margin: var(--ct-space-lg) 0 var(--ct-space-xs); }
+.md-h2 { font-size: var(--ct-fs-base); font-weight: 700; color: var(--ct-text-primary); margin: var(--ct-space-md) 0 var(--ct-space-xs); }
+.md-h3 { font-size: var(--ct-fs-sm); font-weight: 700; color: var(--ct-text-primary); margin: var(--ct-space-sm) 0 var(--ct-space-2xs); }
+.md-p { font-size: var(--ct-fs-base); color: var(--ct-text-body); line-height: 1.55; margin: 0 0 var(--ct-space-sm); }
+.md-ul { list-style: none; padding-left: var(--ct-space-md); font-size: var(--ct-fs-base); color: var(--ct-text-body); line-height: 1.55; margin: 0 0 var(--ct-space-md); }
+.md-ul > li { position: relative; }
+.md-ul > li::before { content: ""; position: absolute; left: -0.9em; top: 0.6em; width: 4px; height: 4px; border-radius: 50%; background: var(--ct-accent-strong); }
+.md-ol { list-style: decimal; padding-left: var(--ct-space-md); font-size: var(--ct-fs-base); color: var(--ct-text-body); line-height: 1.55; margin: 0 0 var(--ct-space-md); }
+.md-ol > li::marker { color: var(--ct-text-muted); font-variant-numeric: tabular-nums; }
+.md-pre {
+  font-family: var(--ct-font-mono);
+  font-size: var(--ct-fs-xs);
+  background: var(--ct-surface-2);
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-md);
+  padding: var(--ct-space-md);
+  overflow-x: auto;
+  white-space: pre;
+  margin: 0 0 var(--ct-space-md);
+  color: var(--ct-text-body);
+  line-height: 1.5;
+}
+
+/* ── Cellule numérique alignée droite ── */
+.ct-table-num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ── CRM — header et description de card ── */
+.crm-card-header { display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-sm); margin-bottom: var(--ct-space-xs); }
+.crm-card-desc { font-size: var(--ct-fs-sm); color: var(--ct-text-muted); line-height: 1.45; }
+
+/* ── Invest — classes absentes du stash ── */
+.inv-table { width: 100%; border-collapse: collapse; font-size: var(--ct-fs-sm); color: var(--ct-text-body); }
+.inv-table th { font-size: var(--ct-fs-xs); font-weight: 600; color: var(--ct-text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: var(--ct-space-2xs) var(--ct-space-xs); border-bottom: 1px solid var(--ct-border); text-align: left; }
+.inv-table td { padding: var(--ct-space-xs); border-bottom: 1px solid var(--ct-border-soft); vertical-align: middle; }
+.inv-table tr:last-child td { border-bottom: none; }
+
+.inv-field { display: flex; flex-direction: column; gap: var(--ct-space-3xs); font-size: var(--ct-fs-sm); color: var(--ct-text-muted); }
+.inv-field input,
+.inv-field select,
+.inv-field textarea { font-size: var(--ct-fs-sm); font-family: inherit; background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: var(--ct-radius-sm); color: var(--ct-text-primary); padding: var(--ct-space-2xs) var(--ct-space-xs); }
+
+.inv-doc-name { font-size: var(--ct-fs-sm); font-weight: 600; color: var(--ct-accent-strong); text-decoration: none; }
+.inv-doc-name:hover { text-decoration: underline; }
+.inv-doc-meta { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); }
+
+.inv-gate-ic { width: 32px; height: 32px; color: var(--ct-text-muted); flex-shrink: 0; }
+.inv-gate-msg { font-size: var(--ct-fs-sm); color: var(--ct-text-muted); line-height: 1.4; margin: 0; }
+
+.inv-badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.inv-pill-dot  { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.inv-banner-warn {
+  background: color-mix(in srgb, var(--ct-warning) 12%, transparent);
+  border-color: color-mix(in srgb, var(--ct-warning) 45%, transparent) !important;
+  color: var(--ct-warning);
+}
+
+.inv-m-val { font-size: var(--ct-fs-md); font-weight: 700; color: var(--ct-text-strong); display: block; }
+.inv-m-val.accent { color: var(--ct-accent-strong); }
+.inv-m-lab { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); display: block; line-height: 1.2; }
+
+.inv-goal { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); }
+
+.inv-deal-thumb-skyline {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  width: 100%; height: 70px;
+  opacity: 0.18;
+}
+
+/* ── Estimations — classes absentes du stash ── */
+.est-listing-link { font-size: var(--ct-fs-xs); color: var(--ct-accent-strong); text-decoration: none; }
+.est-listing-link:hover { text-decoration: underline; }
+
+.est-wizard-progress-fill {
+  height: 100%;
+  background: var(--ct-accent);
+  border-radius: inherit;
+  transition: width 0.3s var(--ct-ease);
+}
+
+/* ── Swarms — classes absentes du stash ── */
+/* swarm-status-done et swarm-status-failed couverts dans HEAD (ligne 1523-1524) */
+.swarm-status-badge-sm { padding: 1px 6px; font-size: 10px; }
+.swarm-arch-spec { height: 100%; min-height: 0; overflow-y: auto; }
+
+/* ── Prospection ── */
+.prospection-match-actions { display: flex; gap: var(--ct-space-xs); justify-content: flex-end; flex-wrap: wrap; }

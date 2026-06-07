@@ -4,31 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 import { UI } from "@/lib/ui-strings";
-import { Icon, IconName } from "./Icon";
+import { Icon } from "./Icon";
+import { navPrimary, navCrm, CRM_ENTRY } from "@/config/nav";
 
 const INITIALS_LEN = 2;
-
-type NavItem = { href: string; label: string; icon: IconName };
-
-const PRIMARY_ITEMS: NavItem[] = [
-  { href: "/estimations", label: UI.nav.estimations, icon: "estimate" },
-  { href: "/prospection", label: UI.nav.prospection, icon: "search" },
-  { href: "/swarms", label: UI.nav.swarms, icon: "network" },
-];
-
-const CRM_ITEMS: NavItem[] = [
-  { href: "/properties", label: UI.nav.properties, icon: "properties" },
-  { href: "/leads", label: UI.nav.leads, icon: "leads" },
-  { href: "/visits", label: UI.nav.visits, icon: "visits" },
-  { href: "/mandates", label: UI.nav.mandates, icon: "mandates" },
-  { href: "/agenda", label: UI.nav.agenda, icon: "agenda" },
-];
 
 export function RailLeft({ userEmail }: { userEmail?: string; isAdmin?: boolean }) {
   const pathname = usePathname();
   const initials = (userEmail ?? "?").slice(0, INITIALS_LEN).toUpperCase();
 
-  const isCrmActive = CRM_ITEMS.some((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
+  const isCrmActive = navCrm.some((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
 
   return (
     <nav className="ct-rail-left" aria-label={UI.nav.home}>
@@ -37,7 +22,7 @@ export function RailLeft({ userEmail }: { userEmail?: string; isAdmin?: boolean 
       </Link>
 
       <div className="ct-rail-actions">
-        {PRIMARY_ITEMS.map((item) => {
+        {navPrimary.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
@@ -56,16 +41,16 @@ export function RailLeft({ userEmail }: { userEmail?: string; isAdmin?: boolean 
 
         <div className="ct-rail-divider" />
 
-        <Link 
-          href="/properties"
+        <Link
+          href={CRM_ENTRY.href}
           className={`ct-rail-action${isCrmActive ? " active" : ""}`}
-          title="CRM"
-          aria-label="CRM Menu"
+          title={UI.nav.crm}
+          aria-label={UI.nav.crm}
         >
           <span className="ct-rail-action-icon">
             <Icon name="crm" />
           </span>
-          <span className="ct-rail-action-label">CRM</span>
+          <span className="ct-rail-action-label">{UI.nav.crm}</span>
         </Link>
       </div>
 

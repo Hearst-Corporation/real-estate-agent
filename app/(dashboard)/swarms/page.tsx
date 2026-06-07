@@ -7,6 +7,7 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { listSwarms } from "@/lib/swarms/client";
 import type { Swarm } from "@/lib/swarms/types";
 import Link from "next/link";
+import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 
 export default async function SwarmsPage() {
@@ -44,12 +45,6 @@ export default async function SwarmsPage() {
   const active = swarms.filter((s) => s.is_active).length;
   const inactive = total - active;
 
-  const SWARM_TABS = [
-    { href: "/swarms", label: "Tous les agents" },
-    { href: "/swarms/analytics", label: "Analytique" },
-    { href: "/swarms/prospection", label: "Prospection" },
-  ];
-
   const columns: Column<Swarm>[] = [
     {
       key: "name",
@@ -86,7 +81,7 @@ export default async function SwarmsPage() {
       <PageHeader
         kicker={UI.swarms.eyebrow}
         title={UI.swarms.title}
-        nav={<PageNavTabs tabs={SWARM_TABS} />}
+        nav={<PageNavTabs tabs={TAB_GROUPS.swarms} />}
         action={
           <Link href="/swarms/new" className="ct-seg-btn primary">
             {UI.swarms.newCta}

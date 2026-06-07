@@ -8,6 +8,7 @@ import { DeleteButton } from "@/components/cockpit/DeleteButton";
 import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
 import { eur, dateFr, MANDATE_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
+import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -51,14 +52,6 @@ export default async function MandatesPage() {
   );
   const byKind = topByCategory(mandates, "kind", t.kindLabels);
 
-  const CRM_TABS = [
-    { href: "/properties", label: UI.nav.properties },
-    { href: "/leads", label: UI.nav.leads },
-    { href: "/visits", label: UI.nav.visits },
-    { href: "/mandates", label: UI.nav.mandates },
-    { href: "/agenda", label: UI.nav.agenda },
-  ];
-
   const columns: Column<MandateRow>[] = [
     {
       key: "reference",
@@ -100,7 +93,7 @@ export default async function MandatesPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={CRM_TABS} />}
+        nav={<PageNavTabs tabs={TAB_GROUPS.crm} />}
         action={<MandateFormModal cta={t.newCta} />}
         kpis={[
           { label: t.kpis.total, value: String(mandates.length) },
