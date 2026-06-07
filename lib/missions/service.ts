@@ -118,10 +118,20 @@ export async function getMissionState(sb: Db, idn: MissionIdentity, missionId: s
   if (run) {
     if (run.status === "done" && status !== "done") {
       status = "done";
-      await sb.from("missions").update({ status, result: { text: run.output ?? null } as unknown as MissionRow["result"] }).eq("id", m.id);
+      await sb
+        .from("missions")
+        .update({ status, result: { text: run.output ?? null } as unknown as MissionRow["result"] })
+        .eq("id", m.id)
+        .eq("user_id", idn.userId)
+        .eq("tenant_id", idn.tenant);
     } else if ((run.status === "failed" || run.status === "error") && status !== "failed") {
       status = "failed";
-      await sb.from("missions").update({ status, error: run.output ?? "run_failed" }).eq("id", m.id);
+      await sb
+        .from("missions")
+        .update({ status, error: run.output ?? "run_failed" })
+        .eq("id", m.id)
+        .eq("user_id", idn.userId)
+        .eq("tenant_id", idn.tenant);
     }
   }
 

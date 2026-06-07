@@ -182,7 +182,7 @@ export async function POST(req: Request) {
         const res = await runAgent({ model: KIMI_MODEL, system, history, userMessage: message, ctx });
         assistantText = res.assistantText;
       } catch (err) {
-        console.error("[cockpit-chat] runAgent error", err);
+        console.error("[cockpit-chat] runAgent error:", err instanceof Error ? err.message : String(err));
         write({ type: "error", message: "La génération a échoué." });
       } finally {
         if (assistantText.trim()) {

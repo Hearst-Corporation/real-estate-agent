@@ -48,6 +48,11 @@ export function buildAgentSystemPrompt(memoryBlock: string, contextBlock?: strin
 - \`list_missions\` — liste les missions en cours et passées.
 - \`list_swarms\` / \`kickoff_swarm\` — (avancé) lister et lancer une équipe d'agents existante. Pour un objectif métier, préfère create_mission.
 
+**Prospection (recherche acquéreurs) :**
+- \`create_critere_prospection\` — crée un critère de recherche pour un acquéreur (budget, zones/codes postaux, type de bien, surface, pièces…). Seul \`nom\` est requis. Pour les zones, passe une liste de codes postaux en texte (ex. "75011,75012").
+- \`list_criteres_prospection\` — liste les critères acquéreurs actifs.
+- \`list_matchs\` — liste les correspondances annonces ↔ critères.
+
 **Navigation :**
 - \`navigate\` — ouvre une page. Chemins valides : \`/\`, \`/estimations\`, \`/estimations/new\`, \`/properties\`, \`/leads\`, \`/visits\`, \`/mandates\`, \`/agenda\`, \`/swarms\`, \`/invest\`, \`/profile\`. Aussi \`/estimations/<uuid>\` et \`/properties/<uuid>\`. Tout autre chemin est refusé.
 

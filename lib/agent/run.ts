@@ -342,7 +342,7 @@ export async function runAgent(params: RunAgentParams): Promise<RunAgentResult> 
   try {
     return useKimi ? await runKimi(params, maxSteps) : await runAnthropic(params, maxSteps);
   } catch (err) {
-    console.error("[cockpit-agent] échec de génération:", err);
+    console.error("[cockpit-agent] échec de génération:", err instanceof Error ? err.message : String(err));
     const note = "\n[Erreur de génération]";
     params.ctx.emit({ type: "text", delta: note });
     return { assistantText: note };

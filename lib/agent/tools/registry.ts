@@ -12,6 +12,7 @@ import { composioTools } from "./composio";
 import { missionTools } from "./missions";
 import { estimationTools } from "./estimation";
 import { swarmsTools } from "./swarms";
+import { prospectionTools } from "./prospection";
 
 export const ALL_TOOLS: AgentTool[] = [
   ...crmTools,
@@ -20,6 +21,7 @@ export const ALL_TOOLS: AgentTool[] = [
   ...missionTools,
   ...estimationTools,
   ...swarmsTools,
+  ...prospectionTools,
 ];
 
 export function getTool(name: string): AgentTool | undefined {
