@@ -12,6 +12,8 @@ import type { Database, Json } from "@/lib/supabase/database.types";
 import type { FieldStatusMap, PropertyData } from "@/lib/estimation/types";
 import type { AgentTool, ToolResult } from "@/lib/agent/types";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
+import { signShareToken } from "@/lib/estimation/share";
+import { sendEmail } from "@/lib/providers/resend-email";
 
 const NUMERIC_FIELDS = new Set(["surface_habitable_m2", "nombre_pieces", "nombre_chambres", "etage"]);
 const BOOLEAN_FIELDS = new Set(["ascenseur", "cave", "travaux_votes"]);
@@ -100,4 +102,102 @@ const setEstimationField: AgentTool = {
   },
 };
 
-export const estimationTools: AgentTool[] = [setEstimationField];
+const createPropertyFromEstimation: AgentTool = {
+  name: "create_property_from_estimation",
+  description:
+    "Crée une fiche bien (property) à partir d'une estimation existante (reprend type, adresse, surface, valeur estimée…). Utilise l'estimationId du contexte. Exige une adresse, une ville et un code postal renseignés dans l'estimation.",
+  inputSchema: {
+    type: "object",
+    properties: { estimationId: { type: "string", description: "UUID de l'estimation source (obligatoire)." } },
+    required: ["estimationId"],
+  },
+  async execute(args, ctx): Promise<ToolResult> {
+    const estimationId = typeof args.estimationId === "string" ? args.estimationId.trim() : "";
+    if (!estimationId) return { ok: false, summary: "Estimation manquante", observation: "Précise l'estimation source." };
+    const estimation = await loadOwnedEstimation(ctx.sb, estimationId, ctx.userId, ctx.tenant).catch(() => null);
+    if (!estimation) return { ok: false, summary: "Estimation introuvable", observation: "Estimation introuvable pour cet utilisateur." };
+
+    const property = (estimation.property ?? {}) as Partial<PropertyData>;
+    const address = property.adresse;
+    const city = property.ville ?? estimation.city;
+    const postalCode = property.code_postal ?? estimation.postal_code;
+    if (!address || !city || !postalCode) {
+      return { ok: false, summary: "Infos manquantes", observation: "Impossible de créer la fiche : adresse, ville ou code postal absent de l'estimation. Demande-les d'abord." };
+    }
+    const title = [property.type_bien ?? "Bien", city, property.surface_habitable_m2 ? `${property.surface_habitable_m2} m²` : ""].filter(Boolean).join(" - ");
+    const { data, error } = await ctx.sb
+      .from("properties")
+      .insert({
+        user_id: ctx.userId,
+        tenant_id: ctx.tenant,
+        status: "prospect",
+        title,
+        property_type: property.type_bien ?? estimation.property_type ?? "autre",
+        address,
+        city,
+        postal_code: postalCode,
+        surface: property.surface_habitable_m2 ?? estimation.surface ?? null,
+        rooms: property.nombre_pieces ?? null,
+        bedrooms: property.nombre_chambres ?? null,
+        estimated_value: estimation.market_value,
+        estimation_id: estimationId,
+        notes: "Fiche créée depuis le chat Cockpit.",
+      })
+      .select("id")
+      .single();
+    if (error || !data) return { ok: false, summary: "Échec création fiche", observation: "La fiche produit n'a pas pu être créée." };
+
+    return {
+      ok: true,
+      summary: "Fiche produit créée",
+      observation: `Fiche bien créée depuis l'estimation (id ${data.id}). J'ouvre la fiche.`,
+      action: { type: "navigate", path: `/properties/${data.id}` },
+    };
+  },
+};
+
+const sendEstimation: AgentTool = {
+  name: "send_estimation",
+  description:
+    "Envoie l'avis de valeur d'une estimation par email (lien de partage signé). DESTRUCTIF (envoi externe) : n'exécute qu'avec confirmed=true après accord. L'avis doit être prêt (statut ready).",
+  inputSchema: {
+    type: "object",
+    properties: {
+      estimationId: { type: "string", description: "UUID de l'estimation (obligatoire)." },
+      email: { type: "string", description: "Email du destinataire (obligatoire)." },
+      confirmed: { type: "boolean", description: "true uniquement après confirmation de l'utilisateur." },
+    },
+    required: ["estimationId", "email", "confirmed"],
+  },
+  async execute(args, ctx): Promise<ToolResult> {
+    const estimationId = typeof args.estimationId === "string" ? args.estimationId.trim() : "";
+    const email = typeof args.email === "string" ? args.email.trim() : "";
+    if (!estimationId || !email) return { ok: false, summary: "Champ manquant", observation: "Précise l'estimation et l'email du destinataire." };
+    if (args.confirmed !== true) {
+      return { ok: false, summary: "Confirmation requise", observation: `Envoi NON exécuté. Demande à l'utilisateur de confirmer l'envoi de l'avis à ${email}, puis rappelle avec confirmed=true.` };
+    }
+    const estimation = await loadOwnedEstimation(ctx.sb, estimationId, ctx.userId, ctx.tenant).catch(() => null);
+    if (!estimation) return { ok: false, summary: "Estimation introuvable", observation: "Estimation introuvable." };
+    if (estimation.status !== "ready") {
+      return { ok: false, summary: "Avis pas prêt", observation: "L'avis de valeur n'est pas encore généré (il faut le statut 'ready'). Génère-le avant l'envoi." };
+    }
+    let token: string;
+    try {
+      token = await signShareToken(estimationId);
+    } catch {
+      return { ok: false, summary: "Partage indisponible", observation: "Le partage n'est pas configuré (secret manquant)." };
+    }
+    try {
+      await sendEmail({
+        to: email,
+        subject: "Votre avis de valeur",
+        html: `<p>Votre avis de valeur est disponible :</p><p><a href="${ctx.origin}/brochure/${token}">Consulter la fiche</a></p>`,
+      });
+    } catch {
+      return { ok: false, summary: "Envoi échoué", observation: "L'email n'a pas pu être envoyé." };
+    }
+    return { ok: true, summary: `Avis envoyé à ${email}`, observation: `Avis de valeur envoyé à ${email}.` };
+  },
+};
+
+export const estimationTools: AgentTool[] = [setEstimationField, createPropertyFromEstimation, sendEstimation];

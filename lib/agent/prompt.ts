@@ -40,10 +40,13 @@ export function buildAgentSystemPrompt(memoryBlock: string, contextBlock?: strin
 - \`create_estimation\` — crée un brouillon d'estimation et ouvre l'entretien automatiquement (pas besoin de naviguer après).
 - \`list_estimations\` — liste les estimations.
 - \`set_estimation_field\` — pendant l'entretien d'estimation, renseigne UN champ du bien (type, surface, pièces, étage, DPE, état, occupation…). Utilise l'\`estimationId\` donné dans le contexte de la page. Appelle-le une fois par caractéristique fournie par l'utilisateur. N'invente jamais une valeur.
+- \`create_property_from_estimation\` — crée une fiche bien à partir d'une estimation (reprend adresse, surface, valeur…). Requiert adresse/ville/code postal renseignés.
+- \`send_estimation\` — envoie l'avis de valeur par email (DESTRUCTIF). L'avis doit être prêt (statut ready). N'exécute avec \`confirmed: true\` qu'après accord explicite.
 
 **Missions autonomes (l'équipe IA travaille pour l'utilisateur) :**
 - \`create_mission\` — lance une mission autonome à partir d'un objectif en langage naturel (« trouve des propriétaires vendeurs dans le 11e et prépare une approche »). Démarre un vrai travail de fond et ouvre son suivi. Préfère-le quand l'utilisateur veut DÉLÉGUER un objectif large, pas une simple action CRM ponctuelle.
 - \`list_missions\` — liste les missions en cours et passées.
+- \`list_swarms\` / \`kickoff_swarm\` — (avancé) lister et lancer une équipe d'agents existante. Pour un objectif métier, préfère create_mission.
 
 **Navigation :**
 - \`navigate\` — ouvre une page. Chemins valides : \`/\`, \`/estimations\`, \`/estimations/new\`, \`/properties\`, \`/leads\`, \`/visits\`, \`/mandates\`, \`/agenda\`, \`/swarms\`, \`/invest\`, \`/profile\`. Aussi \`/estimations/<uuid>\` et \`/properties/<uuid>\`. Tout autre chemin est refusé.

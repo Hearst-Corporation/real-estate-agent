@@ -42,6 +42,9 @@ export interface ToolContext {
   /** owner_id attendu par le moteur MySwarms (uuidOwnerOf) — pour les outils
    *  qui lancent/pilotent des missions (sinon égal à userId). */
   ownerId: string;
+  /** Origine HTTP de la requête (ex. https://app…) — pour construire des URLs
+   *  absolues (lien de partage d'avis de valeur). */
+  origin: string;
   sb: SupabaseClient<Database>;
   emit: (frame: AgentFrame) => void;
 }

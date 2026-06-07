@@ -176,7 +176,7 @@ export async function POST(req: Request) {
       const write = (frame: AgentFrame) => controller.enqueue(encoder.encode(JSON.stringify(frame) + "\n"));
       write({ type: "chat", chatId: finalChatId });
 
-      const ctx: ToolContext = { userId, tenant, ownerId, sb, emit: write };
+      const ctx: ToolContext = { userId, tenant, ownerId, origin: new URL(req.url).origin, sb, emit: write };
       let assistantText = "";
       try {
         const res = await runAgent({ model: KIMI_MODEL, system, history, userMessage: message, ctx });
