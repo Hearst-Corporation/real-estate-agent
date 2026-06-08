@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Icon, type IconName } from "@/components/cockpit/Icon";
 
 export function Eyebrow({ children }: { children: ReactNode }) {
   return <div className="ct-eyebrow">{children}</div>;
@@ -34,16 +35,18 @@ export function PageHeader({
   action,
   nav,
   kpis,
+  className,
 }: {
   kicker?: ReactNode;
   title: ReactNode;
   meta?: ReactNode;
   action?: ReactNode;
   nav?: ReactNode;
-  kpis?: { label: string; value: ReactNode }[];
+  kpis?: { label: string; value: ReactNode; icon?: IconName }[];
+  className?: string;
 }) {
   return (
-    <div className="ct-page-header">
+    <div className={`ct-page-header${className ? ` ${className}` : ""}`}>
       <div className="ct-page-header-topbar">
         <div>
           <div className="ct-page-header-kicker-track">
@@ -72,8 +75,15 @@ export function PageHeader({
           <div className="ct-page-header-kpis">
             {kpis.map((kpi, i) => (
               <div key={i} className="ct-page-header-kpi">
-                <span>{kpi.label}</span>
-                <strong>{kpi.value}</strong>
+                {kpi.icon ? (
+                  <span className="ct-page-header-kpi-icon" aria-hidden="true">
+                    <Icon name={kpi.icon} />
+                  </span>
+                ) : null}
+                <span className="ct-page-header-kpi-text">
+                  <span>{kpi.label}</span>
+                  <strong>{kpi.value}</strong>
+                </span>
               </div>
             ))}
           </div>

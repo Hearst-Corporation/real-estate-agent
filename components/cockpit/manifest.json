@@ -13,8 +13,8 @@
     "app/cockpit/90-missions.css"
   ],
   "counts": {
-    "tokens": 130,
-    "classes": 189
+    "tokens": 132,
+    "classes": 191
   },
   "tokens": [
     "--ct-accent",
@@ -67,6 +67,8 @@
     "--ct-fw-heavy",
     "--ct-fw-medium",
     "--ct-fw-semibold",
+    "--ct-glass-backdrop",
+    "--ct-glass-rim",
     "--ct-glow-radius",
     "--ct-glow-radius-lg",
     "--ct-icon-2xs",
@@ -282,6 +284,8 @@
     "ct-page-header-kicker",
     "ct-page-header-kicker-track",
     "ct-page-header-kpi",
+    "ct-page-header-kpi-icon",
+    "ct-page-header-kpi-text",
     "ct-page-header-kpis",
     "ct-page-header-kpis-track",
     "ct-page-header-meta",

@@ -155,6 +155,9 @@
   /* Effets verre — surface sheen (dégradé de surface) et backdrop rail. */
   --ct-surface-sheen: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.018));
   --ct-rail-backdrop: blur(60px) saturate(110%) brightness(105%);
+  /* Verre miroir (liquid glass) — flou de fond + liseré de reflet (rim). */
+  --ct-glass-backdrop: blur(16px) saturate(140%);
+  --ct-glass-rim: rgba(255,255,255,0.20);
 
   /* Glow décoratif. */
   --ct-glow-radius: 8px;
