@@ -144,7 +144,7 @@ export async function scrapeCustomAndMatch(
         const result = matchAnnonce(critere, annonce);
         if (!result || result.score < MATCH_SCORE_MIN_PERSIST) continue;
 
-        await db.from("prosp_matchs").upsert(
+        const { error: matchErr } = await db.from("prosp_matchs").upsert(
           {
             tenant_id: tenantId,
             user_id: critere.userId,
@@ -155,8 +155,10 @@ export async function scrapeCustomAndMatch(
             features_snapshot: result.features as Json,
             statut: "nouveau",
           },
-          { onConflict: "tenant_id,critere_id,annonce_id", ignoreDuplicates: false },
+          // L'index unique réel est uq_prosp_match(user_id, tenant_id, annonce_id, critere_id).
+          { onConflict: "user_id,tenant_id,annonce_id,critere_id", ignoreDuplicates: false },
         );
+        if (matchErr) continue;
         matched++;
         topMatchs.push({
           annonceId: annonce.id,

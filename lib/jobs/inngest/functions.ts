@@ -172,7 +172,8 @@ export const prospScoring = inngest.createFunction(
               bonus_breakdown:  result.breakdown,
               features_snapshot: result.features as Json,
               statut:           "nouveau",
-            }, { onConflict: "tenant_id,critere_id,annonce_id", ignoreDuplicates: false })
+              // Index unique réel : uq_prosp_match(user_id, tenant_id, annonce_id, critere_id).
+            }, { onConflict: "user_id,tenant_id,annonce_id,critere_id", ignoreDuplicates: false })
             .select("id,statut,alerted_at")
             .single();
 
