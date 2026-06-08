@@ -22,6 +22,13 @@ export {
 export { llamaParseIsConfigured, parseDocument } from "./llamaparse";
 export { langfuseIsConfigured, getLangfuse, trace } from "./langfuse";
 export { sentryIsConfigured } from "./sentry";
+export {
+  posthogIsConfigured,
+  getPostHogServer,
+  captureServer as posthogCaptureServer,
+  getServerFeatureFlag as posthogFeatureFlag,
+  shutdownPostHog,
+} from "./posthog";
 export { inngestIsConfigured } from "@/lib/jobs/inngest/client";
 
 import { apolloIsConfigured } from "./apollo";
@@ -30,6 +37,7 @@ import { exaIsConfigured, tavilyIsConfigured, perplexityIsConfigured } from "./s
 import { llamaParseIsConfigured } from "./llamaparse";
 import { langfuseIsConfigured } from "./langfuse";
 import { sentryIsConfigured } from "./sentry";
+import { posthogIsConfigured } from "./posthog";
 import { inngestIsConfigured } from "@/lib/jobs/inngest/client";
 
 /** État de configuration de chaque provider (pour /api/health ou debug). */
@@ -43,6 +51,7 @@ export function providersStatus(): Record<string, boolean> {
     llamaparse: llamaParseIsConfigured(),
     langfuse: langfuseIsConfigured(),
     sentry: sentryIsConfigured(),
+    posthog: posthogIsConfigured(),
     inngest: inngestIsConfigured(),
   };
 }
