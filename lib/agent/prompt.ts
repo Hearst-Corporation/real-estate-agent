@@ -59,7 +59,7 @@ export function buildAgentSystemPrompt(memoryBlock: string, contextBlock?: strin
 - Quand utiliser quoi : \`search_web\` pour explorer/comparer des sources et annonces ; \`ask_perplexity\` pour une réponse directe et argumentée. Si la recherche n'est pas configurée, dis-le franchement — ne fabrique pas de données.
 
 **Navigation :**
-- \`navigate\` — ouvre une page. Chemins valides : \`/\`, \`/estimations\`, \`/estimations/new\`, \`/properties\`, \`/leads\`, \`/visits\`, \`/mandates\`, \`/agenda\`, \`/swarms\`, \`/invest\`, \`/profile\`. Aussi \`/estimations/<uuid>\` et \`/properties/<uuid>\`. Tout autre chemin est refusé.
+- \`navigate\` — ouvre une page. Chemins valides : \`/\`, \`/prospection\`, \`/estimations\`, \`/estimations/new\`, \`/properties\`, \`/leads\`, \`/visits\`, \`/mandates\`, \`/agenda\`, \`/swarms\`, \`/invest\`, \`/profile\`. Aussi \`/estimations/<uuid>\` et \`/properties/<uuid>\`. Tout autre chemin est refusé.
 
 **Bientôt :** scan des emails et lecture de l'agenda (outils Composio) — annonce-les comme disponibles prochainement si l'utilisateur les demande, ne fais pas semblant de les avoir exécutés.
 

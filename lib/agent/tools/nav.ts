@@ -11,6 +11,7 @@ import type { AgentTool, ToolResult } from "@/lib/agent/types";
 /** Chemins exacts autorisés. */
 const EXACT_PATHS = new Set<string>([
   "/",
+  "/prospection",
   "/estimations",
   "/estimations/new",
   "/properties",
@@ -29,7 +30,7 @@ const PARAM_PREFIXES = ["/estimations", "/properties"] as const;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** True si le chemin est exact OU "/<base>/<uuid>" pour un base autorisé. */
-function isAllowedPath(path: string): boolean {
+export function isAllowedPath(path: string): boolean {
   if (EXACT_PATHS.has(path)) return true;
   for (const base of PARAM_PREFIXES) {
     if (path.startsWith(`${base}/`)) {
@@ -43,7 +44,7 @@ function isAllowedPath(path: string): boolean {
 const navigate: AgentTool = {
   name: "navigate",
   description:
-    "Ouvre une page de l'application pour l'utilisateur. Chemins valides : / (accueil), /estimations, /estimations/new, /properties, /leads, /visits, /mandates, /agenda, /swarms, /invest, /profile, ou une fiche /estimations/<uuid> ou /properties/<uuid>.",
+    "Ouvre une page de l'application pour l'utilisateur. Chemins valides : / (accueil), /prospection, /estimations, /estimations/new, /properties, /leads, /visits, /mandates, /agenda, /swarms, /invest, /profile, ou une fiche /estimations/<uuid> ou /properties/<uuid>.",
   inputSchema: {
     type: "object",
     properties: {
