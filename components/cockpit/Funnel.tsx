@@ -1,7 +1,7 @@
 /**
  * Funnel — entonnoir vertical par statut (pipeline). Server component.
  * Largeur de barre = count / maxCount. Tonalité via .crm-status (is-positive…).
- * Le style inline width est l'unique exception tolérée (largeur data-driven).
+ * Seul `width` passe en style inline (piloté par la donnée) ; le reste vient du CSS.
  */
 
 import type { FunnelStep } from "@/lib/crm/aggregate";
@@ -28,7 +28,7 @@ export function Funnel({ steps, emptyLabel }: FunnelProps) {
             <span className="ct-chart-funnel-count">{step.count}</span>
           </div>
           <div className="ct-chart-funnel-track">
-            {/* largeur data-driven : seul style inline toléré (cf. cockpit.css) */}
+            {/* largeur pilotée par la donnée → style inline (tout le reste vient du CSS) */}
             <div
               className={`ct-chart-funnel-bar${step.tone ? ` ${step.tone}` : ""}`}
               style={{ width: `${Math.round((step.count / max) * 100)}%` }}

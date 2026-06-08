@@ -8,8 +8,8 @@
    l'ordre de cascade d'origine : NE PAS réordonner.
 
    Ajouter une règle → l'ajouter dans la bonne section, pas ici.
-   Tokens uniquement via --ct-* (00-tokens.css). Garde-fou :
-   `npm run lint:cockpit`. Vocabulaire : `npm run cockpit:manifest`.
+   DS local éditable : tokens et CSS se modifient directement dans
+   app/cockpit/*.css. Régénère le vocabulaire : `npm run cockpit:manifest`.
    ============================================================ */
 
 @import "./cockpit/00-tokens.css";

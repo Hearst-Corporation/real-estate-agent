@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════
    VIZ — composants graphiques réutilisables (Donut, BarList, Funnel)
-   SVG/CSS pur, tokens --ct-* uniquement. Seul inline toléré côté .tsx :
-   style={{ width: `${pct}%` }} (largeur data-driven des barres).
+   SVG/CSS pur, tokens --ct-*. Côté .tsx, seul style={{ width: `${pct}%` }}
+   passe en inline (largeur des barres pilotée par la donnée).
    ════════════════════════════════════════════════════════════ */
 
 /* ── Grille bento 2 colonnes pour rangées de viz ── */

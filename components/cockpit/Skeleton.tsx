@@ -5,9 +5,8 @@ import type { CSSProperties } from "react";
  * (pas de spinner plein écran). Server component, décoratif (`aria-hidden`).
  * Le conteneur portant le Skeleton doit exposer `aria-busy="true"`.
  *
- * Largeur / hauteur / radius = exception data-driven tolérée : valeurs
- * dimensionnelles via `style` inline, jamais de couleur (shimmer = classe
- * `.ct-skeleton`, tokens --ct-* uniquement). Cf. cockpit/10-shell.css.
+ * Largeur / hauteur / radius pilotés par la donnée via `style` inline ; la
+ * couleur reste au CSS (shimmer = classe `.ct-skeleton`). Cf. cockpit/10-shell.css.
  */
 export function Skeleton({
   width,

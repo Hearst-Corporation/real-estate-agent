@@ -1,5 +1,6 @@
 // Brochure CSS — Design System Cockpit (verre dépoli bordeaux), autonome pour export PDF A4.
-// Tokens --ct-* copiés à l'identique depuis app/cockpit.css (inlinés pour autonomie PDF).
+// Tokens --ct-* inlinés ici (thème bordeaux propre à la brochure) pour rester autonome :
+// un export PDF ne peut pas @import app/cockpit/*.css. Ajuster ce thème = éditer ce fichier.
 // Typo : Inter (chargée via <link> Google Fonts dans render-html.ts).
 // Modèle 2 PAGES strict : chaque .page = 210×297 mm, overflow hidden, page-break-after.
 // Pas de carte Leaflet (aucune coordonnée dans le contrat de données) → le bloc

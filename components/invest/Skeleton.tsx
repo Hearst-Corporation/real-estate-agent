@@ -3,7 +3,7 @@
  * spinner plein écran). Server component. `aria-hidden` (décoratif) ; le
  * conteneur portant le Skeleton doit exposer `aria-busy="true"`.
  *
- * Largeur/hauteur = exception data-driven tolérée (cf. cockpit.css BarList).
+ * Largeur/hauteur pilotées par la donnée (style inline), comme BarList.
  */
 export function Skeleton({
   width,
