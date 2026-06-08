@@ -31,10 +31,23 @@ const DEFAULTS = {
 
 type Toolkit = "gmail" | "googlecalendar";
 
+/** L'API Composio renvoie `toolkit` tantôt comme string, tantôt comme objet
+ *  `{ slug: "gmail" }` selon la version d'endpoint. On gère les deux. */
+type ComposioToolkitField = string | { slug?: string } | null | undefined;
+
 interface ComposioConnectedAccount {
   id: string;
-  toolkit: string;
+  toolkit: ComposioToolkitField;
   status: string;
+}
+
+/** Normalise le champ toolkit (string ou {slug}) en slug minuscule. */
+function toolkitSlug(toolkit: ComposioToolkitField): string {
+  if (typeof toolkit === "string") return toolkit.toLowerCase();
+  if (toolkit && typeof toolkit === "object" && typeof toolkit.slug === "string") {
+    return toolkit.slug.toLowerCase();
+  }
+  return "";
 }
 
 interface ComposioConnectedAccountsResponse {
@@ -170,11 +183,10 @@ export async function connectionStatus(
       : [];
 
     const gmail = items.some(
-      (a) => a.toolkit?.toLowerCase() === "gmail" && a.status === "ACTIVE",
+      (a) => toolkitSlug(a.toolkit) === "gmail" && a.status === "ACTIVE",
     );
     const calendar = items.some(
-      (a) =>
-        a.toolkit?.toLowerCase() === "googlecalendar" && a.status === "ACTIVE",
+      (a) => toolkitSlug(a.toolkit) === "googlecalendar" && a.status === "ACTIVE",
     );
 
     return { gmail, calendar };
