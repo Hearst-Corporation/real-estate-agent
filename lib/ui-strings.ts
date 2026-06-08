@@ -341,7 +341,6 @@ export const UI = {
         openDeals: "Deals ouverts",
         collected: "Collecté (réel)",
         medianTri: "TRI cible médian · non gar.",
-        medianTriValue: "~9–11 %",
         ticketFrom: "Ticket dès",
       },
       filtersAria: "Filtres factuels",
