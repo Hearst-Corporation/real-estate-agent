@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { UI } from "@/lib/ui-strings";
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
 import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
+import { ScrapeCustomModal } from "./_components/ScrapeCustomModal";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
 
@@ -424,9 +425,18 @@ export default function ProspectionPage() {
         kicker={UI.prospection.kicker}
         title={UI.prospection.title}
         action={
-          <button type="button" className="ct-seg-btn primary" onClick={() => selectTab("criteres")}>
-            {UI.prospection.newAcquereurBtn}
-          </button>
+          <div className="ct-inline-actions">
+            <ScrapeCustomModal
+              onDone={() => {
+                setTab("matching");
+                void loadAnnonces();
+                void loadMatchs();
+              }}
+            />
+            <button type="button" className="ct-seg-btn primary" onClick={() => selectTab("criteres")}>
+              {UI.prospection.newAcquereurBtn}
+            </button>
+          </div>
         }
         nav={
           <PageSegmentTabs
