@@ -6,6 +6,7 @@ import { LeadKanban } from "@/components/cockpit/LeadKanban";
 import { StatusSelect } from "@/components/cockpit/StatusSelect";
 import { Badge } from "@/components/cockpit/primitives";
 import { LeadRowActions } from "@/app/(dashboard)/leads/_components/LeadRowActions";
+import { LeadsCockpit } from "@/app/(dashboard)/leads/_components/LeadsCockpit";
 import { eur, LEAD_STATUSES } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 
@@ -34,7 +35,8 @@ type Lead = {
 };
 
 export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
-  const [view, setView] = useState<"kanban" | "list">("kanban");
+  // Vue COCKPIT par défaut (métier) ; kanban + liste restent accessibles.
+  const [view, setView] = useState<"cockpit" | "kanban" | "list">("cockpit");
   const t = UI.leads;
 
   const columns: Column<Lead>[] = [
@@ -91,24 +93,32 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
   return (
     <div className="crm-view-panel">
       <div className="crm-toolbar crm-toolbar-shrink">
-        <div className="ct-card-title">VOS LEADS</div>
+        <div className="ct-card-title">{t.cockpit.panelTitle}</div>
         <div className="ct-seg-track">
-          <button 
+          <button
+            className={`ct-seg-btn ${view === "cockpit" ? "active" : ""}`}
+            onClick={() => setView("cockpit")}
+          >
+            {t.cockpit.tabCockpit}
+          </button>
+          <button
             className={`ct-seg-btn ${view === "kanban" ? "active" : ""}`}
             onClick={() => setView("kanban")}
           >
-            Kanban
+            {t.cockpit.tabKanban}
           </button>
-          <button 
+          <button
             className={`ct-seg-btn ${view === "list" ? "active" : ""}`}
             onClick={() => setView("list")}
           >
-            Liste
+            {t.cockpit.tabList}
           </button>
         </div>
       </div>
 
-      {view === "kanban" ? (
+      {view === "cockpit" ? (
+        <LeadsCockpit leads={leads} />
+      ) : view === "kanban" ? (
         <LeadKanban leads={leads} />
       ) : (
         <div className="crm-view-panel">
