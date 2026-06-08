@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { UI } from "@/lib/ui-strings";
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
 
@@ -427,21 +428,23 @@ export default function ProspectionPage() {
             {UI.prospection.newAcquereurBtn}
           </button>
         }
-        nav={TABS.map((t) => (
-          <button
-            key={t}
-            className={`ct-page-header-nav-item${tab === t ? " active" : ""}`}
-            onClick={() => selectTab(t)}
-          >
-            {t === "acquereurs"
-              ? UI.prospection.tabAcquereurs
-              : t === "annonces"
-              ? UI.prospection.annonces
-              : t === "matching"
-              ? UI.prospection.matching
-              : UI.prospection.criteres}
-          </button>
-        ))}
+        nav={
+          <PageSegmentTabs
+            tabs={TABS.map((t) => ({
+              id: t,
+              label:
+                t === "acquereurs"
+                  ? UI.prospection.tabAcquereurs
+                  : t === "annonces"
+                  ? UI.prospection.annonces
+                  : t === "matching"
+                  ? UI.prospection.matching
+                  : UI.prospection.criteres,
+            }))}
+            active={tab}
+            onSelect={selectTab}
+          />
+        }
         kpis={[
           { label: UI.prospection.kpiAcquereurs, value: String(criteres.length) },
           { label: UI.prospection.kpiMatchs, value: String(matchs.length) },

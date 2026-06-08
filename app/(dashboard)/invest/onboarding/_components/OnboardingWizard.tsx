@@ -188,7 +188,7 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
 
       {step === 0 ? (
         <section className={`ct-card ${styles.card}`} aria-label={o.aria.profile}>
-          <h2 className="ct-card-title">{p.title}</h2>
+          <div className="ct-card-title">{p.title}</div>
           <p className={`ct-card-body ${styles.intro}`}>
             {p.introBefore}
             <b>{p.introBold}</b>
@@ -256,7 +256,7 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
 
       {step === 1 ? (
         <section className={`ct-card ${styles.card}`} aria-label={o.aria.assessment}>
-          <h2 className="ct-card-title">{a.title}</h2>
+          <div className="ct-card-title">{a.title}</div>
           <p className={`ct-card-body ${styles.intro}`}>{a.intro}</p>
 
           <div className={styles.quiz}>
@@ -331,7 +331,7 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
 
       {step === 2 ? (
         <section className={`ct-card ${styles.card}`} aria-label={o.aria.kyc}>
-          <h2 className="ct-card-title">{k.title}</h2>
+          <div className="ct-card-title">{k.title}</div>
 
           {assessmentResult ? (
             <div className={styles.cap}>
@@ -383,7 +383,7 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
 
       {step === 3 ? (
         <section className={`ct-card ${styles.card}`} aria-label={o.aria.wallet}>
-          <h2 className="ct-card-title">{w.title}</h2>
+          <div className="ct-card-title">{w.title}</div>
           <p className={`ct-card-body ${styles.intro}`}>
             {w.introBefore}
             <b>{w.introBold}</b>

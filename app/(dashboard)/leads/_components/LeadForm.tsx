@@ -112,7 +112,7 @@ export function LeadForm({
 
   return (
     <CockpitForm onSubmit={handleSubmit}>
-      <h3 className="ct-card-title">{t.title}</h3>
+      <div className="ct-card-title">{t.title}</div>
 
       <Field label={t.fullName} htmlFor="lead-full-name" required>
         <TextInput

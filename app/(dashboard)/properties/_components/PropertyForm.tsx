@@ -134,7 +134,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
 
   return (
     <CockpitForm onSubmit={handleSubmit}>
-      <p className="ct-card-title">{t.form.title}</p>
+      <div className="ct-card-title">{t.form.title}</div>
 
       <Field label={t.form.name} htmlFor="property-title" required>
         <TextInput

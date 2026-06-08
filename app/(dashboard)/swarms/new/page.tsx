@@ -152,7 +152,7 @@ export default function NewSwarmPage() {
           {/* Colonne gauche : prompt */}
           <div className="ct-card swarm-arch-prompt">
             <div className="ct-card-body">
-              <h3 className="ct-card-title">{UI.swarms.architectTitle}</h3>
+              <div className="ct-card-title">{UI.swarms.architectTitle}</div>
               <textarea
                 className="crm-input swarm-form-textarea"
                 rows={ARCHITECT_TEXTAREA_ROWS}
@@ -176,7 +176,7 @@ export default function NewSwarmPage() {
           {spec ? (
             <div className="ct-card swarm-arch-spec">
               <div className="ct-card-body">
-                <h3 className="ct-card-title">{UI.swarms.architectSpecTitle(spec.name)}</h3>
+                <div className="ct-card-title">{UI.swarms.architectSpecTitle(spec.name)}</div>
                 <p className="swarm-spec-name">{spec.name}</p>
                 {spec.description && <p className="swarm-spec-desc">{spec.description}</p>}
 
