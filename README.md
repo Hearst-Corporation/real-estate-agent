@@ -1,4 +1,4 @@
-# Real Estate Agent (Cockpit)
+# Azigo (Cockpit)
 
 Application de gestion immobilière de nouvelle génération, intégrant un CRM complet, un système d'estimations, de la prospection et des agents IA (Swarms).
 

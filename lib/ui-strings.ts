@@ -3,12 +3,12 @@
  * Aucun texte visible utilisateur ne doit être hardcodé dans les composants —
  * tout passe par cet objet. Les clés techniques (ids, routes, classNames) restent inline.
  */
-export const APP_NAME = "Real estate Agent";
+export const APP_NAME = "Azigo";
 
 export const UI = {
   app: {
     name: APP_NAME,
-    description: "Real estate Agent — Cockpit",
+    description: `${APP_NAME} — Cockpit`,
   },
   nav: {
     home: "Accueil",

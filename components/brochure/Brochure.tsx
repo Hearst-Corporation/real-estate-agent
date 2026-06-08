@@ -176,7 +176,7 @@ function Eyebrow({ n, tx }: { n: string; tx: string }): React.JSX.Element {
 function Foot({ ref_, date, page }: { ref_: string; date: string; page: number }): React.JSX.Element {
   return (
     <footer className="foot">
-      <span>Real Estate Agent — Avis de valeur · {ref_} · Établi le {date}</span>
+      <span>Azigo — Avis de valeur · {ref_} · Établi le {date}</span>
       <span className="fp">Page <b>{page}</b> / 2</span>
     </footer>
   );
@@ -187,8 +187,8 @@ function Foot({ ref_, date, page }: { ref_: string; date: string; page: number }
 function PageOne({ estimation }: { estimation: Estimation }): React.JSX.Element {
   const { property, valuation, market, branding } = estimation;
   const v = valuation!; // garanti par le caller (status ready)
-  const mono = (branding?.monogram as string | undefined) ?? 'R';
-  const brand = (branding?.name as string | undefined) ?? 'Real Estate Agent';
+  const mono = (branding?.monogram as string | undefined) ?? 'A';
+  const brand = (branding?.name as string | undefined) ?? 'Azigo';
   const ref_ = refCode(estimation);
   const date = frenchDate(estimation.updatedAt);
 
@@ -358,8 +358,8 @@ function PageOne({ estimation }: { estimation: Estimation }): React.JSX.Element 
 function PageTwo({ estimation }: { estimation: Estimation }): React.JSX.Element {
   const { property, valuation, market, branding, saleStrategies } = estimation;
   const v = valuation!;
-  const mono = (branding?.monogram as string | undefined) ?? 'R';
-  const brand = (branding?.name as string | undefined) ?? 'Real Estate Agent';
+  const mono = (branding?.monogram as string | undefined) ?? 'A';
+  const brand = (branding?.name as string | undefined) ?? 'Azigo';
   const ref_ = refCode(estimation);
   const date = frenchDate(estimation.updatedAt);
 

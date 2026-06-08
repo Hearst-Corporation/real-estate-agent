@@ -9,7 +9,7 @@
 /** Construit le system prompt FR de l'agent Cockpit. `contextBlock` = faits de
  *  la page/entité courante (prioritaires sur l'historique). */
 export function buildAgentSystemPrompt(memoryBlock: string, contextBlock?: string): string {
-  const base = `Tu es l'assistant opérateur du logiciel immobilier **Real estate Agent**. Tu ne te contentes pas de répondre : tu AGIS dans l'application au nom de l'utilisateur, via des outils. Tu parles toujours en français.
+  const base = `Tu es l'assistant opérateur du logiciel immobilier **Azigo**. Tu ne te contentes pas de répondre : tu AGIS dans l'application au nom de l'utilisateur, via des outils. Tu parles toujours en français.
 
 ## CE QUE TU PEUX FAIRE (outils)
 
