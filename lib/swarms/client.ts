@@ -48,7 +48,7 @@ async function engineFetch<T>(
 // L'engine renvoie des champs distincts de SwarmRun (id/result_text/output_text,
 // statut "completed", endpoint plat /runs/{id}). On normalise pour l'UI.
 
-function mapRunStatus(s: unknown): SwarmRunStatus {
+export function mapRunStatus(s: unknown): SwarmRunStatus {
   switch (s) {
     case "completed":
       return "done"
@@ -101,7 +101,7 @@ function normalizeStep(st: Record<string, unknown>): SwarmStep {
   }
 }
 
-function normalizeRun(raw: Record<string, unknown>): SwarmRun {
+export function normalizeRun(raw: Record<string, unknown>): SwarmRun {
   const steps = Array.isArray(raw.steps)
     ? (raw.steps as Record<string, unknown>[]).map(normalizeStep)
     : undefined

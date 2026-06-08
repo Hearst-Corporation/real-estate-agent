@@ -3937,7 +3937,9 @@ export type Database = {
       }
       swarm_runs: {
         Row: {
+          cost_usd: number | null
           created_at: string
+          decision: Json | null
           id: string
           result: Json | null
           run_id: string
@@ -3945,11 +3947,15 @@ export type Database = {
           steps: Json | null
           swarm_id: string
           tenant_id: string
+          tokens_in: number | null
+          tokens_out: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          cost_usd?: number | null
           created_at?: string
+          decision?: Json | null
           id?: string
           result?: Json | null
           run_id: string
@@ -3957,11 +3963,15 @@ export type Database = {
           steps?: Json | null
           swarm_id: string
           tenant_id?: string
+          tokens_in?: number | null
+          tokens_out?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          cost_usd?: number | null
           created_at?: string
+          decision?: Json | null
           id?: string
           result?: Json | null
           run_id?: string
@@ -3969,6 +3979,8 @@ export type Database = {
           steps?: Json | null
           swarm_id?: string
           tenant_id?: string
+          tokens_in?: number | null
+          tokens_out?: number | null
           updated_at?: string
           user_id?: string
         }

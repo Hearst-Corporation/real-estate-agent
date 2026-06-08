@@ -11,11 +11,13 @@ export default defineConfig({
       'server-only': path.resolve(__dirname, 'test/stubs/server-only.ts'),
       // Idem pour `client-only` si jamais utilisé dans des modules testés.
       'client-only': path.resolve(__dirname, 'test/stubs/server-only.ts'),
+      // Alias Next.js `@/` → racine du projet.
+      '@': path.resolve(__dirname),
     },
   },
   test: {
     environment: 'node',
-    include: ['lib/**/*.test.ts'],
+    include: ['lib/**/*.test.ts', 'test/**/*.test.ts'],
     exclude: ['node_modules/**', 'e2e/**', 'electron/**', 'dist-electron/**', '.next/**'],
   },
 });

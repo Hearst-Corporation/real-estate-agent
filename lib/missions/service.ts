@@ -15,6 +15,7 @@ import { createSwarm, generateSpec, getRun, kickoffSwarm, resumeRun } from "@/li
 import type { ArchitectSpec, SwarmRun } from "@/lib/swarms/types";
 import { buildMissionView } from "@/lib/missions/phases";
 import type { MissionDecision, MissionPlan, MissionStatus, MissionView } from "@/lib/missions/types";
+import { WEBHOOK_FRESH_MS, TERMINAL_STATUSES } from "@/lib/swarms/constants";
 
 type Db = SupabaseClient<Database>;
 
@@ -24,7 +25,7 @@ type Db = SupabaseClient<Database>;
  * owner_id attendu par le moteur (uuidOwnerOf) ; `tenant`/`userId` = la ligne.
  */
 export type MissionIdentity = { userId: string; tenant: string; ownerId: string };
-type MissionRow = Database["public"]["Tables"]["missions"]["Row"];
+export type MissionRow = Database["public"]["Tables"]["missions"]["Row"];
 type MissionUpdate = Database["public"]["Tables"]["missions"]["Update"];
 type RunRef = { run_id: string; label: string; status: string };
 
@@ -119,6 +120,167 @@ const isPendingEntry = (e: DecisionEntry): e is PendingDecisionEntry => e.kind =
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─── Helpers purs (exportés pour tests unitaires) ────────────────────────────
+
+/**
+ * Recalcule le tableau runs[] d'une mission en propageant le statut d'un run.
+ * PURE — sans I/O. FIX P0-1.
+ */
+export function computeUpdatedRuns(
+  runs: RunRef[],
+  runId: string,
+  newStatus: string,
+): RunRef[] {
+  return runs.map((r) => (r.run_id === runId ? { ...r, status: newStatus } : r));
+}
+
+/**
+ * Indique si la branche de downgrade awaiting_decision→running doit être exécutée.
+ * PURE — sans I/O. FIX P1-2.
+ *
+ * Retourne false quand fromWebhook=true pour éviter qu'un event `running`
+ * arrivé hors-ordre purge une décision HITL active.
+ */
+export function shouldDowngradeAwaitingDecision(
+  runStatus: string,
+  missionStatus: string,
+  fromWebhook: boolean,
+): boolean {
+  return (
+    (runStatus === "running" || runStatus === "pending") &&
+    missionStatus === "awaiting_decision" &&
+    !fromWebhook
+  );
+}
+
+// ─── Helpers webhook ─────────────────────────────────────────────────────────
+
+/**
+ * Cherche la mission dont le tableau `runs` contient {run_id}.
+ * Utilise le filtre Postgres `@>` (contains) car run_id est unique dans le système.
+ * Retourne null si aucune mission ne correspond.
+ *
+ * Modèle de confiance : run_id est globalement UNIQUE (contrainte DB). Cette
+ * fonction est appelée depuis un contexte service-role (webhook authentifié par
+ * HMAC secret partagé moteur). L'attribution correcte du run_id côté moteur fait
+ * partie du périmètre de confiance, comme les webhooks invest.
+ * .limit(1) évite un throw supabase-js si 2 missions partagent par erreur un run_id.
+ */
+export async function findMissionByRunId(
+  sb: Db,
+  runId: string,
+): Promise<MissionRow | null> {
+  const { data } = await sb
+    .from("missions")
+    .select("*")
+    .contains("runs", JSON.stringify([{ run_id: runId }]))
+    .limit(1)
+    .maybeSingle<MissionRow>();
+  return data ?? null;
+}
+
+/**
+ * Synchronise le statut d'une mission à partir d'un run normalisé.
+ *
+ * Comportement IDENTIQUE au bloc inline de getMissionState :
+ *   - done → mission done + result
+ *   - failed|error → mission failed + error
+ *   - paused_hitl + decision → awaiting_decision + append pending decision
+ *   - running|pending si mission était awaiting_decision → running + purge pending
+ *     (seulement depuis le poll — fromWebhook:true skip cette branche car un
+ *     `running` en retard ne doit pas purger une décision HITL active)
+ *
+ * Le filtre d'écriture n'utilise QUE `id` (pas user_id/tenant_id) car cette
+ * fonction est appelée depuis un contexte service-role (webhook, pas JWT).
+ *
+ * Les erreurs DB sont throws → l'appelant décide de les avaler ou de les propager.
+ */
+export async function syncMissionFromRun(
+  sb: Db,
+  mission: MissionRow,
+  run: SwarmRun,
+  opts?: { fromWebhook?: boolean },
+): Promise<void> {
+  const existingDecisions = (mission.decisions ?? []) as unknown as DecisionEntry[];
+
+  // FIX P0-1 : met à jour le statut par-run dans le sous-objet runs[] (helper pur)
+  const updatedRuns = computeUpdatedRuns(
+    (mission.runs ?? []) as unknown as RunRef[],
+    run.run_id,
+    run.status,
+  );
+
+  if (run.status === "done" && mission.status !== "done") {
+    const { error } = await sb
+      .from("missions")
+      .update({
+        status: "done" as MissionStatus,
+        result: { text: run.output ?? null } as unknown as MissionRow["result"],
+        runs: updatedRuns as unknown as MissionRow["runs"],
+      })
+      .eq("id", mission.id);
+    if (error) throw error;
+  } else if (
+    (run.status === "failed" || run.status === "error") &&
+    mission.status !== "failed"
+  ) {
+    const { error } = await sb
+      .from("missions")
+      .update({
+        status: "failed" as MissionStatus,
+        error: run.output ?? "run_failed",
+        runs: updatedRuns as unknown as MissionRow["runs"],
+      })
+      .eq("id", mission.id);
+    if (error) throw error;
+  } else if (run.status === "paused_hitl" && run.decision) {
+    const existingPending = existingDecisions.find(isPendingEntry);
+    const isSamePending =
+      existingPending &&
+      existingPending.pending.question === run.decision.question &&
+      JSON.stringify(existingPending.pending.options) ===
+        JSON.stringify(run.decision.options);
+    if (!isSamePending) {
+      const nextDecisions: DecisionEntry[] = [
+        ...existingDecisions.filter((e) => !isPendingEntry(e)),
+        {
+          kind: "pending",
+          pending: {
+            question: run.decision.question,
+            hint: run.decision.hint,
+            options: run.decision.options,
+          },
+          at: new Date().toISOString(),
+        },
+      ];
+      const payload: MissionUpdate = {
+        decisions: nextDecisions as unknown as MissionRow["decisions"],
+        runs: updatedRuns as unknown as MissionRow["runs"],
+      };
+      if (mission.status !== "awaiting_decision") payload.status = "awaiting_decision";
+      const { error } = await sb.from("missions").update(payload).eq("id", mission.id);
+      if (error) throw error;
+    }
+  } else if (
+    // FIX P1-2 : helper pur shouldDowngradeAwaitingDecision — skip la branche
+    // quand fromWebhook:true pour éviter qu'un event `running` en retard purge
+    // une décision HITL active (deadlock mission).
+    shouldDowngradeAwaitingDecision(run.status, mission.status, opts?.fromWebhook ?? false)
+  ) {
+    const { error } = await sb
+      .from("missions")
+      .update({
+        status: "running" as MissionStatus,
+        decisions: existingDecisions.filter(
+          (e) => !isPendingEntry(e),
+        ) as unknown as MissionRow["decisions"],
+        runs: updatedRuns as unknown as MissionRow["runs"],
+      })
+      .eq("id", mission.id);
+    if (error) throw error;
+  }
+}
+
 /** Charge la mission + poll le run courant → MissionView (langage humain). */
 export async function getMissionState(sb: Db, idn: MissionIdentity, missionId: string): Promise<MissionView | null> {
   const { data: m } = await sb
@@ -133,86 +295,49 @@ export async function getMissionState(sb: Db, idn: MissionIdentity, missionId: s
   const plan = (m.plan ?? null) as MissionPlan | null;
   const runs = (m.runs ?? []) as unknown as RunRef[];
   const current = runs[runs.length - 1] ?? null;
-
-  // Poll live du run courant (best-effort : moteur indispo → on rend l'état connu).
-  const run = current ? await getRun(current.run_id, idn.ownerId).catch(() => null) : null;
-
-  // Synchronise le statut mission sur l'état du run (slice 1 : run unique).
-  let status = m.status as MissionStatus;
   const existingDecisions = (m.decisions ?? []) as unknown as DecisionEntry[];
 
-  if (run) {
-    if (run.status === "done" && status !== "done") {
-      status = "done";
-      await sb
-        .from("missions")
-        .update({ status, result: { text: run.output ?? null } as unknown as MissionRow["result"] })
-        .eq("id", m.id)
-        .eq("user_id", idn.userId)
-        .eq("tenant_id", idn.tenant);
-    } else if ((run.status === "failed" || run.status === "error") && status !== "failed") {
-      status = "failed";
-      await sb
-        .from("missions")
-        .update({ status, error: run.output ?? "run_failed" })
-        .eq("id", m.id)
-        .eq("user_id", idn.userId)
-        .eq("tenant_id", idn.tenant);
-    } else if (run.status === "paused_hitl" && run.decision) {
-      // Le moteur a émis un moment de décision : on passe la mission en attente
-      // et on persiste la décision ouverte pour qu'elle survive au redémarrage.
-      status = "awaiting_decision";
-      const existingPending = existingDecisions.find(isPendingEntry);
-      const isSamePending =
-        existingPending &&
-        existingPending.pending.question === run.decision.question &&
-        JSON.stringify(existingPending.pending.options) === JSON.stringify(run.decision.options);
-      if (!isSamePending) {
-        const nextDecisions: DecisionEntry[] = [
-          ...existingDecisions.filter((e) => !isPendingEntry(e)),
-          {
-            kind: "pending",
-            pending: {
-              question: run.decision.question,
-              hint: run.decision.hint,
-              options: run.decision.options,
-            },
-            at: new Date().toISOString(),
-          },
-        ];
-        // Écriture conditionnelle : inclut `status` uniquement si la mission
-        // n'était pas déjà en attente, pour éviter les mises à jour inutiles.
-        const payload: MissionUpdate = {
-          decisions: nextDecisions as unknown as MissionRow["decisions"],
-        };
-        if (m.status !== "awaiting_decision") payload.status = status;
-        await sb
-          .from("missions")
-          .update(payload)
-          .eq("id", m.id)
-          .eq("user_id", idn.userId)
-          .eq("tenant_id", idn.tenant);
-      }
-      // Si la décision persistée est identique, on n'écrit rien.
-    } else if (
-      (run.status === "running" || run.status === "pending") &&
-      status === "awaiting_decision"
-    ) {
-      // Le moteur a repris alors que la mission était encore marquée en attente :
-      // on resynchronise le statut et on purge les décisions ouvertes obsolètes.
-      status = "running";
-      await sb
-        .from("missions")
-        .update({
-          status,
-          decisions: existingDecisions.filter(
-            (e) => !isPendingEntry(e),
-          ) as unknown as MissionRow["decisions"],
-        })
-        .eq("id", m.id)
-        .eq("user_id", idn.userId)
-        .eq("tenant_id", idn.tenant);
+  // ─── Optim : éviter le poll moteur si inutile ────────────────────────────
+  // 1. Statut terminal → la mission ne bougera plus, on sert l'état DB.
+  // 2. SWARMS_TRUST_WEBHOOK=true + record frais (<WEBHOOK_FRESH_MS) → le webhook
+  //    vient de mettre à jour la DB, le poll moteur est redondant.
+  const missionStatus = m.status as MissionStatus;
+  const isTerminal = TERMINAL_STATUSES.includes(missionStatus as "done" | "failed" | "error");
+
+  let run: SwarmRun | null = null;
+
+  if (!isTerminal && current) {
+    const trustWebhook = process.env.SWARMS_TRUST_WEBHOOK === "true";
+    let skipPoll = false;
+    if (trustWebhook && m.updated_at) {
+      const age = Date.now() - new Date(m.updated_at).getTime();
+      if (age < WEBHOOK_FRESH_MS) skipPoll = true;
     }
+    if (!skipPoll) {
+      run = await getRun(current.run_id, idn.ownerId).catch(() => null);
+    }
+  }
+
+  // Synchronise le statut mission sur l'état du run via la fonction extraite.
+  // FIX P2-2 : getMissionState est best-effort (poll) — on avale les erreurs DB
+  // pour ne pas bloquer l'affichage. applyRunWebhook (webhook) ne catch pas (→ 500 → retry).
+  if (run) {
+    try {
+      await syncMissionFromRun(sb, m, run);
+    } catch {
+      // best-effort poll : erreur DB non bloquante
+    }
+  }
+
+  // Re-lire le statut à jour pour construire la MissionView.
+  // Si syncMissionFromRun a écrit en DB, on relit pour avoir le statut cohérent.
+  // Optim : si le run est null ou pas de changement attendu, on prend m.status.
+  let status: MissionStatus = missionStatus;
+  if (run) {
+    if (run.status === "done") status = "done";
+    else if (run.status === "failed" || run.status === "error") status = "failed";
+    else if (run.status === "paused_hitl" && run.decision) status = "awaiting_decision";
+    else if ((run.status === "running" || run.status === "pending") && missionStatus === "awaiting_decision") status = "running";
   }
 
   // Source de vérité pour la décision présentée au front :
