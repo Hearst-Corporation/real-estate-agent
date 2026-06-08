@@ -423,7 +423,7 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
 .crm-detail-actions { display: flex; gap: var(--ct-space-xs); align-items: center; flex-wrap: wrap; }
 .crm-detail-meta { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); margin-top: var(--ct-space-2xs); }
 .crm-dpe-row { display: flex; gap: var(--ct-space-lg); align-items: center; flex-wrap: wrap; }
-.crm-view-panel { display: flex; flex-direction: column; gap: var(--ct-space-md); flex: 1; min-height: 0; }
+/* .crm-view-panel déplacée vers 80-write.css (source unique) — était un split-brain cascade. */
 .crm-toolbar-shrink { flex-shrink: 0; }
 .crm-detail-price {
   font-size: var(--ct-fs-xl); font-weight: var(--ct-fw-heavy); color: var(--ct-accent-strong);

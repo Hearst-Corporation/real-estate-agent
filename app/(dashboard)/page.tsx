@@ -15,6 +15,22 @@ const RECENT_PROPERTIES_LIMIT = 6;
 const LEADS_CLOSED = ["gagne", "perdu"];
 const TODAY_PREVIEW = 3;
 
+const HOURS_48_MS = 48 * 3600 * 1000;
+const DAYS_30_MS = 30 * 24 * 3600 * 1000;
+const DAYS_7_MS = 7 * 24 * 3600 * 1000;
+
+// Fenêtres temporelles partagent le même instant (un seul Date.now()) pour éviter
+// des fenêtres incohérentes si plusieurs appels se décalent de quelques ms.
+function computeTimeWindows() {
+  const nowMs = Date.now();
+  return {
+    now: new Date(nowMs).toISOString(),
+    in48h: new Date(nowMs + HOURS_48_MS).toISOString(),
+    in30d: new Date(nowMs + DAYS_30_MS).toISOString(),
+    sevenDaysAgo: new Date(nowMs - DAYS_7_MS).toISOString(),
+  };
+}
+
 type PropertyRow = {
   id: string;
   title: string | null;
@@ -129,12 +145,7 @@ export default async function DashboardPage() {
   if (claims && sb) {
     const uid = claims.sub;
     const tid = tenantOf(claims);
-    const now = new Date().toISOString();
-    const in48h = new Date(Date.now() + 48 * 3600 * 1000).toISOString();
-    const in30d = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
-    const sevenDaysAgo = new Date(
-      Date.now() - 7 * 24 * 3600 * 1000
-    ).toISOString();
+    const { now, in48h, in30d, sevenDaysAgo } = computeTimeWindows();
 
     const [
       propertiesRes,

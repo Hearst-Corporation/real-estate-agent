@@ -28,7 +28,7 @@ export default function DashboardError({
       <Card>
         <div className="ct-skeleton-stack">
           <p className="ct-sub">
-            Quelque chose s'est mal passé en chargeant cette vue. Réessayez ;
+            Quelque chose s&apos;est mal passé en chargeant cette vue. Réessayez&nbsp;;
             si le problème persiste, rechargez la page.
           </p>
           {process.env.NODE_ENV === "development" && error.message ? (

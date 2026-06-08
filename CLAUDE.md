@@ -39,6 +39,7 @@ Pour TOUTE opération DB, utiliser le **MCP Supabase** sans demander confirmatio
 - Layouts : `app/layout.tsx` (racine, **sans** CockpitShell) ; `app/(dashboard)/layout.tsx` (garde serveur + CockpitShell) ; `app/auth/login/` hors shell.
 - Profil : `app/(dashboard)/profile/page.tsx` (déconnexion principale ici).
 - Tenant : `current_tenant_id()` + RLS `(select …)` + hook JWT `custom_access_token_hook`. Le client service-role bypass RLS → **toujours filtrer `user_id` + `tenant_id` explicitement** côté code.
+- Révocation session : `revoked_sessions` (migration 0028) — logout / kill admin insèrent le `jti` ; le proxy rejette les tokens révoqués quand `AUTH_CHECK_REVOCATION=true`. **Activée** → poser `AUTH_CHECK_REVOCATION=true` en env local + **Vercel** + **Railway** (sinon le logout n'efface que le cookie navigateur). Fail-open (blip DB → laisse passer, jamais de lock massif) ; tokens legacy sans `jti` ignorés (rétro-compat).
 - Mémoire Kimi : table `tenant_memory` isolée par tenant + user. Capture `« mémorise: … »`, réinjection des 20 dernières dans le system prompt.
 - Admin : `admin@real-estate-agent.app` — identifiants dans `docs/credentials.local.txt` (gitignored).
 

@@ -26,14 +26,21 @@ import { presignedUrl, r2IsConfigured } from "@/lib/storage/r2";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Durée de validité du lien signé (secondes). */
-const DOWNLOAD_TTL_SECONDS = Number(process.env.R2_DOWNLOAD_TTL_SECONDS ?? 3600);
+const DEFAULT_DOWNLOAD_TTL_SECONDS = 3600;
+const DOWNLOAD_TTL_SECONDS = Number(process.env.R2_DOWNLOAD_TTL_SECONDS ?? DEFAULT_DOWNLOAD_TTL_SECONDS);
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string; docId: string }> },
 ) {
   const { id, docId } = await params;
+
+  if (!UUID_RE.test(id) || !UUID_RE.test(docId)) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
 
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -54,7 +61,8 @@ export async function GET(
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: "document_failed", detail: error.message }, { status: 500 });
+    console.error("[invest/download] query failed", error);
+    return NextResponse.json({ error: "document_failed" }, { status: 500 });
   }
   if (!data || data.status !== "active") {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
