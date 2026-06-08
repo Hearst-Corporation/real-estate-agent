@@ -6,6 +6,7 @@ import { PropertiesViewToggle } from "./_components/PropertiesViewToggle";
 import { barsByStatus, topByCategory, distributeByBand, autoBands, ratio } from "@/lib/crm/aggregate";
 import { eur, PROPERTY_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
+import { filterSeed } from "@/lib/crm/demo-filter";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -55,7 +56,7 @@ export default async function PropertiesPage() {
       property_photos?: Array<{ url: string; is_cover: boolean; position: number }>;
     }>;
 
-    properties = rawProperties.map((p) => ({
+    properties = filterSeed(rawProperties, (p) => [p.title, p.city]).map((p) => ({
       id: p.id,
       status: p.status,
       title: p.title,

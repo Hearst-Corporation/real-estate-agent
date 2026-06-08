@@ -7,6 +7,7 @@ import {
 import { UI } from "@/lib/ui-strings";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { dateFr } from "@/lib/crm/format";
+import { filterSeed } from "@/lib/crm/demo-filter";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
@@ -243,13 +244,13 @@ export default async function DashboardPage() {
         .limit(TODAY_PREVIEW + 1),
     ]);
 
-    properties = (propertiesRes.data ?? []) as PropertyRow[];
+    properties = filterSeed((propertiesRes.data ?? []) as PropertyRow[], (p) => [p.title, p.city]);
     nbProperties = propertiesTotalRes.count ?? 0;
     nbLeadsActifs = leadsCountRes.count ?? (leadsCountRes.data?.length ?? 0);
     nbVisitesAVenir = visitsCountRes.count ?? 0;
     nbMandatsActifs = mandatesCountRes.count ?? 0;
 
-    leadsToFollow = ((leadsFollowRes.data ?? []) as LeadRow[]).slice(
+    leadsToFollow = filterSeed((leadsFollowRes.data ?? []) as LeadRow[], (l) => [l.full_name]).slice(
       0,
       TODAY_PREVIEW
     );

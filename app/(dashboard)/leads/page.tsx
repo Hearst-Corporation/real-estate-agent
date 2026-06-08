@@ -6,6 +6,7 @@ import { LeadsViewToggle } from "./_components/LeadsViewToggle";
 import { countByStatus } from "@/lib/crm/aggregate";
 import { LEAD_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
+import { filterSeed } from "@/lib/crm/demo-filter";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -46,7 +47,7 @@ export default async function LeadsPage() {
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("updated_at", { ascending: false });
-    leads = (data ?? []) as Lead[];
+    leads = filterSeed((data ?? []) as Lead[], (l) => [l.full_name]);
   }
 
   const total = leads.length;
