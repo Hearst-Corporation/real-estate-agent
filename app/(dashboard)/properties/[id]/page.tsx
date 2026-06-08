@@ -465,7 +465,7 @@ export default async function PropertyDetailPage({
       {/* ── Leads ────────────────────────────────────────────────────────── */}
       <Card title={td.cardLeads}>
         {leads && leads.length > 0 ? (
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          <ul className="crm-related-list">
             {leads.map((lead) => (
               <li key={lead.id} className="crm-related-row">
                 <span className="crm-related-primary">{lead.full_name}</span>
@@ -494,7 +494,7 @@ export default async function PropertyDetailPage({
       {/* ── Visites ──────────────────────────────────────────────────────── */}
       <Card title={td.cardVisites}>
         {visits && visits.length > 0 ? (
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          <ul className="crm-related-list">
             {visits.map((visit) => (
               <li key={visit.id} className="crm-related-row">
                 <span className="crm-related-primary">{dateTimeFr(visit.scheduled_at)}</span>
@@ -515,7 +515,7 @@ export default async function PropertyDetailPage({
       {/* ── Mandats ──────────────────────────────────────────────────────── */}
       <Card title={td.cardMandats}>
         {mandates && mandates.length > 0 ? (
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          <ul className="crm-related-list">
             {mandates.map((mandate) => (
               <li key={mandate.id} className="crm-related-row">
                 <span className="crm-related-primary">

@@ -7,7 +7,7 @@
   border-radius: var(--ct-radius-2xl);
   background:
     radial-gradient(circle at 88% 8%, color-mix(in srgb, var(--ct-accent-strong) 22%, transparent), transparent 38%),
-    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.018)),
+    var(--ct-surface-sheen),
     var(--ct-surface-1);
   box-shadow: var(--ct-shadow-depth);
 }
@@ -19,10 +19,10 @@
   margin-bottom: var(--ct-space-lg);
 }
 .ct-page-header-kicker-track {
-  min-height: 18px; /* 10px font + 8px margin */
+  min-height: calc(var(--ct-fs-xs) + var(--ct-space-xs)); /* font + margin */
 }
 .ct-page-header-action-track {
-  min-height: 32px;
+  min-height: var(--ct-space-xl);
   display: flex;
   align-items: center;
 }
@@ -37,8 +37,15 @@
 .ct-page-header-title {
   margin: 0;
 }
+/* Slot meta du PageHeader (sous-titre sous le titre) — était rendu sans CSS. */
+.ct-page-header-meta {
+  margin-top: var(--ct-space-2xs);
+}
+.ct-page-header-meta > * {
+  margin: 0;
+}
 .ct-page-header-nav-track {
-  min-height: 42px;
+  min-height: var(--ct-touch-height);
   margin-bottom: var(--ct-space-lg);
   display: flex;
   align-items: center;
@@ -51,8 +58,8 @@
 }
 .ct-page-header-nav-item {
   appearance: none;
-  min-width: 138px;
-  height: 42px;
+  min-width: 138px; /* tab-nav min — pas de token d'échelle applicable */
+  height: var(--ct-touch-height);
   padding: 0 var(--ct-space-md);
   display: inline-flex;
   align-items: center;
@@ -403,13 +410,13 @@
 /* ── Empty states premium ── */
 .prospection-empty {
   width: 100%;
-  min-height: clamp(260px, 38vh, 480px);
+  min-height: clamp(var(--ct-prose-sm), 38vh, var(--ct-layout-max));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--ct-space-sm);
-  padding: clamp(var(--ct-space-lg), 5vw, 64px);
+  padding: clamp(var(--ct-space-lg), 5vw, var(--ct-space-2xl));
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-lg);
   background:
@@ -421,7 +428,7 @@
 }
 .prospection-spinner {
   width: 100%;
-  min-height: clamp(180px, 28vh, 320px);
+  min-height: clamp(var(--ct-prose-sm), 28vh, var(--ct-prose-xl));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -432,12 +439,12 @@
   text-align: center;
 }
 .prospection-empty-icon {
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1;
+  font-size: clamp(var(--ct-fs-2xl), 4vw, var(--ct-fs-3xl));
+  line-height: var(--ct-lh-none);
   margin-bottom: var(--ct-space-xs);
 }
 .prospection-empty-title {
-  max-width: 540px;
+  max-width: var(--ct-prose-lg);
   margin: 0;
   color: var(--ct-text-primary);
   font-size: clamp(var(--ct-fs-md), 1.4vw, var(--ct-fs-xl));
@@ -445,7 +452,7 @@
   line-height: var(--ct-lh-snug);
 }
 .prospection-empty-text {
-  max-width: 460px;
+  max-width: var(--ct-prose-md);
   margin: 0;
   color: var(--ct-text-muted);
   font-size: var(--ct-fs-sm);
@@ -479,7 +486,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 1px;
+  margin-top: var(--ct-space-3xs);
 }
 .prospection-grid > .prospection-empty {
   grid-column: 1 / -1;
@@ -492,6 +499,75 @@
 }
 .prospection-refresh {
   flex-shrink: 0;
+}
+
+/* ── Utilitaires prospection (DS — pas d'inline styles) ── */
+.ct-ml-xs { margin-left: var(--ct-space-xs); }
+
+/* Lien externe d'annonce : petite fonte + ne rétrécit pas */
+.prospection-crit-tag {
+  font-size: var(--ct-fs-xs);
+  flex-shrink: 0;
+}
+
+/* Hint compteur dans le header panneau critères */
+.prospection-empty-hint {
+  color: var(--ct-text-muted);
+  font-size: var(--ct-fs-sm);
+}
+
+/* Header du panneau matching (padding + flex between) */
+.prospection-matching-header {
+  padding: var(--ct-space-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--ct-space-md);
+}
+
+/* Header du panneau critères (flex between + padding) */
+.prospection-criteres-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--ct-space-md);
+}
+
+/* Bouton supprimer critère */
+.prospection-critere-del-btn {
+  background: none;
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-sm);
+  padding: var(--ct-space-2xs) var(--ct-space-sm);
+  cursor: pointer;
+  color: var(--ct-text-danger);
+  font-size: var(--ct-fs-xs);
+}
+
+/* Formulaire ajout critère (card inline) */
+.prospection-critere-form {
+  margin: var(--ct-space-md);
+  padding: var(--ct-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-sm);
+}
+
+/* Wrapper liste critères (stack colonne) */
+.prospection-criteres-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-sm);
+}
+
+/* Wrapper empty-state matching avec padding */
+.prospection-matching-empty {
+  padding: var(--ct-space-md);
+}
+
+/* Wrapper empty-state critères avec padding */
+.prospection-criteres-empty {
+  padding: var(--ct-space-md);
 }
 .prospection-card {
   padding: var(--ct-space-md);

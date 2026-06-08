@@ -15,7 +15,7 @@
  */
 
 import Link from "next/link";
-import { Eyebrow, Title, Sub } from "@/components/cockpit/primitives";
+import { PageStack, PageHeader, KpiGrid, KpiCard, Sub } from "@/components/cockpit/primitives";
 import { Banner, StatusPill, type StatusTone } from "@/components/invest";
 import { fetchClosingState } from "../../../_data/server";
 import { ClosingLauncher } from "./ClosingLauncher";
@@ -36,35 +36,32 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
 
   if (!state.configured) {
     return (
-      <div className="ct-page-area">
-        <Eyebrow>Invest · Back-office · Closing</Eyebrow>
-        <Title>Closing du deal</Title>
+      <PageStack>
+        <PageHeader kicker="Invest · Back-office · Closing" title="Closing du deal" />
         <Banner tone="warn">Base de données non configurée — closing indisponible.</Banner>
-      </div>
+      </PageStack>
     );
   }
   if (!state.authorized) {
     return (
-      <div className="ct-page-area">
-        <Eyebrow>Invest · Back-office · Closing</Eyebrow>
-        <Title>Closing du deal</Title>
+      <PageStack>
+        <PageHeader kicker="Invest · Back-office · Closing" title="Closing du deal" />
         <Banner tone="warn">
           Accès réservé aux opérateurs, à l&apos;administration et à la conformité. Investir comporte
           un risque de perte en capital ; les rendements affichés sont non garantis.
         </Banner>
-      </div>
+      </PageStack>
     );
   }
   if (!state.found) {
     return (
-      <div className="ct-page-area">
-        <Eyebrow>Invest · Back-office · Closing</Eyebrow>
-        <Title>Closing du deal</Title>
+      <PageStack>
+        <PageHeader kicker="Invest · Back-office · Closing" title="Closing du deal" />
         <Banner tone="warn">Deal introuvable pour ce tenant.</Banner>
         <p className="inv-chart-foot">
           <Link href="/invest/operateur">← Retour aux opérations</Link>
         </p>
-      </div>
+      </PageStack>
     );
   }
 
@@ -72,14 +69,18 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
   const totalUnits = state.holdings.reduce((s, h) => s + h.units, 0);
 
   return (
-    <div className="ct-page-area">
-      <Eyebrow>Invest · Back-office · Closing (DvP)</Eyebrow>
-      <Title>{state.dealName}</Title>
-      <Sub>
-        Closing en livraison-contre-paiement : inscription au registre DEEP (source de vérité)
-        d&apos;abord, puis miroir on-chain, réconciliation, et libération du séquestre en dernier.
-        Le porteur est créancier obligataire ; rendement non garanti, risque de perte en capital.
-      </Sub>
+    <PageStack>
+      <PageHeader
+        kicker="Invest · Back-office · Closing (DvP)"
+        title={state.dealName}
+        meta={
+          <Sub>
+            Closing en livraison-contre-paiement : inscription au registre DEEP (source de vérité)
+            d&apos;abord, puis miroir on-chain, réconciliation, et libération du séquestre en dernier.
+            Le porteur est créancier obligataire ; rendement non garanti, risque de perte en capital.
+          </Sub>
+        }
+      />
 
       <div className="inv-mk-toolbar inv-toolbar-between">
         <span>
@@ -98,27 +99,25 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
       </Banner>
 
       {/* ── KPIs ───────────────────────────────────────────────────────────── */}
-      <div className="ct-kpi-grid cols-4 inv-kpi-my">
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">Conditions suspensives</div>
-          <div className="ct-kpi-value">
-            {state.conditionsSnapshot.total - state.conditionsSnapshot.unmet.length}/
-            {state.conditionsSnapshot.total}
-          </div>
-        </div>
-        <div className={`ct-kpi-card ${state.fourEyesApproved ? "accent" : ""}`}>
-          <div className="ct-kpi-label">Double validation (4-eyes)</div>
-          <div className="ct-kpi-value">{state.fourEyesApproved ? "OK" : "Requise"}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">Souscriptions financées</div>
-          <div className="ct-kpi-value">{state.fundedCount}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">Obligations inscrites (DEEP)</div>
-          <div className="ct-kpi-value">{totalUnits}</div>
-        </div>
-      </div>
+      <KpiGrid className="cols-4 inv-kpi-my">
+        <KpiCard
+          label="Conditions suspensives"
+          value={`${state.conditionsSnapshot.total - state.conditionsSnapshot.unmet.length}/${state.conditionsSnapshot.total}`}
+        />
+        <KpiCard
+          label="Double validation (4-eyes)"
+          value={state.fourEyesApproved ? "OK" : "Requise"}
+          accent={state.fourEyesApproved}
+        />
+        <KpiCard
+          label="Souscriptions financées"
+          value={String(state.fundedCount)}
+        />
+        <KpiCard
+          label="Obligations inscrites (DEEP)"
+          value={String(totalUnits)}
+        />
+      </KpiGrid>
 
       {/* ── Conditions suspensives ─────────────────────────────────────────── */}
       <div className="inv-chart-card inv-chart-mb">
@@ -207,6 +206,6 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
           </table>
         )}
       </div>
-    </div>
+    </PageStack>
   );
 }

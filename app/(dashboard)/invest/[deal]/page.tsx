@@ -44,6 +44,7 @@ import type { DealSheet } from "@/lib/invest/finance";
 import { getDemoDeal, DEMO_DEALS } from "../_data/demo";
 import { fetchDealBySlug } from "../_data/server";
 import { SubscribePanel } from "./_components/SubscribePanel";
+import { PageStack, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 
 const di = UI.invest.dealDetail;
@@ -188,7 +189,7 @@ export default async function DealDetailPage({
   );
 
   return (
-    <div className="ct-page-area">
+    <PageStack>
       <Link href="/invest" className="inv-deal-loc inv-mb-md">
         {di.backLink}
       </Link>
@@ -310,24 +311,12 @@ export default async function DealDetailPage({
       ) : null}
 
       {/* KPI économie de l'opération (structure — toujours visible) */}
-      <div className="ct-kpi-grid cols-4">
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">{di.kpis.totalCost}</div>
-          <div className="ct-kpi-value">{eur(metrics.cout_total_eur)}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">{di.kpis.seniorDebt}</div>
-          <div className="ct-kpi-value">{eur(sheet.input.funding.dette_senior_eur)}</div>
-        </div>
-        <div className="ct-kpi-card accent">
-          <div className="ct-kpi-label">{di.kpis.bonds}</div>
-          <div className="ct-kpi-value">{eur(sheet.input.funding.obligations_cible_eur)}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">{di.kpis.sponsorEquity}</div>
-          <div className="ct-kpi-value">{eur(sheet.input.funding.equity_sponsor_eur)}</div>
-        </div>
-      </div>
+      <KpiGrid className="cols-4">
+        <KpiCard label={di.kpis.totalCost} value={eur(metrics.cout_total_eur)} />
+        <KpiCard label={di.kpis.seniorDebt} value={eur(sheet.input.funding.dette_senior_eur)} />
+        <KpiCard label={di.kpis.bonds} value={eur(sheet.input.funding.obligations_cible_eur)} accent />
+        <KpiCard label={di.kpis.sponsorEquity} value={eur(sheet.input.funding.equity_sponsor_eur)} />
+      </KpiGrid>
 
       {/* Les 11 graphiques (P8). Structure publique non gatée ; détails sous <Gate>. */}
       <div className="inv-chart-grid">
@@ -515,6 +504,6 @@ export default async function DealDetailPage({
       </div>
 
       <p className="inv-fineprint inv-mt-lg">{di.fineprint(pct(view.couponCentral))}</p>
-    </div>
+    </PageStack>
   );
 }

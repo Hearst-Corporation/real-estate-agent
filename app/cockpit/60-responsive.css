@@ -8,12 +8,12 @@
   /* Rail droit déjà en position: fixed — réduire sa largeur sur tablette. */
   .ct-rail-right {
     width: min(380px, 88vw);
-    box-shadow: -12px 0 40px -16px rgba(0,0,0,0.7);
+    box-shadow: -12px 0 40px -16px var(--ct-overlay-scrim);
   }
   .ct-rail-right.collapsed {
-    width: 48px;
+    width: var(--ct-rail-collapsed);
     box-shadow: none;
-    transform: translateX(calc(min(380px, 88vw) - 48px));
+    transform: translateX(calc(min(380px, 88vw) - var(--ct-rail-collapsed)));
   }
   .ct-page-area {
     padding: var(--ct-space-lg) var(--ct-space-lg) 0;
@@ -61,7 +61,7 @@
   }
   .ct-page-area { padding: var(--ct-space-lg) var(--ct-space-md) 92px; }
   .ct-rail-right { bottom: 76px; width: min(360px, 88vw); transform: translateX(0); }
-  .ct-rail-right.collapsed { bottom: 76px; transform: translateX(calc(min(360px, 88vw) - 48px)); }
+  .ct-rail-right.collapsed { bottom: 76px; transform: translateX(calc(min(360px, 88vw) - var(--ct-rail-collapsed))); }
   .ct-dashboard-grid,
   .ct-home-grid { gap: var(--ct-space-md); }
   .ct-home-action-grid,
@@ -93,7 +93,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 180px;
+  min-height: var(--ct-prose-sm);
   border: 1px dashed var(--ct-border);
   border-radius: var(--ct-radius-md);
   color: var(--ct-text-muted);
@@ -126,8 +126,8 @@
 }
 .property-gallery-thumb {
   position: relative;
-  width: 72px;
-  height: 54px;
+  width: var(--ct-avatar-lg); /* 56px → closest token; ratio 4:3 préservé */
+  height: 54px; /* ratio 4:3 de la vignette — pas de token aspect-ratio */
   border-radius: var(--ct-radius-sm);
   overflow: hidden;
   cursor: pointer;
@@ -140,12 +140,12 @@
   position: absolute;
   top: var(--ct-space-3xs);
   right: var(--ct-space-3xs);
-  background: rgba(0,0,0,0.7);
+  background: var(--ct-overlay-scrim);
   color: var(--ct-text-strong);
   border: none;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
+  width: var(--ct-icon-sm);
+  height: var(--ct-icon-sm);
   font-size: var(--ct-fs-2xs);
   cursor: pointer;
   display: flex;
@@ -160,7 +160,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 80px;
+  min-height: var(--ct-space-xl);
   border: 1px dashed var(--ct-border);
   border-radius: var(--ct-radius-md);
   cursor: pointer;
@@ -184,7 +184,7 @@
   font-weight: var(--ct-fw-bold);
   font-size: var(--ct-fs-md);
   color: var(--ct-text-strong);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  text-shadow: 0 1px 2px color-mix(in srgb, black 40%, transparent);
 }
 /* ─── Form helpers ─────────────────────────────────────────────────────── */
 .ct-form-fieldset {
@@ -220,8 +220,8 @@
   color: var(--ct-text-body);
 }
 .ct-form-checkbox input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
+  width: var(--ct-icon-xs);
+  height: var(--ct-icon-xs);
   accent-color: var(--ct-accent);
   cursor: pointer;
 }

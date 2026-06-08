@@ -181,7 +181,7 @@ export default async function LeadDetailPage({
       />
 
       {/* Statut + date sous le header */}
-      <div className="crm-detail-meta" style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-xs)", flexWrap: "wrap" }}>
+      <div className="crm-detail-meta crm-detail-meta-row">
         <Badge>{t.statusLabels[lead.status] ?? lead.status}</Badge>
         {lead.source && (
           <Sub>{lead.source}</Sub>
@@ -275,11 +275,11 @@ export default async function LeadDetailPage({
           <ul className="crm-list">
             {criteres.map((c) => (
               <li key={c.id} className="crm-list-row">
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="crm-list-grow">
                   {c.nom && (
                     <span className="crm-list-name">{c.nom}</span>
                   )}
-                  <dl className="crm-detail-dl" style={{ marginTop: "var(--ct-space-xs)" }}>
+                  <dl className="crm-detail-dl crm-dl-mt-xs">
                     {c.type_bien && c.type_bien.length > 0 && (
                       <>
                         <dt>{td.criteres.typeBien}</dt>
@@ -335,7 +335,7 @@ export default async function LeadDetailPage({
                   </dl>
                   {/* Équipements souhaités */}
                   {(c.terrasse || c.parking || c.ascenseur || c.jardin || c.piscine) && (
-                    <div style={{ marginTop: "var(--ct-space-xs)", display: "flex", gap: "var(--ct-space-xs)", flexWrap: "wrap" }}>
+                    <div className="crm-tag-cluster">
                       {c.terrasse && <Badge>{td.criteres.terrasse}</Badge>}
                       {c.parking && <Badge>{td.criteres.parking}</Badge>}
                       {c.ascenseur && <Badge>{td.criteres.ascenseur}</Badge>}
@@ -433,7 +433,7 @@ export default async function LeadDetailPage({
               {lead.enriched_source ? ` · ${lead.enriched_source}` : ""}
             </p>
           )}
-          <dl className="crm-detail-dl" style={{ marginTop: "var(--ct-space-sm)" }}>
+          <dl className="crm-detail-dl crm-dl-mt-sm">
             {Object.entries(lead.enriched_data).map(([key, val]) => (
               <span key={key}>
                 <dt>{key}</dt>

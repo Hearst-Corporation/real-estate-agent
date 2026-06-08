@@ -2,7 +2,7 @@
  * PORTEFEUILLE — suivi des positions (étude P12, écran 12). RSC, branché DB.
  */
 import Link from "next/link";
-import { Eyebrow, Title, Sub } from "@/components/cockpit/primitives";
+import { PageStack, PageHeader, KpiGrid, KpiCard, Sub } from "@/components/cockpit/primitives";
 import { ProductBadges, StatusPill, Banner, Timeline, eur, pct } from "@/components/invest";
 import type { StatusTone } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
@@ -48,10 +48,8 @@ export default async function PortfolioPage() {
   const payouts = isDemo ? [] : portfolio.payouts;
 
   return (
-    <div className="ct-page-area">
-      <Eyebrow>{p.eyebrow}</Eyebrow>
-      <Title>{p.title}</Title>
-      <Sub>{p.sub}</Sub>
+    <PageStack>
+      <PageHeader kicker={p.eyebrow} title={p.title} meta={<Sub>{p.sub}</Sub>} />
 
       {isDemo && (
         <div className="inv-mb-md">
@@ -59,20 +57,11 @@ export default async function PortfolioPage() {
         </div>
       )}
 
-      <div className="ct-kpi-grid cols-3">
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">{p.kpis.capitalLent}</div>
-          <div className="ct-kpi-value">{eur(capitalCumule)}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">{p.kpis.activePositions}</div>
-          <div className="ct-kpi-value">{actives}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">{p.kpis.distributions}</div>
-          <div className="ct-kpi-value">{eur(distributionsCumulees)}</div>
-        </div>
-      </div>
+      <KpiGrid className="cols-3">
+        <KpiCard label={p.kpis.capitalLent} value={eur(capitalCumule)} />
+        <KpiCard label={p.kpis.activePositions} value={String(actives)} />
+        <KpiCard label={p.kpis.distributions} value={eur(distributionsCumulees)} />
+      </KpiGrid>
 
       <div className="inv-mb-lg">
         <Banner tone="warn">
@@ -144,6 +133,6 @@ export default async function PortfolioPage() {
       </div>
 
       <p className="inv-fineprint inv-mt-md">{p.fineprint}</p>
-    </div>
+    </PageStack>
   );
 }

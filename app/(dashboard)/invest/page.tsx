@@ -1,7 +1,7 @@
 /**
  * MARKETPLACE — découverte des opportunités (étude P5, écran 5). RSC.
  */
-import { Eyebrow, Title, Sub } from "@/components/cockpit/primitives";
+import { PageStack, PageHeader, Sub, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
 import { DealCard, Banner, type DealCardData } from "@/components/invest";
 import { eur } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
@@ -41,10 +41,8 @@ export default async function MarketplacePage() {
   const ticketMinAffiche = Number.isFinite(ticketMin) ? ticketMin : 1_000;
 
   return (
-    <div className="ct-page-area">
-      <Eyebrow>{m.eyebrow}</Eyebrow>
-      <Title>{m.title}</Title>
-      <Sub>{m.sub}</Sub>
+    <PageStack>
+      <PageHeader kicker={m.eyebrow} title={m.title} meta={<Sub>{m.sub}</Sub>} />
 
       {isDemo ? (
         <div className="inv-mb-md">
@@ -56,24 +54,12 @@ export default async function MarketplacePage() {
         <Banner tone="info">{m.infoBanner}</Banner>
       </div>
 
-      <div className="ct-kpi-grid cols-4">
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">{m.kpis.openDeals}</div>
-          <div className="ct-kpi-value">{dealsOuverts}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">{m.kpis.collected}</div>
-          <div className="ct-kpi-value">{eur(collecteTotale)}</div>
-        </div>
-        <div className="ct-kpi-card accent">
-          <div className="ct-kpi-label">{m.kpis.medianTri}</div>
-          <div className="ct-kpi-value">{m.kpis.medianTriValue}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">{m.kpis.ticketFrom}</div>
-          <div className="ct-kpi-value">{eur(ticketMinAffiche)}</div>
-        </div>
-      </div>
+      <KpiGrid className="cols-4">
+        <KpiCard label={m.kpis.openDeals} value={String(dealsOuverts)} />
+        <KpiCard label={m.kpis.collected} value={eur(collecteTotale)} />
+        <KpiCard label={m.kpis.medianTri} value={m.kpis.medianTriValue} accent />
+        <KpiCard label={m.kpis.ticketFrom} value={eur(ticketMinAffiche)} />
+      </KpiGrid>
 
       <div className="inv-mk-toolbar">
         <div className="inv-mk-filters" aria-label={m.filtersAria}>
@@ -99,6 +85,6 @@ export default async function MarketplacePage() {
       </div>
 
       <p className="inv-fineprint inv-mt-lg">{m.fineprint}</p>
-    </div>
+    </PageStack>
   );
 }

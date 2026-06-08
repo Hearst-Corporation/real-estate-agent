@@ -184,7 +184,7 @@
 .inv-list-ul { margin: var(--ct-space-2xs) 0 0; padding-left: var(--ct-space-md); }
 .inv-banner-compact { margin-top: var(--ct-space-md); padding: var(--ct-space-sm); border: 1px solid var(--ct-border); }
 .inv-center { display: flex; justify-content: center; margin-bottom: var(--ct-space-md); }
-.inv-sub-spacer { min-height: 120px; }
+.inv-sub-spacer { min-height: var(--ct-prose-lg); }
 .inv-raise-stat-row { flex-direction: row; gap: var(--ct-space-2xs); align-items: baseline; }
 .inv-reserve-left { text-align: left; }
 .inv-msg-err { color: var(--ct-text-danger); }
@@ -212,7 +212,7 @@
 .crm-lead-row { display: flex; align-items: center; gap: var(--ct-space-xs); }
 .crm-lead-actions-row { justify-content: space-between; align-items: center; }
 .ct-badge-2xs { margin: 0; font-size: var(--ct-fs-2xs); }
-.ct-icon-xs { width: 12px; height: 12px; }
+.ct-icon-xs { width: var(--ct-icon-2xs); height: var(--ct-icon-2xs); }
 
 /* ── Cockpit misc utilities ── */
 .ct-chip-row { display: flex; flex-wrap: wrap; gap: var(--ct-space-2xs); margin-bottom: var(--ct-space-2xs); }

@@ -154,10 +154,7 @@ export default async function MandateDetailPage({
         ]}
       />
       {metaSub && (
-        <p
-          className="ct-sub"
-          style={{ marginTop: "calc(-1 * var(--ct-space-sm))" }}
-        >
+        <p className="ct-sub crm-header-tighten">
           {metaSub}
         </p>
       )}
@@ -209,12 +206,12 @@ export default async function MandateDetailPage({
               <dd>
                 {dateFr(mandate.expires_at)}
                 {isExpiringSoon && daysLeft !== null && (
-                  <span className="ct-badge" style={{ marginLeft: "var(--ct-space-xs)" }}>
+                  <span className="ct-badge crm-badge-spaced">
                     {td.expiringWarning} — {td.fields.daysLeft(daysLeft)}
                   </span>
                 )}
                 {isExpired && (
-                  <span className="ct-badge" style={{ marginLeft: "var(--ct-space-xs)" }}>
+                  <span className="ct-badge crm-badge-spaced">
                     {td.fields.daysExpired}
                   </span>
                 )}
@@ -231,23 +228,11 @@ export default async function MandateDetailPage({
         </dl>
 
         {mandate.notes && (
-          <div
-            style={{
-              marginTop: "var(--ct-space-md)",
-              paddingTop: "var(--ct-space-sm)",
-              borderTop: "1px solid var(--ct-border-soft)",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "var(--ct-fs-xs)",
-                color: "var(--ct-text-muted)",
-                marginBottom: "var(--ct-space-2xs)",
-              }}
-            >
+          <div className="crm-notes-block">
+            <p className="crm-notes-label">
               {td.fields.notes}
             </p>
-            <p style={{ fontSize: "var(--ct-fs-sm)", color: "var(--ct-text-body)" }}>
+            <p className="crm-notes-body">
               {mandate.notes}
             </p>
           </div>

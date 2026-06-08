@@ -431,7 +431,7 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
   position: fixed; inset: 0; z-index: var(--ct-z-overlay);
   display: flex; align-items: flex-start; justify-content: center;
   padding: var(--ct-space-xl) var(--ct-space-md);
-  background: rgba(0,0,0,0.55);
+  background: var(--ct-overlay-scrim);
   backdrop-filter: blur(var(--ct-overlay-blur)); -webkit-backdrop-filter: blur(var(--ct-overlay-blur));
   overflow-y: auto;
 }
@@ -624,7 +624,7 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
   padding: var(--ct-space-2xs) var(--ct-space-sm);
   border-radius: var(--ct-radius-pill);
   background: var(--ct-surface-success);
-  border: 1px solid rgba(52, 211, 153, 0.25);
+  border: 1px solid color-mix(in srgb, var(--ct-success) 25%, transparent);
   font-size: var(--ct-fs-sm);
   font-weight: var(--ct-fw-semibold);
   color: var(--ct-text-success);

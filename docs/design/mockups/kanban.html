@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="fr" data-product="default">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquette — Kanban dense</title>
+<style>
+/* ============================================================
+   Tokens réels copiés depuis app/cockpit/00-tokens.css
+   ============================================================ */
+:root {
+  --ct-bg-deep: #07131F;
+  --ct-bg: #07131F;
+  --ct-accent-maroon: rgba(63, 167, 224, 0.34);
+  --ct-accent: #3FA7E0;
+  --ct-accent-strong: #6EC6F2;
+  --ct-accent-soft: rgba(63, 167, 224, 0.18);
+  --ct-border-accent: rgba(63, 167, 224, 0.58);
+
+  --ct-surface-0: rgba(255,255,255,0.02);
+  --ct-surface-1: rgba(255,255,255,0.04);
+  --ct-surface-2: rgba(255,255,255,0.06);
+  --ct-surface-3: rgba(255,255,255,0.09);
+
+  --ct-text-strong: #ffffff;
+  --ct-text-primary: rgba(245,245,245,0.92);
+  --ct-text-body: rgba(245,245,245,0.72);
+  --ct-text-muted: rgba(245,245,245,0.48);
+  --ct-text-faint: rgba(245,245,245,0.40);
+
+  --ct-border-soft: rgba(255,255,255,0.06);
+  --ct-border: rgba(255,255,255,0.10);
+  --ct-border-strong: rgba(255,255,255,0.16);
+
+  --ct-shadow-depth:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 -1px 0 rgba(0,0,0,0.45),
+    0 20px 60px -24px rgba(0,0,0,0.65);
+
+  --ct-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ct-dur-base: 180ms;
+
+  --ct-text-danger: #f87171;
+  --ct-danger: var(--ct-text-danger);
+  --ct-success: #34D399;
+  --ct-warning: #f59e0b;
+
+  --ct-surface-hover: var(--ct-surface-2);
+  --ct-surface-accent: var(--ct-accent-soft);
+  --ct-text-accent: var(--ct-accent-strong);
+
+  /* Espacement */
+  --ct-space-3xs: 2px;
+  --ct-space-2xs: 4px;
+  --ct-space-xs: 8px;
+  --ct-space-sm: 10px;
+  --ct-space-md: 16px;
+  --ct-space-lg: 24px;
+  --ct-space-xl: 32px;
+  --ct-space-2xl: 48px;
+
+  /* Typo */
+  --ct-fs-2xs: 10px;
+  --ct-fs-xs: 11px;
+  --ct-fs-sm: 12px;
+  --ct-fs-base: 13px;
+  --ct-fs-md: 14px;
+  --ct-fs-lg: 16px;
+  --ct-fs-xl: 20px;
+
+  --ct-fw-medium: 500;
+  --ct-fw-semibold: 600;
+  --ct-fw-bold: 700;
+  --ct-fw-heavy: 800;
+  --ct-fw-black: 900;
+
+  --ct-lh-none: 1;
+  --ct-lh-tight: 1.15;
+  --ct-lh-snug: 1.3;
+  --ct-lh-base: 1.5;
+
+  --ct-ls-tight: -0.02em;
+  --ct-ls-wide: 0.04em;
+  --ct-ls-wider: 0.08em;
+  --ct-ls-widest: 0.14em;
+
+  /* Radius */
+  --ct-radius-xs: 4px;
+  --ct-radius-sm: 6px;
+  --ct-radius-md: 8px;
+  --ct-radius-lg: 12px;
+  --ct-radius-pill: 999px;
+
+  --ct-z-flyout: 200;
+
+  /* Dimensions */
+  --ct-icon-2xs: 12px;
+  --ct-icon-sm: 16px;
+  --ct-avatar-sm: 24px;
+
+  /* Palette avatar CRM */
+  --ct-avatar-1: #3FA7E0;
+  --ct-avatar-2: #34D399;
+  --ct-avatar-3: #F87171;
+  --ct-avatar-4: #FBBF24;
+  --ct-avatar-5: #A78BFA;
+  --ct-avatar-6: #818CF8;
+  --ct-avatar-7: #F472B6;
+
+  font-family: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--ct-bg);
+  color: var(--ct-text-primary);
+  font-size: var(--ct-fs-base);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Bandeau maquette ── */
+.mk-banner {
+  flex-shrink: 0;
+  padding: var(--ct-space-md) var(--ct-space-lg);
+  border-bottom: 1px solid var(--ct-border-soft);
+  background: var(--ct-surface-0);
+}
+.mk-banner h1 {
+  margin: 0 0 var(--ct-space-2xs);
+  font-size: var(--ct-fs-md);
+  font-weight: var(--ct-fw-heavy);
+  letter-spacing: var(--ct-ls-tight);
+  color: var(--ct-text-strong);
+}
+.mk-banner p {
+  margin: 0;
+  font-size: var(--ct-fs-sm);
+  color: var(--ct-text-muted);
+  line-height: var(--ct-lh-base);
+}
+
+/* ── Board ── */
+.crm-kanban {
+  display: flex;
+  flex-direction: row;
+  gap: var(--ct-space-md);
+  overflow-x: auto;
+  overflow-y: hidden;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  padding: var(--ct-space-lg);
+}
+
+/* ── Colonne — minmax(260px, 1fr) → 4-5 visibles ── */
+.crm-col {
+  flex: 1 1 260px;
+  min-width: 260px;
+  max-width: 360px;
+  background: var(--ct-surface-1);
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-lg);
+  padding: var(--ct-space-sm) var(--ct-space-sm) var(--ct-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-xs);
+  min-height: 0;
+}
+.crm-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ct-space-xs);
+  padding: var(--ct-space-2xs) var(--ct-space-2xs) var(--ct-space-xs);
+  border-bottom: 1px solid var(--ct-border-soft);
+  margin-bottom: var(--ct-space-2xs);
+  font-size: var(--ct-fs-2xs);
+  font-weight: var(--ct-fw-heavy);
+  letter-spacing: var(--ct-ls-widest);
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+  flex-shrink: 0;
+}
+.crm-col-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--ct-space-2xs);
+  border-radius: var(--ct-radius-pill);
+  background: var(--ct-surface-2);
+  border: 1px solid var(--ct-border);
+  font-size: var(--ct-fs-2xs);
+  font-weight: var(--ct-fw-bold);
+  letter-spacing: 0;
+  color: var(--ct-text-body);
+}
+.crm-col-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-xs);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: var(--ct-space-2xs);
+}
+
+/* ── Card dense (section 4 du contrat) — cible ~64px ── */
+.crm-lead-card {
+  position: relative;
+  background: var(--ct-surface-1);
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-lg);
+  padding: var(--ct-space-sm) var(--ct-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-2xs);
+  cursor: grab;
+  transition: border-color var(--ct-dur-base) var(--ct-ease),
+              background var(--ct-dur-base) var(--ct-ease);
+}
+.crm-lead-card:hover {
+  background: var(--ct-surface-2);
+  border-color: var(--ct-border-accent);
+}
+
+/* Ligne 1 : avatar + nom + kebab */
+.crm-lead-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-xs);
+}
+.crm-avatar {
+  flex-shrink: 0;
+  width: var(--ct-avatar-sm);
+  height: var(--ct-avatar-sm);
+  border-radius: var(--ct-radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--ct-fs-2xs);
+  font-weight: var(--ct-fw-bold);
+  color: var(--ct-bg-deep);
+  letter-spacing: var(--ct-ls-tight);
+}
+.crm-lead-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--ct-fs-base);
+  font-weight: var(--ct-fw-bold);
+  color: var(--ct-text-primary);
+  line-height: var(--ct-lh-snug);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Kebab — caché par défaut, visible au hover/focus-within */
+.crm-kebab {
+  flex-shrink: 0;
+  width: var(--ct-icon-sm);
+  height: var(--ct-icon-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--ct-radius-sm);
+  color: var(--ct-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--ct-dur-base) var(--ct-ease),
+              background var(--ct-dur-base) var(--ct-ease),
+              color var(--ct-dur-base) var(--ct-ease);
+}
+.crm-lead-card:hover .crm-kebab,
+.crm-lead-card:focus-within .crm-kebab,
+.crm-kebab.is-open { opacity: 1; }
+.crm-kebab:hover,
+.crm-kebab.is-open {
+  background: var(--ct-surface-3);
+  color: var(--ct-text-primary);
+}
+.crm-kebab svg { width: var(--ct-icon-sm); height: var(--ct-icon-sm); }
+
+/* Ligne 2 : prix · tag (inline) */
+.crm-lead-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-xs);
+  padding-left: calc(var(--ct-avatar-sm) + var(--ct-space-xs));
+}
+.crm-lead-budget {
+  font-size: var(--ct-fs-sm);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-body);
+}
+.crm-lead-budget.is-empty { color: var(--ct-text-faint); font-weight: var(--ct-fw-medium); }
+.crm-sep { color: var(--ct-text-faint); font-size: var(--ct-fs-2xs); }
+.crm-tag {
+  font-size: var(--ct-fs-2xs);
+  font-weight: var(--ct-fw-bold);
+  letter-spacing: var(--ct-ls-wide);
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+}
+.crm-tag.is-buyer { color: var(--ct-accent-strong); }
+.crm-tag.is-seller { color: var(--ct-success); }
+
+/* ── Menu kebab (flyout) ── */
+.crm-menu {
+  position: absolute;
+  top: var(--ct-space-xl);
+  right: var(--ct-space-xs);
+  z-index: var(--ct-z-flyout);
+  min-width: 150px;
+  background: var(--ct-surface-3);
+  border: 1px solid var(--ct-border-strong);
+  border-radius: var(--ct-radius-md);
+  box-shadow: var(--ct-shadow-depth);
+  padding: var(--ct-space-2xs);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.crm-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-xs);
+  padding: var(--ct-space-xs) var(--ct-space-sm);
+  border-radius: var(--ct-radius-sm);
+  font-size: var(--ct-fs-sm);
+  font-weight: var(--ct-fw-medium);
+  color: var(--ct-text-body);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--ct-dur-base) var(--ct-ease),
+              color var(--ct-dur-base) var(--ct-ease);
+}
+.crm-menu-item svg { width: var(--ct-icon-2xs); height: var(--ct-icon-2xs); flex-shrink: 0; opacity: var(--ct-opacity-muted, 0.6); }
+.crm-menu-item:hover { background: var(--ct-surface-2); color: var(--ct-text-primary); }
+/* Destructif : neutre par défaut, rouge au hover */
+.crm-menu-item.is-danger:hover {
+  background: color-mix(in srgb, var(--ct-danger) 14%, transparent);
+  color: var(--ct-danger);
+}
+.crm-menu-sep { height: 1px; background: var(--ct-border-soft); margin: var(--ct-space-2xs) 0; }
+
+/* Colonne vide — placeholder discret */
+.crm-col-empty {
+  min-height: var(--ct-space-2xl);
+  border: 1px dashed var(--ct-border-soft);
+  border-radius: var(--ct-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--ct-fs-2xs);
+  color: var(--ct-text-faint);
+}
+
+/* Scrollbar discrète */
+.crm-kanban::-webkit-scrollbar,
+.crm-col-body::-webkit-scrollbar { height: 8px; width: 8px; }
+.crm-kanban::-webkit-scrollbar-thumb,
+.crm-col-body::-webkit-scrollbar-thumb {
+  background: var(--ct-surface-2); border-radius: var(--ct-radius-pill);
+}
+</style>
+</head>
+<body>
+
+<div class="mk-banner">
+  <h1>MAQUETTE — Kanban dense</h1>
+  <p>Cards 2 lignes (~64px) : avatar 24px coloré + nom bold + kebab au survol, puis prix accent · tag inline ; actions reléguées au menu ⋯, colonnes minmax(260px,1fr).</p>
+</div>
+
+<div class="crm-kanban">
+
+  <!-- Colonne NOUVEAU (54) -->
+  <div class="crm-col">
+    <div class="crm-col-head"><span>Nouveau</span><span class="crm-col-count">54</span></div>
+    <div class="crm-col-body">
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-1)">ST</span>
+          <span class="crm-lead-name">Serge Teyssère</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">345 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-2)">MD</span>
+          <span class="crm-lead-name">Marie Delcourt</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">620 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-seller">Vendeur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-5)">KB</span>
+          <span class="crm-lead-name">Karim Benali</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget is-empty">Budget non renseigné</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-7)">LF</span>
+          <span class="crm-lead-name">Lucie Fontaine</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">≥ 280 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-4)">PR</span>
+          <span class="crm-lead-name">Philippe Roussel</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">890 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-seller">Vendeur</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Colonne CONTACTÉ (4) — card avec menu OUVERT -->
+  <div class="crm-col">
+    <div class="crm-col-head"><span>Contacté</span><span class="crm-col-count">4</span></div>
+    <div class="crm-col-body">
+
+      <!-- Card illustrant le menu kebab ouvert -->
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-3)">AN</span>
+          <span class="crm-lead-name">Amélie Nguyen</span>
+          <button class="crm-kebab is-open" aria-label="Actions" aria-expanded="true">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">475 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+        <div class="crm-menu" role="menu">
+          <button class="crm-menu-item" role="menuitem">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg>
+            Modifier
+          </button>
+          <button class="crm-menu-item" role="menuitem">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5l1.8 4 4.2.4-3.2 2.8 1 4.3L8 10.8 4.2 13l1-4.3L2 5.9l4.2-.4L8 1.5z"/></svg>
+            Enrichir
+          </button>
+          <div class="crm-menu-sep"></div>
+          <button class="crm-menu-item is-danger" role="menuitem">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h10M6 4V2.5h4V4M5 4l.6 9h4.8L11 4"/></svg>
+            Supprimer
+          </button>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-6)">JM</span>
+          <span class="crm-lead-name">Jean-Marc Olivier</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">312 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-2)">CB</span>
+          <span class="crm-lead-name">Claire Bernard</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">540 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-seller">Vendeur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-1)">HG</span>
+          <span class="crm-lead-name">Hugo Garnier</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">≥ 410 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Colonne QUALIFIÉ (5) -->
+  <div class="crm-col">
+    <div class="crm-col-head"><span>Qualifié</span><span class="crm-col-count">5</span></div>
+    <div class="crm-col-body">
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-4)">SD</span>
+          <span class="crm-lead-name">Sophie Dubois</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">725 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-5)">TM</span>
+          <span class="crm-lead-name">Thomas Mercier</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">295 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-seller">Vendeur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-7)">EV</span>
+          <span class="crm-lead-name">Émilie Vasseur</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">1 150 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-3)">NC</span>
+          <span class="crm-lead-name">Nicolas Chevalier</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">385 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-seller">Vendeur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-6)">AL</span>
+          <span class="crm-lead-name">Aurélie Lemoine</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">510 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Colonne EN VISITE (5) -->
+  <div class="crm-col">
+    <div class="crm-col-head"><span>En visite</span><span class="crm-col-count">5</span></div>
+    <div class="crm-col-body">
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-1)">GR</span>
+          <span class="crm-lead-name">Guillaume Roy</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">460 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-2)">VB</span>
+          <span class="crm-lead-name">Valérie Brun</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">680 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-seller">Vendeur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-5)">FD</span>
+          <span class="crm-lead-name">Fabien Daniel</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">330 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-4)">IM</span>
+          <span class="crm-lead-name">Isabelle Martin</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">795 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-seller">Vendeur</span>
+        </div>
+      </div>
+
+      <div class="crm-lead-card">
+        <div class="crm-lead-row">
+          <span class="crm-avatar" style="background:var(--ct-avatar-7)">OP</span>
+          <span class="crm-lead-name">Olivier Petit</span>
+          <button class="crm-kebab" aria-label="Actions">
+            <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="crm-lead-meta">
+          <span class="crm-lead-budget">≥ 250 000 €</span>
+          <span class="crm-sep">·</span>
+          <span class="crm-tag is-buyer">Acheteur</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Colonne OFFRE (0) -->
+  <div class="crm-col">
+    <div class="crm-col-head"><span>Offre</span><span class="crm-col-count">0</span></div>
+    <div class="crm-col-body">
+      <div class="crm-col-empty">Glissez une carte ici</div>
+    </div>
+  </div>
+
+  <!-- Colonne GAGNÉ (0) -->
+  <div class="crm-col">
+    <div class="crm-col-head"><span>Gagné</span><span class="crm-col-count">0</span></div>
+    <div class="crm-col-body">
+      <div class="crm-col-empty">Glissez une carte ici</div>
+    </div>
+  </div>
+
+  <!-- Colonne PERDU (0) -->
+  <div class="crm-col">
+    <div class="crm-col-head"><span>Perdu</span><span class="crm-col-count">0</span></div>
+    <div class="crm-col-body">
+      <div class="crm-col-empty">Glissez une carte ici</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

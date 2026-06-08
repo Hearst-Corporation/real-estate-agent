@@ -262,8 +262,7 @@ function AnnonceCard({ annonce }: { annonce: Annonce }) {
               href={annonce.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="crm-link"
-              style={{ fontSize: "var(--ct-fs-xs)", flexShrink: 0 }}
+              className="crm-link prospection-crit-tag"
             >
               {UI.prospection.annonceVoir} →
             </a>
@@ -459,7 +458,7 @@ export default function ProspectionPage() {
         {tab === "acquereurs" && (
           <div className="prospection-list">
             {error && criteres.length > 0 ? (
-              <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p>
+              <p className="ct-error ct-pad-md">{error}</p>
             ) : null}
             {loading ? (
               <Spinner />
@@ -476,8 +475,7 @@ export default function ProspectionPage() {
                 action={
                   <button
                     type="button"
-                    className="ct-seg-btn primary"
-                    style={{ marginTop: "var(--ct-space-sm)" }}
+                    className="ct-seg-btn primary ct-mt-sm"
                     onClick={() => selectTab("criteres")}
                   >
                     {UI.prospection.newCritere}
@@ -520,7 +518,7 @@ export default function ProspectionPage() {
             </div>
 
             {error && annonces.length > 0 ? (
-              <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p>
+              <p className="ct-error ct-pad-md">{error}</p>
             ) : null}
 
             {loading ? (
@@ -551,15 +549,7 @@ export default function ProspectionPage() {
         {/* ── Onglet matching ── */}
         {tab === "matching" && (
           <div>
-            <div
-              style={{
-                padding: "var(--ct-space-md)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "var(--ct-space-md)",
-              }}
-            >
+            <div className="prospection-matching-header">
               <p className="prospection-hint">{UI.prospection.matchingHint}</p>
               <button
                 type="button"
@@ -571,13 +561,13 @@ export default function ProspectionPage() {
             </div>
 
             {error && matchs.length > 0 ? (
-              <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p>
+              <p className="ct-error ct-pad-md">{error}</p>
             ) : null}
 
             {loading ? (
               <Spinner />
             ) : matchs.length === 0 ? (
-              <div style={{ padding: "var(--ct-space-md)" }}>
+              <div className="prospection-matching-empty">
                 <EmptyState
                   icon="✨"
                   title={UI.prospection.emptyMatchsTitle}
@@ -590,8 +580,7 @@ export default function ProspectionPage() {
                   action={
                     <button
                       type="button"
-                      className="ct-seg-btn primary"
-                      style={{ marginTop: "var(--ct-space-sm)" }}
+                      className="ct-seg-btn primary ct-mt-sm"
                       onClick={() => selectTab("criteres")}
                     >
                       {UI.prospection.newCritere}
@@ -647,10 +636,7 @@ function MatchList({
               <div className="prospection-match-title">
                 {annonceTitle(a)}
                 {isGood && (
-                  <span
-                    className="prospection-badge prospection-badge-success"
-                    style={{ marginLeft: "var(--ct-space-xs)" }}
-                  >
+                  <span className="prospection-badge prospection-badge-success ct-ml-xs">
                     {UI.prospection.matchGoodLabel}
                   </span>
                 )}
@@ -815,16 +801,8 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
       align: "right",
       render: (c) => (
         <button
+          className="prospection-critere-del-btn"
           onClick={() => deleteCritere(c.id)}
-          style={{
-            background: "none",
-            border: "1px solid var(--ct-border)",
-            borderRadius: "var(--ct-radius-sm)",
-            padding: "4px 12px",
-            cursor: "pointer",
-            color: "var(--ct-text-danger)",
-            fontSize: "var(--ct-fs-xs)",
-          }}
         >
           {UI.prospection.delete}
         </button>
@@ -834,15 +812,8 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "var(--ct-space-md)",
-        }}
-      >
-        <span style={{ color: "var(--ct-text-muted)", fontSize: "var(--ct-fs-sm)" }}>
+      <div className="prospection-criteres-header">
+        <span className="prospection-empty-hint">
           {UI.prospection.criteresCount(criteres.length)}
         </span>
         <div className="ct-seg-track">
@@ -856,16 +827,7 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
       </div>
 
       {showForm && (
-        <div
-          className="ct-card"
-          style={{
-            margin: "var(--ct-space-md)",
-            padding: "var(--ct-space-md)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ct-space-sm)",
-          }}
-        >
+        <div className="ct-card prospection-critere-form">
           <input
             className="ct-input"
             placeholder={UI.prospection.critereNamePlaceholder}
@@ -898,14 +860,14 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
+      <div className="prospection-criteres-list">
         {error ? (
-          <p className="ct-error" style={{ padding: "var(--ct-space-md)" }}>{error}</p>
+          <p className="ct-error ct-pad-md">{error}</p>
         ) : null}
         {loading ? (
           <Spinner />
         ) : criteres.length === 0 ? (
-          <div style={{ padding: "var(--ct-space-md)" }}>
+          <div className="prospection-criteres-empty">
             <EmptyState
               icon="🎯"
               title={UI.prospection.emptyCriteresTitle}

@@ -48,8 +48,8 @@ html, body {
     linear-gradient(180deg, color-mix(in srgb, var(--ct-accent) 8%, transparent), transparent 34%),
     var(--ct-surface-2);
   border-right: 1px solid var(--ct-border-strong);
-  backdrop-filter: blur(60px) saturate(110%) brightness(105%);
-  -webkit-backdrop-filter: blur(60px) saturate(110%) brightness(105%);
+  backdrop-filter: var(--ct-rail-backdrop);
+  -webkit-backdrop-filter: var(--ct-rail-backdrop);
   display: flex; flex-direction: column; align-items: center; padding: var(--ct-space-lg) 0;
 }
 .ct-logo-slot {
@@ -79,7 +79,7 @@ html, body {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  padding: var(--ct-space-xl) var(--ct-space-2xl) 0;
+  padding: var(--ct-space-xl) var(--ct-space-2xl) var(--ct-space-xl);
 }
 
 /* Quand le drawer chat est ouvert, réserver de l'espace à droite
@@ -165,8 +165,8 @@ html, body {
   transition: transform var(--ct-dur-base) var(--ct-ease);
 }
 .ct-rail-right.collapsed {
-  width: 48px;
-  transform: translateX(calc(var(--ct-rail-right) - 48px));
+  width: var(--ct-rail-collapsed);
+  transform: translateX(calc(var(--ct-rail-right) - var(--ct-rail-collapsed)));
 }
 .ct-rail-right-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -177,7 +177,7 @@ html, body {
   text-transform: uppercase; color: var(--ct-text-muted);
 }
 .ct-rail-right-btn {
-  width: 28px; height: 28px; border-radius: 50%; background: var(--ct-surface-2);
+  width: var(--ct-avatar-md); height: var(--ct-avatar-md); border-radius: 50%; background: var(--ct-surface-2);
   border: 1px solid var(--ct-border); color: var(--ct-text-body); font-size: var(--ct-fs-lg);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   line-height: var(--ct-lh-none); font-family: inherit;
@@ -195,7 +195,7 @@ html, body {
   font-size: var(--ct-fs-2xs); font-weight: var(--ct-fw-heavy); letter-spacing: var(--ct-ls-widest); text-transform: uppercase;
   color: var(--ct-text-muted); margin-bottom: var(--ct-space-xs);
 }
-.ct-title { font-size: clamp(28px, 3vw, 40px); font-weight: var(--ct-fw-heavy); color: var(--ct-text-primary); letter-spacing: var(--ct-ls-tight); line-height: var(--ct-lh-tight); margin: 0 0 var(--ct-space-xs); }
+.ct-title { font-size: clamp(var(--ct-fs-3xl), 3vw, var(--ct-fs-4xl)); font-weight: var(--ct-fw-heavy); color: var(--ct-text-primary); letter-spacing: var(--ct-ls-tight); line-height: var(--ct-lh-tight); margin: 0 0 var(--ct-space-xs); }
 .ct-h2 { font-size: var(--ct-fs-xl); font-weight: var(--ct-fw-heavy); color: var(--ct-text-primary); letter-spacing: var(--ct-ls-tight); line-height: var(--ct-lh-snug); margin: 0 0 var(--ct-space-sm); }
 .ct-h3 { font-size: var(--ct-fs-lg); font-weight: var(--ct-fw-bold); color: var(--ct-text-primary); letter-spacing: var(--ct-ls-tight); line-height: var(--ct-lh-snug); margin: 0 0 var(--ct-space-xs); }
 .ct-sub { font-size: var(--ct-fs-md); color: var(--ct-text-muted); line-height: var(--ct-lh-base); margin: 0 0 var(--ct-space-xl); max-width: 760px; }
@@ -218,15 +218,8 @@ html, body {
   flex: 1;
   min-height: 0;
 }
-/* Spacer de fin de scroll : garantit la marge basse même quand le centre
-   scrolle (padding-bottom d'un flex-container scrollable est ignoré par
-   Chrome/Safari en fin de scroll). */
-.ct-page-stack::after {
-  content: "";
-  display: block;
-  height: var(--ct-space-2xl);
-  flex-shrink: 0;
-}
+/* Le spacer de fin de scroll est désormais porté par .ct-page-area::after
+   (couvre TOUTES les pages, PageStack ou non) → plus de doublon ici. */
 .ct-dashboard-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--ct-space-lg); align-items: stretch; flex-shrink: 0; }
 .ct-home-grid {
   display: grid;
@@ -431,7 +424,7 @@ html, body {
 .ct-kpi-card {
   position: relative; overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.018)),
+    var(--ct-surface-sheen),
     var(--ct-surface-1);
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-2xl);
@@ -456,7 +449,7 @@ html, body {
 .ct-kpi-value { font-size: var(--ct-fs-2xl); font-weight: var(--ct-fw-heavy); color: var(--ct-text-primary); letter-spacing: var(--ct-ls-tight); line-height: var(--ct-lh-none); }
 .ct-card {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015)),
+    var(--ct-surface-sheen),
     var(--ct-surface-1);
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-2xl);
@@ -480,7 +473,7 @@ html, body {
   flex-direction: column;
   background:
     radial-gradient(circle at 84% 12%, color-mix(in srgb, var(--ct-accent-strong) 32%, transparent), transparent 46%),
-    linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.018)),
+    linear-gradient(135deg, color-mix(in srgb, white 8%, transparent), color-mix(in srgb, white 2%, transparent)),
     var(--ct-surface-2);
   border-color: var(--ct-border-accent);
 }
@@ -503,9 +496,9 @@ html, body {
 }
 .ct-hero-value {
   color: var(--ct-text-strong);
-  font-size: clamp(54px, 8vw, 104px);
+  font-size: clamp(var(--ct-fs-2xl), 8vw, var(--ct-fs-5xl));
   font-weight: var(--ct-fw-black);
-  letter-spacing: -0.08em;
+  letter-spacing: var(--ct-ls-tight);
   line-height: var(--ct-lh-none);
 }
 .ct-hero-label { color: var(--ct-text-body); font-size: var(--ct-fs-md); margin-top: var(--ct-space-sm); }
@@ -591,9 +584,9 @@ html, body {
 .ct-rail-action.accent:hover { background: color-mix(in srgb, var(--ct-accent-strong) 28%, transparent); }
 .ct-rail-action-icon { display: inline-flex; align-items: center; justify-content: center; line-height: var(--ct-lh-none); }
 .ct-rail-action-icon svg {
-  width: 24px;
-  height: 24px;
-  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.22));
+  width: var(--ct-icon-md);
+  height: var(--ct-icon-md);
+  filter: drop-shadow(0 6px 14px var(--ct-overlay-scrim));
 }
 .ct-rail-action-label {
   max-width: 100%;

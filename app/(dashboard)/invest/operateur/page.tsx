@@ -2,7 +2,7 @@
  * BACK-OFFICE OPÉRATEUR — liste des deals de l'opérateur + statut. RSC.
  */
 import Link from "next/link";
-import { Eyebrow, Title, Sub } from "@/components/cockpit/primitives";
+import { PageStack, PageHeader, KpiGrid, KpiCard, Sub } from "@/components/cockpit/primitives";
 import { Banner, StatusPill, eur, pct, type StatusTone } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
 import { fetchOperatorDeals } from "../_data/server";
@@ -34,10 +34,8 @@ export default async function OperateurPage() {
   const { authorized, configured, deals } = await fetchOperatorDeals();
 
   return (
-    <div className="ct-page-area">
-      <Eyebrow>{o.eyebrow}</Eyebrow>
-      <Title>{o.title}</Title>
-      <Sub>{o.sub}</Sub>
+    <PageStack>
+      <PageHeader kicker={o.eyebrow} title={o.title} meta={<Sub>{o.sub}</Sub>} />
 
       {!configured ? (
         <Banner tone="warn">{o.dbUnavailable}</Banner>
@@ -55,24 +53,12 @@ export default async function OperateurPage() {
             </Link>
           </div>
 
-          <div className="ct-kpi-grid cols-4 inv-kpi-mb">
-            <div className="ct-kpi-card">
-              <div className="ct-kpi-label">{o.kpis.total}</div>
-              <div className="ct-kpi-value">{deals.length}</div>
-            </div>
-            <div className="ct-kpi-card accent">
-              <div className="ct-kpi-label">{o.kpis.open}</div>
-              <div className="ct-kpi-value">{deals.filter((d) => d.status === "open").length}</div>
-            </div>
-            <div className="ct-kpi-card">
-              <div className="ct-kpi-label">{o.kpis.drafts}</div>
-              <div className="ct-kpi-value">{deals.filter((d) => d.status === "draft").length}</div>
-            </div>
-            <div className="ct-kpi-card">
-              <div className="ct-kpi-label">{o.kpis.targetSum}</div>
-              <div className="ct-kpi-value">{eur(deals.reduce((s, d) => s + d.targetRaiseEur, 0))}</div>
-            </div>
-          </div>
+          <KpiGrid className="cols-4 inv-kpi-mb">
+            <KpiCard label={o.kpis.total} value={String(deals.length)} />
+            <KpiCard label={o.kpis.open} value={String(deals.filter((d) => d.status === "open").length)} accent />
+            <KpiCard label={o.kpis.drafts} value={String(deals.filter((d) => d.status === "draft").length)} />
+            <KpiCard label={o.kpis.targetSum} value={eur(deals.reduce((s, d) => s + d.targetRaiseEur, 0))} />
+          </KpiGrid>
 
           {deals.length === 0 ? (
             <div className="inv-chart-card">
@@ -127,6 +113,6 @@ export default async function OperateurPage() {
           <p className="inv-fineprint inv-mt-lg">{o.fineprint}</p>
         </>
       )}
-    </div>
+    </PageStack>
   );
 }

@@ -76,6 +76,8 @@
   --ct-fs-xl: 20px;   /* regroupe 18·19·20 */
   --ct-fs-2xl: 24px;  /* regroupe 22·24·26 */
   --ct-fs-3xl: 30px;  /* regroupe 28·30 */
+  --ct-fs-4xl: 40px;  /* titres display */
+  --ct-fs-5xl: 104px; /* hero metric (très grand) */
 
   /* Graisses canoniques — unifient les font-weight bruts (500→900). */
   --ct-fw-medium: 500;   /* 500 */
@@ -127,6 +129,35 @@
 
   /* Police monospace — code, JSON, valeurs numériques mono */
   --ct-font-mono: ui-monospace, SFMono-Regular, "SF Mono", monospace;
+
+  /* Z-index étendu — au-delà de --ct-z-overlay (100). */
+  --ct-z-flyout: 200; /* menus flyout au-dessus des rails et overlays */
+
+  /* Dimensions fonctionnelles — touch targets, rails, icônes, avatars. */
+  --ct-touch-height: 42px;     /* inputs, nav-tabs, boutons d'action */
+  --ct-rail-collapsed: 48px;   /* largeur rail droit replié */
+  --ct-icon-2xs: 12px;
+  --ct-icon-xs: 14px;
+  --ct-icon-sm: 16px;
+  --ct-icon-md: 24px;
+  --ct-icon-lg: 28px;
+  --ct-avatar-sm: 24px;
+  --ct-avatar-md: 28px;
+  --ct-avatar-lg: 56px;
+
+  /* Largeurs prose / layout max. */
+  --ct-prose-sm: 380px;
+  --ct-prose-md: 460px;
+  --ct-prose-lg: 540px;
+  --ct-prose-xl: 760px;
+  --ct-layout-max: 1180px;
+
+  /* Effets verre — surface sheen (dégradé de surface) et backdrop rail. */
+  --ct-surface-sheen: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.018));
+  --ct-rail-backdrop: blur(60px) saturate(110%) brightness(105%);
+
+  /* Glow décoratif. */
+  --ct-glow-radius: 8px;
 
   /* Palette DPE — couleurs réglementaires (A→G) */
   --dpe-a: #00C853;

@@ -40,17 +40,8 @@ yarn-error.log*
 .claude/worktrees/
 .playwright-mcp/
 
-# ui artefacts (screenshots générés par les audits)
-estimation-layout-*.png
-ui-architect-*.png
-ui-test-architect-*.png
-# screenshots & scratch de session (audits manuels)
-rail-*.png
-prop-header.png
-visite-*.png
-compare-*.png
-moteurimmo-*.png
-dashboard_scan.png
+# ui artefacts & scratch de session (screenshots d'audit/debug à la racine)
+/*.png
 dashboard_content.html
 scan_dashboard.py
 uiux-audit-*.html

@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maquette — Funnel pipeline commercial (2 variantes)</title>
+<style>
+  /* ============================================================
+     Tokens --ct-* — copiés tels quels depuis app/cockpit/00-tokens.css
+     ============================================================ */
+  :root {
+    --ct-bg-deep: #07131F;
+    --ct-accent-maroon: rgba(63, 167, 224, 0.34);
+    --ct-accent: #3FA7E0;
+    --ct-accent-strong: #6EC6F2;
+    --ct-accent-soft: rgba(63, 167, 224, 0.18);
+    --ct-border-accent: rgba(63, 167, 224, 0.58);
+
+    --ct-surface-0: rgba(255,255,255,0.02);
+    --ct-surface-1: rgba(255,255,255,0.04);
+    --ct-surface-2: rgba(255,255,255,0.06);
+    --ct-surface-3: rgba(255,255,255,0.09);
+
+    --ct-text-strong: #ffffff;
+    --ct-text-primary: rgba(245,245,245,0.92);
+    --ct-text-body: rgba(245,245,245,0.72);
+    --ct-text-muted: rgba(245,245,245,0.48);
+    --ct-text-faint: rgba(245,245,245,0.40);
+
+    --ct-border-soft: rgba(255,255,255,0.06);
+    --ct-border: rgba(255,255,255,0.10);
+    --ct-border-strong: rgba(255,255,255,0.16);
+
+    --ct-shadow-depth:
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      inset 0 -1px 0 rgba(0,0,0,0.45),
+      0 20px 60px -24px rgba(0,0,0,0.65);
+
+    --ct-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --ct-dur-base: 180ms;
+    --ct-dur-slow: 320ms;
+
+    --ct-text-danger: #f87171;
+    --ct-danger: var(--ct-text-danger);
+    --ct-success: #34D399;
+    --ct-warning: #f59e0b;
+
+    --ct-surface-hover: var(--ct-surface-2);
+    --ct-surface-accent: var(--ct-accent-soft);
+    --ct-surface-success: rgba(52, 211, 153, 0.12);
+    --ct-text-accent: var(--ct-accent-strong);
+    --ct-text-success: var(--ct-success);
+
+    --ct-space-3xs: 2px;
+    --ct-space-2xs: 4px;
+    --ct-space-xs: 8px;
+    --ct-space-sm: 10px;
+    --ct-space-md: 16px;
+    --ct-space-lg: 24px;
+    --ct-space-xl: 32px;
+    --ct-space-2xl: 48px;
+
+    --ct-fs-2xs: 10px;
+    --ct-fs-xs: 11px;
+    --ct-fs-sm: 12px;
+    --ct-fs-base: 13px;
+    --ct-fs-md: 14px;
+    --ct-fs-lg: 16px;
+    --ct-fs-xl: 20px;
+    --ct-fs-2xl: 24px;
+
+    --ct-fw-medium: 500;
+    --ct-fw-semibold: 600;
+    --ct-fw-bold: 700;
+    --ct-fw-heavy: 800;
+    --ct-fw-black: 900;
+
+    --ct-lh-none: 1;
+    --ct-lh-tight: 1.15;
+    --ct-lh-snug: 1.3;
+    --ct-lh-base: 1.5;
+    --ct-lh-relaxed: 1.65;
+
+    --ct-ls-tight: -0.02em;
+    --ct-ls-wide: 0.04em;
+    --ct-ls-wider: 0.08em;
+    --ct-ls-widest: 0.14em;
+
+    --ct-radius-xs: 4px;
+    --ct-radius-sm: 6px;
+    --ct-radius-md: 8px;
+    --ct-radius-lg: 12px;
+    --ct-radius-xl: 14px;
+    --ct-radius-2xl: 18px;
+    --ct-radius-pill: 999px;
+
+    --ct-icon-2xs: 12px;
+    --ct-icon-xs: 14px;
+    --ct-icon-sm: 16px;
+
+    --ct-success: #34D399;
+    --ct-font-mono: ui-monospace, SFMono-Regular, "SF Mono", monospace;
+
+    /* alias pratique : --ct-bg du body (les écrans réels utilisent --ct-bg-deep) */
+    --ct-bg: var(--ct-bg-deep);
+
+    font-family: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ct-bg);
+    color: var(--ct-text-primary);
+    padding: var(--ct-space-2xl);
+    min-height: 100vh;
+  }
+
+  /* ── Bandeau de maquette ── */
+  .mockup-banner {
+    max-width: 1180px;
+    margin: 0 auto var(--ct-space-lg);
+  }
+  .mockup-banner h1 {
+    margin: 0 0 var(--ct-space-2xs);
+    font-size: var(--ct-fs-xl);
+    font-weight: var(--ct-fw-heavy);
+    letter-spacing: var(--ct-ls-tight);
+    color: var(--ct-text-strong);
+  }
+  .mockup-banner p {
+    margin: 0;
+    font-size: var(--ct-fs-sm);
+    color: var(--ct-text-muted);
+    line-height: var(--ct-lh-base);
+  }
+
+  .mockup-grid {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ct-space-lg);
+    align-items: start;
+  }
+
+  /* ── Card Cockpit ── */
+  .ct-card {
+    background: var(--ct-surface-1);
+    border: 1px solid var(--ct-border);
+    border-radius: var(--ct-radius-lg);
+    padding: var(--ct-space-md);
+    box-shadow: var(--ct-shadow-depth);
+  }
+  .ct-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--ct-space-md);
+    gap: var(--ct-space-sm);
+  }
+  .ct-card-title {
+    margin: 0;
+    font-size: var(--ct-fs-2xs);
+    font-weight: var(--ct-fw-heavy);
+    letter-spacing: var(--ct-ls-widest);
+    text-transform: uppercase;
+    color: var(--ct-text-muted);
+  }
+  .ct-card-meta {
+    font-size: var(--ct-fs-2xs);
+    color: var(--ct-text-faint);
+    font-weight: var(--ct-fw-semibold);
+    letter-spacing: var(--ct-ls-wide);
+    text-transform: uppercase;
+  }
+  .variant-tag {
+    display: inline-block;
+    margin-bottom: var(--ct-space-sm);
+    padding: var(--ct-space-3xs) var(--ct-space-xs);
+    border-radius: var(--ct-radius-pill);
+    background: var(--ct-accent-soft);
+    border: 1px solid var(--ct-border-accent);
+    color: var(--ct-text-accent);
+    font-size: var(--ct-fs-2xs);
+    font-weight: var(--ct-fw-bold);
+    letter-spacing: var(--ct-ls-wide);
+    text-transform: uppercase;
+  }
+  .variant-desc {
+    margin: 0 0 var(--ct-space-md);
+    font-size: var(--ct-fs-xs);
+    color: var(--ct-text-faint);
+    line-height: var(--ct-lh-base);
+  }
+
+  /* ============================================================
+     VARIANTE A — barres horizontales fines (pill 10px) + conversion
+     ============================================================ */
+  .funA { display: flex; flex-direction: column; gap: var(--ct-space-sm); }
+  .funA-step {
+    display: grid;
+    grid-template-columns: 22px minmax(96px, 1.1fr) minmax(160px, 2fr) 36px;
+    align-items: center;
+    gap: var(--ct-space-sm);
+  }
+  .funA-index {
+    font-family: var(--ct-font-mono);
+    font-size: var(--ct-fs-2xs);
+    font-weight: var(--ct-fw-heavy);
+    color: var(--ct-text-faint);
+  }
+  .funA-label {
+    font-size: var(--ct-fs-sm);
+    font-weight: var(--ct-fw-bold);
+    color: var(--ct-text-body);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .funA-trackwrap { position: relative; display: flex; align-items: center; gap: var(--ct-space-xs); }
+  .funA-track {
+    flex: 1;
+    height: 10px;
+    border-radius: var(--ct-radius-pill);
+    background: var(--ct-surface-3);
+    box-shadow: inset 0 0 0 1px var(--ct-border-soft);
+    overflow: hidden;
+  }
+  .funA-bar {
+    height: 100%;
+    border-radius: var(--ct-radius-pill);
+    background: linear-gradient(90deg, var(--ct-accent), var(--ct-accent-strong));
+    transition: width var(--ct-dur-slow) var(--ct-ease);
+  }
+  /* cas 0 : largeur 0, aucun artefact (pas de min-width, pas de bord visible) */
+  .funA-bar[style*="width: 0%"], .funA-bar.is-empty { width: 0 !important; }
+  .funA-bar.is-won { background: linear-gradient(90deg, var(--ct-success), color-mix(in srgb, var(--ct-success) 70%, white)); }
+  .funA-bar.is-lost { background: color-mix(in srgb, var(--ct-text-muted) 38%, transparent); }
+  .funA-count {
+    font-size: var(--ct-fs-base);
+    font-weight: var(--ct-fw-heavy);
+    color: var(--ct-text-primary);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  /* ligne conversion entre 2 étapes */
+  .funA-conv {
+    grid-column: 3 / 4;
+    display: flex;
+    align-items: center;
+    gap: var(--ct-space-2xs);
+    font-size: var(--ct-fs-2xs);
+    color: var(--ct-text-faint);
+    height: 14px;
+    padding-left: var(--ct-space-2xs);
+  }
+  .funA-conv .pct { color: var(--ct-text-muted); font-weight: var(--ct-fw-bold); font-variant-numeric: tabular-nums; }
+  .funA-conv .pct.drop { color: var(--ct-warning); }
+  .funA-conv .arrow { color: var(--ct-text-faint); }
+
+  /* ============================================================
+     VARIANTE B — entonnoir centré décroissant
+     ============================================================ */
+  .funB { display: flex; flex-direction: column; gap: var(--ct-space-2xs); padding-top: var(--ct-space-2xs); }
+  .funB-row {
+    display: grid;
+    grid-template-columns: minmax(94px, auto) 1fr 30px;
+    align-items: center;
+    gap: var(--ct-space-sm);
+  }
+  .funB-label {
+    display: flex;
+    align-items: baseline;
+    gap: var(--ct-space-xs);
+    justify-content: flex-end;
+    font-size: var(--ct-fs-sm);
+    font-weight: var(--ct-fw-bold);
+    color: var(--ct-text-body);
+    white-space: nowrap;
+  }
+  .funB-label .idx {
+    font-family: var(--ct-font-mono);
+    font-size: var(--ct-fs-2xs);
+    font-weight: var(--ct-fw-heavy);
+    color: var(--ct-text-faint);
+  }
+  .funB-stagewrap { display: flex; justify-content: center; }
+  .funB-stage {
+    height: 26px;
+    border-radius: var(--ct-radius-sm);
+    background: linear-gradient(90deg, var(--ct-accent), var(--ct-accent-strong));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+    min-width: 6px;
+    transition: width var(--ct-dur-slow) var(--ct-ease);
+  }
+  .funB-stage.is-won { background: linear-gradient(90deg, var(--ct-success), color-mix(in srgb, var(--ct-success) 70%, white)); }
+  .funB-stage.is-lost { background: color-mix(in srgb, var(--ct-text-muted) 38%, transparent); }
+  /* cas 0 : on ne montre PAS de stage rempli — juste un ghost track centré fin */
+  .funB-stage.is-empty {
+    width: 100% !important;
+    height: 10px;
+    background: var(--ct-surface-3);
+    box-shadow: inset 0 0 0 1px var(--ct-border-soft);
+  }
+  .funB-count {
+    font-size: var(--ct-fs-base);
+    font-weight: var(--ct-fw-heavy);
+    color: var(--ct-text-primary);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .funB-count.zero { color: var(--ct-text-faint); }
+
+  /* note pied de card */
+  .fun-foot {
+    margin-top: var(--ct-space-md);
+    padding-top: var(--ct-space-sm);
+    border-top: 1px solid var(--ct-border-soft);
+    display: flex;
+    gap: var(--ct-space-md);
+    flex-wrap: wrap;
+    font-size: var(--ct-fs-2xs);
+    color: var(--ct-text-faint);
+  }
+  .fun-foot b { color: var(--ct-text-body); font-weight: var(--ct-fw-bold); }
+  .legend-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: var(--ct-radius-pill);
+    margin-right: var(--ct-space-2xs);
+    vertical-align: middle;
+  }
+  .legend-dot.accent { background: var(--ct-accent); }
+  .legend-dot.won { background: var(--ct-success); }
+  .legend-dot.lost { background: color-mix(in srgb, var(--ct-text-muted) 38%, transparent); }
+
+  @media (max-width: 920px) {
+    .mockup-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="mockup-banner">
+    <h1>MAQUETTE — Funnel (2 variantes)</h1>
+    <p>Deux propositions de rendu pour le funnel pipeline commercial du CRM, mêmes données factices, tokens <code>--ct-*</code> uniquement — à comparer côte à côte avant intégration dans <code>Funnel.tsx</code>.</p>
+  </div>
+
+  <div class="mockup-grid">
+
+    <!-- ============ VARIANTE A ============ -->
+    <section class="ct-card">
+      <div class="ct-card-head">
+        <h2 class="ct-card-title">Pipeline commercial</h2>
+        <span class="ct-card-meta">7 jours</span>
+      </div>
+      <span class="variant-tag">Variante A — barres fines + conversion</span>
+      <p class="variant-desc">Track pill 10px aligné, étiquette + count à droite, taux de conversion étape→étape intercalé. Lecture rapide « où ça décroche ».</p>
+
+      <div class="funA">
+        <!-- 1 Nouveau -->
+        <div class="funA-step">
+          <span class="funA-index">01</span>
+          <span class="funA-label">Nouveau</span>
+          <div class="funA-trackwrap"><div class="funA-track"><div class="funA-bar" style="width: 100%"></div></div></div>
+          <span class="funA-count">54</span>
+        </div>
+        <div class="funA-conv"><span class="arrow">↳</span> conversion <span class="pct drop">7&nbsp;%</span></div>
+
+        <!-- 2 Contacté -->
+        <div class="funA-step">
+          <span class="funA-index">02</span>
+          <span class="funA-label">Contacté</span>
+          <div class="funA-trackwrap"><div class="funA-track"><div class="funA-bar" style="width: 7.4%"></div></div></div>
+          <span class="funA-count">4</span>
+        </div>
+        <div class="funA-conv"><span class="arrow">↳</span> conversion <span class="pct">125&nbsp;%</span></div>
+
+        <!-- 3 Qualifié -->
+        <div class="funA-step">
+          <span class="funA-index">03</span>
+          <span class="funA-label">Qualifié</span>
+          <div class="funA-trackwrap"><div class="funA-track"><div class="funA-bar" style="width: 9.3%"></div></div></div>
+          <span class="funA-count">5</span>
+        </div>
+        <div class="funA-conv"><span class="arrow">↳</span> conversion <span class="pct">100&nbsp;%</span></div>
+
+        <!-- 4 En visite -->
+        <div class="funA-step">
+          <span class="funA-index">04</span>
+          <span class="funA-label">En visite</span>
+          <div class="funA-trackwrap"><div class="funA-track"><div class="funA-bar" style="width: 9.3%"></div></div></div>
+          <span class="funA-count">5</span>
+        </div>
+        <div class="funA-conv"><span class="arrow">↳</span> conversion <span class="pct drop">0&nbsp;%</span></div>
+
+        <!-- 5 Offre (0) -->
+        <div class="funA-step">
+          <span class="funA-index">05</span>
+          <span class="funA-label">Offre</span>
+          <div class="funA-trackwrap"><div class="funA-track"><div class="funA-bar is-empty"></div></div></div>
+          <span class="funA-count" style="color:var(--ct-text-faint)">0</span>
+        </div>
+        <div class="funA-conv"><span class="arrow">↳</span> conversion <span class="pct">—</span></div>
+
+        <!-- 6 Gagné (0) -->
+        <div class="funA-step">
+          <span class="funA-index">06</span>
+          <span class="funA-label">Gagné</span>
+          <div class="funA-trackwrap"><div class="funA-track"><div class="funA-bar is-won is-empty"></div></div></div>
+          <span class="funA-count" style="color:var(--ct-text-faint)">0</span>
+        </div>
+
+        <!-- 7 Perdu (0) -->
+        <div class="funA-step">
+          <span class="funA-index">07</span>
+          <span class="funA-label">Perdu</span>
+          <div class="funA-trackwrap"><div class="funA-track"><div class="funA-bar is-lost is-empty"></div></div></div>
+          <span class="funA-count" style="color:var(--ct-text-faint)">0</span>
+        </div>
+      </div>
+
+      <div class="fun-foot">
+        <span><b>68</b> leads</span>
+        <span><span class="legend-dot accent"></span>actif</span>
+        <span><span class="legend-dot won"></span>gagné</span>
+        <span><span class="legend-dot lost"></span>perdu</span>
+      </div>
+    </section>
+
+    <!-- ============ VARIANTE B ============ -->
+    <section class="ct-card">
+      <div class="ct-card-head">
+        <h2 class="ct-card-title">Pipeline commercial</h2>
+        <span class="ct-card-meta">7 jours</span>
+      </div>
+      <span class="variant-tag">Variante B — entonnoir centré</span>
+      <p class="variant-desc">Vrai entonnoir : barres centrées qui rétrécissent par étape. Forme « sablier » immédiate. Les étapes à 0 affichent un track ghost plein, jamais d'artefact.</p>
+
+      <div class="funB">
+        <!-- 1 Nouveau -->
+        <div class="funB-row">
+          <span class="funB-label"><span class="idx">01</span> Nouveau</span>
+          <div class="funB-stagewrap"><div class="funB-stage" style="width: 100%"></div></div>
+          <span class="funB-count">54</span>
+        </div>
+        <!-- 2 Contacté -->
+        <div class="funB-row">
+          <span class="funB-label"><span class="idx">02</span> Contacté</span>
+          <div class="funB-stagewrap"><div class="funB-stage" style="width: 9%"></div></div>
+          <span class="funB-count">4</span>
+        </div>
+        <!-- 3 Qualifié -->
+        <div class="funB-row">
+          <span class="funB-label"><span class="idx">03</span> Qualifié</span>
+          <div class="funB-stagewrap"><div class="funB-stage" style="width: 11%"></div></div>
+          <span class="funB-count">5</span>
+        </div>
+        <!-- 4 En visite -->
+        <div class="funB-row">
+          <span class="funB-label"><span class="idx">04</span> En visite</span>
+          <div class="funB-stagewrap"><div class="funB-stage" style="width: 11%"></div></div>
+          <span class="funB-count">5</span>
+        </div>
+        <!-- 5 Offre (0) -->
+        <div class="funB-row">
+          <span class="funB-label"><span class="idx">05</span> Offre</span>
+          <div class="funB-stagewrap"><div class="funB-stage is-empty"></div></div>
+          <span class="funB-count zero">0</span>
+        </div>
+        <!-- 6 Gagné (0) -->
+        <div class="funB-row">
+          <span class="funB-label"><span class="idx">06</span> Gagné</span>
+          <div class="funB-stagewrap"><div class="funB-stage is-won is-empty"></div></div>
+          <span class="funB-count zero">0</span>
+        </div>
+        <!-- 7 Perdu (0) -->
+        <div class="funB-row">
+          <span class="funB-label"><span class="idx">07</span> Perdu</span>
+          <div class="funB-stagewrap"><div class="funB-stage is-lost is-empty"></div></div>
+          <span class="funB-count zero">0</span>
+        </div>
+      </div>
+
+      <div class="fun-foot">
+        <span>taux global <b>0 %</b></span>
+        <span><span class="legend-dot accent"></span>actif</span>
+        <span><span class="legend-dot won"></span>gagné</span>
+        <span><span class="legend-dot lost"></span>perdu</span>
+      </div>
+    </section>
+
+  </div>
+
+</body>
+</html>

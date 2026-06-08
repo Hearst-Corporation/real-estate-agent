@@ -6,7 +6,7 @@
 
 .swarm-report {
   background:
-    linear-gradient(160deg, rgba(255,255,255,0.045) 0%, transparent 44%),
+    linear-gradient(160deg, color-mix(in srgb, white 4.5%, transparent) 0%, transparent 44%),
     var(--ct-surface-1);
   border: 1px solid var(--ct-border); border-radius: var(--ct-radius-lg);
   box-shadow: var(--ct-shadow-depth);
@@ -122,7 +122,7 @@
 
 .inv-deal-thumb-top { position: absolute; top: var(--ct-space-sm); left: var(--ct-space-sm); right: var(--ct-space-sm); display: flex; justify-content: space-between; align-items: flex-start; z-index: var(--ct-z-local); gap: var(--ct-space-xs); }
 
-.inv-deal-jdays { padding: var(--ct-space-2xs) var(--ct-space-xs); border-radius: var(--ct-radius-pill); font-size: var(--ct-fs-2xs); font-weight: var(--ct-fw-bold); background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: var(--ct-text-primary); border: 1px solid var(--ct-border-strong); }
+.inv-deal-jdays { padding: var(--ct-space-2xs) var(--ct-space-xs); border-radius: var(--ct-radius-pill); font-size: var(--ct-fs-2xs); font-weight: var(--ct-fw-bold); background: var(--ct-overlay-scrim); backdrop-filter: blur(var(--ct-overlay-blur)); -webkit-backdrop-filter: blur(var(--ct-overlay-blur)); color: var(--ct-text-primary); border: 1px solid var(--ct-border-strong); }
 
 .inv-deal-body { padding: var(--ct-space-md); display: flex; flex-direction: column; gap: var(--ct-space-sm); flex: 1; }
 
@@ -339,6 +339,10 @@
 .inv-raise-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ct-space-sm); }
 
 .inv-raise-stat { display: flex; flex-direction: column; gap: var(--ct-space-2xs); padding: var(--ct-space-sm); background: var(--ct-surface-0); border: 1px solid var(--ct-border-soft); border-radius: var(--ct-radius-md); }
+/* Valeur / label d'une stat de levée + gros montant collecté (classes orphelines rendues sans CSS). */
+.inv-v { font-size: var(--ct-fs-md); font-weight: var(--ct-fw-heavy); color: var(--ct-text-strong); letter-spacing: var(--ct-ls-tight); }
+.inv-l { font-size: var(--ct-fs-2xs); color: var(--ct-text-muted); text-transform: uppercase; letter-spacing: var(--ct-ls-wide); }
+.inv-big { font-size: var(--ct-fs-2xl); font-weight: var(--ct-fw-heavy); color: var(--ct-accent-strong); letter-spacing: var(--ct-ls-tight); }
 
 .inv-reserve-note { font-size: var(--ct-fs-2xs); color: var(--ct-text-faint); line-height: var(--ct-lh-base); text-align: center; }
 
@@ -347,7 +351,7 @@
   border-radius: var(--ct-radius-lg); font-size: var(--ct-fs-base); font-weight: var(--ct-fw-bold); padding: var(--ct-space-sm) var(--ct-space-md);
   display: inline-flex; align-items: center; justify-content: center; gap: var(--ct-space-xs);
   background: var(--ct-accent-strong); color: var(--ct-bg-deep); border: 1px solid transparent;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 24px -10px var(--ct-accent-strong);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 30%, transparent), 0 8px 24px -10px var(--ct-accent-strong);
   transition: filter var(--ct-dur-base) var(--ct-ease), transform var(--ct-dur-base) var(--ct-ease);
 }
 
@@ -472,7 +476,7 @@
   font-size: var(--ct-fs-md);
   color: var(--ct-text-muted);
   margin: 0;
-  max-width: 380px;
+  max-width: var(--ct-prose-sm);
 }
 
 .est-wizard-start { margin-top: var(--ct-space-xs); }
@@ -675,7 +679,7 @@
 .est-wizard-input {
   flex: 1 1 0;
   min-width: 0;
-  height: 42px;
+  height: var(--ct-touch-height);
   padding: 0 var(--ct-space-md);
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-md);
@@ -689,8 +693,8 @@
 
 .est-wizard-send {
   flex-shrink: 0;
-  width: 42px;
-  height: 42px;
+  width: var(--ct-touch-height);
+  height: var(--ct-touch-height);
   border: 1px solid var(--ct-border-accent);
   border-radius: var(--ct-radius-md);
   background: var(--ct-accent);
@@ -714,7 +718,7 @@
 }
 
 .est-generating-inner {
-  max-width: 440px;
+  max-width: var(--ct-prose-md);
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -960,7 +964,7 @@
 .est-side-section {
   position: relative;
   background:
-    linear-gradient(160deg, rgba(255,255,255,0.045) 0%, transparent 44%),
+    linear-gradient(160deg, color-mix(in srgb, white 4.5%, transparent) 0%, transparent 44%),
     var(--ct-surface-1);
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-lg);

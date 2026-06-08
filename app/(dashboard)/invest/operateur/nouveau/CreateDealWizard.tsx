@@ -23,6 +23,12 @@ import {
   type DealInput,
   type OperationType,
 } from "@/lib/invest/finance";
+import {
+  DEAL_DEFAULTS,
+  PLATFORM_FEES,
+  SCENARIO_DEFAULTS,
+  LOCATIF_YIELD_PCT,
+} from "@/lib/invest/constants";
 
 type DealTypeDb = "marchand_de_biens" | "promotion" | "locatif" | "value_add" | "mixte";
 type SettlementCurrency = "EUR" | "EURC" | "EURe";
@@ -78,19 +84,19 @@ export function CreateDealWizard() {
   const [dealType, setDealType] = useState<DealTypeDb>("marchand_de_biens");
   const [city, setCity] = useState("");
 
-  const [acquisition, setAcquisition] = useState(1_800_000);
-  const [notary, setNotary] = useState(130_000);
-  const [works, setWorks] = useState(420_000);
-  const [other, setOther] = useState(90_000);
-  const [seniorDebt, setSeniorDebt] = useState(1_460_000);
-  const [seniorRatePct, setSeniorRatePct] = useState(4.5);
-  const [sponsorEquity, setSponsorEquity] = useState(240_000);
-  const [targetRaise, setTargetRaise] = useState(740_000);
-  const [couponPct, setCouponPct] = useState(9);
-  const [durationMonths, setDurationMonths] = useState(22);
-  const [appraised, setAppraised] = useState(2_520_000);
-  const [resalePrice, setResalePrice] = useState(2_900_000);
-  const [minTicket, setMinTicket] = useState(1_000);
+  const [acquisition, setAcquisition] = useState<number>(DEAL_DEFAULTS.acquisition);
+  const [notary, setNotary] = useState<number>(DEAL_DEFAULTS.notary);
+  const [works, setWorks] = useState<number>(DEAL_DEFAULTS.works);
+  const [other, setOther] = useState<number>(DEAL_DEFAULTS.other);
+  const [seniorDebt, setSeniorDebt] = useState<number>(DEAL_DEFAULTS.seniorDebt);
+  const [seniorRatePct, setSeniorRatePct] = useState<number>(DEAL_DEFAULTS.seniorRatePct);
+  const [sponsorEquity, setSponsorEquity] = useState<number>(DEAL_DEFAULTS.sponsorEquity);
+  const [targetRaise, setTargetRaise] = useState<number>(DEAL_DEFAULTS.targetRaise);
+  const [couponPct, setCouponPct] = useState<number>(DEAL_DEFAULTS.couponPct);
+  const [durationMonths, setDurationMonths] = useState<number>(DEAL_DEFAULTS.durationMonths);
+  const [appraised, setAppraised] = useState<number>(DEAL_DEFAULTS.appraised);
+  const [resalePrice, setResalePrice] = useState<number>(DEAL_DEFAULTS.resalePrice);
+  const [minTicket, setMinTicket] = useState<number>(DEAL_DEFAULTS.minTicket);
 
   const [settlement, setSettlement] = useState<SettlementCurrency>("EUR");
   const [tokenStandard, setTokenStandard] = useState<TokenStandard>("ERC-3643");
@@ -123,22 +129,22 @@ export function CreateDealWizard() {
         taux_coupon_obligataire_annuel: couponPct / 100,
       },
       fees: {
-        frais_plateforme_entree_pct: 0.01,
-        frais_plateforme_admin_annuel_pct: 0.005,
-        frais_operateur_acquisition_pct: 0.02,
-        carried_operateur_pct: 0.2,
-        hurdle_annuel: 0.08,
+        frais_plateforme_entree_pct: PLATFORM_FEES.entryPct,
+        frais_plateforme_admin_annuel_pct: PLATFORM_FEES.adminAnnuelPct,
+        frais_operateur_acquisition_pct: PLATFORM_FEES.operateurAcqPct,
+        carried_operateur_pct: PLATFORM_FEES.carriedPct,
+        hurdle_annuel: PLATFORM_FEES.hurdleAnnuel,
       },
       schedule: { duree_mois: durationMonths, date_closing: new Date().toISOString().slice(0, 10) },
       exit: {
         prix_revente_central_eur: resalePrice,
         valeur_expertise_eur: appraised,
-        ...(dealType === "locatif" ? { loyer_net_annuel_eur: Math.round(targetRaise * 0.09) } : {}),
+        ...(dealType === "locatif" ? { loyer_net_annuel_eur: Math.round(targetRaise * LOCATIF_YIELD_PCT) } : {}),
       },
       scenarios: {
-        pessimiste: { delta_prix_revente_pct: -0.08, retard_mois: 3 },
-        central: { delta_prix_revente_pct: 0, retard_mois: 0 },
-        optimiste: { delta_prix_revente_pct: 0.05, retard_mois: 0 },
+        pessimiste: { delta_prix_revente_pct: SCENARIO_DEFAULTS.pessimiste.deltaPrixPct, retard_mois: SCENARIO_DEFAULTS.pessimiste.retardMois },
+        central: { delta_prix_revente_pct: SCENARIO_DEFAULTS.central.deltaPrixPct, retard_mois: SCENARIO_DEFAULTS.central.retardMois },
+        optimiste: { delta_prix_revente_pct: SCENARIO_DEFAULTS.optimiste.deltaPrixPct, retard_mois: SCENARIO_DEFAULTS.optimiste.retardMois },
       },
       ticket_min_eur: minTicket,
       day_count: "ACT_365",
@@ -195,7 +201,7 @@ export function CreateDealWizard() {
             seniority: "senior_secured",
             couponRatePct: couponPct,
             tokenStandard,
-            nominalUnitEur: 1_000,
+            nominalUnitEur: DEAL_DEFAULTS.nominalUnitEur,
           },
         }),
       });

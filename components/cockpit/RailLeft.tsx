@@ -96,7 +96,7 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
           {menuOpen && (
             <div
               className="ct-card"
-              style={{ position: "absolute", left: "100%", top: 0, zIndex: 200, minWidth: "14rem", padding: "var(--ct-space-2xs) 0" }}
+              style={{ position: "absolute", left: "100%", top: 0, zIndex: "var(--ct-z-flyout)", minWidth: "var(--ct-prose-sm)", padding: "var(--ct-space-2xs) 0" }}
             >
               {getCreateItems().map(({ href, label }) => (
                 <Link

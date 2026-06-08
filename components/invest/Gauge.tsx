@@ -37,7 +37,7 @@ export function Gauge({ chart }: { chart: ChartLtvGauge }) {
         className="inv-gauge-svg"
         viewBox={`0 0 ${W} ${H}`}
         role="img"
-        aria-label={`LTV ${valueLabel}, seuils 60, 70 et 80 pourcent`}
+        aria-label={`LTV ${valueLabel}, seuils ${Math.round(chart.seuils.vert * 100)}, ${Math.round(chart.seuils.orange * 100)} et ${Math.round(chart.seuils.rouge * 100)} pourcent`}
       >
         <path className="inv-gauge-track" d={arcPath(0, 1)} strokeWidth={12} />
         <path className="inv-gauge-arc" d={arcPath(0, v)} strokeWidth={12} />
@@ -53,8 +53,8 @@ export function Gauge({ chart }: { chart: ChartLtvGauge }) {
       <div className="inv-gauge-val">{valueLabel}</div>
       <div className="inv-gauge-scale">
         <span>0%</span>
-        <span>60%</span>
-        <span>80%</span>
+        <span>{Math.round(chart.seuils.vert * 100)}%</span>
+        <span>{Math.round(chart.seuils.rouge * 100)}%</span>
         <span>100%</span>
       </div>
     </div>
