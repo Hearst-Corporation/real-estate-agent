@@ -32,6 +32,10 @@
   color: inherit;
   display: flex;
   flex-direction: column;
+  /* Dans une colonne kanban (flex-column), sans ça les N cartes se COMPRESSENT
+     jusqu'à ~8px chacune (colonne Prospect illisible). On fige leur hauteur
+     naturelle → la colonne scrolle (overflow-y:auto sur .crm-col-body). */
+  flex-shrink: 0;
   gap: var(--ct-space-xs);
   transition:
     border-color var(--ct-dur-base) var(--ct-ease),
@@ -186,8 +190,11 @@
   padding-bottom: var(--ct-space-sm);
 }
 .crm-col {
-  flex: 0 0 260px;
-  min-width: 260px;
+  /* Largeur fixe lisible. Le board scrolle horizontalement quand il y a beaucoup
+     de colonnes (7 statuts biens) — comportement kanban normal, pas une casse.
+     Les cartes gardent leur hauteur (flex-shrink:0) et la colonne scrolle en Y. */
+  flex: 0 0 200px;
+  min-width: 200px;
   background: var(--ct-surface-1);
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-lg);
