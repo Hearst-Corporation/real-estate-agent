@@ -268,7 +268,7 @@ On transforme la contrainte réglementaire en **autorité de marque** : on publi
 - **Rapports de marché annuels** : "État du crowdfunding immobilier tokenisé" (link-building + PR).
 
 ### 6.3 Cohérence Design System (Cockpit)
-Tout artefact front (landing, dashboard, fiche deal, badges) utilise les tokens `--ct-*` et `data-product` comme seul switch d'accent — réf `~/.claude/assets/cockpit/SPEC.md` et `app/cockpit.css`. Les **badges produit** (étude P6) et **graphiques UX** (étude P8 : donut dette/equity, waterfall, sensibilité, jauge LTV) réutilisent le catalog `<hearst-asset>` (donut, sparkline déjà disponibles) — interdiction de recoder un graphe existant.
+Tout artefact front (landing, dashboard, fiche deal, badges) utilise les tokens `--ct-*` et `data-product` comme switch d'accent — source **locale et éditable** : `app/cockpit/*.css` + `components/cockpit/` (pas de source centrale). Les **badges produit** (étude P6) et **graphiques UX** (étude P8 : donut dette/equity, waterfall, sensibilité, jauge LTV) réutilisent le catalog local `public/cockpit-catalog/catalog/` (`<hearst-asset>` ; donut, sparkline déjà disponibles) — privilégier la composition d'un graphe existant plutôt que d'en recoder un, et libre d'enrichir le catalog local si besoin.
 
 ---
 

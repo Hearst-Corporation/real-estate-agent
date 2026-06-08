@@ -130,7 +130,7 @@ Génère : la page liste (`CockpitResourcePage` + `DataTable`), `_components/<Re
 | `Icon` | `Icon.tsx` | icônes. `name: IconName` (`estimate`, `search`, `crm`, `properties`, `leads`, `visits`, `mandates`, `agenda`, `home`, `user`, `settings`, `logout`, `plus`, `chevron-down`, `chevron-right`) |
 | `AccessibleModal` | `AccessibleModal.tsx` | modale a11y (focus trap) |
 
-Charts non listés ici (sparkline, gauge…) : vérifier d'abord le catalog global `~/.claude/assets/cockpit/catalog/_index.json` (`<hearst-asset id="…">`) avant d'en coder un.
+Charts non listés ici (sparkline, gauge…) : vérifier d'abord le catalog **local** `public/cockpit-catalog/catalog/_index.json` (servi via `app/layout.tsx`, `<hearst-asset id="…">`) avant d'en coder un. Ce catalog est dans le repo et éditable : ajoute-y un nouvel asset directement plutôt que de dépendre d'une source externe.
 
 ## Kit CRUD — composer une feature (page liste + formulaire)
 
