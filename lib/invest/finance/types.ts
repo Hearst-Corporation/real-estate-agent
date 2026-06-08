@@ -368,7 +368,7 @@ export interface ScenarioResult {
 //
 // Chaque contrat est SELF-CONTAINED : il porte ses propres données +
 // métadonnées d'affichage (label, unité, formule, interprétation) afin que la
-// couche UI (Cockpit / <hearst-asset>) n'ait AUCUNE logique financière.
+// couche UI (composants Cockpit) n'ait AUCUNE logique financière.
 
 /** Segment générique nom/valeur/part pour donut & barres. */
 export interface ChartSegment {

@@ -328,7 +328,7 @@
 
 .inv-detail-loc { font-size: var(--ct-fs-sm); color: var(--ct-text-body); font-weight: var(--ct-fw-semibold); display: flex; align-items: center; gap: var(--ct-space-xs); margin-bottom: var(--ct-space-xs); }
 
-.inv-detail-name { font-size: var(--ct-fs-3xl); font-weight: var(--ct-fw-heavy); color: var(--ct-text-strong); letter-spacing: var(--ct-ls-tight); line-height: var(--ct-lh-tight); margin-bottom: var(--ct-space-sm); }
+.inv-detail-name { font-size: clamp(var(--ct-fs-3xl), 3vw, var(--ct-fs-4xl)); font-weight: var(--ct-fw-heavy); color: var(--ct-text-primary); letter-spacing: var(--ct-ls-tight); line-height: var(--ct-lh-tight); margin-bottom: var(--ct-space-sm); }
 
 .inv-detail-side { flex: 1; display: flex; flex-direction: column; gap: var(--ct-space-md); }
 

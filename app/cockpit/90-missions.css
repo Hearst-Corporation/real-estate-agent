@@ -11,7 +11,7 @@
   padding: var(--ct-space-lg); box-shadow: var(--ct-shadow-depth);
 }
 .mv-head-row { display: flex; align-items: flex-start; gap: var(--ct-space-md); flex-wrap: wrap; }
-.mv-title { font-size: var(--ct-fs-xl); font-weight: var(--ct-fw-heavy); letter-spacing: var(--ct-ls-tight); line-height: var(--ct-lh-snug); flex: 1; min-width: 260px; margin: 0; }
+.mv-title { font-size: clamp(var(--ct-fs-3xl), 3vw, var(--ct-fs-4xl)); font-weight: var(--ct-fw-heavy); color: var(--ct-text-primary); letter-spacing: var(--ct-ls-tight); line-height: var(--ct-lh-tight); flex: 1; min-width: 260px; margin: 0; }
 .mv-head-acts { display: flex; gap: var(--ct-space-xs); }
 .mv-statusline { display: flex; align-items: center; gap: var(--ct-space-md); margin-top: var(--ct-space-md); flex-wrap: wrap; color: var(--ct-text-muted); font-size: var(--ct-fs-sm); }
 .mv-eta { color: var(--ct-text-primary); font-weight: var(--ct-fw-bold); }
