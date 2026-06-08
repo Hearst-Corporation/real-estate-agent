@@ -1354,6 +1354,7 @@ export const UI = {
     matchingHint: "Matchs générés par le moteur selon vos critères. Les alertes nécessitent une configuration provider.",
     matchGoodLabel: "Bon match",
     matchContactBtn: "Contacter",
+    contactSoon: "Action « Contacter » bientôt disponible.",
     // ── Empty states annonces
     emptyAnnonces: "Aucune annonce disponible.",
     emptyAnnoncesTitle: "Aucune annonce scrappée",

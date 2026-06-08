@@ -375,7 +375,7 @@ export default function ProspectionPage() {
     };
   }, []);
 
-  async function sendFeedback(matchId: string, signal: "like" | "dislike" | "contact" | "visite") {
+  async function sendFeedback(matchId: string, signal: "up" | "down") {
     setError(null);
     try {
       const res = await fetch("/api/prospection/matchs", {
@@ -602,7 +602,11 @@ export default function ProspectionPage() {
                 />
               </div>
             ) : (
-              <MatchList matchs={matchs} onFeedback={sendFeedback} />
+              <MatchList
+                matchs={matchs}
+                onFeedback={sendFeedback}
+                onContactSoon={() => setError(UI.prospection.contactSoon)}
+              />
             )}
           </div>
         )}
@@ -619,9 +623,11 @@ export default function ProspectionPage() {
 function MatchList({
   matchs,
   onFeedback,
+  onContactSoon,
 }: {
   matchs: Match[];
-  onFeedback: (id: string, signal: "like" | "dislike" | "contact" | "visite") => Promise<void>;
+  onFeedback: (id: string, signal: "up" | "down") => Promise<void>;
+  onContactSoon: () => void;
 }) {
   // Trier : bons matchs en premier
   const sorted = [...matchs].sort((a, b) => b.score_match - a.score_match);
@@ -663,20 +669,21 @@ function MatchList({
               <button
                 className="prospection-feedback-btn"
                 aria-label={UI.prospection.feedbackLikeAria}
-                onClick={() => onFeedback(m.id, "like")}
+                onClick={() => onFeedback(m.id, "up")}
               >
                 👍
               </button>
               <button
                 className="prospection-feedback-btn"
                 aria-label={UI.prospection.feedbackDislikeAria}
-                onClick={() => onFeedback(m.id, "dislike")}
+                onClick={() => onFeedback(m.id, "down")}
               >
                 👎
               </button>
               <button
                 className="ct-seg-btn primary"
-                onClick={() => onFeedback(m.id, "contact")}
+                title={UI.prospection.contactSoon}
+                onClick={() => onContactSoon()}
               >
                 {UI.prospection.matchContactBtn}
               </button>
