@@ -14,7 +14,7 @@
   ],
   "counts": {
     "tokens": 130,
-    "classes": 183
+    "classes": 182
   },
   "tokens": [
     "--ct-accent",
@@ -232,7 +232,6 @@
     "ct-hero-label",
     "ct-hero-metric",
     "ct-hero-value",
-    "ct-hero-visual",
     "ct-home-action",
     "ct-home-action-cta",
     "ct-home-action-eyebrow",

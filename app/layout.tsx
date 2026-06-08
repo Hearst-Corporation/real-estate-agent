@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import "./globals.css";
 import "./cockpit.css";
 import { UI } from "@/lib/ui-strings";
@@ -17,14 +16,6 @@ export default function RootLayout({
   return (
     <html lang="fr" data-product="default">
       <body>
-        <Script
-          id="hearst-catalog-base"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: "window.HEARST_CATALOG_BASE='/cockpit-catalog/catalog/';",
-          }}
-        />
-        <Script src="/hearst-asset.js" strategy="beforeInteractive" />
         <PostHogProvider>{children}</PostHogProvider>
       </body>
     </html>

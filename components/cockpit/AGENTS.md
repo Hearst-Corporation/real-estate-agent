@@ -143,7 +143,7 @@ Pour une ressource CRUD, **compose** plutôt que recoder. Émis par le scaffolde
 | `Field` | `form.tsx` | label + control. `label`, `htmlFor?`, `hint?`, `required?`, `children` |
 | `TextInput` / `Textarea` / `Select` / `MoneyInput` | `form.tsx` | inputs `ct-field-input`. `Select` prend `options: {value,label}[]` ; `MoneyInput` = number € |
 
-## Tokens `--ct-*` (56) — la palette autorisée
+## Tokens `--ct-*` (130) — la palette autorisée
 
 Toujours `var(--ct-…)`. Familles disponibles :
 
