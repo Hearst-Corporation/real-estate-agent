@@ -573,7 +573,10 @@ html, body {
 .ct-quick-actions { display: flex; flex-wrap: wrap; gap: var(--ct-space-xs); }
 
 /* ── RAIL GAUCHE — Actions ── */
-.ct-rail-actions { display: flex; flex-direction: column; gap: var(--ct-space-sm); align-items: center; width: 100%; }
+/* flex:1 + justify-center → boutons centrés sur l'axe vertical du rail,
+   entre le logo (haut) et le profil (bas). Le .ct-spacer suivant est neutralisé. */
+.ct-rail-actions { display: flex; flex-direction: column; gap: var(--ct-space-sm); align-items: center; width: 100%; flex: 1; justify-content: center; }
+.ct-rail-left .ct-spacer { flex: 0; }
 .ct-rail-action {
   width: 72px; min-height: 54px; border-radius: var(--ct-radius-lg); background: var(--ct-surface-1);
   border: 1px solid var(--ct-border-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--ct-space-2xs);
