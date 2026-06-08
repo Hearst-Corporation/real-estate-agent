@@ -56,7 +56,7 @@ export default async function AdminPage() {
             <p className="ct-placeholder">Vue d&apos;ensemble des fournisseurs.</p>
           </Card>
         </div>
-        <div className="ct-stack-sm" style={{ display: "flex" }}>
+        <div className="ct-stack-sm">
           <Card title={t.obsTitle} variant="dense"><p className="ct-placeholder">{t.obsBody}</p></Card>
           <Card title={t.jobsTitle} variant="dense"><p className="ct-placeholder">{t.jobsPlaceholder}</p></Card>
         </div>

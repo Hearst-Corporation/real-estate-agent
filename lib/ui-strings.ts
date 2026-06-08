@@ -907,6 +907,7 @@ export const UI = {
     charts: {
       pipeline: "Pipeline commercial",
       conversionSub: "Conversion",
+      conversionRate: "Taux de conversion",
     },
     table: {
       name: "Nom",

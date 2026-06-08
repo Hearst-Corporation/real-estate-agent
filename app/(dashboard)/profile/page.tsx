@@ -39,7 +39,7 @@ export default async function ProfilePage() {
             <p className="ct-placeholder">Informations de session en cours.</p>
           </Card>
         </div>
-        <div className="ct-stack-sm" style={{ display: "flex" }}>
+        <div className="ct-stack-sm">
           <Card title={t.scopesTitle} variant="dense">
             {(claims.scope ?? []).map((s) => (
               <Badge key={s}>{s}</Badge>

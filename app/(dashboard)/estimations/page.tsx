@@ -6,6 +6,7 @@ import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
 import { eur, dateFr } from "@/lib/crm/format";
+import { statusTone } from "@/lib/crm/statusTone";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -15,12 +16,6 @@ import { tenantOf } from "@/lib/tenant";
 /** Ordre canonique du cycle d'une estimation. */
 const ESTIMATION_STATUSES = ["draft", "interviewing", "recap", "valuating", "ready", "archived"];
 const IN_PROGRESS = ["draft", "interviewing", "recap", "valuating"];
-
-function estimationTone(status: string): "is-positive" | "is-negative" | "is-pending" {
-  if (status === "ready") return "is-positive";
-  if (status === "archived") return "is-negative";
-  return "is-pending";
-}
 
 type EstRow = {
   id: string;
@@ -52,7 +47,9 @@ export default async function EstimationsPage() {
   const inProgress = estimations.filter((e) => IN_PROGRESS.includes(e.status)).length;
   const avgValue = average(estimations, "market_value");
 
-  const pipeline = countByStatus(estimations, ESTIMATION_STATUSES, t.status, estimationTone);
+  const pipeline = countByStatus(estimations, ESTIMATION_STATUSES, t.status, (s) =>
+    statusTone("estimation", s)
+  );
   const byType = topByCategory(estimations, "property_type");
 
   const columns: Column<EstRow>[] = [
@@ -67,7 +64,7 @@ export default async function EstimationsPage() {
       key: "status",
       header: t.table.status,
       render: (e) => (
-        <span className={`crm-status ${estimationTone(e.status)}`}>
+        <span className={`crm-status ${statusTone("estimation", e.status)}`}>
           {t.status[e.status] ?? e.status}
         </span>
       ),

@@ -9,13 +9,14 @@
 
 export type StatusTone = "is-positive" | "is-negative" | "is-pending";
 
-type Entity = "property" | "lead" | "visit" | "mandate";
+type Entity = "property" | "lead" | "visit" | "mandate" | "estimation";
 
 const POSITIVE: Record<Entity, readonly string[]> = {
   property: ["vendu", "en_vente"],
   lead: ["gagne"],
   visit: ["realisee", "confirmee"],
   mandate: ["actif", "realise"],
+  estimation: ["ready"],
 };
 
 const NEGATIVE: Record<Entity, readonly string[]> = {
@@ -23,6 +24,7 @@ const NEGATIVE: Record<Entity, readonly string[]> = {
   lead: ["perdu"],
   visit: ["annulee", "no_show"],
   mandate: ["expire", "resilie"],
+  estimation: ["archived"],
 };
 
 /**

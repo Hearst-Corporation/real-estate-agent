@@ -80,7 +80,7 @@ export default async function LeadsPage() {
           </Card>
         </div>
         <div>
-          <Card title="Taux de conversion" variant="chart">
+          <Card title={t.charts.conversionRate} variant="chart">
             <Donut value={conversion} sublabel="Convertis" accent />
           </Card>
         </div>
