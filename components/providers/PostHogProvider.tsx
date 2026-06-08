@@ -52,14 +52,14 @@ export default function PostHogProvider({
       api_host: POSTHOG_HOST,
       // App Router gère lui-même les pageviews via PageViewTracker
       capture_pageview: false,
-      // Session replay — masquage activé (RGPD) :
-      //   maskAllInputs: true  → tous les champs masqués par défaut.
-      //   Pour afficher un champ non-sensible dans le replay, ajouter
-      //   l'attribut data-ph-unmask sur l'élément (opt-out individuel).
-      //   Cela protège les données client (montants, CRM, prospection).
+      // Session replay — masquage GLOBAL (RGPD) :
+      //   maskAllInputs: true   → tous les <input> masqués.
+      //   maskTextSelector: "*" → TOUT le texte affiché est masqué (noms de
+      //     clients, montants, CRM, prospection) → jamais en clair dans les replays.
+      //   Opt-out d'un élément non-sensible : classe native posthog-js `ph-no-mask`.
       session_recording: {
         maskAllInputs: true,
-        maskTextSelector: "[data-ph-unmask]",
+        maskTextSelector: "*",
       },
       // Autocapture activé (défaut posthog-js, explicité ici)
       autocapture: true,
