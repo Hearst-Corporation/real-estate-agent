@@ -200,7 +200,7 @@
 
 /* ── CRM view / kanban card utilities ── */
 /* Source UNIQUE de .crm-view-panel : le `gap` y est intégré (auparavant éclaté dans 30-crm.css). */
-.crm-view-panel { display: flex; flex-direction: column; gap: var(--ct-space-md); flex: 1; min-height: 0; background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: var(--ct-radius-lg); padding: var(--ct-space-md); overflow: hidden; }
+.crm-view-panel { display: flex; flex-direction: column; gap: var(--ct-space-md); flex: 1 0 auto; min-height: 0; background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: var(--ct-radius-lg); padding: var(--ct-space-md); overflow: visible; }
 .crm-card-pad0 { padding: 0; overflow: hidden; }
 .crm-card-inner { padding: var(--ct-space-sm); }
 .crm-card-head-tight { margin-bottom: var(--ct-space-2xs); }

@@ -1,5 +1,18 @@
 /* ─── CRM ─── */
 
+/* 0. Utilitaires de détail (remplacent des inline styles tokenisés des pages [id]) */
+.crm-detail-meta { font-size: var(--ct-fs-sm); color: var(--ct-text-muted); }
+.crm-detail-meta-row { display: flex; align-items: center; gap: var(--ct-space-xs); flex-wrap: wrap; }
+.crm-list-grow { flex: 1; min-width: 0; }
+.crm-dl-mt-xs { margin-top: var(--ct-space-xs); }
+.crm-dl-mt-sm { margin-top: var(--ct-space-sm); }
+.crm-tag-cluster { margin-top: var(--ct-space-xs); display: flex; gap: var(--ct-space-xs); flex-wrap: wrap; }
+.crm-header-tighten { margin-top: calc(-1 * var(--ct-space-sm)); }
+.crm-badge-spaced { margin-left: var(--ct-space-xs); }
+.crm-notes-block { margin-top: var(--ct-space-md); padding-top: var(--ct-space-sm); border-top: 1px solid var(--ct-border-soft); }
+.crm-notes-label { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); margin-bottom: var(--ct-space-2xs); }
+.crm-notes-body { font-size: var(--ct-fs-sm); color: var(--ct-text-body); }
+
 /* 1. Grille responsive de cards */
 .crm-grid {
   display: grid;
@@ -64,7 +77,103 @@
   letter-spacing: var(--ct-ls-tight);
 }
 
-/* 4. Kanban — layout horizontal scrollable */
+/* 3b. Carte kanban « média » — variante compacte avec photo de couverture.
+   (Ces classes étaient rendues par PropertyKanban sans aucun style → cartes difformes.) */
+.crm-card-pad0 {
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+}
+.crm-card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: var(--ct-surface-3);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.crm-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.crm-card-media-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--ct-space-sm);
+  background:
+    radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--ct-accent-strong) 8%, transparent), transparent 60%),
+    var(--ct-surface-2);
+}
+.crm-card-media-empty .ct-subtext {
+  font-size: var(--ct-fs-2xs);
+  line-height: var(--ct-lh-snug);
+  color: var(--ct-text-faint);
+}
+.crm-card-media-badge {
+  position: absolute;
+  top: var(--ct-space-2xs);
+  left: var(--ct-space-2xs);
+  z-index: var(--ct-z-raised);
+}
+.crm-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-2xs);
+  padding: var(--ct-space-sm);
+  min-width: 0;
+}
+.crm-card-head-tight { gap: var(--ct-space-2xs); }
+.crm-card-meta-tight { gap: var(--ct-space-2xs); margin-top: var(--ct-space-3xs); }
+.crm-card-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ct-space-3xs);
+  min-width: 0;
+}
+.crm-card-loc svg { flex-shrink: 0; }
+.crm-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ct-space-xs);
+  margin-top: var(--ct-space-xs);
+}
+.crm-card-actions { flex-shrink: 0; }
+.crm-card-link-sm {
+  padding: var(--ct-space-3xs) var(--ct-space-sm);
+  font-size: var(--ct-fs-2xs);
+}
+
+/* 4. Kanban — layout horizontal scrollable.
+   Le panneau de vue est une colonne flex ; le wrap a une hauteur EXPLICITE
+   (et non flex:1, qui s'effondre à 0 dans un parent scrollable comme PageStack).
+   Les colonnes scrollent verticalement à l'intérieur de cette hauteur. */
+.crm-view-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.crm-kanban-wrap {
+  display: flex;
+  flex-direction: column;
+  /* hauteur de travail du board : ~viewport moins l'en-tête de page + les charts.
+     clamp garantit un minimum lisible sur petits écrans et un plafond raisonnable.
+     flex-shrink:0 empêche le parent flex-column (crm-view-panel) de l'écraser à 0. */
+  height: clamp(420px, 62vh, 780px);
+  flex-shrink: 0;
+  min-height: 0;
+}
+.crm-kanban-error {
+  font-size: var(--ct-fs-sm);
+  color: var(--ct-text-danger);
+  padding: var(--ct-space-sm) 0;
+}
 .crm-kanban {
   display: flex;
   flex-direction: row;
@@ -269,6 +378,10 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
   margin-bottom: var(--ct-space-md);
   flex-wrap: wrap;
 }
+/* Toolbar du board kanban : ne doit pas rétrécir (sinon comprimée par le wrap à hauteur fixe). */
+.crm-toolbar-shrink { flex-shrink: 0; margin-bottom: var(--ct-space-sm); }
+/* Groupe d'actions dans l'en-tête d'une page de détail (boutons alignés). */
+.crm-detail-header-actions { display: flex; align-items: center; gap: var(--ct-space-xs); flex-wrap: wrap; }
 
 /* ── est-listing-table ── */
 .est-listing-table-wrap {
@@ -591,6 +704,8 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
   max-height: 420px;
 }
 
+/* Leads / visites — listes liées (reset <ul> sans inline style) */
+.crm-related-list { list-style: none; margin: 0; padding: 0; }
 /* Leads / visites — rows enrichies */
 .crm-related-row {
   display: flex;
