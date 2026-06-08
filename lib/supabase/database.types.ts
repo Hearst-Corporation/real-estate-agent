@@ -3452,7 +3452,7 @@ export type Database = {
             foreignKeyName: "prosp_envois_critere_id_fkey"
             columns: ["critere_id"]
             isOneToOne: false
-            referencedRelation: "prosp_criteres"
+            referencedRelation: "prosp_criteres_acquereur"
             referencedColumns: ["id"]
           },
         ]
@@ -3613,7 +3613,7 @@ export type Database = {
             foreignKeyName: "prosp_match_feedback_critere_id_fkey"
             columns: ["critere_id"]
             isOneToOne: false
-            referencedRelation: "prosp_criteres"
+            referencedRelation: "prosp_criteres_acquereur"
             referencedColumns: ["id"]
           },
           {
