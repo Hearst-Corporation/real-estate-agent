@@ -14,7 +14,7 @@
   ],
   "counts": {
     "tokens": 130,
-    "classes": 182
+    "classes": 189
   },
   "tokens": [
     "--ct-accent",
@@ -234,9 +234,16 @@
     "ct-hero-value",
     "ct-home-action",
     "ct-home-action-cta",
+    "ct-home-action-desc",
     "ct-home-action-eyebrow",
-    "ct-home-action-grid",
+    "ct-home-action-icon",
+    "ct-home-action-label",
     "ct-home-action-main",
+    "ct-home-action-primary",
+    "ct-home-action-secondary",
+    "ct-home-action-secondary-grid",
+    "ct-home-action-text",
+    "ct-home-actions",
     "ct-home-command-copy",
     "ct-home-command-orbit",
     "ct-home-command-visual",

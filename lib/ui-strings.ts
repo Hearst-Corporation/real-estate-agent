@@ -698,6 +698,7 @@ export const UI = {
     actions: {
       title: "Actions principales",
       newEstimation: "Nouvelle estimation",
+      newEstimationDesc: "Démarrer un entretien vendeur et générer un avis de valeur.",
       newProperty: "Nouveau bien",
       newClient: "Nouveau client",
       newVisit: "Nouvelle visite",

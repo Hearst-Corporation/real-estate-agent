@@ -33,8 +33,8 @@
     min-height: auto;
     max-height: none;
   }
-  .ct-home-action-grid,
-  .ct-home-quick .ct-home-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Actions : la carte principale passe au-dessus de la grille secondaire. */
+  .ct-home-actions { grid-template-columns: 1fr; }
   /* KPI : 4 colonnes illisibles sur tablette → 2 colonnes. */
   .ct-kpi-grid,
   .ct-kpi-grid.cols-4,
@@ -64,9 +64,9 @@
   .ct-rail-right.collapsed { bottom: 76px; transform: translateX(calc(min(360px, 88vw) - var(--ct-rail-collapsed))); }
   .ct-dashboard-grid,
   .ct-home-grid { gap: var(--ct-space-md); }
-  .ct-home-action-grid,
-  .ct-home-quick .ct-home-action-grid { grid-template-columns: 1fr; }
-  .ct-home-action { min-height: 78px; }
+  /* Mobile : actions empilées, secondaires en 1 colonne. */
+  .ct-home-actions { grid-template-columns: 1fr; }
+  .ct-home-action-secondary-grid { grid-template-columns: 1fr; }
   .ct-hero-metric { align-items: flex-start; flex-direction: column; }
   .ct-hero-extra { min-width: 0; text-align: left; }
   .ct-chart-funnel-step { grid-template-columns: 1fr; gap: var(--ct-space-xs); }
