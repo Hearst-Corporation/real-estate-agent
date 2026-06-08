@@ -80,7 +80,7 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
           );
         })}
 
-        <div ref={menuRef} style={{ position: "relative" }}>
+        <div ref={menuRef} className="ct-rail-flyout-anchor">
           <button
             type="button"
             className={`ct-rail-action${menuOpen ? " active" : ""}`}
@@ -95,16 +95,14 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
 
           {menuOpen && (
             <div
-              className="ct-card"
-              style={{ position: "absolute", left: "100%", top: 0, zIndex: "var(--ct-z-flyout)", minWidth: "var(--ct-prose-sm)", padding: "var(--ct-space-2xs) 0" }}
+              className="ct-card ct-rail-flyout"
             >
               {getCreateItems().map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setMenuOpen(false)}
-                  className="ct-rail-action"
-                  style={{ padding: "var(--ct-space-xs) var(--ct-space-md)", display: "block", whiteSpace: "nowrap" }}
+                  className="ct-rail-action ct-rail-flyout-link"
                 >
                   {label}
                 </Link>

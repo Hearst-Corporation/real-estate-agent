@@ -177,6 +177,37 @@
   --ct-avatar-6: #818CF8;
   --ct-avatar-7: #F472B6;
 
+  /* Durées de motion étendues — complètent --ct-dur-base (180ms).
+     Unifient les durées d'anim/transition brutes (0.3s→2s) du DS. */
+  --ct-dur-fast: 120ms;
+  --ct-dur-medium: 300ms;     /* transitions de largeur (write) */
+  --ct-dur-slow: 1400ms;      /* shimmer skeleton (1.4s) */
+  --ct-dur-spin: 800ms;       /* spinners — unifie 0.7s/0.8s */
+  --ct-dur-pulse: 1000ms;     /* pulse « thinking » (1s) */
+  --ct-dur-pulse-slow: 2000ms;/* pulse génération (2s) */
+  --ct-dur-progress: 1000ms;  /* barres de progression (missions) */
+
+  /* Micro-élévation hover (translateY). */
+  --ct-lift-sm: -1px;
+  --ct-lift-base: -2px;
+
+  /* Glow accent large — au-delà de --ct-glow-radius (8px). */
+  --ct-glow-radius-lg: 18px;
+
+  /* Focus-ring accent (anneau 1px). */
+  --ct-focus-ring: 0 0 0 1px color-mix(in srgb, var(--ct-accent-strong) 40%, transparent);
+  /* Anneau d'ombre pin/marker sur média. */
+  --ct-shadow-pin: 0 0 0 2px rgba(0,0,0,0.4);
+
+  /* Nuance verre au-delà de --ct-surface-3 (0.09). */
+  --ct-surface-4: rgba(255,255,255,0.14);
+
+  /* Palier display hero estimation (entre --ct-fs-4xl 40 et --ct-fs-5xl 104). */
+  --ct-fs-hero: 56px;
+
+  /* Teinte dataviz rosée — dégradé hero valorisation. */
+  --ct-dataviz-rose: #ffd7e0;
+
   font-family: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }

@@ -13,6 +13,8 @@ const H = 116;
 const CX = 100;
 const CY = 104;
 const R = 88;
+const GAUGE_STROKE = 12;
+const GAUGE_TICK_STROKE = 2;
 
 /** Point sur l'arc pour une fraction t∈[0,1] (gauche→droite, demi-cercle haut). */
 function polar(t: number): { x: number; y: number } {
@@ -39,13 +41,13 @@ export function Gauge({ chart }: { chart: ChartLtvGauge }) {
         role="img"
         aria-label={`LTV ${valueLabel}, seuils ${Math.round(chart.seuils.vert * 100)}, ${Math.round(chart.seuils.orange * 100)} et ${Math.round(chart.seuils.rouge * 100)} pourcent`}
       >
-        <path className="inv-gauge-track" d={arcPath(0, 1)} strokeWidth={12} />
-        <path className="inv-gauge-arc" d={arcPath(0, v)} strokeWidth={12} />
+        <path className="inv-gauge-track" d={arcPath(0, 1)} strokeWidth={GAUGE_STROKE} />
+        <path className="inv-gauge-arc" d={arcPath(0, v)} strokeWidth={GAUGE_STROKE} />
         {/* repères de seuils */}
         {[chart.seuils.vert, chart.seuils.orange, chart.seuils.rouge].map((s) => {
           const p = polar(Math.min(1, s));
           const inner = { x: CX + (R - 9) * Math.cos(Math.PI * (1 - s)), y: CY - (R - 9) * Math.sin(Math.PI * (1 - s)) };
-          return <line key={s} x1={inner.x} y1={inner.y} x2={p.x} y2={p.y} className="inv-gauge-track" strokeWidth={2} />;
+          return <line key={s} x1={inner.x} y1={inner.y} x2={p.x} y2={p.y} className="inv-gauge-track" strokeWidth={GAUGE_TICK_STROKE} />;
         })}
         <line className="inv-gauge-needle" x1={CX} y1={CY} x2={needle.x} y2={needle.y} />
         <circle cx={CX} cy={CY} r={4} fill="var(--ct-text-strong)" />

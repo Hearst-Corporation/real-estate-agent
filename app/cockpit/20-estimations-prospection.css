@@ -274,7 +274,7 @@
   font-size: var(--ct-fs-xs);
   font-weight: var(--ct-fw-semibold);
   white-space: nowrap;
-  line-height: 1;
+  line-height: var(--ct-lh-none);
 }
 .prospection-badge-accent {
   background: var(--ct-accent-soft);

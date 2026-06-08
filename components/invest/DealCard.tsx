@@ -13,6 +13,7 @@ import { StatusPill, type StatusTone } from "./StatusPill";
 import { ProductBadges, type ProductBadge } from "./ProductBadges";
 import { IconPin } from "./icons";
 import { compact, pct } from "./format";
+import { DEAL_BADGES_MAX } from "@/lib/invest/constants";
 
 export interface DealCardData {
   slug: string;
@@ -63,7 +64,7 @@ export function DealCard({ deal }: { deal: DealCardData }): ReactNode {
             {deal.localisation}
           </div>
           <h3 className="inv-deal-name">{deal.nom}</h3>
-          <ProductBadges badges={deal.badges.slice(0, 3)} />
+          <ProductBadges badges={deal.badges.slice(0, DEAL_BADGES_MAX)} />
           <div className="inv-deal-metrics">
             <div className="inv-deal-metric">
               <span className="inv-m-val accent">{pct(deal.triCible)}</span>

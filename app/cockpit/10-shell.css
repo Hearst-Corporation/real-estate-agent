@@ -262,7 +262,7 @@ html, body {
   height: 8px;
   border-radius: 50%;
   background: var(--ct-accent-strong);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--ct-accent-strong) 60%, transparent);
+  box-shadow: 0 0 var(--ct-glow-radius-lg) color-mix(in srgb, var(--ct-accent-strong) 60%, transparent);
 }
 .ct-home-command-orbit span:nth-child(1) { top: -4px; left: 28px; }
 .ct-home-command-orbit span:nth-child(2) { right: 3px; bottom: 9px; }
@@ -374,7 +374,7 @@ html, body {
 .ct-home-action:hover {
   background: var(--ct-surface-2);
   border-color: var(--ct-border);
-  transform: translateY(-1px);
+  transform: translateY(var(--ct-lift-sm));
 }
 .ct-home-action.accent {
   background:
@@ -704,7 +704,7 @@ html, body {
     var(--ct-surface-1) 63%
   );
   background-size: 400% 100%;
-  animation: ct-skeleton-shimmer 1.4s ease infinite;
+  animation: ct-skeleton-shimmer var(--ct-dur-slow) var(--ct-ease) infinite;
 }
 
 .ct-skeleton-stack {
@@ -727,3 +727,8 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .ct-skeleton { animation: none; }
 }
+
+/* ── RAIL GAUCHE — Flyout menu ── */
+.ct-rail-flyout-anchor { position: relative; }
+.ct-rail-flyout { position: absolute; left: 100%; top: 0; z-index: var(--ct-z-flyout); min-width: var(--ct-prose-sm); padding: var(--ct-space-2xs) 0; }
+.ct-rail-flyout-link { padding: var(--ct-space-xs) var(--ct-space-md); display: block; white-space: nowrap; }

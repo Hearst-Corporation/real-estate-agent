@@ -387,7 +387,7 @@ export default async function LeadDetailPage({
             <dl className="crm-detail-dl">
               {linkedProperty.title && (
                 <>
-                  <dt>Titre</dt>
+                  <dt>{UI.leads.detail.fields.title}</dt>
                   <dd>{linkedProperty.title}</dd>
                 </>
               )}

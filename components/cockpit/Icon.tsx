@@ -20,10 +20,12 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
   name: IconName;
 }
 
+const ICON_SIZE = 24;
+
 export function Icon({ name, ...props }: IconProps) {
   const common = {
-    width: 24,
-    height: 24,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
     viewBox: "0 0 24 24",
     fill: "none",
     "aria-hidden": true,

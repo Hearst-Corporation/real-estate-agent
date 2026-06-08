@@ -83,7 +83,7 @@
 
 /* ── CRM — header et description de card ── */
 .crm-card-header { display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-sm); margin-bottom: var(--ct-space-xs); }
-.crm-card-desc { font-size: var(--ct-fs-sm); color: var(--ct-text-muted); line-height: 1.45; }
+.crm-card-desc { font-size: var(--ct-fs-sm); color: var(--ct-text-muted); line-height: var(--ct-lh-base); }
 
 /* ── Invest — classes absentes du stash ── */
 .inv-table { width: 100%; border-collapse: collapse; font-size: var(--ct-fs-sm); color: var(--ct-text-body); }
@@ -133,7 +133,7 @@
   height: 100%;
   background: var(--ct-accent);
   border-radius: inherit;
-  transition: width 0.3s var(--ct-ease);
+  transition: width var(--ct-dur-medium) var(--ct-ease);
 }
 
 /* ── Swarms — classes absentes du stash ── */

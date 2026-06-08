@@ -5,6 +5,7 @@ import { tenantOf } from "@/lib/tenant";
 import { PageHeader, PageStack, Card } from "@/components/cockpit/primitives";
 import { MissionLauncher } from "@/components/missions/MissionLauncher";
 import { UI } from "@/lib/ui-strings";
+import { MISSIONS_PAGE_LIMIT } from "@/lib/ui/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function MissionsPage() {
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(MISSIONS_PAGE_LIMIT);
     rows = (data ?? []) as MissionRow[];
   }
 

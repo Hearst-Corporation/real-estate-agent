@@ -4,13 +4,14 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { ChatKimi } from "./ChatKimi";
 import { UI } from "@/lib/ui-strings";
+import { BREAKPOINT_COLLAPSE_PX } from "@/lib/ui/constants";
 
 const STORAGE_KEY = "cockpit:rail-right-open";
 const CHANGE_EVENT = "cockpit:rail-right-open-change";
 
 function readUserOpenPreference() {
   if (typeof window === "undefined") return true;
-  if (window.innerWidth <= 1024) return false;
+  if (window.innerWidth <= BREAKPOINT_COLLAPSE_PX) return false;
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved !== null) return saved === "true";
   return true;

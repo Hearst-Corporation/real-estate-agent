@@ -16,7 +16,7 @@
 .mv-statusline { display: flex; align-items: center; gap: var(--ct-space-md); margin-top: var(--ct-space-md); flex-wrap: wrap; color: var(--ct-text-muted); font-size: var(--ct-fs-sm); }
 .mv-eta { color: var(--ct-text-primary); font-weight: var(--ct-fw-bold); }
 .mv-prog { flex: 1; min-width: 180px; height: var(--ct-space-xs); border-radius: var(--ct-radius-pill); background: var(--ct-surface-3); overflow: hidden; }
-.mv-prog > i { display: block; height: 100%; width: 0; border-radius: var(--ct-radius-pill); background: linear-gradient(90deg, var(--ct-accent), var(--ct-accent-strong)); transition: width 1s var(--ct-ease); }
+.mv-prog > i { display: block; height: 100%; width: 0; border-radius: var(--ct-radius-pill); background: linear-gradient(90deg, var(--ct-accent), var(--ct-accent-strong)); transition: width var(--ct-dur-progress) var(--ct-ease); }
 
 /* Pills humaines */
 .mv-pill { display: inline-flex; align-items: center; gap: var(--ct-space-xs); font-size: var(--ct-fs-2xs); font-weight: var(--ct-fw-bold); padding: var(--ct-space-3xs) var(--ct-space-sm); border-radius: var(--ct-radius-pill); border: 1px solid var(--ct-border-strong); }

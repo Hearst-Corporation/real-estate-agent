@@ -26,6 +26,7 @@ import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { Stepper, Banner, Gate, StatusPill, Toast, eur } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
+import { TICKET_STEP } from "@/lib/invest/constants";
 
 const t = UI.invest.subscribe;
 
@@ -302,7 +303,7 @@ export function SubscribePanel(props: SubscribePanelProps) {
               inputMode="numeric"
               min={ticketMinEur}
               max={ticketMaxEur}
-              step={1000}
+              step={TICKET_STEP}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               aria-describedby="sub-amount-hint"

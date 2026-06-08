@@ -6,6 +6,7 @@ import { PageStack, PageHeader, KpiGrid, KpiCard, Sub } from "@/components/cockp
 import { ProductBadges, StatusPill, Banner, Timeline, eur, pct } from "@/components/invest";
 import type { StatusTone } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
+import { DEAL_BADGES_MAX } from "@/lib/invest/constants";
 import { DEMO_POSITIONS } from "../_data/demo";
 import { fetchMyPortfolio, type PortfolioPositionView } from "../_data/server";
 
@@ -31,7 +32,7 @@ export default async function PortfolioPage() {
         dureeMois: pos.deal.input.schedule.duree_mois,
         statutTone: pos.statutTone as StatusTone as PortfolioPositionView["statutTone"],
         statutLabel: pos.statutLabel,
-        badges: pos.deal.badges.slice(0, 3),
+        badges: pos.deal.badges.slice(0, DEAL_BADGES_MAX),
       }))
     : portfolio.positions;
 
