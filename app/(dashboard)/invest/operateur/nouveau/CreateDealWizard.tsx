@@ -23,6 +23,13 @@ import {
   type DealInput,
   type OperationType,
 } from "@/lib/invest/finance";
+import {
+  DEAL_DEFAULTS,
+  PLATFORM_FEES,
+  SCENARIO_DEFAULTS,
+  LOCATIF_YIELD_PCT,
+} from "@/lib/invest/constants";
+import { UI } from "@/lib/ui-strings";
 
 type DealTypeDb = "marchand_de_biens" | "promotion" | "locatif" | "value_add" | "mixte";
 type SettlementCurrency = "EUR" | "EURC" | "EURe";
@@ -52,16 +59,15 @@ function Field({
   suffix?: string;
 }) {
   return (
-    <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
+    <label className="inv-field">
       <span className="ct-kpi-label">{label}</span>
-      <span style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-2xs)" }}>
+      <span className="inv-field-row">
         <input
-          className="ct-input"
+          className="ct-input inv-w-full"
           type="number"
           value={value}
           min={0}
           onChange={(ev) => onChange(Number(ev.target.value))}
-          style={{ width: "100%" }}
         />
         {suffix ? <span className="inv-chart-foot">{suffix}</span> : null}
       </span>
@@ -79,19 +85,19 @@ export function CreateDealWizard() {
   const [dealType, setDealType] = useState<DealTypeDb>("marchand_de_biens");
   const [city, setCity] = useState("");
 
-  const [acquisition, setAcquisition] = useState(1_800_000);
-  const [notary, setNotary] = useState(130_000);
-  const [works, setWorks] = useState(420_000);
-  const [other, setOther] = useState(90_000);
-  const [seniorDebt, setSeniorDebt] = useState(1_460_000);
-  const [seniorRatePct, setSeniorRatePct] = useState(4.5);
-  const [sponsorEquity, setSponsorEquity] = useState(240_000);
-  const [targetRaise, setTargetRaise] = useState(740_000);
-  const [couponPct, setCouponPct] = useState(9);
-  const [durationMonths, setDurationMonths] = useState(22);
-  const [appraised, setAppraised] = useState(2_520_000);
-  const [resalePrice, setResalePrice] = useState(2_900_000);
-  const [minTicket, setMinTicket] = useState(1_000);
+  const [acquisition, setAcquisition] = useState<number>(DEAL_DEFAULTS.acquisition);
+  const [notary, setNotary] = useState<number>(DEAL_DEFAULTS.notary);
+  const [works, setWorks] = useState<number>(DEAL_DEFAULTS.works);
+  const [other, setOther] = useState<number>(DEAL_DEFAULTS.other);
+  const [seniorDebt, setSeniorDebt] = useState<number>(DEAL_DEFAULTS.seniorDebt);
+  const [seniorRatePct, setSeniorRatePct] = useState<number>(DEAL_DEFAULTS.seniorRatePct);
+  const [sponsorEquity, setSponsorEquity] = useState<number>(DEAL_DEFAULTS.sponsorEquity);
+  const [targetRaise, setTargetRaise] = useState<number>(DEAL_DEFAULTS.targetRaise);
+  const [couponPct, setCouponPct] = useState<number>(DEAL_DEFAULTS.couponPct);
+  const [durationMonths, setDurationMonths] = useState<number>(DEAL_DEFAULTS.durationMonths);
+  const [appraised, setAppraised] = useState<number>(DEAL_DEFAULTS.appraised);
+  const [resalePrice, setResalePrice] = useState<number>(DEAL_DEFAULTS.resalePrice);
+  const [minTicket, setMinTicket] = useState<number>(DEAL_DEFAULTS.minTicket);
 
   const [settlement, setSettlement] = useState<SettlementCurrency>("EUR");
   const [tokenStandard, setTokenStandard] = useState<TokenStandard>("ERC-3643");
@@ -124,22 +130,22 @@ export function CreateDealWizard() {
         taux_coupon_obligataire_annuel: couponPct / 100,
       },
       fees: {
-        frais_plateforme_entree_pct: 0.01,
-        frais_plateforme_admin_annuel_pct: 0.005,
-        frais_operateur_acquisition_pct: 0.02,
-        carried_operateur_pct: 0.2,
-        hurdle_annuel: 0.08,
+        frais_plateforme_entree_pct: PLATFORM_FEES.entryPct,
+        frais_plateforme_admin_annuel_pct: PLATFORM_FEES.adminAnnuelPct,
+        frais_operateur_acquisition_pct: PLATFORM_FEES.operateurAcqPct,
+        carried_operateur_pct: PLATFORM_FEES.carriedPct,
+        hurdle_annuel: PLATFORM_FEES.hurdleAnnuel,
       },
       schedule: { duree_mois: durationMonths, date_closing: new Date().toISOString().slice(0, 10) },
       exit: {
         prix_revente_central_eur: resalePrice,
         valeur_expertise_eur: appraised,
-        ...(dealType === "locatif" ? { loyer_net_annuel_eur: Math.round(targetRaise * 0.09) } : {}),
+        ...(dealType === "locatif" ? { loyer_net_annuel_eur: Math.round(targetRaise * LOCATIF_YIELD_PCT) } : {}),
       },
       scenarios: {
-        pessimiste: { delta_prix_revente_pct: -0.08, retard_mois: 3 },
-        central: { delta_prix_revente_pct: 0, retard_mois: 0 },
-        optimiste: { delta_prix_revente_pct: 0.05, retard_mois: 0 },
+        pessimiste: { delta_prix_revente_pct: SCENARIO_DEFAULTS.pessimiste.deltaPrixPct, retard_mois: SCENARIO_DEFAULTS.pessimiste.retardMois },
+        central: { delta_prix_revente_pct: SCENARIO_DEFAULTS.central.deltaPrixPct, retard_mois: SCENARIO_DEFAULTS.central.retardMois },
+        optimiste: { delta_prix_revente_pct: SCENARIO_DEFAULTS.optimiste.deltaPrixPct, retard_mois: SCENARIO_DEFAULTS.optimiste.retardMois },
       },
       ticket_min_eur: minTicket,
       day_count: "ACT_365",
@@ -162,7 +168,7 @@ export function CreateDealWizard() {
     e.preventDefault();
     setError(null);
     if (!escrowAck) {
-      setError("Le séquestre tiers est obligatoire : cochez l'engagement avant de créer le deal.");
+      setError(UI.invest.operator.wizard.escrowError);
       return;
     }
     setSubmitting(true);
@@ -196,13 +202,13 @@ export function CreateDealWizard() {
             seniority: "senior_secured",
             couponRatePct: couponPct,
             tokenStandard,
-            nominalUnitEur: 1_000,
+            nominalUnitEur: DEAL_DEFAULTS.nominalUnitEur,
           },
         }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(json?.detail ? `${json.error} — ${JSON.stringify(json.detail)}` : json?.error ?? "Échec de la création");
+        setError(json?.detail ? `${json.error} — ${JSON.stringify(json.detail)}` : json?.error ?? UI.invest.operator.wizard.submitFallbackError);
         setSubmitting(false);
         return;
       }
@@ -217,138 +223,138 @@ export function CreateDealWizard() {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="inv-grid-2" style={{ gap: "var(--ct-space-lg)" }}>
+      <div className="inv-grid-2 loose">
         {/* Colonne saisie */}
         <div className="inv-chart-card">
           <div className="inv-chart-head">
-            <span className="inv-chart-title">Identité & économie de l’opération</span>
+            <span className="inv-chart-title">{UI.invest.operator.wizard.sectionIdentity}</span>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
-              <span className="ct-kpi-label">SAS émettrice (raison sociale)</span>
+          <div className="inv-grid-form">
+            <label className="inv-field" >
+              <span className="ct-kpi-label">{UI.invest.operator.wizard.legalName}</span>
               <input className="ct-input" value={legalName} onChange={(e) => setLegalName(e.target.value)} required />
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
-              <span className="ct-kpi-label">Nom commercial du deal</span>
+            <label className="inv-field" >
+              <span className="ct-kpi-label">{UI.invest.operator.wizard.name}</span>
               <input className="ct-input" value={name} onChange={(e) => setName(e.target.value)} required />
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
-              <span className="ct-kpi-label">Slug (URL)</span>
+            <label className="inv-field" >
+              <span className="ct-kpi-label">{UI.invest.operator.wizard.slug}</span>
               <input
                 className="ct-input"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
-                placeholder="residence-xyz-lyon6"
+                placeholder={UI.invest.operator.wizard.slugPlaceholder}
                 required
               />
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
-              <span className="ct-kpi-label">Ville</span>
+            <label className="inv-field" >
+              <span className="ct-kpi-label">{UI.invest.operator.wizard.city}</span>
               <input className="ct-input" value={city} onChange={(e) => setCity(e.target.value)} />
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
-              <span className="ct-kpi-label">Type d’opération</span>
+            <label className="inv-field" >
+              <span className="ct-kpi-label">{UI.invest.operator.wizard.dealType}</span>
               <select className="ct-input" value={dealType} onChange={(e) => setDealType(e.target.value as DealTypeDb)}>
-                <option value="marchand_de_biens">Marchand de biens</option>
-                <option value="promotion">Promotion</option>
-                <option value="locatif">Locatif</option>
-                <option value="value_add">Value-add</option>
-                <option value="mixte">Mixte</option>
+                <option value="marchand_de_biens">{UI.invest.dealDetail.typeLabels.marchand_de_biens}</option>
+                <option value="promotion">{UI.invest.dealDetail.typeLabels.promotion}</option>
+                <option value="locatif">{UI.invest.dealDetail.typeLabels.locatif}</option>
+                <option value="value_add">{UI.invest.dealDetail.typeLabels.value_add}</option>
+                <option value="mixte">{UI.invest.dealDetail.typeLabels.mixte}</option>
               </select>
             </label>
-            <Field label="Durée cible" value={durationMonths} onChange={setDurationMonths} suffix="mois" />
+            <Field label={UI.invest.operator.wizard.durationLabel} value={durationMonths} onChange={setDurationMonths} suffix={UI.invest.operator.wizard.durationSuffix} />
           </div>
 
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-lg)" }}>
-            <span className="inv-chart-title">Postes de coût</span>
+          <div className="inv-chart-head inv-chart-head-mt">
+            <span className="inv-chart-title">{UI.invest.operator.wizard.sectionCosts}</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
-            <Field label="Prix d’acquisition" value={acquisition} onChange={setAcquisition} suffix="€" />
-            <Field label="Frais de notaire" value={notary} onChange={setNotary} suffix="€" />
-            <Field label="Budget travaux" value={works} onChange={setWorks} suffix="€" />
-            <Field label="Frais divers / portage" value={other} onChange={setOther} suffix="€" />
-          </div>
-
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-lg)" }}>
-            <span className="inv-chart-title">Financement</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
-            <Field label="Dette senior" value={seniorDebt} onChange={setSeniorDebt} suffix="€" />
-            <Field label="Taux dette senior" value={seniorRatePct} onChange={setSeniorRatePct} suffix="%/an" />
-            <Field label="Equity sponsor" value={sponsorEquity} onChange={setSponsorEquity} suffix="€" />
-            <Field label="Obligations (objectif de levée)" value={targetRaise} onChange={setTargetRaise} suffix="€" />
-            <Field label="Coupon cible (non garanti)" value={couponPct} onChange={setCouponPct} suffix="%/an · non gar." />
-            <Field label="Ticket minimum" value={minTicket} onChange={setMinTicket} suffix="€" />
+          <div className="inv-grid-form">
+            <Field label={UI.invest.operator.wizard.acquisition} value={acquisition} onChange={setAcquisition} suffix={UI.invest.operator.wizard.eurSuffix} />
+            <Field label={UI.invest.operator.wizard.notary} value={notary} onChange={setNotary} suffix={UI.invest.operator.wizard.eurSuffix} />
+            <Field label={UI.invest.operator.wizard.works} value={works} onChange={setWorks} suffix={UI.invest.operator.wizard.eurSuffix} />
+            <Field label={UI.invest.operator.wizard.other} value={other} onChange={setOther} suffix={UI.invest.operator.wizard.eurSuffix} />
           </div>
 
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-lg)" }}>
-            <span className="inv-chart-title">Sortie & valorisation</span>
+          <div className="inv-chart-head inv-chart-head-mt">
+            <span className="inv-chart-title">{UI.invest.operator.wizard.sectionFunding}</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
-            <Field label="Prix de revente central" value={resalePrice} onChange={setResalePrice} suffix="€" />
-            <Field label="Valeur d’expertise (base LTV)" value={appraised} onChange={setAppraised} suffix="€" />
+          <div className="inv-grid-form">
+            <Field label={UI.invest.operator.wizard.seniorDebt} value={seniorDebt} onChange={setSeniorDebt} suffix={UI.invest.operator.wizard.eurSuffix} />
+            <Field label={UI.invest.operator.wizard.seniorRate} value={seniorRatePct} onChange={setSeniorRatePct} suffix={UI.invest.operator.wizard.seniorRateSuffix} />
+            <Field label={UI.invest.operator.wizard.sponsorEquity} value={sponsorEquity} onChange={setSponsorEquity} suffix={UI.invest.operator.wizard.eurSuffix} />
+            <Field label={UI.invest.operator.wizard.targetRaise} value={targetRaise} onChange={setTargetRaise} suffix={UI.invest.operator.wizard.eurSuffix} />
+            <Field label={UI.invest.operator.wizard.coupon} value={couponPct} onChange={setCouponPct} suffix={UI.invest.operator.wizard.couponSuffix} />
+            <Field label={UI.invest.operator.wizard.minTicket} value={minTicket} onChange={setMinTicket} suffix={UI.invest.operator.wizard.eurSuffix} />
           </div>
 
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-lg)" }}>
-            <span className="inv-chart-title">Règlement & token (cadre anti-FIA)</span>
+          <div className="inv-chart-head inv-chart-head-mt">
+            <span className="inv-chart-title">{UI.invest.operator.wizard.sectionExit}</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ct-space-md)" }}>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
-              <span className="ct-kpi-label">Devise de règlement</span>
+          <div className="inv-grid-form">
+            <Field label={UI.invest.operator.wizard.resalePrice} value={resalePrice} onChange={setResalePrice} suffix={UI.invest.operator.wizard.eurSuffix} />
+            <Field label={UI.invest.operator.wizard.appraised} value={appraised} onChange={setAppraised} suffix={UI.invest.operator.wizard.eurSuffix} />
+          </div>
+
+          <div className="inv-chart-head inv-chart-head-mt">
+            <span className="inv-chart-title">{UI.invest.operator.wizard.sectionSettlement}</span>
+          </div>
+          <div className="inv-grid-form">
+            <label className="inv-field" >
+              <span className="ct-kpi-label">{UI.invest.operator.wizard.settlementCurrency}</span>
               <select className="ct-input" value={settlement} onChange={(e) => setSettlement(e.target.value as SettlementCurrency)}>
-                <option value="EUR">EUR (séquestre)</option>
-                <option value="EURC">EURC (stablecoin régulé)</option>
-                <option value="EURe">EURe (stablecoin régulé)</option>
+                <option value="EUR">{UI.invest.operator.wizard.settlementEur}</option>
+                <option value="EURC">{UI.invest.operator.wizard.settlementEurc}</option>
+                <option value="EURe">{UI.invest.operator.wizard.settlementEure}</option>
               </select>
             </label>
-            <label className="inv-field" style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-3xs)" }}>
-              <span className="ct-kpi-label">Standard du token</span>
+            <label className="inv-field" >
+              <span className="ct-kpi-label">{UI.invest.operator.wizard.tokenStandard}</span>
               <select className="ct-input" value={tokenStandard} onChange={(e) => setTokenStandard(e.target.value as TokenStandard)}>
-                <option value="ERC-3643">ERC-3643 (T-REX permissionné)</option>
-                <option value="ERC-1400">ERC-1400 (security token)</option>
+                <option value="ERC-3643">{UI.invest.operator.wizard.tokenStandardErc3643}</option>
+                <option value="ERC-1400">{UI.invest.operator.wizard.tokenStandardErc1400}</option>
               </select>
             </label>
           </div>
         </div>
 
         {/* Colonne prévisualisation moteur (pessimiste avant publication) */}
-        <div className="inv-chart-card" style={{ alignSelf: "flex-start" }}>
+        <div className="inv-chart-card inv-chart-self-start">
           <div className="inv-chart-head">
-            <span className="inv-chart-title">Prévisualisation moteur (avant publication)</span>
+            <span className="inv-chart-title">{UI.invest.operator.wizard.previewTitle}</span>
           </div>
 
           <dl className="inv-dl">
-            <dt>Coût total projet</dt>
+            <dt>{UI.invest.operator.wizard.previewTotalCost}</dt>
             <dd>{fmtEur(preview.totalCost)}</dd>
-            <dt>LTV (dette / valeur)</dt>
+            <dt>{UI.invest.operator.wizard.previewLtv}</dt>
             <dd>{fmtPct(preview.sheet?.metrics.ltv ?? null)}</dd>
-            <dt>Marge marchand</dt>
+            <dt>{UI.invest.operator.wizard.previewMargin}</dt>
             <dd>{fmtPct(preview.sheet?.metrics.marge_marchand_pct ?? null)}</dd>
-            <dt>TRI cible · scénario central · non garanti</dt>
+            <dt>{UI.invest.operator.wizard.previewTriCentral}</dt>
             <dd>{fmtPct(central?.irr_investisseur.irr ?? null)}</dd>
           </dl>
 
-          <div className="inv-chart-head" style={{ marginTop: "var(--ct-space-md)" }}>
-            <span className="inv-chart-title">Scénario PESSIMISTE (pire cas)</span>
+          <div className="inv-chart-head inv-chart-head-mt-sm">
+            <span className="inv-chart-title">{UI.invest.operator.wizard.scenarioPessTitle}</span>
           </div>
           {pess ? (
             <dl className="inv-dl">
-              <dt>TRI pessimiste · non garanti</dt>
+              <dt>{UI.invest.operator.wizard.scenarioPessTri}</dt>
               <dd>{fmtPct(pess.irr_investisseur.irr)}</dd>
-              <dt>Capital obligataire remboursé</dt>
+              <dt>{UI.invest.operator.wizard.scenarioPessPrincipal}</dt>
               <dd>{fmtEur(pess.waterfall.obligataire.principal_rembourse_eur)}</dd>
-              <dt>Perte en capital (pessimiste)</dt>
+              <dt>{UI.invest.operator.wizard.scenarioPessLoss}</dt>
               <dd>{fmtEur(pess.waterfall.obligataire.perte_capital_eur)}</dd>
             </dl>
           ) : (
-            <p className="inv-chart-foot">Renseignez les montants pour calculer le pire cas.</p>
+            <p className="inv-chart-foot">{UI.invest.operator.wizard.previewEmpty}</p>
           )}
 
           {preview.sheet && preview.sheet.warnings.length > 0 ? (
-            <div className="inv-banner inv-banner-warn" style={{ marginTop: "var(--ct-space-md)", padding: "var(--ct-space-sm)", border: "1px solid var(--ct-border)" }}>
-              <b>Points d’attention du moteur :</b>
-              <ul style={{ margin: "var(--ct-space-2xs) 0 0", paddingLeft: "var(--ct-space-md)" }}>
+            <div className="inv-banner inv-banner-warn inv-banner-compact">
+              <b>{UI.invest.operator.wizard.warningsTitle}</b>
+              <ul className="inv-list-ul">
                 {preview.sheet.warnings.map((w, i) => (
                   <li key={i} className="inv-chart-foot">{w}</li>
                 ))}
@@ -356,31 +362,28 @@ export function CreateDealWizard() {
             </div>
           ) : null}
 
-          <label style={{ display: "flex", gap: "var(--ct-space-2xs)", marginTop: "var(--ct-space-md)", alignItems: "flex-start" }}>
+          <label className="inv-check-row">
             <input type="checkbox" checked={escrowAck} onChange={(e) => setEscrowAck(e.target.checked)} />
             <span className="inv-chart-foot">
-              Je confirme que les versements transiteront par un <b>séquestre tiers</b> (notaire ou EMI
-              régulée), jamais par la plateforme. Tout rendement affiché est une <b>cible non garantie</b> ;
-              les investisseurs sont créanciers obligataires et encourent un risque de perte en capital.
+              {UI.invest.operator.wizard.escrowAckPart1}<b>{UI.invest.operator.wizard.escrowAckBold1}</b>{UI.invest.operator.wizard.escrowAckPart2}<b>{UI.invest.operator.wizard.escrowAckBold2}</b>{UI.invest.operator.wizard.escrowAckPart3}
             </span>
           </label>
 
           {error ? (
-            <p className="inv-chart-foot" style={{ color: "var(--ct-text-danger)", marginTop: "var(--ct-space-sm)" }}>
+            <p className="inv-chart-foot inv-error-note">
               {error}
             </p>
           ) : null}
 
           <button
             type="submit"
-            className="inv-btn-reserve"
+            className={`inv-btn-reserve inv-submit-btn${submitting || !escrowAck ? " is-disabled" : ""}`}
             disabled={submitting || !escrowAck}
-            style={{ marginTop: "var(--ct-space-md)", width: "100%", opacity: submitting || !escrowAck ? 0.6 : 1 }}
           >
-            {submitting ? "Création…" : "Créer le deal (brouillon)"}
+            {submitting ? UI.invest.operator.wizard.submitBusy : UI.invest.operator.wizard.submit}
           </button>
           <p className="inv-reserve-note">
-            Le deal naît en brouillon. La publication (mise en marché) exigera un KIIS publié.
+            {UI.invest.operator.wizard.submitNote}
           </p>
         </div>
       </div>

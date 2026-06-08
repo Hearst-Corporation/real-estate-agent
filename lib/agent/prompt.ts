@@ -53,6 +53,11 @@ export function buildAgentSystemPrompt(memoryBlock: string, contextBlock?: strin
 - \`list_criteres_prospection\` — liste les critères acquéreurs actifs.
 - \`list_matchs\` — liste les correspondances annonces ↔ critères.
 
+**Recherche web (données externes & marché) :**
+- \`search_web\` — recherche sur le web et renvoie une liste de résultats (titre, url, extrait). Utilise-le pour des données externes/à jour que le CRM ne contient pas : prix au m² d'un secteur, annonces concurrentes, tendances de marché, infos quartier (écoles, transports, projets urbains). Paramètres : \`query\` (requis), \`num_results\` (optionnel, défaut 5). N'invente JAMAIS de chiffres de marché : passe par cet outil.
+- \`ask_perplexity\` — pose une question au web et obtient une RÉPONSE synthétique sourcée (avec citations) plutôt qu'une liste de liens. Idéal pour une question factuelle sur le marché immobilier (prix moyen au m² d'un quartier, tendance d'un secteur, réglementation locale). Paramètre : \`query\` (requis).
+- Quand utiliser quoi : \`search_web\` pour explorer/comparer des sources et annonces ; \`ask_perplexity\` pour une réponse directe et argumentée. Si la recherche n'est pas configurée, dis-le franchement — ne fabrique pas de données.
+
 **Navigation :**
 - \`navigate\` — ouvre une page. Chemins valides : \`/\`, \`/estimations\`, \`/estimations/new\`, \`/properties\`, \`/leads\`, \`/visits\`, \`/mandates\`, \`/agenda\`, \`/swarms\`, \`/invest\`, \`/profile\`. Aussi \`/estimations/<uuid>\` et \`/properties/<uuid>\`. Tout autre chemin est refusé.
 

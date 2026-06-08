@@ -11,7 +11,7 @@
  * séquestre tiers. (Voir lint:legal.)
  */
 
-import { Eyebrow, Title, Sub } from "@/components/cockpit/primitives";
+import { PageStack, PageHeader, Sub } from "@/components/cockpit/primitives";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
@@ -48,15 +48,19 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="ct-page-area">
-      <Eyebrow>Invest · Onboarding</Eyebrow>
-      <Title>Devenir investisseur</Title>
-      <Sub>
-        Quatre étapes pour débloquer la souscription : profil, test ECSP, vérification d&apos;identité et
-        wallet. Vous prêtez à une société (vous êtes créancier) ; aucun argent n&apos;est placé ici.
-      </Sub>
+    <PageStack>
+      <PageHeader
+        kicker="Invest · Onboarding"
+        title="Devenir investisseur"
+        meta={
+          <Sub>
+            Quatre étapes pour débloquer la souscription : profil, test ECSP, vérification d&apos;identité et
+            wallet. Vous prêtez à une société (vous êtes créancier) ; aucun argent n&apos;est placé ici.
+          </Sub>
+        }
+      />
 
       <OnboardingWizard initialProfile={initialProfile} />
-    </div>
+    </PageStack>
   );
 }

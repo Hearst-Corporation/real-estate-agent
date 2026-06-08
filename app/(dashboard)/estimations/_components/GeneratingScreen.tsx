@@ -1,24 +1,16 @@
 "use client";
 
-const KNOWN_STEPS = [
-  "Géocodage",
-  "Cadastre",
-  "Sections cadastrales",
-  "Mutations DVF",
-  "DPE",
-  "Comparables",
-  "Valorisation",
-  "Annonces comparables",
-  "Finalisation",
-];
+import { UI } from "@/lib/ui-strings";
 
 type Props = {
   currentStep: string | null;
 };
 
 export function GeneratingScreen({ currentStep }: Props) {
+  const steps = UI.estimations.generatingSteps;
+
   const currentIdx = currentStep
-    ? KNOWN_STEPS.findIndex((s) =>
+    ? steps.findIndex((s) =>
         currentStep.toLowerCase().includes(s.toLowerCase())
       )
     : -1;
@@ -30,13 +22,11 @@ export function GeneratingScreen({ currentStep }: Props) {
           <span className="est-generating-pulse" />
         </div>
 
-        <h2 className="est-generating-title">Analyse en cours…</h2>
-        <p className="est-generating-sub">
-          Nous interrogeons les bases DVF, DPE et les annonces du marché.
-        </p>
+        <h2 className="est-generating-title">{UI.estimations.generatingTitle}</h2>
+        <p className="est-generating-sub">{UI.estimations.generatingSub}</p>
 
         <div className="est-generating-steps">
-          {KNOWN_STEPS.map((step, i) => {
+          {steps.map((step, i) => {
             const done = i < currentIdx;
             const active = i === currentIdx;
             return (
@@ -44,17 +34,18 @@ export function GeneratingScreen({ currentStep }: Props) {
                 key={step}
                 className={`est-gen-step${done ? " done" : ""}${active ? " active" : ""}`}
               >
-                <span className="est-gen-step-icon">
-                  {done ? "✓" : active ? "⏳" : "○"}
+                <span className="est-gen-step-icon" aria-hidden="true">
+                  {done ? "✓" : active ? "▶" : "·"}
                 </span>
                 <span className="est-gen-step-label">{step}</span>
+                {active && <span className="est-gen-step-spinner" aria-hidden="true" />}
               </div>
             );
           })}
         </div>
 
         {currentStep && (
-          <p className="est-generating-current">{currentStep}</p>
+          <p className="est-generating-current" aria-live="polite">{currentStep}</p>
         )}
       </div>
     </div>

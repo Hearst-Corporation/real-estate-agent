@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
+import { PageHeader, PageStack } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import type { SwarmAgent, SwarmTask, ArchitectSpec } from "@/lib/swarms/types";
 
@@ -129,33 +131,28 @@ export default function NewSwarmPage() {
   }
 
   return (
-    <>
-      <p className="ct-eyebrow">{UI.swarms.eyebrow}</p>
-      <h1 className="ct-title">{UI.swarms.newTitle}</h1>
-
-      <div className="swarm-tabs">
-        <button
-          type="button"
-          className={`swarm-tab-btn${tab === "architect" ? " active" : ""}`}
-          onClick={() => setTab("architect")}
-        >
-          {UI.swarms.tabArchitect}
-        </button>
-        <button
-          type="button"
-          className={`swarm-tab-btn${tab === "manual" ? " active" : ""}`}
-          onClick={() => setTab("manual")}
-        >
-          {UI.swarms.tabManual}
-        </button>
-      </div>
+    <PageStack>
+      <PageHeader
+        kicker={UI.swarms.eyebrow}
+        title={UI.swarms.newTitle}
+        nav={
+          <PageSegmentTabs
+            tabs={[
+              { id: "architect", label: UI.swarms.tabArchitect },
+              { id: "manual", label: UI.swarms.tabManual },
+            ]}
+            active={tab}
+            onSelect={setTab}
+          />
+        }
+      />
 
       {tab === "architect" && (
         <div className="swarm-create-arch">
           {/* Colonne gauche : prompt */}
           <div className="ct-card swarm-arch-prompt">
             <div className="ct-card-body">
-              <p className="ct-card-title">{UI.swarms.architectTitle}</p>
+              <h3 className="ct-card-title">{UI.swarms.architectTitle}</h3>
               <textarea
                 className="crm-input swarm-form-textarea"
                 rows={ARCHITECT_TEXTAREA_ROWS}
@@ -179,15 +176,15 @@ export default function NewSwarmPage() {
           {spec ? (
             <div className="ct-card swarm-arch-spec">
               <div className="ct-card-body">
-                <p className="ct-card-title">{UI.swarms.architectSpecTitle(spec.name)}</p>
+                <h3 className="ct-card-title">{UI.swarms.architectSpecTitle(spec.name)}</h3>
                 <p className="swarm-spec-name">{spec.name}</p>
                 {spec.description && <p className="swarm-spec-desc">{spec.description}</p>}
 
                 <div className="swarm-spec-cols">
                   <div>
-                    <p className="swarm-form-section-title">
+                    <h4 className="swarm-form-section-title">
                       {UI.swarms.agentsCount(spec.agents?.length ?? 0)}
-                    </p>
+                    </h4>
                     <div className="swarm-spec-list">
                       {(spec.agents ?? []).map((a, i) => (
                         <div key={a.id ?? i} className="swarm-agent-card">
@@ -199,9 +196,9 @@ export default function NewSwarmPage() {
                     </div>
                   </div>
                   <div>
-                    <p className="swarm-form-section-title">
+                    <h4 className="swarm-form-section-title">
                       {UI.swarms.tasksCount(spec.tasks?.length ?? 0)}
-                    </p>
+                    </h4>
                     <div className="swarm-spec-list">
                       {(spec.tasks ?? []).map((t, i) => (
                         <div key={t.id ?? i} className="swarm-agent-card">
@@ -257,7 +254,7 @@ export default function NewSwarmPage() {
         <div className="ct-card swarm-form-card">
           <div className="ct-card-body">
             <div className="swarm-form-section">
-              <p className="swarm-form-section-title">{UI.swarms.manualSectionGeneral}</p>
+              <h4 className="swarm-form-section-title">{UI.swarms.manualSectionGeneral}</h4>
               <input
                 className="crm-input swarm-field"
                 type="text"
@@ -276,7 +273,7 @@ export default function NewSwarmPage() {
 
             <div className="swarm-manual-cols">
             <div className="swarm-form-section">
-              <p className="swarm-form-section-title">{UI.swarms.manualSectionAgents}</p>
+              <h4 className="swarm-form-section-title">{UI.swarms.manualSectionAgents}</h4>
               <div className="swarm-dynamic-list">
                 {agents.map((agent, i) => (
                   <div key={i} className="swarm-dynamic-item">
@@ -313,7 +310,7 @@ export default function NewSwarmPage() {
             </div>
 
             <div className="swarm-form-section">
-              <p className="swarm-form-section-title">{UI.swarms.manualSectionTasks}</p>
+              <h4 className="swarm-form-section-title">{UI.swarms.manualSectionTasks}</h4>
               <div className="swarm-dynamic-list">
                 {tasks.map((task, i) => (
                   <div key={i} className="swarm-dynamic-item">
@@ -365,6 +362,6 @@ export default function NewSwarmPage() {
           </div>
         </div>
       )}
-    </>
+    </PageStack>
   );
 }

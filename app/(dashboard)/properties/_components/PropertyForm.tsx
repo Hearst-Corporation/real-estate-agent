@@ -122,8 +122,14 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
       return;
     }
 
-    router.refresh();
-    onClose?.();
+    if (onClose) {
+      router.refresh();
+      onClose();
+    } else {
+      const json = await res.json().catch(() => ({}));
+      const newId = (json as { id?: string }).id;
+      router.push(newId ? `/properties/${newId}` : "/properties");
+    }
   }
 
   return (

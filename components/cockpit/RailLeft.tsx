@@ -2,18 +2,59 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Logo } from "./Logo";
 import { UI } from "@/lib/ui-strings";
 import { Icon } from "./Icon";
-import { navPrimary, navCrm, CRM_ENTRY } from "@/config/nav";
+import { navRail } from "@/config/nav";
 
 const INITIALS_LEN = 2;
 
-export function RailLeft({ userEmail }: { userEmail?: string; isAdmin?: boolean }) {
+const PORTEFEUILLE_ROUTES = ["/properties", "/estimations", "/mandates"];
+const CLIENTS_ROUTES = ["/leads", "/visits"];
+
+function isActive(itemHref: string, pathname: string): boolean {
+  if (itemHref === "/") return pathname === "/";
+  if (itemHref === "/properties") {
+    return PORTEFEUILLE_ROUTES.some(
+      (r) => pathname === r || pathname.startsWith(r + "/")
+    );
+  }
+  if (itemHref === "/leads") {
+    return CLIENTS_ROUTES.some(
+      (r) => pathname === r || pathname.startsWith(r + "/")
+    );
+  }
+  return pathname === itemHref || pathname.startsWith(itemHref + "/");
+}
+
+// Labels définis au runtime pour accéder à UI (évite circular import statique)
+function getCreateItems() {
+  const a = UI.dashboard.actions;
+  return [
+    { href: "/estimations/new",  label: `+ ${a.newEstimation}` },
+    { href: "/leads?new=1",      label: `+ ${a.newClient}` },
+    { href: "/visits?new=1",     label: `+ ${a.newVisit}` },
+    { href: "/properties?new=1", label: `+ ${a.newProperty}` },
+  ];
+}
+
+export function RailLeft({ userEmail }: { userEmail?: string }) {
   const pathname = usePathname();
   const initials = (userEmail ?? "?").slice(0, INITIALS_LEN).toUpperCase();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const isCrmActive = navCrm.some((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [menuOpen]);
 
   return (
     <nav className="ct-rail-left" aria-label={UI.nav.home}>
@@ -22,8 +63,8 @@ export function RailLeft({ userEmail }: { userEmail?: string; isAdmin?: boolean 
       </Link>
 
       <div className="ct-rail-actions">
-        {navPrimary.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
+        {navRail.map((item) => {
+          const active = isActive(item.href, pathname);
           return (
             <Link
               key={item.href}
@@ -39,19 +80,36 @@ export function RailLeft({ userEmail }: { userEmail?: string; isAdmin?: boolean 
           );
         })}
 
-        <div className="ct-rail-divider" />
+        <div ref={menuRef} className="ct-rail-flyout-anchor">
+          <button
+            type="button"
+            className={`ct-rail-action${menuOpen ? " active" : ""}`}
+            title={UI.dashboard.actions.create}
+            aria-label={UI.dashboard.actions.create}
+            aria-expanded={menuOpen}
+            onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o); }}
+          >
+            <span className="ct-rail-action-icon"><Icon name="plus" /></span>
+            <span className="ct-rail-action-label">{UI.dashboard.actions.create}</span>
+          </button>
 
-        <Link
-          href={CRM_ENTRY.href}
-          className={`ct-rail-action${isCrmActive ? " active" : ""}`}
-          title={UI.nav.crm}
-          aria-label={UI.nav.crm}
-        >
-          <span className="ct-rail-action-icon">
-            <Icon name="crm" />
-          </span>
-          <span className="ct-rail-action-label">{UI.nav.crm}</span>
-        </Link>
+          {menuOpen && (
+            <div
+              className="ct-card ct-rail-flyout"
+            >
+              {getCreateItems().map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMenuOpen(false)}
+                  className="ct-rail-action ct-rail-flyout-link"
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="ct-spacer" />

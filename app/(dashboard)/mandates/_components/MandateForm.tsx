@@ -75,7 +75,7 @@ function MandateForm({ onClose }: { onClose?: () => void }) {
 
   return (
     <CockpitForm onSubmit={handleSubmit}>
-      <p className="ct-card-title">{t.form.title}</p>
+      <h3 className="ct-card-title">{t.form.title}</h3>
 
       <Field label={t.form.property} htmlFor="mandate-property" required>
         <Select

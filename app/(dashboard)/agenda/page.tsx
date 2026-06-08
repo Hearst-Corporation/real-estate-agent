@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
-import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { dateFr, timeFr } from "@/lib/crm/format";
-import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -94,26 +92,12 @@ export default async function AgendaPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={TAB_GROUPS.crm} />}
         kpis={[
           { label: t.kpis.thisWeek, value: String(thisWeek) },
           { label: t.kpis.today, value: String(today) },
           { label: t.kpis.toConfirm, value: String(toConfirm) },
         ]}
       />
-
-      <div className="ct-viz-row">
-        <div>
-          <Card title="Activité" variant="chart">
-            <p className="ct-placeholder">Aucune activité récente.</p>
-          </Card>
-        </div>
-        <div>
-          <Card title="Rappels" variant="chart">
-            <p className="ct-placeholder">Aucun rappel pour le moment.</p>
-          </Card>
-        </div>
-      </div>
 
       <Card variant="dense">
         {visits.length === 0 ? (

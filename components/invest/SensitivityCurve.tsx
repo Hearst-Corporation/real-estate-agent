@@ -11,7 +11,7 @@ type SensChart = ChartSensibilitePrix | ChartSensibiliteRetard;
 
 const W = 320;
 const H = 120;
-const PAD = 6;
+const PAD = 8; // = --ct-space-xs
 
 export function SensitivityCurve({ chart }: { chart: SensChart }) {
   const pts = chart.points.filter((p) => p.irr != null) as Array<{ x: number; irr: number }>;

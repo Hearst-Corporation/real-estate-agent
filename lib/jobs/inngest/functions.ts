@@ -17,6 +17,7 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { renderAndCacheEstimationPdf } from "@/lib/brochure/generate";
 import { captureFatal } from "@/lib/server/observe";
 import { searchListings, moteurImmoIsConfigured } from "@/lib/providers/moteurimmo";
+import { searchListingsApify, apifyProspectionIsConfigured } from "@/lib/prospection/apify-source";
 import { upsertAnnonces } from "@/lib/prospection/ingest";
 import { matchAnnonce } from "@/lib/prospection/matching/match";
 import { sendMatchAlerte } from "@/lib/prospection/alert";
@@ -86,20 +87,27 @@ export const prospIngestion = inngest.createFunction(
     const { data: cfg } = await db
       .from("prosp_config")
       .select("zones_prioritaires")
-      .eq("tenant_id", "real-estate-agent")
+      .eq("tenant_id", DEFAULT_TENANT_ID)
       .maybeSingle();
 
     const zones: string[] = (cfg?.zones_prioritaires as string[]) ?? ["75011","75012","75013","75014","75015"];
-    const provider = moteurImmoIsConfigured() ? "moteurimmo" : "apify_lbc";
+    const useMoteurImmo = moteurImmoIsConfigured();
+    const provider = useMoteurImmo ? "moteurimmo" : "apify_lbc";
+    if (!useMoteurImmo && !apifyProspectionIsConfigured()) {
+      return { skipped: "no_listings_provider" };
+    }
 
     let totalInserted = 0, totalDups = 0, totalErrors = 0;
 
     for (const zone of zones) {
       const listings = await step.run(`ingest:${zone}`, async () => {
-        return searchListings({ codePostal: zone, perPage: 50 });
+        // MoteurImmo si configuré, sinon scraper Apify LeBonCoin (fallback réel).
+        return useMoteurImmo
+          ? searchListings({ codePostal: zone, perPage: 50 })
+          : searchListingsApify(zone);
       });
       const stats = await step.run(`upsert:${zone}`, async () => {
-        return upsertAnnonces("real-estate-agent", listings, provider);
+        return upsertAnnonces(DEFAULT_TENANT_ID, listings, provider);
       });
       totalInserted += stats.inserted;
       totalDups += stats.duplicates;
@@ -125,7 +133,7 @@ export const prospScoring = inngest.createFunction(
     const { data: criteres } = await db
       .from("prosp_criteres_acquereur")
       .select("*")
-      .eq("tenant_id", "real-estate-agent")
+      .eq("tenant_id", DEFAULT_TENANT_ID)
       .eq("actif", true);
 
     if (!criteres?.length) return { scored: 0, matched: 0 };
@@ -138,7 +146,7 @@ export const prospScoring = inngest.createFunction(
       const { data: annoncesRaw } = await db
         .from("prosp_annonces")
         .select("*")
-        .eq("tenant_id", "real-estate-agent")
+        .eq("tenant_id", DEFAULT_TENANT_ID)
         .gte("date_collecte", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
         .limit(500);
       const annonces = (annoncesRaw ?? []) as ProspAnnonceRow[];
@@ -155,7 +163,7 @@ export const prospScoring = inngest.createFunction(
           const { data: matchRow } = await db
             .from("prosp_matchs")
             .upsert({
-              tenant_id:        "real-estate-agent",
+              tenant_id:        DEFAULT_TENANT_ID,
               user_id:          critere.userId,
               critere_id:       critere.id,
               annonce_id:       annonce.id,
@@ -168,9 +176,53 @@ export const prospScoring = inngest.createFunction(
             .single();
 
           if (matchRow && !matchRow.alerted_at && result.score >= MATCH_SCORE_ALERT) {
-            const alertResult = await sendMatchAlerte("real-estate-agent", critere, annonce, result.score);
-            if (alertResult.sent) {
-              await db.from("prosp_matchs").update({ alerted_at: new Date().toISOString(), statut: "alerte_envoyee" }).eq("id", matchRow.id);
+            // CLAIM ATOMIQUE anti-double-alerte : on pose `alerted_at` AVANT l'envoi,
+            // conditionné à `alerted_at IS NULL`. Sur rejeu Inngest (step.run relancé),
+            // seul le 1er passage gagne la ligne → pas de spam WhatsApp. Filtrage
+            // tenant systématique. Si l'envoi échoue ensuite, on compense (reset NULL).
+            const { data: claimed } = await db
+              .from("prosp_matchs")
+              .update({ alerted_at: new Date().toISOString() })
+              .eq("id", matchRow.id)
+              .eq("tenant_id", DEFAULT_TENANT_ID)
+              .is("alerted_at", null)
+              .select("id")
+              .maybeSingle();
+
+            if (claimed) {
+              try {
+                const alertResult = await sendMatchAlerte(DEFAULT_TENANT_ID, critere, annonce, result.score);
+                if (alertResult.sent) {
+                  await db
+                    .from("prosp_matchs")
+                    .update({ statut: "alerte_envoyee" })
+                    .eq("id", matchRow.id)
+                    .eq("tenant_id", DEFAULT_TENANT_ID);
+                } else {
+                  // Pas d'envoi réel (cooldown/cap/no_channel) : on relâche le claim
+                  // pour réessayer au prochain run dès que la condition se débloque.
+                  await db
+                    .from("prosp_matchs")
+                    .update({ alerted_at: null })
+                    .eq("id", matchRow.id)
+                    .eq("tenant_id", DEFAULT_TENANT_ID);
+                }
+              } catch (err) {
+                // L'envoi a jeté (Twilio/réseau) : on compense le claim et on logue.
+                // L'exception ne casse JAMAIS le job → les autres critères continuent.
+                console.error("[prospScoring] alert failed", {
+                  critereId: critere.id,
+                  annonceId: annonce.id,
+                  matchId: matchRow.id,
+                  error: err instanceof Error ? err.message : String(err),
+                });
+                await db
+                  .from("prosp_matchs")
+                  .update({ alerted_at: null })
+                  .eq("id", matchRow.id)
+                  .eq("tenant_id", DEFAULT_TENANT_ID);
+                captureFatal(err, "inngest/prosp-scoring:alert");
+              }
             }
           }
           totalMatched++;

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cockpit Immobilier — Dossier de présentation client</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Police : Space Grotesk — grotesque géométrique fidèle au style Hearst (FK Grotesk),
+     retenu car FK Grotesk Trial n'embarque pas les glyphes accentués (français cassé). */
+
+  :root{
+    /* ===== Hearst Corporation — primitives (tokens du site) ===== */
+    --mint:#a7fb90;            /* accent vif — pills, fills, soulignés */
+    --mint-dark:#85c873;
+    --mint-darker:#426439;
+    --mint-darkest:#324b2b;    /* texte accent lisible sur fond clair */
+    --mint-light:#c1fcb1;
+    --mint-lighter:#edfee8;
+    --mint-lightest:#f6fef3;
+    --gin:#e6f1e7;
+    --gin-light:#edf5ee;
+    --gin-lighter:#fafcfa;
+    --gin-lightest:#fcfdfc;
+    --gin-dark:#b8c0b8;
+    --gin-darker:#5c605c;
+    --gin-darkest:#454845;
+    --black:#000;
+    --neutral-darker:#191919;
+    --neutral-dark:#4c4c4c;
+    --neutral:#7f7f7f;
+    --neutral-lightest:#f2f2f2;
+    --white:#fff;
+    /* ===== alias sémantiques ===== */
+    --ink:#0b0b0b;
+    --muted:#5c605c;
+    --faint:#7f7f7f;
+    --line:#0000001a;          /* black 10% — divider Hearst */
+    --line-strong:#00000026;   /* black 15% — border Hearst */
+    --paper:#ffffff;
+    --cream:#f6fef3;           /* mint-lightest */
+    --accent:#a7fb90;
+    --accent-soft:#edfee8;     /* mint-lighter */
+    --accent-ink:#324b2b;      /* mint-darkest */
+    --ok:#426439;
+    --radius:8px;
+    --maxw:840px;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:#eaece9;
+    color:var(--ink);
+    font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:15.5px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{
+    max-width:var(--maxw);
+    margin:28px auto;
+    background:var(--paper);
+    padding:60px 64px;
+    box-shadow:0 8px 50px rgba(0,0,0,.12);
+    border-radius:12px;
+  }
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;color:var(--ink);line-height:1.12;font-weight:400;letter-spacing:-.018em;}
+  h2{font-size:29px;margin:0;}
+  h3{font-size:18.5px;margin:26px 0 6px;color:var(--mint-darkest);font-weight:500;letter-spacing:-.008em;}
+  h4{font-size:15.5px;margin:18px 0 4px;color:var(--ink);font-weight:500;}
+  p{margin:9px 0;}
+  a{color:var(--mint-darker);}
+  small{color:var(--faint);}
+  strong{color:#000;font-weight:500;}
+  ul,ol{margin:9px 0 9px;padding-left:20px;}
+  li{margin:4px 0;}
+  hr{border:0;border-top:1px solid var(--line);margin:30px 0;}
+
+  /* ---------- Cover (hero noir Hearst) ---------- */
+  .cover{
+    background:#0b0b0b;
+    color:#fff;
+    padding:74px 56px 60px;
+    border-radius:14px;
+    position:relative;
+    overflow:hidden;
+  }
+  .cover::after{
+    content:"";position:absolute;right:-110px;top:-90px;width:360px;height:360px;
+    border-radius:50%;background:radial-gradient(circle,rgba(167,251,144,.22),transparent 68%);
+  }
+  .cover::before{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--mint);
+  }
+  .cover .kicker{
+    text-transform:uppercase;letter-spacing:.26em;font-size:11px;color:var(--mint);margin:0 0 26px;font-weight:500;
+  }
+  .cover h1{
+    color:#fff;font-size:50px;line-height:1.02;margin:0 0 16px;letter-spacing:-.03em;font-weight:400;
+  }
+  .cover .lede{font-size:17px;color:rgba(255,255,255,.74);max-width:30em;margin:0;line-height:1.5;}
+  .cover .meta{
+    margin-top:42px;display:grid;grid-template-columns:1fr 1fr;gap:10px 30px;
+    border-top:1px solid rgba(255,255,255,.16);padding-top:24px;font-size:13px;
+  }
+  .cover .meta div span{display:block;color:rgba(255,255,255,.5);font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:2px;}
+  .cover .meta div b{color:#fff;font-weight:500;font-size:13.5px;}
+  .badge-pill{
+    display:inline-block;margin-top:28px;background:var(--mint);
+    border:0;color:#000;border-radius:999px;font-weight:500;
+    padding:7px 18px;font-size:12px;letter-spacing:.02em;
+  }
+  /* ---------- Logo Hearst ---------- */
+  .brand{display:block;line-height:0;}
+  .cover .brand{width:132px;margin:0 0 32px;color:#fff;}
+  .cover .brand svg{width:100%;height:auto;display:block;}
+  .doc-foot .brand{width:104px;margin:0 auto 16px;color:#0b0b0b;}
+  .doc-foot .brand svg{width:100%;height:auto;display:block;}
+  /* ---------- Icône inline (check) ---------- */
+  .ic-check{display:inline-flex;vertical-align:-3px;margin-right:7px;color:var(--mint-darker);}
+  .ic-check svg{width:17px;height:17px;}
+
+  /* ---------- TOC ---------- */
+  .toc{
+    background:var(--mint-lightest);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 26px;margin:34px 0 8px;
+  }
+  .toc h2{font-size:13px;text-transform:uppercase;letter-spacing:.16em;color:var(--mint-darkest);margin-bottom:12px;font-weight:500;}
+  .toc ol{columns:2;column-gap:34px;margin:0;padding-left:18px;font-size:13.5px;}
+  .toc li{margin:3px 0;break-inside:avoid;}
+  .toc a{color:var(--ink);text-decoration:none;}
+  .toc a:hover{color:var(--mint-darker);}
+
+  /* ---------- Section heading ---------- */
+  .sec{margin-top:48px;}
+  .sec-head{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line-strong);padding-bottom:10px;margin-bottom:14px;}
+  .sec-num{
+    font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:#000;background:var(--mint);
+    min-width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
+    border-radius:var(--radius);flex:0 0 auto;
+  }
+  .sec-head h2{flex:1;}
+
+  /* ---------- Tables ---------- */
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.3px;}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  thead th{
+    background:var(--mint-lighter);color:#000;font-weight:500;
+    border-bottom:1px solid var(--mint-dark);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;
+  }
+  tbody tr:nth-child(even){background:var(--gin-lighter);}
+  td strong{color:var(--mint-darkest);}
+
+  /* ---------- Callouts ---------- */
+  .callout{
+    border-left:4px solid var(--mint);background:var(--mint-lightest);
+    padding:14px 18px;border-radius:0 var(--radius) var(--radius) 0;margin:18px 0;font-size:14px;
+  }
+  .callout .lbl{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--mint-darker);font-weight:500;margin-bottom:4px;}
+  .note{
+    background:var(--gin-lighter);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin:16px 0;font-size:13.3px;color:var(--muted);
+  }
+  .ok-tag{color:var(--mint-darker);font-weight:500;}
+
+  /* ---------- Diagram ---------- */
+  pre.diagram{
+    background:#0b0b0b;color:#c1fcb1;border-radius:var(--radius);padding:18px 20px;overflow-x:auto;
+    font-family:"SFMono-Regular",Menlo,Consolas,monospace;font-size:12px;line-height:1.5;margin:16px 0;
+    border:1px solid #1c1c1c;
+  }
+
+  /* ---------- Nav cards ---------- */
+  .navgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0;}
+  .navgrid .card{border:1px solid var(--line-strong);border-radius:var(--radius);padding:14px 10px;text-align:center;background:var(--mint-lightest);}
+  .navgrid .ic{width:44px;height:44px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;background:var(--mint-lighter);border:1px solid var(--line);border-radius:11px;color:var(--mint-darkest);}
+  .navgrid .ic svg{width:23px;height:23px;}
+  .navgrid .nm{font-weight:500;font-size:12.5px;margin-top:4px;color:var(--mint-darkest);}
+  .navgrid .ds{font-size:10.5px;color:var(--faint);margin-top:2px;line-height:1.3;}
+
+  /* ---------- Pills row (entry points) ---------- */
+  .entrypts{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+  .entrypts span{background:var(--mint);border:0;color:#000;border-radius:999px;padding:6px 15px;font-size:12.5px;font-weight:500;}
+
+  /* ---------- Signature ---------- */
+  .sign{
+    border:1px solid var(--line-strong);border-radius:12px;padding:26px 28px;margin:22px 0;background:var(--mint-lightest);
+  }
+  .sign h3{margin-top:0;}
+  .sign-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin-top:14px;font-size:13px;}
+  .sign-grid .col{border-left:1px solid var(--line);padding:0 16px;}
+  .sign-grid .col:first-child{border-left:0;padding-left:0;}
+  .sign-row{margin:14px 0;}
+  .sign-row .k{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin-bottom:14px;}
+  .sign-line{border-bottom:1px solid var(--ink);height:0;}
+  .sign-box{height:64px;border-bottom:1px solid var(--ink);}
+  .check{display:flex;gap:10px;align-items:flex-start;margin:16px 0;font-size:13.5px;}
+  .check .bx{width:16px;height:16px;border:1.6px solid var(--mint-dark);border-radius:3px;flex:0 0 auto;margin-top:2px;}
+
+  .doc-foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--faint);text-align:center;}
+
+  /* ---------- Print ---------- */
+  @media print{
+    /* Force l'impression des fonds même si « Graphismes d'arrière-plan » est décoché */
+    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+    html,body{background:#fff !important;}
+    .sheet{box-shadow:none;margin:0;max-width:none;padding:0 13mm;border-radius:0;}
+    /* Page de garde : un plein écran noir, contenu centré verticalement */
+    .cover{
+      margin:0 -13mm;border-radius:0;page-break-after:always;
+      min-height:250mm;display:flex;flex-direction:column;justify-content:center;padding:0 50px;
+    }
+    .sec{page-break-inside:auto;margin-top:30px;}
+    .sec-head,h3,h4{page-break-after:avoid;}
+    tr,.callout,.sign,.navgrid,pre.diagram,.note,.navgrid .card{page-break-inside:avoid;}
+    table{page-break-inside:auto;}
+    thead{display:table-header-group;}
+    a{color:var(--ink) !important;text-decoration:none;}
+    @page{size:A4;margin:14mm 0;}
+    .no-print{display:none;}
+  }
+  @media (max-width:680px){
+    .sheet{padding:32px 22px;}.cover{padding:48px 24px;}.cover h1{font-size:30px;}
+    .toc ol{columns:1;}.navgrid{grid-template-columns:repeat(2,1fr);}.sign-grid{grid-template-columns:1fr;}
+    .sign-grid .col{border-left:0;padding:0;border-top:1px solid var(--line);padding-top:12px;}
+    .cover .meta{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+  <!-- ============ COVER ============ -->
+  <header class="cover">
+    <div class="brand" aria-label="Hearst">
+      <svg viewBox="0 0 131 25" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"><title>Hearst</title>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M30.2563 13.3499V21.1273H43.281L42.0717 23.7968H25.6046V0.448242H45.1367L43.5878 3.0243H30.2563V10.8017H37.3068L36.0647 13.3482H30.2563V13.3499ZM108.304 1.37036H130.47L127.323 4.45507H121.744V23.7952H117.028V4.45507H111.307L108.304 1.37036ZM77.6787 10.9723H77.6771V10.9707H77.6787V10.9723ZM77.6787 16.323V10.9723H80.8274C82.7816 10.9723 84.3699 9.43327 84.3699 7.54306C84.3699 5.65286 82.78 4.11379 80.8274 4.11379H73.9623V23.7968H69.2466V0.448242H80.8274C84.8769 0.448242 88.1585 3.62483 88.1585 7.54306C88.1585 11.4613 85.2001 14.3114 81.4378 14.6116L91.089 23.9511H86.0632L77.6787 16.323ZM57.6774 0.448242H54.1743L44.7101 23.7968H49.4619L55.9266 7.86138L62.3914 23.7968H67.1415L57.6774 0.448242ZM106.133 12.3703C106.924 12.8477 107.581 13.3383 108.106 13.8453V13.847H108.112C108.634 14.3523 109.072 14.9676 109.427 15.6929C109.778 16.4181 109.955 17.1827 109.955 17.99C109.955 19.1074 109.676 20.0968 109.12 20.9549C108.564 21.8131 107.814 22.4809 106.873 22.9567C105.932 23.4325 104.927 23.7853 103.858 24.0117C102.79 24.2415 101.677 24.3547 100.522 24.3547C98.0837 24.3547 96.0672 23.8526 94.474 22.8484C93.1564 22.0182 92.2228 20.9024 91.6731 19.4979H95.4666C96.479 21.0353 98.3643 21.8081 101.131 21.8081C102.307 21.8081 103.356 21.4931 104.274 20.8614C105.193 20.2281 105.654 19.3847 105.654 18.3296C105.654 17.9572 105.569 17.6208 105.397 17.3206C105.226 17.0203 105.008 16.7578 104.739 16.5297C104.471 16.3016 104.06 16.0588 103.503 15.7995C102.949 15.5419 102.424 15.3139 101.933 15.117C101.439 14.9201 100.735 14.6657 99.8148 14.3556L98.8861 14.0455L98.5453 13.9239C98.1275 13.7747 97.7915 13.6547 97.5373 13.5648C97.2157 13.4499 96.7711 13.276 96.205 13.0364C95.6373 12.7985 95.1943 12.5869 94.8727 12.3998C94.5527 12.2144 94.1622 11.9765 93.7028 11.686C93.2417 11.3973 92.8857 11.0954 92.6281 10.7852C92.3721 10.4751 92.1096 10.124 91.8421 9.73022C91.5747 9.33642 91.381 8.90654 91.2645 8.44055C91.1448 7.97456 91.0873 7.47247 91.0873 6.93429C91.0873 6.39611 91.194 5.83659 91.4073 5.25739C91.6206 4.67983 91.9701 4.09898 92.4508 3.51978C92.9316 2.94058 93.5108 2.43029 94.1835 1.98399C94.8579 1.53933 95.6931 1.18164 96.6874 0.912547C97.6817 0.645096 98.7663 0.508911 99.9427 0.508911C104.004 0.508911 106.998 1.88718 108.929 4.63552H104.626C103.336 3.45907 101.869 2.86838 100.007 2.86838C98.1444 2.86838 96.8072 3.35406 95.995 4.32705C95.7817 4.59614 95.611 4.89149 95.483 5.21145C95.3567 5.53304 95.2911 5.81198 95.2911 6.04989C95.2911 6.28781 95.3009 6.49947 95.3222 6.68653C95.4092 7.08032 95.5651 7.41668 95.7882 7.69562C96.0114 7.97619 96.3707 8.24528 96.863 8.50453C97.3552 8.76378 97.8409 8.98529 98.3233 9.17234C98.804 9.35939 99.5145 9.61864 100.456 9.94844C100.883 10.0942 101.263 10.2225 101.595 10.3344L101.739 10.3833C102.552 10.672 103.29 10.9575 103.953 11.2365C104.614 11.517 105.343 11.8944 106.133 12.3703Z" fill="currentColor"></path>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M0.895813 0.354736H5.67711V8.65555L16.1815 18.8236H10.8243L5.67711 13.8421V23.7952H0.895813V0.354736ZM17.3235 10.4046V0.354736H22.1048V23.7952H17.3235V15.5896L7.35727 5.9433H12.7145L17.3235 10.4046Z" fill="#A7FB90"></path>
+      </svg>
+    </div>
+    <p class="kicker">Dossier de présentation &amp; accord de lancement</p>
+    <h1>Cockpit Immobilier</h1>
+    <p class="lede">La plateforme unique qui réunit prospection, portefeuille, clients, agenda et estimation — avec une intelligence intégrée dans chaque écran.</p>
+    <div class="meta">
+      <div><span>Destinataire</span><b>[Nom du client / de l'agence]</b></div>
+      <div><span>Émis par</span><b>[Votre société]</b></div>
+      <div><span>Date</span><b>8 juin 2026</b></div>
+      <div><span>Version</span><b>1.0 — pour validation</b></div>
+    </div>
+    <span class="badge-pill">Document confidentiel — diffusion restreinte</span>
+  </header>
+
+  <!-- ============ TOC ============ -->
+  <nav class="toc">
+    <h2>Sommaire</h2>
+    <ol>
+      <li><a href="#s1">Résumé exécutif</a></li>
+      <li><a href="#s2">Objectifs du produit</a></li>
+      <li><a href="#s3">Utilisateurs cibles</a></li>
+      <li><a href="#s4">Vision fonctionnelle</a></li>
+      <li><a href="#s5">Navigation cible</a></li>
+      <li><a href="#s6">Rôle transversal de l'IA</a></li>
+      <li><a href="#s7">Place de l'estimation</a></li>
+      <li><a href="#s8">Fonctionnalités par module</a></li>
+      <li><a href="#s9">Parcours utilisateurs</a></li>
+      <li><a href="#s10">Périmètre de la V1</a></li>
+      <li><a href="#s11">Exclusions / hors périmètre</a></li>
+      <li><a href="#s12">Hypothèses &amp; dépendances</a></li>
+      <li><a href="#s13">Contraintes</a></li>
+      <li><a href="#s14">Spécifications UX / UI</a></li>
+      <li><a href="#s15">Spécifications techniques</a></li>
+      <li><a href="#s16">Données principales</a></li>
+      <li><a href="#s17">Livrables</a></li>
+      <li><a href="#s18">Planning par phases</a></li>
+      <li><a href="#s19">Modalités de validation</a></li>
+      <li><a href="#s20">Questions ouvertes</a></li>
+      <li><a href="#s21">Synthèse de l'accord</a></li>
+      <li><a href="#s22">Accord formel de lancement</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="sec" id="s1">
+    <div class="sec-head"><span class="sec-num">1</span><h2>Résumé exécutif</h2></div>
+    <p>Le <strong>Cockpit Immobilier</strong> est un logiciel unique qui réunit, dans un même poste de travail, <strong>tout le quotidien de l'agent immobilier</strong> : la prospection, le portefeuille de biens et de mandats, le suivi des clients acheteurs et vendeurs, l'agenda des visites, et l'estimation des biens.</p>
+    <p>Là où la plupart des agences jonglent aujourd'hui entre un tableur, une boîte mail, un agenda, un outil d'annonces et plusieurs sites de prospection, le Cockpit rassemble l'essentiel <strong>au même endroit, avec une interface claire et un seul fil conducteur</strong> : l'agent ouvre son cockpit le matin, voit ce qui compte (relances, visites, mandats à renouveler, estimations en cours), et agit.</p>
+    <p>Sa singularité tient à deux partis pris forts :</p>
+    <ol>
+      <li><strong>Une assistance intelligente présente partout, pas dans un coin.</strong> Le Cockpit embarque un assistant qui ne se contente pas de répondre : il <strong>agit dans l'application</strong> pour l'agent — créer un contact, planifier une visite, rédiger une approche, lancer une estimation, comparer des prix de marché — et peut mener des recherches de fond en autonomie. Cette intelligence n'est pas une « rubrique » à part : elle est <strong>tissée dans chaque écran</strong>.</li>
+      <li><strong>L'estimation comme geste central du métier.</strong> Estimer un bien est l'acte qui ouvre la relation vendeur et qui crédibilise l'agent. Le Cockpit en fait <strong>une action immédiate, accessible en un clic</strong> depuis l'accueil, le portefeuille, la fiche d'un client vendeur et l'agenda. Elle s'appuie sur des <strong>données officielles</strong> (transactions réelles, cadastre, diagnostics énergétiques) et produit un <strong>avis de valeur professionnel</strong> prêt à être remis au client.</li>
+    </ol>
+    <div class="callout">
+      <span class="lbl">Ce que le client obtient à l'issue de la V1</span>
+      Un cockpit web (et application bureau Mac/PC) opérationnel, sécurisé, prêt à équiper un agent ou une agence : gestion complète des biens, des clients, des visites et des mandats, estimation de bout en bout, et assistance intelligente intégrée.
+    </div>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="sec" id="s2">
+    <div class="sec-head"><span class="sec-num">2</span><h2>Objectifs du produit</h2></div>
+    <table>
+      <thead><tr><th>#</th><th>Objectif</th><th>Ce que ça change pour l'agent</th></tr></thead>
+      <tbody>
+        <tr><td><strong>O1</strong></td><td><strong>Centraliser le quotidien</strong> en un seul outil</td><td>Fini le va-et-vient entre tableur, mail, agenda et sites tiers. Un seul endroit, une seule vérité.</td></tr>
+        <tr><td><strong>O2</strong></td><td><strong>Faire gagner du temps</strong> sur les tâches répétitives</td><td>L'assistant crée des fiches, planifie, rédige des messages et prépare les estimations à la place de l'agent.</td></tr>
+        <tr><td><strong>O3</strong></td><td><strong>Professionnaliser</strong> la relation vendeur par l'estimation</td><td>Un avis de valeur sérieux, sourcé sur des données réelles, remis vite et bien — argument décisif pour décrocher le mandat.</td></tr>
+        <tr><td><strong>O4</strong></td><td><strong>Ne rien laisser tomber</strong> (relances, mandats, RDV)</td><td>L'accueil signale chaque jour ce qui doit être traité : leads à relancer, visites à venir, mandats qui expirent, estimations à terminer.</td></tr>
+        <tr><td><strong>O5</strong></td><td><strong>Donner une longueur d'avance</strong> par l'intelligence intégrée</td><td>Détection d'opportunités, mise en relation acquéreur ↔ bien, données de marché à jour, missions autonomes de prospection.</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><strong>Critère de réussite global de la V1 :</strong> un agent peut piloter l'intégralité de son activité courante dans le Cockpit, <strong>sans recourir à un autre logiciel</strong> pour les fonctions couvertes, et estimer un bien de bout en bout en quelques minutes.</div>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="sec" id="s3">
+    <div class="sec-head"><span class="sec-num">3</span><h2>Utilisateurs cibles</h2></div>
+    <table>
+      <thead><tr><th>Profil</th><th>Rôle</th><th>Attentes prioritaires</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Agent indépendant / mandataire</strong></td><td>Utilisateur principal au quotidien</td><td>Simplicité, rapidité, mobilité, estimation crédible, relances automatiques.</td></tr>
+        <tr><td><strong>Négociateur en agence</strong></td><td>Utilisateur intensif (terrain + bureau)</td><td>Gestion de portefeuille, agenda dense, suivi clients, productivité.</td></tr>
+        <tr><td><strong>Directeur / responsable d'agence</strong></td><td>Pilotage et supervision</td><td>Vision d'ensemble, suivi de l'activité, cadre et sécurité des données.</td></tr>
+        <tr><td><strong>Assistant(e) commercial(e)</strong></td><td>Saisie, organisation, support</td><td>Création rapide de fiches, planification, préparation des dossiers.</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Profil-type retenu pour la V1 :</strong> l'<strong>agent au quotidien</strong>, en mobilité, qui veut un outil rapide et qui valorise chaque minute. Toutes les décisions d'interface sont prises de son point de vue.</p>
+    <div class="note">Niveau de compétence supposé : aisance numérique standard (smartphone, mail, web). Le Cockpit ne demande aucune compétence technique ; la prise en main se fait à l'usage.</div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="sec" id="s4">
+    <div class="sec-head"><span class="sec-num">4</span><h2>Vision fonctionnelle</h2></div>
+    <p>Le Cockpit repose sur <strong>une idée simple</strong> : <em>un poste de pilotage où l'agent voit, décide et agit</em>, avec une assistance intelligente toujours à portée de main.</p>
+    <pre class="diagram">┌────────────────────────────────────────────────────────────────┐
+│  COCKPIT IMMOBILIER                                              │
+│                                                                 │
+│  Accueil  Prospection  Portefeuille  Clients  Agenda  [Assistant]│
+│  ───────  ───────────  ────────────  ───────  ──────   (rail    │
+│                                                         droit)   │
+│  • Ce qui compte aujourd'hui (relances, visites, mandats…)      │
+│  • Actions rapides — ESTIMER un bien en 1 clic                  │
+│  • L'assistant agit dans chaque écran, à la demande             │
+└────────────────────────────────────────────────────────────────┘</pre>
+    <p>Trois principes structurent l'expérience :</p>
+    <ul>
+      <li><strong>Voir d'abord, agir ensuite.</strong> L'accueil met en avant ce qui demande une décision <em>aujourd'hui</em>. L'agent n'a pas à chercher : l'outil lui présente.</li>
+      <li><strong>L'action à un clic.</strong> Les gestes fréquents — estimer, créer un contact, planifier une visite, ouvrir une fiche — sont accessibles en permanence, sans détour.</li>
+      <li><strong>L'intelligence en soutien continu.</strong> L'assistant accompagne l'agent dans chaque module : il prépare, rédige, recherche, planifie et, à la demande, mène des missions de fond.</li>
+    </ul>
+    <p>L'objectif n'est pas de remplacer le jugement de l'agent, mais de <strong>lui retirer la charge mentale et administrative</strong> pour qu'il se concentre sur la relation client et la signature.</p>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="sec" id="s5">
+    <div class="sec-head"><span class="sec-num">5</span><h2>Navigation cible</h2></div>
+    <p>La navigation principale tient en <strong>cinq entrées</strong>, lisibles d'un coup d'œil. C'est volontaire : un agent doit pouvoir tout atteindre sans réfléchir.</p>
+    <div class="navgrid">
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.6 12 3.2l9 7.4"/><path d="M5.2 9.4V20.4h13.6V9.4"/><path d="M9.6 20.4v-6.2h4.8v6.2"/></svg></div><div class="nm">Accueil</div><div class="ds">Poste de pilotage</div></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m20.2 20.2-4.7-4.7"/></svg></div><div class="nm">Prospection</div><div class="ds">Biens &amp; acquéreurs</div></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20.6V5.4A1.8 1.8 0 0 1 5.8 3.6h7.4a1.8 1.8 0 0 1 1.8 1.8v15.2"/><path d="M15 9.6h3.2A1.8 1.8 0 0 1 20 11.4v9.2"/><path d="M3 20.6h18"/><path d="M7.4 7.2h1.8M7.4 11h1.8M7.4 14.8h1.8"/></svg></div><div class="nm">Portefeuille</div><div class="ds">Biens · Estimations · Mandats</div></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.2" r="3.2"/><path d="M3.4 20c0-3.3 2.5-5.6 5.6-5.6s5.6 2.3 5.6 5.6"/><path d="M16 5.4a3.2 3.2 0 0 1 0 5.7"/><path d="M17.6 14.7c2 .6 3.4 2.6 3.4 5.3"/></svg></div><div class="nm">Clients</div><div class="ds">Contacts · Visites</div></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.4" y="5" width="17.2" height="15.6" rx="2.6"/><path d="M3.4 9.6h17.2"/><path d="M8 3v4M16 3v4"/></svg></div><div class="nm">Agenda</div><div class="ds">Visites &amp; RDV</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Entrée</th><th>Rôle</th><th>Contenu</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Accueil</strong></td><td>Le poste de pilotage</td><td>Vue du jour, indicateurs clés, actions rapides (dont <strong>Estimer</strong>), portefeuille récent.</td></tr>
+        <tr><td><strong>Prospection</strong></td><td>Trouver biens et acquéreurs</td><td>Acquéreurs et leurs critères, annonces du marché, mise en relation automatique (matching), missions de prospection.</td></tr>
+        <tr><td><strong>Portefeuille</strong></td><td>Les biens et les mandats</td><td>Biens, <strong>Estimations</strong>, mandats. Sous-onglets : <em>Biens · Estimations · Mandats</em>.</td></tr>
+        <tr><td><strong>Clients</strong></td><td>Le CRM acheteurs / vendeurs</td><td>Contacts (acheteurs et vendeurs), historique, visites. Sous-onglets : <em>Contacts · Visites</em>.</td></tr>
+        <tr><td><strong>Agenda</strong></td><td>L'organisation du temps</td><td>Visites et rendez-vous, vue calendrier, préparation des journées.</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Toujours présent, en complément :</strong> l'<strong>assistant intelligent</strong> (rail latéral repliable, depuis n'importe quel écran) et le bouton <strong>« Créer »</strong> (Nouvelle estimation, Nouveau client, Nouvelle visite, Nouveau bien).</p>
+    <div class="callout">
+      <span class="lbl">Note de conception importante</span>
+      L'intelligence artificielle <strong>n'a délibérément pas d'entrée dans la barre de navigation</strong> : ce n'est pas un module à visiter, c'est une capacité présente <em>dans</em> chaque module. De même, l'<strong>estimation</strong> est volontairement accessible depuis plusieurs points (accueil, portefeuille, fiche vendeur, agenda), parce que c'est un geste qui survient dans plusieurs contextes — pas une page que l'on « va chercher ».
+    </div>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="sec" id="s6">
+    <div class="sec-head"><span class="sec-num">6</span><h2>Rôle transversal de l'intelligence</h2></div>
+    <div class="callout"><span class="lbl">Principe directeur</span> L'IA n'est pas une rubrique. C'est une capacité intégrée partout dans le Cockpit.</div>
+    <p>L'agent ne « va pas dans l'IA ». L'intelligence est <strong>disponible dans le contexte de chaque écran</strong>, comme un collaborateur silencieux qui connaît le dossier en cours et sait agir. Elle se manifeste de quatre façons.</p>
+
+    <h3>6.1 — Un assistant qui agit (pas seulement qui répond)</h3>
+    <p>Depuis le rail latéral, l'agent parle en langage naturel et l'assistant <strong>exécute réellement les actions</strong> :</p>
+    <ul>
+      <li><em>« Crée un contact vendeur, Mme Martin, 06 12 34 56 78, appartement à Lyon »</em> → la fiche est créée.</li>
+      <li><em>« Planifie une visite avec M. Dupont pour le bien rue de la République demain 15 h »</em> → la visite est planifiée, reliée au bon client et au bon bien.</li>
+      <li><em>« Lance une estimation pour ce bien »</em> → l'entretien d'estimation s'ouvre directement.</li>
+      <li><em>« Fais-moi un résumé de la semaine »</em> → l'assistant rassemble leads, visites, mandats et estimations et synthétise.</li>
+    </ul>
+    <p>L'assistant enchaîne <strong>plusieurs étapes seul</strong>, jusqu'à accomplir la demande complète. Les actions sensibles (envoi d'un avis de valeur, suppression) demandent <strong>toujours une confirmation explicite</strong>.</p>
+
+    <h3>6.2 — Une intelligence présente dans chaque module</h3>
+    <table>
+      <thead><tr><th>Module</th><th>Apport de l'intelligence intégrée</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Accueil</strong></td><td>Hiérarchise ce qui compte aujourd'hui ; suggère les prochaines actions.</td></tr>
+        <tr><td><strong>Prospection</strong></td><td>Met en relation automatiquement biens du marché et critères acquéreurs (matching) ; mène des missions de recherche de vendeurs.</td></tr>
+        <tr><td><strong>Portefeuille</strong></td><td>Aide à rédiger une annonce, préparer un mandat, comparer un bien au marché.</td></tr>
+        <tr><td><strong>Clients</strong></td><td>Rédige messages et relances ; prépare l'argumentaire d'une visite.</td></tr>
+        <tr><td><strong>Agenda</strong></td><td>Prépare les rendez-vous (fiche du bien, points clés, argumentation).</td></tr>
+        <tr><td><strong>Estimation</strong></td><td>Conduit l'entretien, agrège les données de marché, rédige l'avis de valeur.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6.3 — Des données de marché toujours à jour</h3>
+    <p>L'assistant peut <strong>interroger le web et le marché en direct</strong> pour ramener des éléments factuels et sourcés : prix au m² d'un secteur, annonces concurrentes, tendance d'un quartier, informations locales (écoles, transports, projets urbains). <strong>Règle de confiance : l'assistant n'invente jamais un chiffre de marché</strong> — soit il le source, soit il le dit.</p>
+
+    <h3>6.4 — Des missions autonomes</h3>
+    <p>Pour les objectifs larges — <em>« trouve des propriétaires susceptibles de vendre dans le 11<sup>e</sup> et prépare une approche »</em> — l'agent peut <strong>déléguer une mission</strong> à une équipe d'agents intelligents qui travaille en fond et rend compte de son avancement.</p>
+    <div class="note"><strong>Ce que l'IA ne fait pas :</strong> elle ne décide pas à la place de l'agent, ne signe rien, n'envoie rien d'engageant sans validation. Elle prépare, propose, exécute les tâches confiées — l'agent garde la main.</div>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="sec" id="s7">
+    <div class="sec-head"><span class="sec-num">7</span><h2>Place de l'estimation</h2></div>
+    <div class="callout"><span class="lbl">Principe directeur</span> L'estimation est une action forte, accessible immédiatement depuis plusieurs points du Cockpit.</div>
+    <p>Estimer un bien est le geste qui <strong>ouvre la relation vendeur</strong> et qui <strong>distingue l'agent</strong>. Le Cockpit le traite en conséquence : non comme une page enfouie, mais comme <strong>une action proéminente, déclenchable depuis les contextes où le besoin surgit</strong>.</p>
+
+    <h3>7.1 — Quatre points d'entrée vers l'estimation</h3>
+    <div class="entrypts"><span>① Accueil</span><span>② Portefeuille</span><span>③ Fiche client vendeur</span><span>④ Agenda</span></div>
+    <table>
+      <thead><tr><th>Depuis…</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td><strong>L'accueil</strong></td><td>« Nouvelle estimation » est l'<strong>action rapide mise en avant</strong> (bouton principal). C'est le premier geste proposé chaque matin.</td></tr>
+        <tr><td><strong>Le portefeuille</strong></td><td>Onglet <strong>Estimations</strong> dédié + création directe. L'estimation vit au cœur de la gestion des biens.</td></tr>
+        <tr><td><strong>La fiche d'un client vendeur</strong></td><td>Estimer le bien d'un vendeur <strong>depuis son dossier</strong>, sans ressaisir ses informations.</td></tr>
+        <tr><td><strong>L'agenda</strong></td><td>Préparer ou déclencher une estimation <strong>autour d'un rendez-vous</strong> (avant une visite vendeur, par exemple).</td></tr>
+      </tbody>
+    </table>
+
+    <h3>7.2 — Une estimation sérieuse, fondée sur des données officielles</h3>
+    <p>L'estimation ne repose pas sur une intuition de prix. Elle s'appuie sur des <strong>sources publiques et officielles</strong> : transactions réelles enregistrées, cadastre, diagnostics de performance énergétique (DPE), géolocalisation et comparables du secteur, indice de prix local.</p>
+    <p><strong>La méthode est transparente et défendable :</strong> le Cockpit part du prix au m² réel du secteur (médiane des transactions comparables), applique des <strong>ajustements clairs</strong> (étiquette énergétique, étage et ascenseur, exposition, état, prestations…), valorise séparément les annexes (parking, cave, terrasse), et restitue une <strong>valeur de marché assortie d'une fourchette et d'un niveau de confiance</strong>. Il propose aussi une <strong>stratégie de mise en vente</strong> (prix conseillé, positionnement). L'agent garde toujours la main pour ajuster.</p>
+
+    <h3>7.3 — Un déroulé de bout en bout</h3>
+    <pre class="diagram">  Lancer          Entretien            Avis de            Remettre
+ l'estimation  →  guidé (assisté)  →   valeur       →     au client
+                  (caractéristiques     professionnel      (email /
+                   + marché)            (document)          lien / PDF)
+                                                              │
+                                                              ▼
+                                   Convertir en fiche bien / mandat</pre>
+    <ol>
+      <li><strong>Lancement</strong> en un clic (accueil, portefeuille, fiche vendeur, agenda).</li>
+      <li><strong>Entretien guidé</strong> : l'assistant aide à renseigner les caractéristiques (type, surface, pièces, étage, état, DPE, occupation…) et agrège les données de marché.</li>
+      <li><strong>Avis de valeur</strong> : génération d'un <strong>document professionnel</strong> prêt à présenter.</li>
+      <li><strong>Remise au client</strong> : envoi par email (avec confirmation), <strong>lien de consultation sécurisé</strong> (valable 30 jours) ou impression.</li>
+      <li><strong>Continuité commerciale</strong> : transformation de l'estimation en <strong>fiche bien</strong> puis en <strong>mandat</strong>, sans ressaisie.</li>
+    </ol>
+    <div class="note">L'estimation n'est pas une fin en soi : c'est <strong>le point de départ d'un parcours commercial</strong> qui se prolonge naturellement vers le mandat et la mise en vente.</div>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section class="sec" id="s8">
+    <div class="sec-head"><span class="sec-num">8</span><h2>Fonctionnalités par module</h2></div>
+
+    <h3>8.1 — Accueil : le poste de pilotage</h3>
+    <ul>
+      <li><strong>Indicateurs clés :</strong> nombre de biens, leads actifs, visites à venir, mandats actifs.</li>
+      <li><strong>« Aujourd'hui »</strong> : leads à relancer (sans contact depuis 7 j), visites dans les 48 h, mandats qui expirent sous 30 j, estimations en cours à terminer.</li>
+      <li><strong>Actions rapides :</strong> Estimer (mise en avant), Nouveau client, Nouvelle visite, Nouveau bien, Lancer une prospection.</li>
+      <li><strong>Portefeuille récent :</strong> les derniers biens, accès direct à leur fiche.</li>
+    </ul>
+
+    <h3>8.2 — Prospection : trouver biens et acquéreurs</h3>
+    <ul>
+      <li><strong>Acquéreurs</strong> et leurs <strong>critères</strong> (budget, zones, type de bien, surface, pièces).</li>
+      <li><strong>Annonces du marché</strong> (avec repérage des annonces de particulier à particulier).</li>
+      <li><strong>Matching automatique</strong> annonce ↔ critère, avec <strong>score de correspondance</strong> et alerte au-delà d'un seuil.</li>
+      <li><strong>Missions de prospection</strong> confiées à l'assistant (ex. trouver des vendeurs sur un secteur).</li>
+      <li><em>Alertes acquéreurs (email / WhatsApp)</em> : prévues, sous réserve des accès externes (voir §12).</li>
+    </ul>
+
+    <h3>8.3 — Portefeuille : biens, estimations, mandats</h3>
+    <ul>
+      <li><strong>Biens :</strong> liste et fiche détaillée (type, adresse, surface, pièces, prix, statut), parcours de statut <em>(prospect → estimation → mandat → en vente → sous offre → vendu)</em>, vues liste et tableau visuel (kanban), photos.</li>
+      <li><strong>Estimations :</strong> voir §7 — création, entretien guidé, avis de valeur, suivi des estimations en cours.</li>
+      <li><strong>Mandats :</strong> création (simple / exclusif), référence, prix, commission, dates de signature et d'expiration, <strong>alerte d'expiration</strong>.</li>
+    </ul>
+
+    <h3>8.4 — Clients : le CRM acheteurs / vendeurs</h3>
+    <ul>
+      <li><strong>Contacts :</strong> fiche unifiée acheteur <strong>ou</strong> vendeur, type (particulier, professionnel, société, SCI…), coordonnées, budget, source, notes.</li>
+      <li><strong>Parcours commercial :</strong> statut du lead <em>(nouveau → contacté → qualifié → visite → offre → gagné / perdu)</em>.</li>
+      <li><strong>Visites :</strong> rendez-vous reliés à un client et à un bien, statut (planifiée, confirmée, réalisée, annulée, no-show).</li>
+      <li><strong>Estimation depuis la fiche vendeur :</strong> lancement direct (voir §7).</li>
+    </ul>
+
+    <h3>8.5 — Agenda : l'organisation du temps</h3>
+    <ul>
+      <li><strong>Vue calendrier</strong> des visites et rendez-vous.</li>
+      <li><strong>Planification</strong> reliée aux clients et aux biens.</li>
+      <li><strong>Préparation</strong> des rendez-vous (assistance contextuelle) et <strong>déclenchement d'une estimation</strong> en lien avec un RDV vendeur.</li>
+    </ul>
+
+    <h3>8.6 — Capacités transverses (présentes partout)</h3>
+    <ul>
+      <li><strong>Assistant intelligent</strong> (rail latéral) — voir §6.</li>
+      <li><strong>Recherche unifiée</strong> des biens, clients, visites, mandats.</li>
+      <li><strong>Mémoire de préférences :</strong> l'assistant retient les consignes de l'agent et les applique.</li>
+      <li><strong>Sécurité et cloisonnement :</strong> chaque agent / agence ne voit que ses propres données.</li>
+    </ul>
+  </section>
+
+  <!-- ============ 9 ============ -->
+  <section class="sec" id="s9">
+    <div class="sec-head"><span class="sec-num">9</span><h2>Parcours utilisateurs</h2></div>
+
+    <h4>Parcours A — « Je décroche un mandat grâce à une estimation »</h4>
+    <ol>
+      <li>Un propriétaire contacte l'agent. Depuis l'<strong>accueil</strong>, il clique sur <strong>Estimer</strong>.</li>
+      <li>L'<strong>entretien guidé</strong> s'ouvre ; l'assistant aide à renseigner le bien et ramène les prix de marché du secteur.</li>
+      <li>L'agent obtient un <strong>avis de valeur professionnel</strong> et le <strong>remet au vendeur</strong>.</li>
+      <li>Le vendeur accepte ; en deux clics, l'estimation devient une <strong>fiche bien</strong> puis un <strong>mandat</strong>.</li>
+      <li>Le bien apparaît au <strong>portefeuille</strong> ; le mandat est suivi avec son échéance.</li>
+    </ol>
+
+    <h4>Parcours B — « Je ne laisse passer aucune relance »</h4>
+    <ol>
+      <li>Le matin, l'agent ouvre l'<strong>accueil</strong> : trois leads à relancer, deux visites à 48 h, un mandat qui expire.</li>
+      <li>Il demande à l'<strong>assistant</strong> de préparer un message de relance.</li>
+      <li>Il valide, planifie une visite, et le tableau du jour se vide au fil de la journée.</li>
+    </ol>
+
+    <h4>Parcours C — « Je connecte un acheteur au bon bien »</h4>
+    <ol>
+      <li>Un acquéreur précise ses critères ; l'agent les saisit (ou les dicte à l'assistant) dans <strong>Prospection</strong>.</li>
+      <li>Le <strong>matching</strong> signale une annonce du marché qui correspond, avec un <strong>score élevé</strong>.</li>
+      <li>L'agent contacte l'acquéreur et planifie une visite — le tout depuis le Cockpit.</li>
+    </ol>
+
+    <h4>Parcours D — « Je délègue une recherche de vendeurs »</h4>
+    <ol>
+      <li>L'agent confie une <strong>mission</strong> : <em>« trouve des propriétaires susceptibles de vendre dans le 11<sup>e</sup> »</em>.</li>
+      <li>L'équipe d'agents intelligents travaille en fond et rend compte.</li>
+      <li>L'agent récupère une liste qualifiée et une <strong>approche prête</strong> à personnaliser.</li>
+    </ol>
+  </section>
+
+  <!-- ============ 10 ============ -->
+  <section class="sec" id="s10">
+    <div class="sec-head"><span class="sec-num">10</span><h2>Périmètre de la V1</h2></div>
+    <p>La V1 livre un <strong>cockpit complet et utilisable en production</strong> pour un agent ou une agence.</p>
+    <h4 class="ok-tag"><span class="ic-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.6l5.2 5.2L20 7"/></svg></span>Inclus dans la V1</h4>
+    <table>
+      <thead><tr><th>Domaine</th><th>Contenu</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Socle &amp; sécurité</strong></td><td>Connexion sécurisée (email + mot de passe), cloisonnement des données par agent/agence, sessions maîtrisées.</td></tr>
+        <tr><td><strong>Accueil</strong></td><td>Pilotage du jour, indicateurs, actions rapides, portefeuille récent.</td></tr>
+        <tr><td><strong>Portefeuille</strong></td><td>Biens (fiche complète + parcours de statut + vues liste/kanban + photos), mandats (cycle complet + alerte d'expiration).</td></tr>
+        <tr><td><strong>Clients (CRM)</strong></td><td>Contacts acheteurs/vendeurs, parcours commercial, visites reliées aux biens.</td></tr>
+        <tr><td><strong>Agenda</strong></td><td>Calendrier des visites et rendez-vous, planification.</td></tr>
+        <tr><td><strong>Estimation</strong></td><td>Parcours complet : lancement multi-contexte, entretien guidé, avis de valeur, remise (email / lien / PDF), conversion en bien/mandat — sur données officielles.</td></tr>
+        <tr><td><strong>Intelligence intégrée</strong></td><td>Assistant qui agit dans tous les modules, recherche de marché à jour, missions autonomes, mémoire de préférences.</td></tr>
+        <tr><td><strong>Prospection</strong></td><td>Acquéreurs et critères, annonces du marché, matching avec score. <em>Ingestion d'annonces et alertes WhatsApp : selon disponibilité des accès externes (§12).</em></td></tr>
+        <tr><td><strong>Application bureau</strong></td><td>Version Mac/PC (en complément du web), installable et signée.</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><strong>Niveaux de maturité à la livraison :</strong> <span class="ok-tag">pleinement opérationnel</span> pour le socle, l'accueil, le portefeuille, les clients, l'agenda, l'estimation et l'assistant ; <strong>opérationnel sous condition d'accès externes</strong> pour l'ingestion automatique d'annonces et les alertes WhatsApp (voir §12).</div>
+  </section>
+
+  <!-- ============ 11 ============ -->
+  <section class="sec" id="s11">
+    <div class="sec-head"><span class="sec-num">11</span><h2>Exclusions / hors périmètre</h2></div>
+    <p>Pour cadrer clairement l'engagement, <strong>ne font pas partie de la V1</strong> :</p>
+    <table>
+      <thead><tr><th>Hors périmètre V1</th><th>Précision</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Produit d'investissement immobilier tokenisé</strong></td><td>Le volet « Invest » (souscription, conformité, registre) est un <strong>produit distinct</strong>, non couvert par ce dossier.</td></tr>
+        <tr><td><strong>Applications mobiles natives (iOS / Android)</strong></td><td>La V1 cible le web (responsive mobile) et le bureau Mac/PC. Les apps natives sont une évolution ultérieure.</td></tr>
+        <tr><td><strong>Diffusion d'annonces vers les portails</strong> (SeLoger, Leboncoin…)</td><td>La publication multi-portails est envisagée en phase ultérieure.</td></tr>
+        <tr><td><strong>Lecture automatique des emails et de l'agenda externe</strong></td><td>Annoncé « bientôt » dans le produit ; intégration en phase 2.</td></tr>
+        <tr><td><strong>Signature électronique des mandats</strong></td><td>Non incluse en V1 (envisageable ensuite).</td></tr>
+        <tr><td><strong>Comptabilité / facturation / honoraires avancés</strong></td><td>Hors périmètre.</td></tr>
+        <tr><td><strong>Reprise / migration depuis un ancien logiciel</strong></td><td>À cadrer séparément si nécessaire (voir §20).</td></tr>
+      </tbody>
+    </table>
+    <div class="note">Tout élément hors périmètre pourra faire l'objet d'un <strong>avenant</strong> ou d'une <strong>phase ultérieure</strong> après la V1.</div>
+  </section>
+
+  <!-- ============ 12 ============ -->
+  <section class="sec" id="s12">
+    <div class="sec-head"><span class="sec-num">12</span><h2>Hypothèses &amp; dépendances</h2></div>
+    <h4>Hypothèses</h4>
+    <ul>
+      <li>L'agence dispose d'une connexion internet stable et de postes récents (web moderne).</li>
+      <li>Les utilisateurs sont créés par un administrateur (pas d'inscription libre) — modèle adapté à une agence.</li>
+      <li>Le client fournit, au démarrage, les éléments de marque souhaités (logo, nom, couleur d'accent).</li>
+      <li>Les contenus de référence (mentions de l'avis de valeur, modèles de message) sont validés par le client.</li>
+    </ul>
+    <h4>Dépendances externes</h4>
+    <table>
+      <thead><tr><th>Dépendance</th><th>Usage</th><th>Statut / impact</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Source d'annonces du marché</strong> (ex. agrégateur type MoteurImmo)</td><td>Alimenter la prospection en annonces</td><td><strong>Accès à fournir.</strong> Sans accès, la prospection fonctionne sur les données saisies/disponibles, sans flux automatique.</td></tr>
+        <tr><td><strong>Canal d'alerte WhatsApp</strong> (ex. Twilio)</td><td>Alerter les acquéreurs sur un bien correspondant</td><td><strong>Compte à fournir.</strong> Sans cela, les alertes se font par email.</td></tr>
+        <tr><td><strong>Moteur d'intelligence</strong> (modèles de langage)</td><td>Assistant, rédaction, estimation, missions</td><td>Fournisseurs déjà identifiés ; clés à provisionner.</td></tr>
+        <tr><td><strong>Données publiques</strong> (transactions, cadastre, DPE)</td><td>Estimation</td><td>Sources officielles ouvertes — intégrées par l'éditeur.</td></tr>
+        <tr><td><strong>Connexion email / agenda externe</strong> (phase 2)</td><td>Scan des mails, lecture d'agenda</td><td>Hors V1 ; nécessitera une autorisation du client.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><span class="lbl">Point d'attention</span> La <strong>richesse de la prospection automatique</strong> (flux d'annonces + alertes WhatsApp) dépend directement de la mise à disposition des <strong>accès tiers</strong>. Ce point fait l'objet d'une question ouverte (§20) à trancher avant le démarrage de la phase concernée.</div>
+  </section>
+
+  <!-- ============ 13 ============ -->
+  <section class="sec" id="s13">
+    <div class="sec-head"><span class="sec-num">13</span><h2>Contraintes</h2></div>
+    <table>
+      <thead><tr><th>Type</th><th>Contrainte</th><th>Implication</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Confidentialité / RGPD</strong></td><td>Données clients, biens, estimations sensibles.</td><td>Cloisonnement strict par agence, hébergement maîtrisé, droit à l'effacement, journalisation des accès.</td></tr>
+        <tr><td><strong>Sécurité</strong></td><td>Accès réservé aux utilisateurs autorisés.</td><td>Authentification robuste, sessions révocables, aucune donnée d'une agence visible par une autre.</td></tr>
+        <tr><td><strong>Fiabilité de l'estimation</strong></td><td>Un avis de valeur engage la crédibilité de l'agent.</td><td>Données sourcées, <strong>jamais de chiffre inventé</strong>, mentions et réserves claires sur le document.</td></tr>
+        <tr><td><strong>Simplicité d'usage</strong></td><td>L'agent n'est pas un informaticien.</td><td>Zéro jargon, parcours courts, prise en main immédiate.</td></tr>
+        <tr><td><strong>Disponibilité</strong></td><td>Outil utilisé en mobilité, toute la journée.</td><td>Bonnes performances, fonctionnement fluide sur mobile et bureau.</td></tr>
+        <tr><td><strong>Cohérence visuelle</strong></td><td>Image professionnelle.</td><td>Charte graphique unifiée sur tous les écrans et documents produits.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============ 14 ============ -->
+  <section class="sec" id="s14">
+    <div class="sec-head"><span class="sec-num">14</span><h2>Spécifications UX / UI</h2></div>
+    <h4>Principes</h4>
+    <ul>
+      <li><strong>Clarté avant tout.</strong> Cinq entrées de navigation, des écrans aérés, une information hiérarchisée.</li>
+      <li><strong>L'action toujours à portée.</strong> Gestes fréquents (estimer, créer, planifier) accessibles en un clic depuis n'importe où.</li>
+      <li><strong>Cohérence totale.</strong> Une charte unique sur l'ensemble des écrans et documents.</li>
+      <li><strong>Responsive.</strong> Pensé pour le bureau <strong>et</strong> le mobile (l'agent est sur le terrain).</li>
+      <li><strong>Rassurant.</strong> Confirmations explicites pour les actions sensibles ; messages clairs ; jamais de surprise.</li>
+    </ul>
+    <h4>Identité visuelle</h4>
+    <ul>
+      <li><strong>Design system « Cockpit » :</strong> interface sobre et moderne, ambiance verre dépoli, accent de marque personnalisable.</li>
+      <li><strong>Assistant en rail latéral repliable :</strong> présent sans être envahissant.</li>
+      <li><strong>Documents produits</strong> (avis de valeur) à la <strong>même identité</strong> que l'application.</li>
+    </ul>
+    <h4>Accessibilité &amp; confort</h4>
+    <ul>
+      <li>Contrastes lisibles, tailles de texte confortables, navigation au clavier.</li>
+      <li>Libellés en <strong>français</strong>, clairs et orientés métier (pas de vocabulaire technique).</li>
+      <li>États vides explicites (« aucun lead à relancer ») plutôt que des écrans muets.</li>
+    </ul>
+  </section>
+
+  <!-- ============ 15 ============ -->
+  <section class="sec" id="s15">
+    <div class="sec-head"><span class="sec-num">15</span><h2>Spécifications techniques de haut niveau</h2></div>
+    <p><small>Section volontairement synthétique et non technique : elle décrit les grandes briques, pas le code.</small></p>
+    <table>
+      <thead><tr><th>Brique</th><th>Choix</th><th>Bénéfice pour le client</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Application web</strong></td><td>Technologie web moderne, rapide, à jour.</td><td>Accessible partout, sans installation, toujours à la dernière version.</td></tr>
+        <tr><td><strong>Application bureau</strong></td><td>Version Mac/PC installable, <strong>signée</strong> (pas d'alerte de sécurité).</td><td>Confort d'un logiciel « posé » sur l'ordinateur, distribuable simplement.</td></tr>
+        <tr><td><strong>Base de données</strong></td><td>Base hébergée sécurisée (région Europe), <strong>cloisonnement par agence</strong>.</td><td>Données protégées, isolées, conformes RGPD.</td></tr>
+        <tr><td><strong>Intelligence</strong></td><td>Modèles de langage de premier plan, orchestrés côté serveur.</td><td>Assistant performant ; <strong>aucune clé ni traitement sensible exposé côté utilisateur</strong>.</td></tr>
+        <tr><td><strong>Données d'estimation</strong></td><td>Sources publiques officielles (transactions, cadastre, DPE).</td><td>Estimations crédibles et défendables.</td></tr>
+        <tr><td><strong>Sécurité</strong></td><td>Connexion chiffrée, sessions maîtrisées et révocables, accès cloisonnés.</td><td>Tranquillité sur la confidentialité.</td></tr>
+        <tr><td><strong>Hébergement</strong></td><td>Infrastructure cloud managée + composants temps réel.</td><td>Disponibilité et performance.</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><strong>Engagements de qualité de service</strong> (à préciser au contrat) : sauvegardes régulières, supervision, plan de reprise, et <strong>réversibilité des données</strong> — le client reste propriétaire de ses données et peut les récupérer.</div>
+  </section>
+
+  <!-- ============ 16 ============ -->
+  <section class="sec" id="s16">
+    <div class="sec-head"><span class="sec-num">16</span><h2>Données principales</h2></div>
+    <table>
+      <thead><tr><th>Donnée</th><th>Description</th><th>Relations clés</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Biens</strong></td><td>Biens du portefeuille (type, adresse, surface, pièces, prix, statut).</td><td>Reliés aux mandats, visites, estimations.</td></tr>
+        <tr><td><strong>Clients</strong></td><td>Acheteurs et vendeurs (coordonnées, type, budget, source, statut commercial).</td><td>Reliés aux visites, aux estimations.</td></tr>
+        <tr><td><strong>Visites / RDV</strong></td><td>Les rendez-vous, reliés à un client et à un bien.</td><td>Bien ↔ Client.</td></tr>
+        <tr><td><strong>Mandats</strong></td><td>Le contrat de vente confié (type, prix, commission, échéance).</td><td>Reliés à un bien.</td></tr>
+        <tr><td><strong>Estimations</strong></td><td>L'évaluation d'un bien et son avis de valeur.</td><td>Peut devenir un bien / un mandat.</td></tr>
+        <tr><td><strong>Prospection</strong></td><td>Critères acquéreurs, annonces du marché, correspondances et scores.</td><td>Annonce ↔ Critère.</td></tr>
+        <tr><td><strong>Préférences / mémoire</strong></td><td>Les consignes confiées à l'assistant.</td><td>Par agent.</td></tr>
+        <tr><td><strong>Agences / utilisateurs</strong></td><td>Le cadre multi-utilisateur et le cloisonnement.</td><td>Isole toutes les données ci-dessus.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><span class="lbl">Garantie transverse</span> Chaque donnée est rattachée à une agence et à un agent. Une agence ne voit jamais les données d'une autre.</div>
+  </section>
+
+  <!-- ============ 17 ============ -->
+  <section class="sec" id="s17">
+    <div class="sec-head"><span class="sec-num">17</span><h2>Livrables</h2></div>
+    <ol>
+      <li><strong>Le Cockpit en ligne</strong>, déployé et opérationnel (environnement de production).</li>
+      <li><strong>L'application bureau</strong> Mac/PC, signée, prête à distribuer.</li>
+      <li><strong>Les comptes utilisateurs</strong> initiaux (administrateur + agents).</li>
+      <li><strong>L'avis de valeur</strong> au format document professionnel (modèle à la charte du client).</li>
+      <li><strong>Un guide de prise en main</strong> synthétique (quelques pages, orienté usage).</li>
+      <li><strong>Une séance de prise en main</strong> (à distance) avec l'équipe.</li>
+      <li><strong>La documentation de réversibilité</strong> (récupération des données).</li>
+      <li><strong>Le présent dossier</strong>, signé, faisant foi du périmètre convenu.</li>
+    </ol>
+  </section>
+
+  <!-- ============ 18 ============ -->
+  <section class="sec" id="s18">
+    <div class="sec-head"><span class="sec-num">18</span><h2>Planning par phases</h2></div>
+    <p><small>Durées indicatives, à confirmer au lancement. Les phases peuvent se chevaucher partiellement.</small></p>
+    <table>
+      <thead><tr><th>Phase</th><th>Intitulé</th><th>Contenu</th><th>Durée</th><th>Jalon</th></tr></thead>
+      <tbody>
+        <tr><td><strong>0</strong></td><td>Cadrage &amp; accord</td><td>Validation du dossier, accès, identité de marque, questions ouvertes tranchées.</td><td>~1 sem.</td><td><strong>Signature</strong></td></tr>
+        <tr><td><strong>1</strong></td><td>Socle &amp; CRM</td><td>Connexion sécurisée, cockpit, accueil, Portefeuille (biens, mandats), Clients (contacts, visites), Agenda.</td><td>~3–4 sem.</td><td>Démo CRM</td></tr>
+        <tr><td><strong>2</strong></td><td>Estimation &amp; intelligence</td><td>Estimation de bout en bout, assistant qui agit dans tous les modules, recherche de marché.</td><td>~3–4 sem.</td><td>Démo Estimation</td></tr>
+        <tr><td><strong>3</strong></td><td>Prospection</td><td>Acquéreurs &amp; critères, annonces, matching &amp; scores, alertes (selon accès), missions autonomes.</td><td>~2–3 sem.</td><td>Démo Prospection</td></tr>
+        <tr><td><strong>4</strong></td><td>Bureau, durcissement &amp; recette</td><td>Application Mac/PC signée, performances, sécurité, recette finale, prise en main.</td><td>~2 sem.</td><td><strong>Mise en production</strong></td></tr>
+      </tbody>
+    </table>
+    <div class="note"><strong>Durée totale indicative : ~11 à 14 semaines</strong> à compter de la signature, sous réserve de la mise à disposition des accès externes en temps utile. Le calendrier précis (dates, jalons de paiement) est arrêté dans le devis / contrat associé.</div>
+  </section>
+
+  <!-- ============ 19 ============ -->
+  <section class="sec" id="s19">
+    <div class="sec-head"><span class="sec-num">19</span><h2>Modalités de validation</h2></div>
+    <ul>
+      <li><strong>Validation par phase.</strong> Chaque phase se clôt par une <strong>démonstration</strong> ; le client valide ou émet des remarques sous un délai convenu (par défaut 5 jours ouvrés).</li>
+      <li><strong>Critères d'acceptation.</strong> Chaque module est accepté lorsqu'il couvre les fonctions décrites ici et passe la <strong>recette</strong> (parcours-types §9 réalisables de bout en bout).</li>
+      <li><strong>Recette finale (V1).</strong> Validation d'ensemble : estimer → mandat ; piloter le jour ; matcher un acquéreur ; gérer biens / clients / visites / agenda.</li>
+      <li><strong>Boucle de retours.</strong> Les remarques sont consignées et priorisées (corrections incluses ; évolutions hors périmètre → avenant).</li>
+      <li><strong>Mise en production</strong> prononcée conjointement à l'issue de la recette finale.</li>
+    </ul>
+    <div class="note">Sans retour du client dans le délai convenu, un jalon est réputé accepté afin de ne pas bloquer le planning.</div>
+  </section>
+
+  <!-- ============ 20 ============ -->
+  <section class="sec" id="s20">
+    <div class="sec-head"><span class="sec-num">20</span><h2>Questions ouvertes</h2></div>
+    <p>À <strong>trancher avant ou pendant la Phase 0</strong> ; elles n'empêchent pas la signature mais conditionnent certains choix.</p>
+    <ol>
+      <li><strong>Source d'annonces de marché.</strong> Quel fournisseur (ex. agrégateur type MoteurImmo) ? Le client dispose-t-il déjà d'un accès ?</li>
+      <li><strong>Canal d'alerte acquéreurs.</strong> WhatsApp (via Twilio), email, ou SMS pour la V1 ?</li>
+      <li><strong>Multi-agences / multi-utilisateurs.</strong> Combien d'agences et d'utilisateurs ? Quels rôles et quels droits ?</li>
+      <li><strong>Marque.</strong> Logo, nom commercial, couleur d'accent, mentions légales de l'avis de valeur.</li>
+      <li><strong>Hébergement &amp; RGPD.</strong> Localisation des données, durée de conservation, politique d'effacement, registre des traitements.</li>
+      <li><strong>Reprise de données.</strong> Importer un portefeuille / des contacts depuis un logiciel existant ? Sous quel format ?</li>
+      <li><strong>Agenda externe.</strong> Synchronisation Google / Outlook souhaitée (phase 2) ?</li>
+      <li><strong>Diffusion d'annonces.</strong> Publication vers les portails ultérieurement ? Lesquels en priorité ?</li>
+      <li><strong>Signature électronique des mandats.</strong> À prévoir en évolution ?</li>
+    </ol>
+  </section>
+
+  <!-- ============ 21 ============ -->
+  <section class="sec" id="s21">
+    <div class="sec-head"><span class="sec-num">21</span><h2>Synthèse — ce sur quoi nous demandons votre accord</h2></div>
+    <p>En signant ci-dessous, le client <strong>valide</strong> :</p>
+    <ul>
+      <li>la <strong>vision</strong> et les <strong>objectifs</strong> du Cockpit Immobilier (§1–4) ;</li>
+      <li>la <strong>navigation cible</strong> à cinq entrées — Accueil, Prospection, Portefeuille, Clients, Agenda (§5) ;</li>
+      <li>le <strong>rôle transversal de l'intelligence</strong> (capacité intégrée partout, non une rubrique) (§6) ;</li>
+      <li>la <strong>place centrale de l'estimation</strong> (action forte multi-contexte) (§7) ;</li>
+      <li>le <strong>périmètre de la V1</strong> et ses <strong>exclusions</strong> (§10–11) ;</li>
+      <li>les <strong>hypothèses, dépendances et contraintes</strong> (§12–13) ;</li>
+      <li>le <strong>déroulé en phases</strong> et les <strong>modalités de validation</strong> (§18–19).</li>
+    </ul>
+    <p>Et <strong>autorise le démarrage du développement</strong> sur cette base.</p>
+  </section>
+
+  <!-- ============ 22 ============ -->
+  <section class="sec" id="s22">
+    <div class="sec-head"><span class="sec-num">22</span><h2>Accord formel de lancement</h2></div>
+    <p><small>Le présent accord vaut validation du périmètre décrit dans ce dossier (version 1.0) et autorisation de démarrage du développement de la V1. Les modalités commerciales (prix, échéancier, conditions) sont définies dans le devis / contrat associé.</small></p>
+
+    <div class="sign">
+      <h3>Bon pour accord et lancement</h3>
+      <p style="font-size:13px;margin:0 0 6px;"><strong>Périmètre de référence :</strong> Dossier « Cockpit Immobilier » v1.0 du 8 juin 2026 (présent document).</p>
+      <p style="font-size:13px;margin:0;"><strong>Questions ouvertes (§20) :</strong> <span style="border:1px solid var(--ink);padding:0 6px;border-radius:3px;">&nbsp;&nbsp;</span> tranchées et annexées &nbsp;&nbsp; <span style="border:1px solid var(--ink);padding:0 6px;border-radius:3px;">&nbsp;&nbsp;</span> à traiter en Phase 0</p>
+
+      <div class="sign-grid">
+        <div class="col"></div>
+        <div class="col" style="text-align:center;"><strong style="color:var(--accent-ink);">Pour le client</strong></div>
+        <div class="col" style="text-align:center;"><strong style="color:var(--accent-ink);">Pour l'éditeur</strong></div>
+      </div>
+      <div class="sign-grid" style="margin-top:6px;">
+        <div class="col">
+          <div class="sign-row"><span class="k">Société</span></div>
+          <div class="sign-row"><span class="k">Nom &amp; prénom</span></div>
+          <div class="sign-row"><span class="k">Fonction</span></div>
+          <div class="sign-row"><span class="k">Date</span></div>
+          <div class="sign-row"><span class="k">Signature</span></div>
+        </div>
+        <div class="col">
+          <div class="sign-row"><div class="sign-line"></div></div>
+          <div class="sign-row"><div class="sign-line"></div></div>
+          <div class="sign-row"><div class="sign-line"></div></div>
+          <div class="sign-row"><div class="sign-line"></div></div>
+          <div class="sign-row"><div class="sign-box"></div></div>
+        </div>
+        <div class="col">
+          <div class="sign-row"><div class="sign-line"></div></div>
+          <div class="sign-row"><div class="sign-line"></div></div>
+          <div class="sign-row"><div class="sign-line"></div></div>
+          <div class="sign-row"><div class="sign-line"></div></div>
+          <div class="sign-row"><div class="sign-box"></div></div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--faint);margin:4px 0 0;">Signature précédée de la mention manuscrite « Bon pour accord et lancement ».</p>
+
+      <div class="check"><span class="bx"></span><span><strong>J'ai pris connaissance de l'intégralité du dossier et j'autorise le lancement du développement de la V1.</strong></span></div>
+    </div>
+  </section>
+
+  <div class="doc-foot">
+    <div class="brand" aria-label="Hearst">
+      <svg viewBox="0 0 131 25" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"><title>Hearst</title>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M30.2563 13.3499V21.1273H43.281L42.0717 23.7968H25.6046V0.448242H45.1367L43.5878 3.0243H30.2563V10.8017H37.3068L36.0647 13.3482H30.2563V13.3499ZM108.304 1.37036H130.47L127.323 4.45507H121.744V23.7952H117.028V4.45507H111.307L108.304 1.37036ZM77.6787 10.9723H77.6771V10.9707H77.6787V10.9723ZM77.6787 16.323V10.9723H80.8274C82.7816 10.9723 84.3699 9.43327 84.3699 7.54306C84.3699 5.65286 82.78 4.11379 80.8274 4.11379H73.9623V23.7968H69.2466V0.448242H80.8274C84.8769 0.448242 88.1585 3.62483 88.1585 7.54306C88.1585 11.4613 85.2001 14.3114 81.4378 14.6116L91.089 23.9511H86.0632L77.6787 16.323ZM57.6774 0.448242H54.1743L44.7101 23.7968H49.4619L55.9266 7.86138L62.3914 23.7968H67.1415L57.6774 0.448242ZM106.133 12.3703C106.924 12.8477 107.581 13.3383 108.106 13.8453V13.847H108.112C108.634 14.3523 109.072 14.9676 109.427 15.6929C109.778 16.4181 109.955 17.1827 109.955 17.99C109.955 19.1074 109.676 20.0968 109.12 20.9549C108.564 21.8131 107.814 22.4809 106.873 22.9567C105.932 23.4325 104.927 23.7853 103.858 24.0117C102.79 24.2415 101.677 24.3547 100.522 24.3547C98.0837 24.3547 96.0672 23.8526 94.474 22.8484C93.1564 22.0182 92.2228 20.9024 91.6731 19.4979H95.4666C96.479 21.0353 98.3643 21.8081 101.131 21.8081C102.307 21.8081 103.356 21.4931 104.274 20.8614C105.193 20.2281 105.654 19.3847 105.654 18.3296C105.654 17.9572 105.569 17.6208 105.397 17.3206C105.226 17.0203 105.008 16.7578 104.739 16.5297C104.471 16.3016 104.06 16.0588 103.503 15.7995C102.949 15.5419 102.424 15.3139 101.933 15.117C101.439 14.9201 100.735 14.6657 99.8148 14.3556L98.8861 14.0455L98.5453 13.9239C98.1275 13.7747 97.7915 13.6547 97.5373 13.5648C97.2157 13.4499 96.7711 13.276 96.205 13.0364C95.6373 12.7985 95.1943 12.5869 94.8727 12.3998C94.5527 12.2144 94.1622 11.9765 93.7028 11.686C93.2417 11.3973 92.8857 11.0954 92.6281 10.7852C92.3721 10.4751 92.1096 10.124 91.8421 9.73022C91.5747 9.33642 91.381 8.90654 91.2645 8.44055C91.1448 7.97456 91.0873 7.47247 91.0873 6.93429C91.0873 6.39611 91.194 5.83659 91.4073 5.25739C91.6206 4.67983 91.9701 4.09898 92.4508 3.51978C92.9316 2.94058 93.5108 2.43029 94.1835 1.98399C94.8579 1.53933 95.6931 1.18164 96.6874 0.912547C97.6817 0.645096 98.7663 0.508911 99.9427 0.508911C104.004 0.508911 106.998 1.88718 108.929 4.63552H104.626C103.336 3.45907 101.869 2.86838 100.007 2.86838C98.1444 2.86838 96.8072 3.35406 95.995 4.32705C95.7817 4.59614 95.611 4.89149 95.483 5.21145C95.3567 5.53304 95.2911 5.81198 95.2911 6.04989C95.2911 6.28781 95.3009 6.49947 95.3222 6.68653C95.4092 7.08032 95.5651 7.41668 95.7882 7.69562C96.0114 7.97619 96.3707 8.24528 96.863 8.50453C97.3552 8.76378 97.8409 8.98529 98.3233 9.17234C98.804 9.35939 99.5145 9.61864 100.456 9.94844C100.883 10.0942 101.263 10.2225 101.595 10.3344L101.739 10.3833C102.552 10.672 103.29 10.9575 103.953 11.2365C104.614 11.517 105.343 11.8944 106.133 12.3703Z" fill="currentColor"></path>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M0.895813 0.354736H5.67711V8.65555L16.1815 18.8236H10.8243L5.67711 13.8421V23.7952H0.895813V0.354736ZM17.3235 10.4046V0.354736H22.1048V23.7952H17.3235V15.5896L7.35727 5.9433H12.7145L17.3235 10.4046Z" fill="#A7FB90"></path>
+      </svg>
+    </div>
+    Document confidentiel — © 2026 — Tous droits réservés.<br>
+    Établi pour présentation client ; ne constitue pas un engagement contractuel de prix. Le périmètre fait foi ; toute évolution hors périmètre fera l'objet d'un avenant.
+  </div>
+
+</div>
+</body>
+</html>

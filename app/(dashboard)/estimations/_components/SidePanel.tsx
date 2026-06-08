@@ -93,7 +93,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
           onClick={() => setFicheOpen((v) => !v)}
           aria-expanded={ficheOpen}
         >
-          <span>Fiche bien</span>
+          <span>{UI.estimations.ficheTitle}</span>
           <span className="est-side-stepper">
             {"●".repeat(Math.min(coverage.collected, coverage.total))}
             {"○".repeat(Math.max(0, coverage.total - coverage.collected))}
@@ -198,7 +198,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
           </div>
           <div className="est-side-body">
             {listingFetchSource != null && (
-              <p className="ct-placeholder" style={{ marginBottom: "var(--ct-space-xs)", fontSize: "var(--ct-fs-xs)" }}>
+              <p className="ct-placeholder ct-placeholder-sm ct-mb-sm">
                 {UI.estimations.listingFetchSourcePrefix}{" "}
                 <strong>
                   {listingFallbackUsed && listingFetchSource !== "none"

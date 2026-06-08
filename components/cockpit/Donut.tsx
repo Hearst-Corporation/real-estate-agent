@@ -20,6 +20,8 @@ type DonutProps = {
   accent?: boolean;
 };
 
+const GLOW_BLUR = 3;
+
 export function Donut({
   value,
   centerLabel,
@@ -58,7 +60,7 @@ export function Donut({
             />
           </linearGradient>
           <filter id={fid} x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feGaussianBlur stdDeviation={GLOW_BLUR} result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />

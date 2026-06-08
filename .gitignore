@@ -40,10 +40,12 @@ yarn-error.log*
 .claude/worktrees/
 .playwright-mcp/
 
-# ui artefacts (screenshots générés par les audits)
-estimation-layout-*.png
-ui-architect-*.png
-ui-test-architect-*.png
+# ui artefacts & scratch de session (screenshots d'audit/debug à la racine)
+/*.png
+dashboard_content.html
+scan_dashboard.py
+uiux-audit-*.html
+docs/audit/*.html
 
 # typescript
 *.tsbuildinfo

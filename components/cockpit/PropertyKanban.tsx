@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { eur, sqm, PROPERTY_STATUSES } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import Link from "next/link";
@@ -24,7 +25,9 @@ interface PropertyKanbanProps {
 
 export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanProps) {
   const t = UI.properties;
-  
+  const router = useRouter();
+  const [dropError, setDropError] = React.useState<string | null>(null);
+
   // Group properties by status
   const columns = PROPERTY_STATUSES.map(status => ({
     id: status,
@@ -49,21 +52,30 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
       onStatusChange(propertyId, newStatus);
     } else if (propertyId) {
       // Fallback if no handler provided: call API directly
+      setDropError(null);
       try {
-        await fetch(`/api/properties/${propertyId}`, {
+        const res = await fetch(`/api/properties/${propertyId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: newStatus }),
         });
-        window.location.reload();
-      } catch (err) {
-        console.error("Failed to update status", err);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        // Refresh serveur sans recharger la page (conserve scroll & état).
+        router.refresh();
+      } catch {
+        setDropError(t.statusUpdateError);
       }
     }
   };
 
   return (
-    <div className="crm-kanban">
+    <div className="crm-kanban-wrap">
+      {dropError && (
+        <div className="ct-error-danger crm-kanban-error" role="alert">
+          {dropError}
+        </div>
+      )}
+      <div className="crm-kanban">
       {columns.map(col => (
         <div 
           key={col.id} 
@@ -82,41 +94,39 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
               col.properties.map(property => (
                 <div 
                   key={property.id} 
-                  className="crm-card"
-                  style={{ padding: 0, overflow: 'hidden' }}
+                  className="crm-card crm-card-pad0"
                   draggable
                   onDragStart={(e) => handleDragStart(e, property.id)}
                 >
-                  <div style={{ height: 120, width: '100%', backgroundColor: 'var(--ct-surface-2)', position: 'relative', overflow: 'hidden' }}>
+                  <div className="crm-card-media">
                     {property.cover_photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={property.cover_photo_url}
-                        alt={property.title || "Bien immobilier"}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        alt={property.title || t.photos.altFallback}
                       />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: 'var(--ct-fs-2xs)', color: 'var(--ct-text-faint)' }}>{t.photos.empty}</span>
+                      <div className="crm-card-media-empty">
+                        <span className="ct-subtext">{t.photos.empty}</span>
                       </div>
                     )}
-                    <div style={{ position: 'absolute', top: 'var(--ct-space-xs)', right: 'var(--ct-space-xs)' }}>
+                    <div className="crm-card-media-badge">
                       <span className="ct-badge ct-badge-overlay">
                         {t.typeLabels[property.property_type ?? ""] || property.property_type || "Bien"}
                       </span>
                     </div>
                   </div>
                   
-                  <div style={{ padding: 'var(--ct-space-sm)' }}>
-                    <div className="crm-card-head" style={{ marginBottom: 'var(--ct-space-2xs)' }}>
+                  <div className="crm-card-inner">
+                    <div className="crm-card-head crm-card-head-tight">
                       <span className="crm-card-title" title={property.title || t.fallbackTitle}>
                         {property.title || t.fallbackTitle}
                       </span>
                     </div>
                     
-                    <div className="crm-card-meta" style={{ marginBottom: 'var(--ct-space-xs)' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--ct-space-2xs)' }}>
-                        <Icon name="search" style={{ width: 12, height: 12 }} /> 
+                    <div className="crm-card-meta crm-card-meta-tight">
+                      <span className="crm-card-loc">
+                        <Icon name="search" className="ct-icon-xs" /> 
                         {property.city || "—"}
                       </span>
                       {property.surface && (
@@ -124,12 +134,12 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
                       )}
                     </div>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--ct-space-xs)' }}>
+                    <div className="crm-card-foot">
                       <span className="crm-card-price">{eur(property.asking_price)}</span>
 
-                      <div style={{ display: 'flex', gap: 'var(--ct-space-2xs)' }}>
-                        <Link href={`/properties/${property.id}`} className="ct-seg-btn" style={{ padding: 'var(--ct-space-2xs) var(--ct-space-xs)', fontSize: 'var(--ct-fs-2xs)' }}>
-                          Ouvrir
+                      <div className="crm-card-actions">
+                        <Link href={`/properties/${property.id}`} className="ct-seg-btn crm-card-link-sm">
+                          {t.open}
                         </Link>
                       </div>
                     </div>
@@ -140,6 +150,7 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }

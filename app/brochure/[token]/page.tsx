@@ -46,16 +46,16 @@ export default async function BrochurePage({ params }: Props) {
           * { box-sizing: border-box; }
           html.brochure-host, html.brochure-host body {
             margin: 0; padding: 0; height: 100%;
-            background: var(--ct-bg-deep, #1a1a1a);
+            background: var(--ct-bg-deep);
           }
           /* 100dvh : suit la hauteur visible réelle (corrige la barre d'URL iOS Safari). */
           .brochure-frame { display: block; width: 100%; height: 100dvh; border: none; }
           /* Repli mobile : Safari iOS n'affiche pas un PDF dans une iframe. */
           .brochure-fallback {
-            display: none; padding: 16px; text-align: center;
-            font-family: system-ui, sans-serif; color: rgba(245,245,245,0.72);
+            display: none; padding: var(--ct-space-md); text-align: center;
+            font-family: inherit; color: var(--ct-text-body);
           }
-          .brochure-fallback a { color: #e11d48; font-weight: 600; }
+          .brochure-fallback a { color: var(--ct-accent); font-weight: var(--ct-fw-semibold); }
           @media (max-width: 820px), (pointer: coarse) {
             .brochure-fallback { display: block; }
           }

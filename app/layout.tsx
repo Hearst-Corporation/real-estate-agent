@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import "./cockpit.css";
 import { UI } from "@/lib/ui-strings";
+import PostHogProvider from "@/components/providers/PostHogProvider";
 
 export const metadata: Metadata = {
   title: UI.app.name,
@@ -24,7 +25,7 @@ export default function RootLayout({
           }}
         />
         <Script src="/hearst-asset.js" strategy="beforeInteractive" />
-        {children}
+        <PostHogProvider>{children}</PostHogProvider>
       </body>
     </html>
   );

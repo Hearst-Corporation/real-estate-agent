@@ -40,7 +40,9 @@ const DASHBOARD_DIR = join(ROOT, "app", "(dashboard)");
 const NAV_FILE = join(ROOT, "config", "nav.ts");
 
 /** Pages hors-rail volontaires (pas d'entrée NAV attendue). */
-const ALLOWLIST = ["profile", "admin", "invest"];
+// `missions` : feature agentique lancée depuis la carte « Mission » de l'accueil
+// + le chat (comme `swarms`, hors rail). Non destination de rail volontairement.
+const ALLOWLIST = ["profile", "admin", "invest", "missions"];
 
 /**
  * Liste les segments de premier niveau qui contiennent un `page.tsx`.

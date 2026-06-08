@@ -12,8 +12,6 @@ export type IconName =
   | "agenda"
   | "home"
   | "user"
-  | "settings"
-  | "logout"
   | "plus"
   | "chevron-down"
   | "chevron-right";
@@ -22,10 +20,12 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
   name: IconName;
 }
 
+const ICON_SIZE = 24;
+
 export function Icon({ name, ...props }: IconProps) {
   const common = {
-    width: 24,
-    height: 24,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
     viewBox: "0 0 24 24",
     fill: "none",
     "aria-hidden": true,
@@ -108,6 +108,26 @@ export function Icon({ name, ...props }: IconProps) {
         <svg {...common}>
           <rect {...strokeProps} x="3" y="4" width="18" height="18" rx="2" ry="2" />
           <path {...strokeProps} d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
+      );
+    case "home":
+      return (
+        <svg {...common}>
+          <path {...strokeProps} d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
+          <path {...strokeProps} d="M9 22V12h6v10" />
+        </svg>
+      );
+    case "plus":
+      return (
+        <svg {...common}>
+          <path {...strokeProps} d="M12 5v14M5 12h14" />
+        </svg>
+      );
+    case "user":
+      return (
+        <svg {...common}>
+          <circle {...strokeProps} cx="12" cy="8" r="4" />
+          <path {...strokeProps} d="M4 21a8 8 0 0 1 16 0" />
         </svg>
       );
     case "chevron-down":

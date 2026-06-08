@@ -5,6 +5,9 @@ import path from "node:path";
 
 const store = new Store<{ env: "local" | "prod" }>({ defaults: { env: "local" } });
 
+/** Couleur de fond native Electron — doit correspondre à --ct-bg de 00-tokens.css. */
+const WINDOW_BG = "#1A050B";
+
 const ENV_URLS = {
   local: "http://localhost:3002",
   prod: "https://real-estate-agent.vercel.app",
@@ -45,7 +48,7 @@ function createMainWindow(env: AppEnv) {
     minWidth: 1024,
     minHeight: 720,
     titleBarStyle: "hiddenInset",
-    backgroundColor: "#1A050B",
+    backgroundColor: WINDOW_BG,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,

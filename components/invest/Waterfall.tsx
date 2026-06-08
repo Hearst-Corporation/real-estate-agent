@@ -6,6 +6,7 @@
  * Une table alternative `.inv-sr-only` est fournie (WCAG 1.1.1).
  */
 import type { ChartWaterfall } from "@/lib/invest/finance";
+import { UI } from "@/lib/ui-strings";
 import { eur } from "./format";
 
 /** Marches obligataires = celles qui concernent directement le créancier. */
@@ -73,9 +74,9 @@ export function Waterfall({ chart }: { chart: ChartWaterfall }) {
         <caption>{chart.titre}</caption>
         <thead>
           <tr>
-            <th scope="col">Étage</th>
-            <th scope="col">Montant</th>
-            <th scope="col">Cumul</th>
+            <th scope="col">{UI.invest.charts.etage}</th>
+            <th scope="col">{UI.invest.charts.montant}</th>
+            <th scope="col">{UI.invest.charts.cumul}</th>
           </tr>
         </thead>
         <tbody>

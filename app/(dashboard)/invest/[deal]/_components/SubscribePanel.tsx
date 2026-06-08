@@ -23,66 +23,12 @@
  */
 
 import { useCallback, useMemo, useState } from "react";
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Stepper, Banner, Gate, StatusPill, Toast, eur } from "@/components/invest";
+import { UI } from "@/lib/ui-strings";
+import { TICKET_STEP } from "@/lib/invest/constants";
 
-// Styles inline en tokens --ct-* (aucun hex, aucune nouvelle classe dans cockpit.css).
-const fieldLabelStyle: CSSProperties = {
-  fontSize: "var(--ct-fs-xs)",
-  fontWeight: "var(--ct-fw-bold)",
-  letterSpacing: "var(--ct-ls-wide)",
-  textTransform: "uppercase",
-  color: "var(--ct-text-muted)",
-};
-const amountRowStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "var(--ct-space-sm)",
-};
-const amountCurStyle: CSSProperties = {
-  fontSize: "var(--ct-fs-base)",
-  fontWeight: "var(--ct-fw-bold)",
-  color: "var(--ct-text-muted)",
-};
-const ghostBtnStyle: CSSProperties = {
-  width: "100%",
-  padding: "var(--ct-space-sm) var(--ct-space-md)",
-  borderRadius: "var(--ct-radius-md)",
-  border: "1px solid var(--ct-border)",
-  background: "transparent",
-  color: "var(--ct-text-body)",
-  fontSize: "var(--ct-fs-sm)",
-  fontWeight: "var(--ct-fw-bold)",
-  cursor: "pointer",
-};
-const flowStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "var(--ct-space-sm)",
-  flexWrap: "wrap",
-  padding: "var(--ct-space-sm) var(--ct-space-md)",
-  background: "var(--ct-surface-0)",
-  border: "1px solid var(--ct-border-soft)",
-  borderRadius: "var(--ct-radius-md)",
-};
-const flowNodeStyle: CSSProperties = {
-  fontSize: "var(--ct-fs-xs)",
-  fontWeight: "var(--ct-fw-bold)",
-  color: "var(--ct-text-body)",
-  padding: "var(--ct-space-2xs) var(--ct-space-xs)",
-  borderRadius: "var(--ct-radius-md)",
-  border: "1px solid var(--ct-border-soft)",
-  background: "var(--ct-surface-1)",
-};
-const flowNodeAccentStyle: CSSProperties = {
-  ...flowNodeStyle,
-  color: "var(--ct-accent-strong)",
-  borderColor: "var(--ct-border-accent)",
-  background: "var(--ct-accent-soft)",
-};
-const flowArrowStyle: CSSProperties = { color: "var(--ct-text-muted)", fontWeight: "var(--ct-fw-heavy)" };
+const t = UI.invest.subscribe;
 
 /** Statuts de souscription exposés à l'UI (miroir machine serveur). */
 type SubStatus =
@@ -122,7 +68,7 @@ export interface SubscribePanelProps {
   spvLabel: string;
 }
 
-const STEPS = [{ label: "Montant" }, { label: "Réserver" }, { label: "Signature" }, { label: "Versement" }];
+const STEPS = [...t.steps];
 
 /** Étape courante dérivée du statut de la souscription (ou 0 si pas encore créée). */
 function stepFromStatus(sub: SubscriptionView | null): number {
@@ -140,17 +86,6 @@ function stepFromStatus(sub: SubscriptionView | null): number {
       return 0; // sorties (cancelled/withdrawn/refunded) → on peut recommencer
   }
 }
-
-const STATUS_LABEL: Record<SubStatus, string> = {
-  reserved: "Réservé (non engageant)",
-  signed: "Signé (eIDAS)",
-  funded: "Fonds en séquestre",
-  allocated: "Alloué au closing",
-  minted: "Token émis",
-  refunded: "Remboursé",
-  cancelled: "Annulé",
-  withdrawn: "Rétracté",
-};
 
 const STATUS_TONE: Record<SubStatus, "open" | "soon" | "funded" | "closed" | "neutral"> = {
   reserved: "soon",
@@ -182,23 +117,19 @@ export function SubscribePanel(props: SubscribePanelProps) {
   // ── Mappe un code d'erreur conformité serveur → message FR lisible. ──
   const reasonToMessage = useCallback(
     (reason: string): string => {
-      if (reason.startsWith("deal_not_open")) return "Ce deal n'est plus ouvert à la souscription.";
-      if (reason === "kyc_not_approved") return "Votre identité n'est pas encore vérifiée (KYC).";
-      if (reason === "suitability_required")
-        return "Le test d'adéquation (ECSP) doit être validé avant de réserver.";
-      if (reason.startsWith("ticket_below_min"))
-        return `Le ticket minimum est de ${eur(ticketMinEur)}.`;
-      if (reason.startsWith("ticket_above_max"))
-        return `Le ticket maximum est de ${eur(ticketMaxEur)}.`;
+      if (reason.startsWith("deal_not_open")) return t.errors.dealClosed;
+      if (reason === "kyc_not_approved") return t.errors.kyc;
+      if (reason === "suitability_required") return t.errors.suitability;
+      if (reason.startsWith("ticket_below_min")) return t.errors.ticketMin(eur(ticketMinEur));
+      if (reason.startsWith("ticket_above_max")) return t.errors.ticketMax(eur(ticketMaxEur));
       if (reason.startsWith("annual_cap_exceeded")) {
         const m = /remaining=([\d.]+)/.exec(reason);
         const remaining = m ? Number(m[1]) : null;
         return remaining != null
-          ? `Plafond annuel d'investissement atteint. Capacité restante sur 12 mois : ${eur(remaining)}.`
-          : "Plafond annuel d'investissement (12 mois) atteint.";
+          ? t.errors.annualCap(eur(remaining))
+          : t.errors.annualCapGeneric;
       }
-      if (reason === "cooling_off_expired")
-        return "Le délai de rétractation de 4 jours est écoulé : l'annulation n'est plus possible.";
+      if (reason === "cooling_off_expired") return t.errors.coolingOff;
       return reason;
     },
     [ticketMinEur, ticketMaxEur],
@@ -213,14 +144,14 @@ export function SubscribePanel(props: SubscribePanelProps) {
         const err = String(json.error ?? "");
         throw new Error(
           err === "esign_not_configured"
-            ? "La signature électronique n'est pas encore disponible. Réessayez plus tard ; votre réservation est conservée."
+            ? t.errors.esignUnavailable
             : err === "escrow_not_configured"
-              ? "Le séquestre tiers n'est pas encore disponible. Réessayez plus tard ; votre souscription est conservée."
-              : "Service indisponible pour le moment. Réessayez plus tard.",
+              ? t.errors.escrowUnavailable
+              : t.errors.serviceUnavailable,
         );
       }
       if (res.status === 422 && json.reason) throw new Error(reasonToMessage(String(json.reason)));
-      throw new Error(String(json.error ?? "Une erreur est survenue."));
+      throw new Error(String(json.error ?? t.errors.generic));
     },
     [reasonToMessage],
   );
@@ -238,9 +169,9 @@ export function SubscribePanel(props: SubscribePanelProps) {
       });
       const json = await handleResponse(res);
       setSub(json.subscription as SubscriptionView);
-      setNotice("Place réservée — sans versement, révocable à tout moment.");
+      setNotice(t.notices.reserved);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur lors de la réservation.");
+      setError(e instanceof Error ? e.message : t.errors.reserve);
     } finally {
       setBusy(false);
     }
@@ -257,13 +188,13 @@ export function SubscribePanel(props: SubscribePanelProps) {
       const json = await handleResponse(res);
       const sig = json.signature as { signUrl?: string } | undefined;
       if (sig?.signUrl) {
-        setNotice("Demande de signature envoyée. Ouvrez le lien pour signer le bulletin.");
+        setNotice(t.notices.signUrl);
         window.open(sig.signUrl, "_blank", "noopener");
       } else {
-        setNotice("Demande de signature envoyée. Vous recevrez le bulletin à signer par e-mail.");
+        setNotice(t.notices.signEmail);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur lors de la demande de signature.");
+      setError(e instanceof Error ? e.message : t.errors.sign);
     } finally {
       setBusy(false);
     }
@@ -279,14 +210,12 @@ export function SubscribePanel(props: SubscribePanelProps) {
       const res = await fetch(`/api/invest/subscriptions/${sub.id}/fund`, { method: "POST" });
       const json = await handleResponse(res);
       const funding = json.funding as { coolingOffEndsAt?: string } | undefined;
-      setNotice(
-        "Instruction de versement émise vers le séquestre tiers. Délai de rétractation de 4 jours activé.",
-      );
+      setNotice(t.notices.funded);
       if (funding?.coolingOffEndsAt && sub) {
         setSub({ ...sub, coolingOffEndsAt: funding.coolingOffEndsAt, withinCoolingOff: true });
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur lors de l'instruction de versement.");
+      setError(e instanceof Error ? e.message : t.errors.fund);
     } finally {
       setBusy(false);
     }
@@ -302,9 +231,9 @@ export function SubscribePanel(props: SubscribePanelProps) {
       const res = await fetch(`/api/invest/subscriptions/${sub.id}/cancel`, { method: "POST" });
       const json = await handleResponse(res);
       setSub(json.subscription as SubscriptionView);
-      setNotice("Souscription annulée. Aucun engagement ne subsiste.");
+      setNotice(t.notices.cancelled);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur lors de l'annulation.");
+      setError(e instanceof Error ? e.message : t.errors.cancel);
     } finally {
       setBusy(false);
     }
@@ -316,37 +245,30 @@ export function SubscribePanel(props: SubscribePanelProps) {
       <div className="inv-raise-box">
         <Gate
           locked
-          message="Vérifiez votre identité (KYC) pour réserver votre place."
+          message={t.kycGateMessage}
           cta={
             <Link
               href="/invest/onboarding"
-              className="inv-btn-reserve"
-              style={{ display: "inline-block", textDecoration: "none" }}
+              className="inv-btn-reserve inv-link-inline"
             >
-              Vérifier mon identité (KYC)
+              {t.kycCta}
             </Link>
           }
         >
-          <div style={{ minHeight: 120 }} />
+          <div className="inv-sub-spacer" />
         </Gate>
-        <p className="inv-reserve-note">
-          Vous prêtez à une société (vous êtes créancier) ; tout rendement est une cible non garantie.
-        </p>
+        <p className="inv-reserve-note">{t.creditorNote}</p>
       </div>
     );
   }
 
   const flux = (
-    <div style={flowStyle} aria-label="Flux des fonds : vous vers séquestre tiers vers SPV">
-      <span style={flowNodeStyle}>Vous</span>
-      <span style={flowArrowStyle} aria-hidden>
-        →
-      </span>
-      <span style={flowNodeAccentStyle}>Séquestre tiers</span>
-      <span style={flowArrowStyle} aria-hidden>
-        →
-      </span>
-      <span style={flowNodeStyle}>{spvLabel || "SPV"}</span>
+    <div className="inv-flow" aria-label={t.flowAria}>
+      <span className="inv-flow-node">{t.flowYou}</span>
+      <span className="inv-flow-arrow" aria-hidden>→</span>
+      <span className="inv-flow-node inv-flow-node-accent">{t.flowEscrow}</span>
+      <span className="inv-flow-arrow" aria-hidden>→</span>
+      <span className="inv-flow-node">{spvLabel || t.flowSpvFallback}</span>
     </div>
   );
 
@@ -355,9 +277,9 @@ export function SubscribePanel(props: SubscribePanelProps) {
       <Stepper steps={STEPS} current={step} />
 
       {sub ? (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--ct-space-sm)" }}>
-          <StatusPill tone={STATUS_TONE[sub.status]}>{STATUS_LABEL[sub.status]}</StatusPill>
-          <span className="inv-raise-stat" style={{ flexDirection: "row", gap: 6, alignItems: "baseline" }}>
+        <div className="inv-row-between is-center">
+          <StatusPill tone={STATUS_TONE[sub.status]}>{t.status[sub.status]}</StatusPill>
+          <span className="inv-raise-stat inv-raise-stat-row">
             <span className="inv-v">{eur(sub.amountEur)}</span>
             <span className="inv-l">{sub.settlementCurrency}</span>
           </span>
@@ -370,10 +292,10 @@ export function SubscribePanel(props: SubscribePanelProps) {
       {/* ── Étape 1 — Montant (avant toute réservation) ── */}
       {step === 0 ? (
         <>
-          <label style={fieldLabelStyle} htmlFor="sub-amount">
-            Montant de votre souscription
+          <label className="inv-sub-label" htmlFor="sub-amount">
+            {t.amountLabel}
           </label>
-          <div style={amountRowStyle}>
+          <div className="inv-sub-amount-row">
             <input
               id="sub-amount"
               className="ct-input"
@@ -381,19 +303,19 @@ export function SubscribePanel(props: SubscribePanelProps) {
               inputMode="numeric"
               min={ticketMinEur}
               max={ticketMaxEur}
-              step={1000}
+              step={TICKET_STEP}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               aria-describedby="sub-amount-hint"
             />
-            <span style={amountCurStyle}>{settlementCurrency}</span>
+            <span className="inv-sub-currency">{settlementCurrency}</span>
           </div>
-          <p id="sub-amount-hint" className="inv-reserve-note" style={{ textAlign: "left" }}>
-            Ticket de {eur(ticketMinEur)} à {eur(ticketMaxEur)}. Règlement en {settlementCurrency} par défaut.
+          <p id="sub-amount-hint" className="inv-reserve-note inv-reserve-left">
+            {t.amountHint(eur(ticketMinEur), eur(ticketMaxEur), settlementCurrency)}
           </p>
           {!amountValid && amount !== "" ? (
             <Banner tone="warn">
-              Le montant doit être compris entre {eur(ticketMinEur)} et {eur(ticketMaxEur)}.
+              {t.amountInvalid(eur(ticketMinEur), eur(ticketMaxEur))}
             </Banner>
           ) : null}
           <button
@@ -402,25 +324,21 @@ export function SubscribePanel(props: SubscribePanelProps) {
             disabled={!amountValid || busy || !props.dealOpen}
             onClick={reserve}
           >
-            {busy ? "Réservation…" : "Réserver ma place"}
+            {busy ? t.reserveBusy : t.reserveBtn}
           </button>
-          <p className="inv-reserve-note">Réservation non engageante · sans versement · révocable</p>
+          <p className="inv-reserve-note">{t.reserveNote}</p>
         </>
       ) : null}
 
       {/* ── Étape 2 (réservé) — Signature eIDAS ── */}
       {step === 2 && sub?.status === "reserved" ? (
         <>
-          <p className="inv-reserve-note" style={{ textAlign: "left" }}>
-            Votre place est réservée sans versement. Étape suivante : signer le bulletin de souscription
-            (signature électronique eIDAS). Vous restez créancier de la société ; rien n&apos;est versé à
-            cette étape.
-          </p>
+          <p className="inv-reserve-note inv-reserve-left">{t.reservedNote}</p>
           <button className="inv-btn-reserve" type="button" disabled={busy} onClick={sign}>
-            {busy ? "Envoi…" : "Signer le bulletin (eIDAS)"}
+            {busy ? t.signBusy : t.signBtn}
           </button>
-          <button style={ghostBtnStyle} type="button" disabled={busy} onClick={cancel}>
-            Annuler ma réservation
+          <button className="inv-ghost-btn" type="button" disabled={busy} onClick={cancel}>
+            {t.cancelReservation}
           </button>
         </>
       ) : null}
@@ -429,31 +347,26 @@ export function SubscribePanel(props: SubscribePanelProps) {
       {step === 3 && sub ? (
         <>
           {flux}
-          <p className="inv-reserve-note" style={{ textAlign: "left" }}>
-            Votre versement va vers un séquestre tiers ({sequestreLabel}) — la plateforme ne reçoit jamais
-            les fonds. Délai de rétractation de 4 jours, sans pénalité. Remboursement intégral si le deal
-            n&apos;aboutit pas. Règlement en {settlementCurrency} par défaut.
+          <p className="inv-reserve-note inv-reserve-left">
+            {t.fundNote(sequestreLabel, settlementCurrency)}
           </p>
 
           {sub.status === "signed" ? (
             <button className="inv-btn-reserve" type="button" disabled={busy} onClick={fund}>
-              {busy ? "Instruction…" : "Verser vers le séquestre tiers"}
+              {busy ? t.fundBusy : t.fundBtn}
             </button>
           ) : null}
 
           {sub.status === "funded" ? (
             <Banner tone="success">
-              Fonds reçus en séquestre tiers.{" "}
-              {sub.withinCoolingOff
-                ? "Vous pouvez encore vous rétracter pendant le délai de 4 jours."
-                : "Le délai de rétractation de 4 jours est écoulé."}
+              {t.fundedBanner}{" "}
+              {sub.withinCoolingOff ? t.coolingOffActive : t.coolingOffExpired}
             </Banner>
           ) : null}
 
-          {/* Annulation/rétractation possible tant qu'on est dans le délai 4j. */}
           {(sub.status === "signed" || (sub.status === "funded" && sub.withinCoolingOff)) ? (
-            <button style={ghostBtnStyle} type="button" disabled={busy} onClick={cancel}>
-              {sub.status === "funded" ? "Me rétracter (remboursement intégral)" : "Annuler ma souscription"}
+            <button className="inv-ghost-btn" type="button" disabled={busy} onClick={cancel}>
+              {sub.status === "funded" ? t.withdrawBtn : t.cancelSubBtn}
             </button>
           ) : null}
         </>
@@ -462,13 +375,12 @@ export function SubscribePanel(props: SubscribePanelProps) {
       {/* ── État sortie (annulé / rétracté / remboursé) ── */}
       {sub && ["cancelled", "withdrawn", "refunded"].includes(sub.status) ? (
         <p className="inv-reserve-note">
-          Souscription {STATUS_LABEL[sub.status].toLowerCase()}. Vous pouvez réserver une nouvelle place
-          ci-dessus.
+          {t.terminalNote(t.status[sub.status].toLowerCase())}
         </p>
       ) : null}
 
       <p className="inv-reserve-note">
-        <Link href="/invest/subscriptions">Voir mes souscriptions</Link>
+        <Link href="/invest/subscriptions">{t.mySubscriptions}</Link>
       </p>
     </div>
   );

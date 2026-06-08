@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MissionView, PhaseStatus } from "@/lib/missions/types";
+import { PageStack, Card } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 
 const t = UI.missions;
@@ -77,7 +78,7 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
           : "mv-pill-now";
 
   return (
-    <div className="ct-page-stack">
+    <PageStack>
       {/* Header de mission */}
       <div className="mv-head">
         <div className="mv-head-row">
@@ -94,22 +95,17 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
 
       {/* Progression | Espace vivant */}
       <div className="mv-cols">
-        <section className="ct-card">
-          <div className="ct-card-title">{t.progression}</div>
-          <div className="ct-card-body">
-            {v.phases.map((p) => (
-              <div key={p.key} className={`mv-story-line${p.status === "todo" ? " is-todo" : ""}`}>
-                <span className="mv-story-ic">{STORY_ICON[p.status]}</span>
-                <span className="mv-story-tx">{p.story}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+        <Card title={t.progression}>
+          {v.phases.map((p) => (
+            <div key={p.key} className={`mv-story-line${p.status === "todo" ? " is-todo" : ""}`}>
+              <span className="mv-story-ic">{STORY_ICON[p.status]}</span>
+              <span className="mv-story-tx">{p.story}</span>
+            </div>
+          ))}
+        </Card>
 
-        <section className="ct-card">
-          <div className="ct-card-title">{t.canvas}</div>
-          <div className="ct-card-body">
-            <div className="mv-canvas">
+        <Card title={t.canvas}>
+          <div className="mv-canvas">
               {v.phases.map((p, i) => {
                 const open = p.status === "now" || p.status === "ask";
                 return (
@@ -150,9 +146,8 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
                   </div>
                 );
               })}
-            </div>
           </div>
-        </section>
+        </Card>
       </div>
 
       {/* État d'erreur humain */}
@@ -189,24 +184,21 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
 
       {/* Aperçu du résultat */}
       {v.output && (
-        <section className="ct-card">
-          <div className="ct-card-title">{t.output}</div>
-          <div className="ct-card-body">
-            {v.output.hook && (
-              <div className="mv-field">
-                <div className="mv-fl">{t.hook}</div>
-                <div className="mv-fv mv-fv-big">{v.output.hook}</div>
-              </div>
-            )}
-            {v.output.body && (
-              <div className="mv-field">
-                <div className="mv-fl">{t.detail}</div>
-                <div className="mv-fv">{v.output.body}</div>
-              </div>
-            )}
-          </div>
-        </section>
+        <Card title={t.output}>
+          {v.output.hook && (
+            <div className="mv-field">
+              <div className="mv-fl">{t.hook}</div>
+              <div className="mv-fv mv-fv-big">{v.output.hook}</div>
+            </div>
+          )}
+          {v.output.body && (
+            <div className="mv-field">
+              <div className="mv-fl">{t.detail}</div>
+              <div className="mv-fv">{v.output.body}</div>
+            </div>
+          )}
+        </Card>
       )}
-    </div>
+    </PageStack>
   );
 }

@@ -1,39 +1,72 @@
 /* ════════════════════════════════════════════════════════════
    RESPONSIVE — adaptation tablette / mobile du shell + grilles.
-   Le shell est un flex 3 colonnes (rail gauche 88px · centre · rail
-   droit 420px) sans breakpoint à l'origine : le rail droit dépassait
-   l'écran < 500px. Ici on passe le rail droit en overlay flottant et
-   on dégrade les grilles KPI / fiches.
+   Breakpoints shell officiels :
+   - 1024px : rail droit (chat) en overlay + scroll porté par ct-page-area.
+   - 640px  : rail gauche masqué + bottom bar mobile.
    ════════════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
-  /* Rail droit (chat) : overlay au-dessus du contenu plutôt que colonne
-     fixe de 420px qui écrase le centre. Le toggle collapse/reopen existant
-     (RailRight) continue de fonctionner. */
+  /* Rail droit déjà en position: fixed — réduire sa largeur sur tablette. */
   .ct-rail-right {
-    position: absolute; top: 0; right: 0; bottom: 0;
     width: min(380px, 88vw);
-    box-shadow: -12px 0 40px -16px rgba(0,0,0,0.7);
+    box-shadow: -12px 0 40px -16px var(--ct-overlay-scrim);
   }
-  .ct-rail-right.collapsed { width: 48px; box-shadow: none; }
-  .ct-page-area { 
-    padding: var(--ct-space-lg) var(--ct-space-lg) 96px;
-    overflow-y: auto; /* Rétablir le scroll sur tablette/mobile */
+  .ct-rail-right.collapsed {
+    width: var(--ct-rail-collapsed);
+    box-shadow: none;
+    transform: translateX(calc(min(380px, 88vw) - var(--ct-rail-collapsed)));
+  }
+  .ct-page-area {
+    padding: var(--ct-space-lg) var(--ct-space-lg) 0;
+  }
+  .ct-page-area.chat-open {
+    padding-right: calc(min(380px, 88vw) + var(--ct-space-lg));
   }
   .ct-page-stack, .prospection-page {
     flex: none; /* Laisser grandir le contenu */
+    min-height: auto;
+    overflow: visible; /* Évite un double scroll avec ct-page-area. */
   }
-  .ct-dashboard-grid { grid-template-columns: 1fr; }
+  .ct-dashboard-grid,
+  .ct-home-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+  }
+  .ct-home-action-grid,
+  .ct-home-quick .ct-home-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* KPI : 4 colonnes illisibles sur tablette → 2 colonnes. */
   .ct-kpi-grid,
   .ct-kpi-grid.cols-4,
   .ct-kpi-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
 }
 
+@media (min-width: 641px) {
+  /* Bottom bar réservée au mobile — évite tout chevauchement avec le rail. */
+  .ct-bottom-bar { display: none; }
+}
+
 @media (max-width: 640px) {
-  /* Rail gauche caché sur mobile, remplacé par la BottomBar */
-  .ct-rail-left { display: none; }
+  /* Rail gauche masqué sur mobile, remplacé par la BottomBar */
+  .ct-panels-row > .ct-rail-left {
+    display: none;
+    flex: 0 0 0;
+    width: 0;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+  }
   .ct-page-area { padding: var(--ct-space-lg) var(--ct-space-md) 92px; }
-  .ct-dashboard-grid { gap: var(--ct-space-md); }
+  .ct-rail-right { bottom: 76px; width: min(360px, 88vw); transform: translateX(0); }
+  .ct-rail-right.collapsed { bottom: 76px; transform: translateX(calc(min(360px, 88vw) - var(--ct-rail-collapsed))); }
+  .ct-dashboard-grid,
+  .ct-home-grid { gap: var(--ct-space-md); }
+  .ct-home-action-grid,
+  .ct-home-quick .ct-home-action-grid { grid-template-columns: 1fr; }
+  .ct-home-action { min-height: 78px; }
   .ct-hero-metric { align-items: flex-start; flex-direction: column; }
   .ct-hero-extra { min-width: 0; text-align: left; }
   .ct-chart-funnel-step { grid-template-columns: 1fr; gap: var(--ct-space-xs); }
@@ -51,7 +84,8 @@
   .ct-title { font-size: var(--ct-fs-2xl); }
   /* Bottom bar : affichée sur mobile */
   .ct-bottom-bar { display: block; padding: var(--ct-space-sm); }
-  .ct-bottom-bar-inner { gap: 0; justify-content: space-around; overflow-x: visible; }
+  .ct-bottom-bar-inner { gap: var(--ct-space-2xs); justify-content: space-between; overflow-x: visible; }
+  .ct-bottom-nav-item { min-width: 0; flex: 1; }
 }
 
 /* ─── Property Gallery ─────────────────────────────────────────────────────── */
@@ -59,7 +93,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 180px;
+  min-height: var(--ct-prose-sm);
   border: 1px dashed var(--ct-border);
   border-radius: var(--ct-radius-md);
   color: var(--ct-text-muted);
@@ -78,7 +112,7 @@
   position: absolute;
   top: var(--ct-space-xs);
   left: var(--ct-space-xs);
-  background: rgba(0,0,0,0.6);
+  background: var(--ct-overlay-scrim);
   backdrop-filter: blur(var(--ct-overlay-blur));
   color: var(--ct-text-strong);
   font-size: var(--ct-fs-xs);
@@ -92,8 +126,8 @@
 }
 .property-gallery-thumb {
   position: relative;
-  width: 72px;
-  height: 54px;
+  width: var(--ct-avatar-lg); /* 56px → closest token; ratio 4:3 préservé */
+  height: 54px; /* ratio 4:3 de la vignette — pas de token aspect-ratio */
   border-radius: var(--ct-radius-sm);
   overflow: hidden;
   cursor: pointer;
@@ -106,12 +140,12 @@
   position: absolute;
   top: var(--ct-space-3xs);
   right: var(--ct-space-3xs);
-  background: rgba(0,0,0,0.7);
+  background: var(--ct-overlay-scrim);
   color: var(--ct-text-strong);
   border: none;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
+  width: var(--ct-icon-sm);
+  height: var(--ct-icon-sm);
   font-size: var(--ct-fs-2xs);
   cursor: pointer;
   display: flex;
@@ -126,7 +160,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 80px;
+  min-height: var(--ct-space-xl);
   border: 1px dashed var(--ct-border);
   border-radius: var(--ct-radius-md);
   cursor: pointer;
@@ -150,7 +184,7 @@
   font-weight: var(--ct-fw-bold);
   font-size: var(--ct-fs-md);
   color: var(--ct-text-strong);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  text-shadow: 0 1px 2px color-mix(in srgb, black 40%, transparent);
 }
 /* ─── Form helpers ─────────────────────────────────────────────────────── */
 .ct-form-fieldset {
@@ -186,8 +220,8 @@
   color: var(--ct-text-body);
 }
 .ct-form-checkbox input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
+  width: var(--ct-icon-xs);
+  height: var(--ct-icon-xs);
   accent-color: var(--ct-accent);
   cursor: pointer;
 }

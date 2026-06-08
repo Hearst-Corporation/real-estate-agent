@@ -38,6 +38,7 @@ import {
   pointMortPrix,
 } from './scenarios';
 import { projectionTresorerie } from './cashflow-projection';
+import { LTV_THRESHOLDS } from '@/lib/invest/constants';
 
 /** Construit des segments avec part = valeur / total (sécurisé). */
 function segments(
@@ -293,7 +294,7 @@ export function buildLtvGauge(metrics: DealMetrics): ChartLtvGauge {
     type: 'gauge',
     titre: 'LTV (dette / valeur)',
     valeur: metrics.ltv,
-    seuils: { vert: 0.6, orange: 0.7, rouge: 0.8 },
+    seuils: LTV_THRESHOLDS,
     interpretation:
       'Coussin avant que la dette ne dépasse la valeur. Seuils d’alerte : 60 % (vert), 70 % (orange), 80 % (rouge).',
   };

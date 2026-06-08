@@ -7,9 +7,9 @@ import type { ChartRisque } from "@/lib/invest/finance";
 
 const SIZE = 180;
 const C = SIZE / 2;
-const R = 74;
+const R = 74; // rayon SVG relatif à SIZE (74 / 90 ≈ 82% du demi-espace)
 const MAX = 5;
-const RINGS = 5;
+const RINGS = MAX;
 
 /** Coordonnée d'un sommet : axe i sur n, à un rayon fractionnaire f∈[0,1]. */
 function vertex(i: number, n: number, f: number): { x: number; y: number } {

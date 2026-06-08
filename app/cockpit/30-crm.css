@@ -1,5 +1,18 @@
 /* ─── CRM ─── */
 
+/* 0. Utilitaires de détail (remplacent des inline styles tokenisés des pages [id]) */
+.crm-detail-meta { font-size: var(--ct-fs-sm); color: var(--ct-text-muted); }
+.crm-detail-meta-row { display: flex; align-items: center; gap: var(--ct-space-xs); flex-wrap: wrap; }
+.crm-list-grow { flex: 1; min-width: 0; }
+.crm-dl-mt-xs { margin-top: var(--ct-space-xs); }
+.crm-dl-mt-sm { margin-top: var(--ct-space-sm); }
+.crm-tag-cluster { margin-top: var(--ct-space-xs); display: flex; gap: var(--ct-space-xs); flex-wrap: wrap; }
+.crm-header-tighten { margin-top: calc(-1 * var(--ct-space-sm)); }
+.crm-badge-spaced { margin-left: var(--ct-space-xs); }
+.crm-notes-block { margin-top: var(--ct-space-md); padding-top: var(--ct-space-sm); border-top: 1px solid var(--ct-border-soft); }
+.crm-notes-label { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); margin-bottom: var(--ct-space-2xs); }
+.crm-notes-body { font-size: var(--ct-fs-sm); color: var(--ct-text-body); }
+
 /* 1. Grille responsive de cards */
 .crm-grid {
   display: grid;
@@ -64,7 +77,103 @@
   letter-spacing: var(--ct-ls-tight);
 }
 
-/* 4. Kanban — layout horizontal scrollable */
+/* 3b. Carte kanban « média » — variante compacte avec photo de couverture.
+   (Ces classes étaient rendues par PropertyKanban sans aucun style → cartes difformes.) */
+.crm-card-pad0 {
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+}
+.crm-card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: var(--ct-surface-3);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.crm-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.crm-card-media-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--ct-space-sm);
+  background:
+    radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--ct-accent-strong) 8%, transparent), transparent 60%),
+    var(--ct-surface-2);
+}
+.crm-card-media-empty .ct-subtext {
+  font-size: var(--ct-fs-2xs);
+  line-height: var(--ct-lh-snug);
+  color: var(--ct-text-faint);
+}
+.crm-card-media-badge {
+  position: absolute;
+  top: var(--ct-space-2xs);
+  left: var(--ct-space-2xs);
+  z-index: var(--ct-z-raised);
+}
+.crm-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-2xs);
+  padding: var(--ct-space-sm);
+  min-width: 0;
+}
+.crm-card-head-tight { gap: var(--ct-space-2xs); }
+.crm-card-meta-tight { gap: var(--ct-space-2xs); margin-top: var(--ct-space-3xs); }
+.crm-card-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ct-space-3xs);
+  min-width: 0;
+}
+.crm-card-loc svg { flex-shrink: 0; }
+.crm-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ct-space-xs);
+  margin-top: var(--ct-space-xs);
+}
+.crm-card-actions { flex-shrink: 0; }
+.crm-card-link-sm {
+  padding: var(--ct-space-3xs) var(--ct-space-sm);
+  font-size: var(--ct-fs-2xs);
+}
+
+/* 4. Kanban — layout horizontal scrollable.
+   Le panneau de vue est une colonne flex ; le wrap a une hauteur EXPLICITE
+   (et non flex:1, qui s'effondre à 0 dans un parent scrollable comme PageStack).
+   Les colonnes scrollent verticalement à l'intérieur de cette hauteur. */
+.crm-view-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.crm-kanban-wrap {
+  display: flex;
+  flex-direction: column;
+  /* hauteur de travail du board : ~viewport moins l'en-tête de page + les charts.
+     clamp garantit un minimum lisible sur petits écrans et un plafond raisonnable.
+     flex-shrink:0 empêche le parent flex-column (crm-view-panel) de l'écraser à 0. */
+  height: clamp(420px, 62vh, 780px);
+  flex-shrink: 0;
+  min-height: 0;
+}
+.crm-kanban-error {
+  font-size: var(--ct-fs-sm);
+  color: var(--ct-text-danger);
+  padding: var(--ct-space-sm) 0;
+}
 .crm-kanban {
   display: flex;
   flex-direction: row;
@@ -269,6 +378,10 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
   margin-bottom: var(--ct-space-md);
   flex-wrap: wrap;
 }
+/* Toolbar du board kanban : ne doit pas rétrécir (sinon comprimée par le wrap à hauteur fixe). */
+.crm-toolbar-shrink { flex-shrink: 0; margin-bottom: var(--ct-space-sm); }
+/* Groupe d'actions dans l'en-tête d'une page de détail (boutons alignés). */
+.crm-detail-header-actions { display: flex; align-items: center; gap: var(--ct-space-xs); flex-wrap: wrap; }
 
 /* ── est-listing-table ── */
 .est-listing-table-wrap {
@@ -318,7 +431,7 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
   position: fixed; inset: 0; z-index: var(--ct-z-overlay);
   display: flex; align-items: flex-start; justify-content: center;
   padding: var(--ct-space-xl) var(--ct-space-md);
-  background: rgba(0,0,0,0.55);
+  background: var(--ct-overlay-scrim);
   backdrop-filter: blur(var(--ct-overlay-blur)); -webkit-backdrop-filter: blur(var(--ct-overlay-blur));
   overflow-y: auto;
 }
@@ -403,4 +516,249 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
 .crm-agenda-info { display: flex; flex-direction: column; gap: var(--ct-space-2xs); flex: 1; min-width: 0; }
 .crm-agenda-property { font-size: var(--ct-fs-base); font-weight: var(--ct-fw-semibold); color: var(--ct-text-primary); }
 .crm-agenda-lead { font-size: var(--ct-fs-xs); color: var(--ct-text-muted); }
+
+/* ─── Fiche bien PREMIUM ──────────────────────────────────────────────────── */
+
+/* Hero prix — bandeau au-dessus de la galerie */
+.crm-detail-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-xs);
+  padding: var(--ct-space-md) 0 var(--ct-space-lg);
+}
+.crm-detail-hero-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ct-space-md);
+  flex-wrap: wrap;
+}
+.crm-detail-hero-price {
+  font-size: var(--ct-fs-3xl);
+  font-weight: var(--ct-fw-black);
+  color: var(--ct-accent-strong);
+  letter-spacing: var(--ct-ls-tight);
+  line-height: var(--ct-lh-none);
+}
+.crm-detail-hero-sqm {
+  font-size: var(--ct-fs-lg);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-muted);
+  letter-spacing: var(--ct-ls-tight);
+}
+.crm-detail-hero-chips {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--ct-space-2xs);
+}
+.crm-detail-hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ct-space-2xs);
+  padding: var(--ct-space-2xs) var(--ct-space-sm);
+  border-radius: var(--ct-radius-pill);
+  background: var(--ct-surface-3);
+  border: 1px solid var(--ct-border);
+  font-size: var(--ct-fs-sm);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-primary);
+  white-space: nowrap;
+}
+.crm-detail-hero-chip-icon {
+  font-size: var(--ct-fs-sm);
+  line-height: var(--ct-lh-none);
+  color: var(--ct-text-muted);
+}
+.crm-detail-hero-days {
+  font-size: var(--ct-fs-xs);
+  color: var(--ct-text-muted);
+  margin-top: var(--ct-space-2xs);
+}
+
+/* Grille caractéristiques — 2 colonnes régulières */
+.crm-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ct-space-xs) var(--ct-space-lg);
+}
+@media (max-width: 480px) {
+  .crm-detail-grid { grid-template-columns: 1fr; }
+}
+.crm-detail-grid-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-3xs);
+  padding: var(--ct-space-xs) 0;
+  border-bottom: 1px solid var(--ct-border-soft);
+}
+.crm-detail-grid-label {
+  font-size: var(--ct-fs-xs);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--ct-ls-wide);
+}
+.crm-detail-grid-value {
+  font-size: var(--ct-fs-base);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-primary);
+  line-height: var(--ct-lh-snug);
+}
+.crm-detail-grid-value-accent {
+  font-size: var(--ct-fs-md);
+  font-weight: var(--ct-fw-bold);
+  color: var(--ct-accent-strong);
+}
+
+/* Équipements — pills icon + label */
+.crm-detail-equip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ct-space-xs);
+}
+.crm-detail-equip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ct-space-2xs);
+  padding: var(--ct-space-2xs) var(--ct-space-sm);
+  border-radius: var(--ct-radius-pill);
+  background: var(--ct-surface-success);
+  border: 1px solid color-mix(in srgb, var(--ct-success) 25%, transparent);
+  font-size: var(--ct-fs-sm);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-success);
+}
+.crm-detail-equip-pill-icon {
+  font-size: var(--ct-fs-sm);
+  line-height: var(--ct-lh-none);
+}
+
+/* DPE section premium */
+.crm-dpe-premium {
+  display: flex;
+  gap: var(--ct-space-xl);
+  align-items: center;
+  flex-wrap: wrap;
+  padding: var(--ct-space-sm) 0;
+}
+.crm-dpe-premium-item {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-md);
+}
+.crm-dpe-premium-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-3xs);
+}
+.crm-dpe-premium-label {
+  font-size: var(--ct-fs-xs);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--ct-ls-wide);
+}
+.crm-dpe-premium-desc {
+  font-size: var(--ct-fs-sm);
+  color: var(--ct-text-body);
+}
+
+/* Localisation — adresse en bloc */
+.crm-detail-location {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-2xs);
+}
+.crm-detail-location-address {
+  font-size: var(--ct-fs-md);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-primary);
+}
+.crm-detail-location-city {
+  font-size: var(--ct-fs-base);
+  color: var(--ct-text-muted);
+}
+.crm-detail-location-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ct-space-2xs);
+  margin-top: var(--ct-space-xs);
+  font-size: var(--ct-fs-sm);
+  color: var(--ct-accent);
+  text-decoration: none;
+}
+.crm-detail-location-link:hover { text-decoration: underline; }
+
+/* Notes — zone lecture */
+.crm-detail-notes {
+  font-size: var(--ct-fs-base);
+  color: var(--ct-text-body);
+  line-height: var(--ct-lh-relaxed);
+  white-space: pre-wrap;
+}
+
+/* Galerie — override hero taille */
+.crm-gallery-hero .property-gallery-main {
+  aspect-ratio: 16 / 7;
+  max-height: 420px;
+}
+
+/* Leads / visites — listes liées (reset <ul> sans inline style) */
+.crm-related-list { list-style: none; margin: 0; padding: 0; }
+/* Leads / visites — rows enrichies */
+.crm-related-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-sm);
+  padding: var(--ct-space-sm) 0;
+  border-bottom: 1px solid var(--ct-border-soft);
+}
+.crm-related-row:last-child { border-bottom: none; }
+.crm-related-primary {
+  font-size: var(--ct-fs-base);
+  font-weight: var(--ct-fw-semibold);
+  color: var(--ct-text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crm-related-secondary {
+  font-size: var(--ct-fs-xs);
+  color: var(--ct-text-muted);
+  white-space: nowrap;
+}
+.crm-related-badges {
+  display: flex;
+  gap: var(--ct-space-2xs);
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Section meta enrichie (au-dessus galerie) */
+.crm-detail-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-md);
+  flex-wrap: wrap;
+  padding: var(--ct-space-2xs) 0 var(--ct-space-sm);
+  border-bottom: 1px solid var(--ct-border-soft);
+  margin-bottom: var(--ct-space-md);
+}
+.crm-detail-meta-bar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-2xs);
+  font-size: var(--ct-fs-sm);
+  color: var(--ct-text-muted);
+}
+.crm-detail-meta-bar-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--ct-border);
+  flex-shrink: 0;
+}
 

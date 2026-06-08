@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { PageHeader, PageStack } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import RunReport from "@/components/swarms/RunReport";
 
@@ -21,20 +22,24 @@ export default function RunDetailPage({
   }
 
   return (
-    <>
-      <p className="ct-eyebrow">
-        <Link href="/swarms" className="swarm-crumb">
-          {UI.nav.swarms}
-        </Link>
-        {" / "}
-        <Link href={`/swarms/${ids.id}`} className="swarm-crumb">
-          {UI.swarms.backToSwarm}
-        </Link>
-        {" / "}
-        {UI.swarms.runBreadcrumb}
-      </p>
-      <h1 className="ct-title swarm-run-page-title">{UI.swarms.runTitle}</h1>
+    <PageStack>
+      <PageHeader
+        kicker={
+          <>
+            <Link href="/swarms" className="swarm-crumb">
+              {UI.nav.swarms}
+            </Link>
+            {" / "}
+            <Link href={`/swarms/${ids.id}`} className="swarm-crumb">
+              {UI.swarms.backToSwarm}
+            </Link>
+            {" / "}
+            {UI.swarms.runBreadcrumb}
+          </>
+        }
+        title={UI.swarms.runTitle}
+      />
       <RunReport swarmId={ids.id} runId={ids.runId} />
-    </>
+    </PageStack>
   );
 }

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Eyebrow, Title, Sub, Card, Badge } from "@/components/cockpit/primitives";
+import { PageHeader, Sub, Card, Badge } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateTimeFr, dateFr, daysSince } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
@@ -64,6 +64,7 @@ export default async function PropertyDetailPage({
 }) {
   const { id } = await params;
   const t = UI.properties;
+  const td = UI.properties.detail;
   const tLeads = UI.leads;
   const tVisits = UI.visits;
   const tMandates = UI.mandates;
@@ -130,21 +131,52 @@ export default async function PropertyDetailPage({
   if (!property) notFound();
 
   const displayPrice = property.asking_price ?? property.estimated_value;
+  const pricePerSqm =
+    displayPrice != null && property.surface != null && property.surface > 0
+      ? Math.round(displayPrice / property.surface)
+      : null;
 
   // Calcul jours au portefeuille
   const daysOnMarket = daysSince(property.created_at);
 
   const photoList = ((photosResult as { data: PhotoRow[] | null }).data ?? []);
 
+  // Équipements présents
+  type EquipItem = { key: string; icon: string; label: string };
+  const equipItems: EquipItem[] = [
+    property.has_elevator ? { key: "elevator", icon: "⬆", label: td.equipElevator } : null,
+    property.has_parking
+      ? {
+          key: "parking",
+          icon: "🅿",
+          label:
+            property.parking_count != null
+              ? `${td.equipParking} · ${td.gridParkingPlaces(property.parking_count)}`
+              : td.equipParking,
+        }
+      : null,
+    property.has_garden ? { key: "garden", icon: "🌿", label: td.equipGarden } : null,
+    property.has_terrace ? { key: "terrace", icon: "☀", label: td.equipTerrace } : null,
+    property.has_pool ? { key: "pool", icon: "🏊", label: td.equipPool } : null,
+    property.cellar ? { key: "cellar", icon: "🗝", label: td.equipCellar } : null,
+  ].filter((x): x is EquipItem => x !== null);
+
+  // Lien Maps
+  const mapsQuery =
+    property.address && property.city
+      ? encodeURIComponent(`${property.address}, ${property.city} ${property.postal_code ?? ""}`)
+      : property.city
+      ? encodeURIComponent(`${property.city} ${property.postal_code ?? ""}`)
+      : null;
+
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-
-      {/* Header */}
-      <div className="crm-detail-header">
-        <div className="crm-detail-title-row">
-          <Title>{property.title ?? t.fallbackTitle}</Title>
-          <div style={{ display: "flex", gap: "var(--ct-space-xs)", alignItems: "center", flexWrap: "wrap" }}>
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <PageHeader
+        kicker={t.eyebrow}
+        title={property.title ?? t.fallbackTitle}
+        action={
+          <>
             <PropertyStatusControl
               id={id}
               currentStatus={property.status}
@@ -182,129 +214,267 @@ export default async function PropertyDetailPage({
               }}
               triggerLabel={t.editBtn}
             />
-          </div>
-        </div>
-        {property.city && <Sub>{property.city}{property.postal_code ? ` (${property.postal_code})` : ""}</Sub>}
+          </>
+        }
+      />
+
+      {/* ── Hero prix ─────────────────────────────────────────────────────── */}
+      <div className="crm-detail-hero">
         {displayPrice != null && (
-          <p className="crm-detail-price">{eur(displayPrice)}</p>
+          <div className="crm-detail-hero-price-row">
+            <span className="crm-detail-hero-price">{eur(displayPrice)}</span>
+            {pricePerSqm != null && (
+              <span className="crm-detail-hero-sqm">
+                {td.pricePerSqm(eur(pricePerSqm))}
+              </span>
+            )}
+          </div>
         )}
+
+        {/* Chips résumé — type · surface · pièces · chambres · étage · DPE */}
+        <div className="crm-detail-hero-chips">
+          {property.property_type && (
+            <span className="crm-detail-hero-chip">
+              <span className="crm-detail-hero-chip-icon">🏠</span>
+              {t.typeLabels[property.property_type] ?? property.property_type}
+            </span>
+          )}
+          {property.surface != null && (
+            <span className="crm-detail-hero-chip">
+              <span className="crm-detail-hero-chip-icon">📐</span>
+              {sqm(property.surface)}
+            </span>
+          )}
+          {property.rooms != null && (
+            <span className="crm-detail-hero-chip">
+              <span className="crm-detail-hero-chip-icon">🚪</span>
+              {td.chipRooms(property.rooms)}
+            </span>
+          )}
+          {property.bedrooms != null && (
+            <span className="crm-detail-hero-chip">
+              <span className="crm-detail-hero-chip-icon">🛏</span>
+              {td.chipBedrooms(property.bedrooms)}
+            </span>
+          )}
+          {property.floor != null && (
+            <span className="crm-detail-hero-chip">
+              <span className="crm-detail-hero-chip-icon">🏢</span>
+              {td.chipFloor(property.floor, property.floor_total)}
+            </span>
+          )}
+          {property.dpe_letter && (
+            <span className="crm-detail-hero-chip">
+              <span className="crm-detail-hero-chip-icon">⚡</span>
+              {"DPE "}{property.dpe_letter}
+            </span>
+          )}
+          {property.city && (
+            <span className="crm-detail-hero-chip">
+              <span className="crm-detail-hero-chip-icon">📍</span>
+              {property.city}
+              {property.postal_code ? ` ${property.postal_code}` : ""}
+            </span>
+          )}
+        </div>
+
         {daysOnMarket !== null && (
-          <p style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)", marginTop: "var(--ct-space-2xs)" }}>
-            {t.daysOnMarket(daysOnMarket)}
-          </p>
+          <span className="crm-detail-hero-days">{t.daysOnMarket(daysOnMarket)}</span>
         )}
       </div>
 
-      {/* Photos */}
-      <Card title={t.photos.title}>
-        <PhotoGallery photos={photoList} propertyId={id} />
-        <div style={{ marginTop: "var(--ct-space-sm)" }}>
+      {/* ── Photos ────────────────────────────────────────────────────────── */}
+      <Card title={td.cardPhotos}>
+        <div className="crm-gallery-hero">
+          <PhotoGallery photos={photoList} propertyId={id} />
+        </div>
+        <div className="ct-mt-sm">
           <PhotoUploader propertyId={id} />
         </div>
       </Card>
 
-      {/* Caractéristiques */}
-      <Card title={t.cardCaracteristiques}>
-        <dl className="crm-detail-dl">
-          {property.property_type && (
-            <><dt>{t.fields.type}</dt><dd>{t.typeLabels[property.property_type] ?? property.property_type}</dd></>
-          )}
+      {/* ── Caractéristiques ─────────────────────────────────────────────── */}
+      <Card title={td.cardCaracteristiques}>
+        <div className="crm-detail-grid">
           {property.surface != null && (
-            <><dt>{t.fields.surface}</dt><dd>{sqm(property.surface)}</dd></>
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{t.fields.surface}</span>
+              <span className="crm-detail-grid-value-accent">{sqm(property.surface)}</span>
+            </div>
+          )}
+          {displayPrice != null && (
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">
+                {property.asking_price != null
+                  ? td.priceType.asking
+                  : td.priceType.estimated}
+              </span>
+              <span className="crm-detail-grid-value-accent">{eur(displayPrice)}</span>
+            </div>
+          )}
+          {pricePerSqm != null && (
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{"Prix / m²"}</span>
+              <span className="crm-detail-grid-value">{eur(pricePerSqm)}</span>
+            </div>
           )}
           {property.rooms != null && (
-            <><dt>{t.fields.rooms}</dt><dd>{property.rooms}</dd></>
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{t.fields.rooms}</span>
+              <span className="crm-detail-grid-value">{property.rooms}</span>
+            </div>
           )}
           {property.bedrooms != null && (
-            <><dt>{t.fields.bedrooms}</dt><dd>{property.bedrooms}</dd></>
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{t.fields.bedrooms}</span>
+              <span className="crm-detail-grid-value">{property.bedrooms}</span>
+            </div>
           )}
-          {property.address && (
-            <><dt>{t.fields.address}</dt><dd>{property.address}</dd></>
+          {property.floor != null && (
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{t.enrichissement.floor}</span>
+              <span className="crm-detail-grid-value">
+                {property.floor}
+                {property.floor_total != null ? ` / ${property.floor_total}` : ""}
+              </span>
+            </div>
           )}
-          {property.postal_code && (
-            <><dt>{t.fields.postalCode}</dt><dd>{property.postal_code}</dd></>
+          {property.year_built != null && (
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{td.gridYearBuilt}</span>
+              <span className="crm-detail-grid-value">{property.year_built}</span>
+            </div>
+          )}
+          {property.orientation && (
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{td.gridOrientation}</span>
+              <span className="crm-detail-grid-value">{property.orientation}</span>
+            </div>
+          )}
+          {property.charges_monthly != null && (
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{td.gridCharges}</span>
+              <span className="crm-detail-grid-value">
+                {eur(property.charges_monthly)}{" "}{td.gridChargesSuffix}
+              </span>
+            </div>
+          )}
+          {property.taxe_fonciere != null && (
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{td.gridTaxe}</span>
+              <span className="crm-detail-grid-value">
+                {eur(property.taxe_fonciere)}{" "}{td.gridTaxeSuffix}
+              </span>
+            </div>
           )}
           {property.estimation_id && (
-            <><dt>{t.fields.estimation}</dt>
-            <dd><Link href={`/estimations/${property.estimation_id}`} className="crm-link">{t.seeEstimation}</Link></dd></>
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{t.fields.estimation}</span>
+              <span className="crm-detail-grid-value">
+                <Link href={`/estimations/${property.estimation_id}`} className="crm-link">
+                  {t.seeEstimation}
+                </Link>
+              </span>
+            </div>
           )}
           {property.updated_at && (
-            <><dt>Dernière modif.</dt><dd>{dateFr(property.updated_at)}</dd></>
+            <div className="crm-detail-grid-item">
+              <span className="crm-detail-grid-label">{td.gridUpdated}</span>
+              <span className="crm-detail-grid-value">{dateFr(property.updated_at)}</span>
+            </div>
           )}
-        </dl>
+        </div>
       </Card>
 
-      {/* DPE / GES */}
-      {(property.dpe_letter || property.ges_letter) && (
-        <Card title={t.dpe.title}>
-          <div style={{ display: "flex", gap: "var(--ct-space-lg)", alignItems: "center", flexWrap: "wrap" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ct-space-xs)" }}>
-              <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{t.dpe.label}</span>
-              <DpeBadge letter={property.dpe_letter} label={t.dpe.label} />
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ct-space-xs)" }}>
-              <span style={{ fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" }}>{t.dpe.gesLabel}</span>
-              <DpeBadge letter={property.ges_letter} label={t.dpe.gesLabel} />
-            </div>
+      {/* ── Équipements ──────────────────────────────────────────────────── */}
+      {equipItems.length > 0 && (
+        <Card title={td.cardEquipements}>
+          <div className="crm-detail-equip-grid">
+            {equipItems.map((eq) => (
+              <span key={eq.key} className="crm-detail-equip-pill">
+                <span className="crm-detail-equip-pill-icon">{eq.icon}</span>
+                {eq.label}
+              </span>
+            ))}
           </div>
         </Card>
       )}
 
-      {/* Enrichissement */}
-      {(property.year_built != null || property.floor != null || property.charges_monthly != null ||
-        property.has_elevator || property.has_parking || property.has_garden || property.has_terrace ||
-        property.has_pool || property.cellar) && (
-        <Card title={t.enrichissement.title}>
-          <dl className="crm-detail-dl">
-            {property.year_built != null && (
-              <><dt>{t.enrichissement.yearBuilt}</dt><dd>{property.year_built}</dd></>
+      {/* ── Localisation ─────────────────────────────────────────────────── */}
+      {(property.address || property.city) && (
+        <Card title={td.cardLocalisation}>
+          <div className="crm-detail-location">
+            {property.address && (
+              <span className="crm-detail-location-address">{property.address}</span>
             )}
-            {property.floor != null && (
-              <><dt>{t.enrichissement.floor}</dt>
-              <dd>{property.floor}{property.floor_total != null ? ` / ${property.floor_total}` : ""}</dd></>
+            {property.city && (
+              <span className="crm-detail-location-city">
+                {[property.postal_code, property.city].filter(Boolean).join(" ")}
+              </span>
             )}
-            {property.orientation && (
-              <><dt>{t.enrichissement.orientation}</dt><dd>{property.orientation}</dd></>
+            {mapsQuery && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="crm-detail-location-link"
+              >
+                <span>{"📍"}</span>
+                {td.locMapsLink}
+              </a>
             )}
-            {property.charges_monthly != null && (
-              <><dt>{t.enrichissement.charges}</dt><dd>{eur(property.charges_monthly)} / mois</dd></>
-            )}
-            {property.taxe_fonciere != null && (
-              <><dt>{t.enrichissement.taxeFonciere}</dt><dd>{eur(property.taxe_fonciere)} / an</dd></>
-            )}
-            {property.has_elevator && (
-              <><dt>{t.enrichissement.elevator}</dt><dd>{t.enrichissement.yes}</dd></>
-            )}
-            {property.has_parking && (
-              <><dt>{t.enrichissement.parking}</dt>
-              <dd>{t.enrichissement.yes}{property.parking_count != null ? ` (${property.parking_count} place${property.parking_count > 1 ? "s" : ""})` : ""}</dd></>
-            )}
-            {property.has_garden && (
-              <><dt>{t.enrichissement.garden}</dt><dd>{t.enrichissement.yes}</dd></>
-            )}
-            {property.has_terrace && (
-              <><dt>{t.enrichissement.terrace}</dt><dd>{t.enrichissement.yes}</dd></>
-            )}
-            {property.has_pool && (
-              <><dt>{t.enrichissement.pool}</dt><dd>{t.enrichissement.yes}</dd></>
-            )}
-            {property.cellar && (
-              <><dt>{t.enrichissement.cellar}</dt><dd>{t.enrichissement.yes}</dd></>
-            )}
-          </dl>
+          </div>
         </Card>
       )}
 
-      {/* Leads */}
-      <Card title={tLeads.cardTitle}>
+      {/* ── DPE / GES ────────────────────────────────────────────────────── */}
+      {(property.dpe_letter || property.ges_letter) && (
+        <Card title={td.cardDpe}>
+          <div className="crm-dpe-premium">
+            {property.dpe_letter && (
+              <div className="crm-dpe-premium-item">
+                <DpeBadge letter={property.dpe_letter} label={t.dpe.label} />
+                <div className="crm-dpe-premium-info">
+                  <span className="crm-dpe-premium-label">{t.dpe.label}</span>
+                  <span className="crm-dpe-premium-desc">{td.dpeNote(property.dpe_letter)}</span>
+                </div>
+              </div>
+            )}
+            {property.ges_letter && (
+              <div className="crm-dpe-premium-item">
+                <DpeBadge letter={property.ges_letter} label={t.dpe.gesLabel} />
+                <div className="crm-dpe-premium-info">
+                  <span className="crm-dpe-premium-label">{t.dpe.gesLabel}</span>
+                  <span className="crm-dpe-premium-desc">{td.gesNote(property.ges_letter)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* ── Notes internes ───────────────────────────────────────────────── */}
+      <Card title={td.cardNotes}>
+        {property.notes ? (
+          <p className="crm-detail-notes">{property.notes}</p>
+        ) : (
+          <p className="ct-placeholder">{td.notesEmpty}</p>
+        )}
+      </Card>
+
+      {/* ── Leads ────────────────────────────────────────────────────────── */}
+      <Card title={td.cardLeads}>
         {leads && leads.length > 0 ? (
-          <ul className="crm-list">
+          <ul className="crm-related-list">
             {leads.map((lead) => (
-              <li key={lead.id} className="crm-list-row">
-                <span className="crm-list-name">{lead.full_name}</span>
-                <Badge>{tLeads.kindLabels[lead.kind] ?? lead.kind}</Badge>
+              <li key={lead.id} className="crm-related-row">
+                <span className="crm-related-primary">{lead.full_name}</span>
+                <div className="crm-related-badges">
+                  <Badge>{tLeads.kindLabels[lead.kind] ?? lead.kind}</Badge>
+                  <Badge>{tLeads.statusLabels[lead.status] ?? lead.status}</Badge>
+                </div>
                 {(lead.budget_min != null || lead.budget_max != null) && (
-                  <span className="crm-list-meta">
+                  <span className="crm-related-secondary">
                     {lead.budget_min != null ? eur(lead.budget_min) : ""}
                     {lead.budget_min != null && lead.budget_max != null ? " – " : ""}
                     {lead.budget_max != null ? eur(lead.budget_max) : ""}
@@ -314,49 +484,55 @@ export default async function PropertyDetailPage({
             ))}
           </ul>
         ) : (
-          <p className="ct-placeholder">{tLeads.empty}</p>
+          <p className="ct-placeholder">{td.leadsEmpty}</p>
         )}
         <div className="crm-card-footer">
-          <Link href="/leads" className="crm-link">{tLeads.seeAll}</Link>
+          <Link href="/leads" className="crm-link">{td.seeAllLeads}</Link>
         </div>
       </Card>
 
-      {/* Visites */}
-      <Card title={tVisits.cardTitle}>
+      {/* ── Visites ──────────────────────────────────────────────────────── */}
+      <Card title={td.cardVisites}>
         {visits && visits.length > 0 ? (
-          <ul className="crm-list">
+          <ul className="crm-related-list">
             {visits.map((visit) => (
-              <li key={visit.id} className="crm-list-row">
-                <span className="crm-list-name">{dateTimeFr(visit.scheduled_at)}</span>
-                <Badge>{tVisits.statusLabels[visit.status] ?? visit.status}</Badge>
+              <li key={visit.id} className="crm-related-row">
+                <span className="crm-related-primary">{dateTimeFr(visit.scheduled_at)}</span>
+                <div className="crm-related-badges">
+                  <Badge>{tVisits.statusLabels[visit.status] ?? visit.status}</Badge>
+                </div>
                 {visit.duration_min > 0 && (
-                  <span className="crm-list-meta">{visit.duration_min} min</span>
+                  <span className="crm-related-secondary">{td.visitDuration(visit.duration_min)}</span>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="ct-placeholder">{tVisits.empty}</p>
+          <p className="ct-placeholder">{td.visitsEmpty}</p>
         )}
       </Card>
 
-      {/* Mandats */}
-      <Card title={tMandates.cardTitle}>
+      {/* ── Mandats ──────────────────────────────────────────────────────── */}
+      <Card title={td.cardMandats}>
         {mandates && mandates.length > 0 ? (
-          <ul className="crm-list">
+          <ul className="crm-related-list">
             {mandates.map((mandate) => (
-              <li key={mandate.id} className="crm-list-row">
-                <span className="crm-list-name">{mandate.reference ?? tMandates.noReference}</span>
-                <Badge>{tMandates.statusLabels[mandate.status] ?? mandate.status}</Badge>
-                <Badge>{tMandates.kindLabels[mandate.kind] ?? mandate.kind}</Badge>
+              <li key={mandate.id} className="crm-related-row">
+                <span className="crm-related-primary">
+                  {mandate.reference ?? td.mandateRef}
+                </span>
+                <div className="crm-related-badges">
+                  <Badge>{tMandates.statusLabels[mandate.status] ?? mandate.status}</Badge>
+                  <Badge>{tMandates.kindLabels[mandate.kind] ?? mandate.kind}</Badge>
+                </div>
                 {mandate.commission_pct != null && (
-                  <span className="crm-list-meta">{mandate.commission_pct}%</span>
+                  <span className="crm-related-secondary">{td.commission(mandate.commission_pct)}</span>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="ct-placeholder">{tMandates.empty}</p>
+          <p className="ct-placeholder">{td.mandatesEmpty}</p>
         )}
       </Card>
     </>

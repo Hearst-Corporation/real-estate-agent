@@ -19,6 +19,7 @@ import { useCallback, useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { StatusPill, Banner, Toast, eur } from "@/components/invest";
+import { UI } from "@/lib/ui-strings";
 
 type SubStatus =
   | "reserved"
@@ -42,17 +43,6 @@ interface SubscriptionView {
   reservedAt: string;
 }
 
-const STATUS_LABEL: Record<SubStatus, string> = {
-  reserved: "Réservé (non engageant)",
-  signed: "Signé (eIDAS)",
-  funded: "Fonds en séquestre",
-  allocated: "Alloué au closing",
-  minted: "Token émis",
-  refunded: "Remboursé",
-  cancelled: "Annulé",
-  withdrawn: "Rétracté",
-};
-
 const STATUS_TONE: Record<SubStatus, "open" | "soon" | "funded" | "closed" | "neutral"> = {
   reserved: "soon",
   signed: "soon",
@@ -64,38 +54,7 @@ const STATUS_TONE: Record<SubStatus, "open" | "soon" | "funded" | "closed" | "ne
   withdrawn: "neutral",
 };
 
-const rowStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "var(--ct-space-md)",
-  padding: "var(--ct-space-md) var(--ct-space-lg)",
-  background: "var(--ct-surface-1)",
-  border: "1px solid var(--ct-border)",
-  borderRadius: "var(--ct-radius-lg)",
-  flexWrap: "wrap",
-};
 const actionsStyle: CSSProperties = { display: "flex", gap: "var(--ct-space-sm)", flexWrap: "wrap" };
-const primaryBtn: CSSProperties = {
-  padding: "var(--ct-space-xs) var(--ct-space-md)",
-  borderRadius: "var(--ct-radius-md)",
-  border: "1px solid var(--ct-border-accent)",
-  background: "var(--ct-accent-strong)",
-  color: "var(--ct-bg-deep)",
-  fontSize: "var(--ct-fs-sm)",
-  fontWeight: "var(--ct-fw-bold)",
-  cursor: "pointer",
-};
-const ghostBtn: CSSProperties = {
-  padding: "var(--ct-space-xs) var(--ct-space-md)",
-  borderRadius: "var(--ct-radius-md)",
-  border: "1px solid var(--ct-border)",
-  background: "transparent",
-  color: "var(--ct-text-body)",
-  fontSize: "var(--ct-fs-sm)",
-  fontWeight: "var(--ct-fw-bold)",
-  cursor: "pointer",
-};
 const metaStyle: CSSProperties = { fontSize: "var(--ct-fs-xs)", color: "var(--ct-text-muted)" };
 
 export function SubscriptionsList({ initial }: { initial: SubscriptionView[] }) {
@@ -148,6 +107,7 @@ export function SubscriptionsList({ initial }: { initial: SubscriptionView[] }) 
     return (
       <Banner tone="info">
         Aucune souscription pour le moment.{" "}
+        {/* "Parcourir les opportunités" : pas de clé UI.invest.subscribe.* exacte — string conservée */}
         <Link href="/invest">Parcourir les opportunités</Link> pour réserver une place — sans versement,
         révocable.
       </Banner>
@@ -155,16 +115,16 @@ export function SubscriptionsList({ initial }: { initial: SubscriptionView[] }) 
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-md)" }}>
+    <div className="inv-stack-md">
       {error ? <Toast tone="error">{error}</Toast> : null}
       {notice ? <Toast tone="success">{notice}</Toast> : null}
 
       {items.map((s) => {
         const busy = busyId === s.id;
         return (
-          <div key={s.id} style={rowStyle}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <StatusPill tone={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</StatusPill>
+          <div key={s.id} className="inv-subscription-row">
+            <div className="inv-stack-2xs">
+              <StatusPill tone={STATUS_TONE[s.status]}>{UI.invest.subscribe.status[s.status]}</StatusPill>
               <span style={metaStyle}>
                 {eur(s.amountEur)} {s.settlementCurrency} · {s.units} obligation(s)
                 {s.status === "funded" && s.coolingOffEndsAt
@@ -174,65 +134,68 @@ export function SubscriptionsList({ initial }: { initial: SubscriptionView[] }) 
             </div>
 
             <div style={actionsStyle}>
-              <Link href={`/invest`} style={ghostBtn}>
+              {/* "Voir le deal" : pas de clé UI.invest.subscribe.* exacte — string conservée */}
+              <Link href={`/invest`} className="inv-subscription-btn-ghost">
                 Voir le deal
               </Link>
 
               {s.status === "reserved" ? (
                 <button
-                  style={primaryBtn}
+                  className="inv-subscription-btn-primary"
                   type="button"
                   disabled={busy}
                   onClick={() =>
-                    act(s.id, `/api/invest/subscriptions/${s.id}/sign`, "Demande de signature envoyée.")
+                    act(s.id, `/api/invest/subscriptions/${s.id}/sign`, UI.invest.subscribe.notices.signUrl)
                   }
                 >
-                  {busy ? "…" : "Signer (eIDAS)"}
+                  {busy ? "…" : UI.invest.subscribe.signBtn}
                 </button>
               ) : null}
 
               {s.status === "signed" ? (
                 <button
-                  style={primaryBtn}
+                  className="inv-subscription-btn-primary"
                   type="button"
                   disabled={busy}
                   onClick={() =>
                     act(
                       s.id,
                       `/api/invest/subscriptions/${s.id}/fund`,
-                      "Versement vers le séquestre tiers instruit. Délai de rétractation de 4 jours activé.",
+                      UI.invest.subscribe.notices.funded,
                     )
                   }
                 >
-                  {busy ? "…" : "Verser (séquestre tiers)"}
+                  {busy ? "…" : UI.invest.subscribe.fundBtn}
                 </button>
               ) : null}
 
               {s.status === "reserved" || s.status === "signed" ? (
                 <button
-                  style={ghostBtn}
+                  className="inv-subscription-btn-ghost"
                   type="button"
                   disabled={busy}
-                  onClick={() => act(s.id, `/api/invest/subscriptions/${s.id}/cancel`, "Souscription annulée.")}
+                  onClick={() => act(s.id, `/api/invest/subscriptions/${s.id}/cancel`, UI.invest.subscribe.notices.cancelled)}
                 >
-                  Annuler
+                  {UI.invest.subscribe.cancelSubBtn}
                 </button>
               ) : null}
 
               {s.status === "funded" && s.withinCoolingOff ? (
                 <button
-                  style={ghostBtn}
+                  className="inv-subscription-btn-ghost"
                   type="button"
                   disabled={busy}
                   onClick={() =>
                     act(
                       s.id,
                       `/api/invest/subscriptions/${s.id}/cancel`,
+                      /* "Rétractation enregistrée. Remboursement intégral depuis le séquestre tiers." :
+                         pas de clé exacte — withdrawBtn utilisé comme label bouton, notice conservée */
                       "Rétractation enregistrée. Remboursement intégral depuis le séquestre tiers.",
                     )
                   }
                 >
-                  Me rétracter
+                  {UI.invest.subscribe.withdrawBtn}
                 </button>
               ) : null}
             </div>
@@ -241,6 +204,8 @@ export function SubscriptionsList({ initial }: { initial: SubscriptionView[] }) 
       })}
 
       <p style={metaStyle}>
+        {/* Disclaimer composite : UI.invest.subscribe.reserveNote + creditorNote couvrent partiellement
+            mais pas cette phrase exacte — conservée, pas de clé exacte */}
         La réservation est non engageante et sans versement. Les fonds transitent par un séquestre tiers
         (jamais la plateforme). Tout rendement est une cible non garantie ; risque de perte en capital.
       </p>

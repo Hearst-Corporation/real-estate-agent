@@ -8,6 +8,7 @@
  * négative est rendue à hauteur minimale + libellée explicitement.
  */
 import type { ChartScenarios, ScenarioKey } from "@/lib/invest/finance";
+import { UI } from "@/lib/ui-strings";
 import { pct } from "./format";
 
 const CLASS: Record<ScenarioKey, string> = { pessimiste: "pess", central: "cent", optimiste: "opt" };
@@ -35,8 +36,8 @@ export function ScenarioBars({ chart }: { chart: ChartScenarios }) {
         <caption>{chart.titre}</caption>
         <thead>
           <tr>
-            <th scope="col">Scénario</th>
-            <th scope="col">TRI annualisé (cible, non garanti)</th>
+            <th scope="col">{UI.invest.charts.scenario}</th>
+            <th scope="col">{UI.invest.charts.scenarioTriCol}</th>
           </tr>
         </thead>
         <tbody>

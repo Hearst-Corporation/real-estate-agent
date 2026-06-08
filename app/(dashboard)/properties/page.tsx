@@ -89,7 +89,7 @@ export default async function PropertiesPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={TAB_GROUPS.crm} />}
+        nav={<PageNavTabs tabs={TAB_GROUPS.portefeuille} />}
         action={<PropertyFormModal />}
         kpis={[
           { label: t.kpis.total, value: String(total) },

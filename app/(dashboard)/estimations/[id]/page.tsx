@@ -10,6 +10,7 @@ import {
   nextFocusLabel,
 } from "@/lib/estimation/spec";
 import { InterviewView } from "@/app/(dashboard)/estimations/_components/InterviewView";
+import { SUGGESTIONS_MAX } from "@/lib/invest/constants";
 import type {
   PropertyData,
   FieldStatusMap,
@@ -72,7 +73,7 @@ export default async function EstimationDetailPage({
   const rawSuggestions = (lastAssistant?.tool_input as { suggestions?: unknown } | null)
     ?.suggestions;
   const persistedSuggestions = Array.isArray(rawSuggestions)
-    ? rawSuggestions.filter((s): s is string => typeof s === "string").slice(0, 12)
+    ? rawSuggestions.filter((s): s is string => typeof s === "string").slice(0, SUGGESTIONS_MAX)
     : [];
   const initialSuggestions =
     persistedSuggestions.length > 0

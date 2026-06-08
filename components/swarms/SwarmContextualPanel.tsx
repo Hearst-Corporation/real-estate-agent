@@ -35,16 +35,16 @@ export default function SwarmContextualPanel({ estimationId }: { estimationId: s
   }, []);
 
   if (loading) {
-    return <p className="ct-placeholder" style={{ fontSize: "var(--ct-fs-sm)" }}>{UI.swarms.contextualLoading}</p>;
+    return <p className="ct-placeholder ct-placeholder-sm">{UI.swarms.contextualLoading}</p>;
   }
 
   if (swarms.length === 0) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-xs)" }}>
-        <p className="ct-placeholder" style={{ fontSize: "var(--ct-fs-sm)" }}>
+      <div className="ct-stack-xs">
+        <p className="ct-placeholder ct-placeholder-sm">
           {error ?? UI.swarms.contextualEmpty}
         </p>
-        <Link href="/swarms/new" className="ct-btn ct-btn-secondary" style={{ display: "inline-block", textDecoration: "none", fontSize: "var(--ct-fs-sm)" }}>
+        <Link href="/swarms/new" className="ct-btn ct-btn-secondary ct-link-btn-sm">
           {UI.swarms.contextualCta}
         </Link>
       </div>
@@ -54,12 +54,11 @@ export default function SwarmContextualPanel({ estimationId }: { estimationId: s
   const selectedSwarm = swarms.find((s) => s.id === selectedId);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-sm)" }}>
+    <div className="ct-stack-sm">
       <select
-        className="crm-input"
+        className="crm-input ct-select-mb"
         value={selectedId}
         onChange={(e) => setSelectedId(e.target.value)}
-        style={{ marginBottom: "var(--ct-space-xs)" }}
       >
         {swarms.map((s) => (
           <option key={s.id} value={s.id}>

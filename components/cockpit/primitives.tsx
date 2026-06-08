@@ -12,15 +12,32 @@ export function Sub({ children }: { children: ReactNode }) {
   return <p className="ct-sub">{children}</p>;
 }
 
+/** H2 de section — titre lisible sous le H1 de page. */
+export function SectionTitle({ children, as: Tag = "h2" }: { children: ReactNode; as?: "h2" | "div" }) {
+  return <Tag className="ct-h2">{children}</Tag>;
+}
+
+/** H3 de sous-section. */
+export function SubsectionTitle({ children, as: Tag = "h3" }: { children: ReactNode; as?: "h3" | "div" }) {
+  return <Tag className="ct-h3">{children}</Tag>;
+}
+
+/** Meta secondaire (dates, heures, compteurs discrets). */
+export function Caption({ children, as: Tag = "p" }: { children: ReactNode; as?: "p" | "span" | "div" }) {
+  return <Tag className="ct-subtext">{children}</Tag>;
+}
+
 export function PageHeader({
   kicker,
   title,
+  meta,
   action,
   nav,
   kpis,
 }: {
   kicker?: ReactNode;
   title: ReactNode;
+  meta?: ReactNode;
   action?: ReactNode;
   nav?: ReactNode;
   kpis?: { label: string; value: ReactNode }[];
@@ -33,22 +50,25 @@ export function PageHeader({
             {kicker && <p className="ct-page-header-kicker">{kicker}</p>}
           </div>
           <h1 className="ct-title ct-page-header-title">{title}</h1>
+          {meta ? <div className="ct-page-header-meta">{meta}</div> : null}
         </div>
-        <div className="ct-page-header-action-track">
-          {action && <div>{action}</div>}
-        </div>
+        {action ? (
+          <div className="ct-page-header-action-track">
+            <div>{action}</div>
+          </div>
+        ) : null}
       </div>
 
-      <div className="ct-page-header-nav-track">
-        {nav && (
+      {nav ? (
+        <div className="ct-page-header-nav-track">
           <nav className="ct-page-header-nav">
             {nav}
           </nav>
-        )}
-      </div>
+        </div>
+      ) : null}
 
-      <div className="ct-page-header-kpis-track">
-        {kpis && kpis.length > 0 && (
+      {kpis && kpis.length > 0 ? (
+        <div className="ct-page-header-kpis-track">
           <div className="ct-page-header-kpis">
             {kpis.map((kpi, i) => (
               <div key={i} className="ct-page-header-kpi">
@@ -57,8 +77,8 @@ export function PageHeader({
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -77,11 +97,14 @@ export function InsightRail({ children }: { children: ReactNode }) {
 
 export function Card({
   title,
+  titleAs = "label",
   children,
   variant,
   className,
 }: {
   title?: string;
+  /** `label` = micro uppercase (défaut) · `section` = H2 de section lisible */
+  titleAs?: "label" | "section";
   children: ReactNode;
   variant?: "hero" | "chart" | "dense";
   className?: string;
@@ -91,7 +114,13 @@ export function Card({
     .join(" ");
   return (
     <section className={classes}>
-      {title ? <div className="ct-card-title">{title}</div> : null}
+      {title ? (
+        titleAs === "section" ? (
+          <SectionTitle as="div">{title}</SectionTitle>
+        ) : (
+          <div className="ct-card-title">{title}</div>
+        )
+      ) : null}
       <div className="ct-card-body">{children}</div>
     </section>
   );

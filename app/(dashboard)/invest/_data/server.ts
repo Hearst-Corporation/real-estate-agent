@@ -12,6 +12,7 @@
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { MS_PER_DAY } from "@/lib/ui/constants";
 import {
   supabaseDealStore,
   listDeals,
@@ -47,7 +48,7 @@ function joursRestants(closesAt: string | null): number | null {
   if (!closesAt) return null;
   const diff = new Date(closesAt).getTime() - Date.now();
   if (Number.isNaN(diff)) return null;
-  return Math.max(0, Math.ceil(diff / 86_400_000));
+  return Math.max(0, Math.ceil(diff / MS_PER_DAY));
 }
 
 /**

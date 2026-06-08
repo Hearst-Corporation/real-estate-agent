@@ -44,6 +44,10 @@ import type { DealSheet } from "@/lib/invest/finance";
 import { getDemoDeal, DEMO_DEALS } from "../_data/demo";
 import { fetchDealBySlug } from "../_data/server";
 import { SubscribePanel } from "./_components/SubscribePanel";
+import { PageStack, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { UI } from "@/lib/ui-strings";
+
+const di = UI.invest.dealDetail;
 
 export const dynamic = "force-dynamic";
 
@@ -99,14 +103,6 @@ interface FicheView {
   couponCentral: number;
 }
 
-const TYPE_LABEL: Record<string, string> = {
-  marchand_de_biens: "Marchand de biens",
-  promotion: "Promotion",
-  locatif: "Locatif",
-  value_add: "Value-add",
-  mixte: "Mixte",
-};
-
 // Pré-génère les routes de démo (SSG fallback) ; les deals DB sont dynamiques.
 export function generateStaticParams() {
   return DEMO_DEALS.map((d) => ({ deal: d.slug }));
@@ -135,7 +131,7 @@ export default async function DealDetailPage({
         "Localisation au closing/NDA",
       sasName: dbDetail.spv?.legalName ?? dbDetail.deal.name,
       badges: dealBadges({
-        typeLabel: TYPE_LABEL[dbDetail.deal.dealType] ?? dbDetail.deal.dealType,
+        typeLabel: di.typeLabels[dbDetail.deal.dealType] ?? dbDetail.deal.dealType,
         rangLabel: dbDetail.tranche?.seniority === "mezzanine" ? "Mezzanine" : "Senior secured",
         risqueEleve: ltvElevee,
       }),
@@ -186,33 +182,16 @@ export default async function DealDetailPage({
     percent: s.part * 100,
   }));
 
-  // Sûretés (présentation P11).
-  const suretes = [
-    "Hypothèque 1er rang (banque)",
-    "Nantissement des titres de la SPV",
-    "GAPD du sponsor",
-    "Assurance dommages-ouvrage",
-  ];
-
-  // Closing (timeline — séquence séquestre → DEEP → mint → lock-up).
-  const closing = [
-    { title: "Déblocage du séquestre vers la SAS", sub: "À l'atteinte de l'objectif + prêt accordé", state: "todo" as const },
-    { title: "Inscription au registre légal (DEEP)", sub: "Source de vérité légale", state: "todo" as const },
-    { title: "Mint du token ERC-3643 sur votre coffre", sub: "Miroir on-chain, après le DEEP", state: "todo" as const },
-    { title: "Lock-up activé jusqu'à l'exit", sub: "Titres illiquides pendant l'opération", state: "todo" as const },
-  ];
-
-  // CTA de déblocage KYC (vers l'onboarding investisseur).
   const kycCta = (
-    <Link href="/invest/onboarding" className="inv-btn-reserve" style={{ display: "inline-block", textDecoration: "none" }}>
-      Vérifier mon identité (KYC)
+    <Link href="/invest/onboarding" className="inv-btn-reserve inv-link-inline">
+      {di.kycCta}
     </Link>
   );
 
   return (
-    <div className="ct-page-area">
-      <Link href="/invest" className="inv-deal-loc" style={{ marginBottom: "var(--ct-space-md)" }}>
-        ‹ Opportunités
+    <PageStack>
+      <Link href="/invest" className="inv-deal-loc inv-mb-md">
+        {di.backLink}
       </Link>
 
       {/* HERO + bloc souscription */}
@@ -229,47 +208,45 @@ export default async function DealDetailPage({
           <div className="inv-raise-box">
             <div className="inv-raise-amt">
               <span className="inv-big">{eur(view.collecteEur)}</span>
-              <span className="inv-goal">/ {eur(view.objectifEur)} objectif</span>
+              <span className="inv-goal">/ {eur(view.objectifEur)} {di.goalSuffix}</span>
             </div>
-            <div className="inv-progress-track" role="progressbar" aria-valuenow={taux} aria-valuemin={0} aria-valuemax={100} aria-label="Avancement de la levée">
+            <div className="inv-progress-track" role="progressbar" aria-valuenow={taux} aria-valuemin={0} aria-valuemax={100} aria-label={di.raiseProgressAria}>
               <div className="inv-progress-fill" style={{ width: `${Math.min(100, taux)}%` }} />
             </div>
             <div className="inv-raise-stats">
               <div className="inv-raise-stat">
                 <span className="inv-v">{pct(sheet.rendement_cible_irr)}</span>
-                <span className="inv-l">TRI cible · non gar.</span>
+                <span className="inv-l">{di.stats.triTarget}</span>
               </div>
               <div className="inv-raise-stat">
                 <span className="inv-v">{pct(metrics.ltv)}</span>
-                <span className="inv-l">LTV</span>
+                <span className="inv-l">{di.stats.ltv}</span>
               </div>
               <div className="inv-raise-stat">
                 <span className="inv-v">{sheet.input.schedule.duree_mois} m</span>
-                <span className="inv-l">Durée</span>
+                <span className="inv-l">{di.stats.duration}</span>
               </div>
             </div>
             <div className="inv-raise-stats">
               <div className="inv-raise-stat">
                 <span className="inv-v">{eur(view.ticketMinEur)}</span>
-                <span className="inv-l">Ticket min</span>
+                <span className="inv-l">{di.stats.ticketMin}</span>
               </div>
               <div className="inv-raise-stat">
                 <span className="inv-v">{eur(view.ticketMaxEur)}</span>
-                <span className="inv-l">Ticket max</span>
+                <span className="inv-l">{di.stats.ticketMax}</span>
               </div>
               <div className="inv-raise-stat">
                 <span className="inv-v">{taux}%</span>
-                <span className="inv-l">Levé</span>
+                <span className="inv-l">{di.stats.raised}</span>
               </div>
             </div>
             {view.dealId ? null : (
               <>
                 <button className="inv-btn-reserve" type="button" disabled>
-                  Réserver ma place
+                  {di.demoReserveBtn}
                 </button>
-                <p className="inv-reserve-note">
-                  Réservation non engageante · sans versement · révocable (fiche de démonstration)
-                </p>
+                <p className="inv-reserve-note">{di.demoReserveNote}</p>
               </>
             )}
           </div>
@@ -280,7 +257,7 @@ export default async function DealDetailPage({
       {/* BLOC SOUSCRIPTION (Epic 1.3) — soft-commit → signature eIDAS → séquestre tiers.
           Rendu uniquement pour un deal réel (DB) ; la démo affiche le bouton désactivé ci-dessus. */}
       {view.dealId ? (
-        <div style={{ marginBottom: "var(--ct-space-lg)" }}>
+        <div className="inv-mb-lg">
           <SubscribePanel
             dealId={view.dealId}
             dealName={view.nom}
@@ -296,44 +273,35 @@ export default async function DealDetailPage({
       ) : null}
 
       {/* L4 — nature juridique permanente */}
-      <div style={{ marginBottom: "var(--ct-space-lg)" }}>
+      <div className="inv-mb-lg">
         <LegalNatureBadge sasName={view.sasName} />
       </div>
 
       {/* GATE KYC — bandeau d'invitation tant que les chiffres détaillés sont masqués */}
       {kycGated ? (
-        <div style={{ marginBottom: "var(--ct-space-lg)" }}>
+        <div className="inv-mb-lg">
           <Banner tone="warn">
-            Les chiffres financiers détaillés (waterfall, scénarios, sensibilités, cashflow) sont
-            masqués tant que votre identité n’est pas vérifiée. La structure reste visible. Investir
-            comporte un risque de perte en capital ; tout rendement est une cible non garantie.{" "}
-            <Link href="/invest/onboarding">Vérifier mon identité (KYC)</Link>.
+            {di.kycBanner}{" "}
+            <Link href="/invest/onboarding">{di.kycCta}</Link>.
           </Banner>
         </div>
       ) : null}
 
       {/* Funnel de souscription (aperçu des 4 étapes) */}
-      <div className="inv-chart-card" style={{ marginBottom: "var(--ct-space-lg)" }}>
+      <div className="inv-chart-card inv-mb-lg">
         <div className="inv-chart-head">
-          <span className="inv-chart-title">Souscription — 4 étapes</span>
+          <span className="inv-chart-title">{di.subscriptionFunnelTitle}</span>
         </div>
-        <Stepper
-          current={0}
-          steps={[{ label: "Montant" }, { label: "Éligibilité" }, { label: "Signature" }, { label: "Versement" }]}
-        />
-        <p className="inv-chart-foot">
-          Étape 1 = réservation non engageante (aucun versement). Le versement va vers un séquestre
-          tiers : {view.sequestre}. La plateforme ne détient jamais vos fonds ; remboursement intégral
-          si le deal n’aboutit pas.
-        </p>
+        <Stepper current={0} steps={[...di.stepperSteps]} />
+        <p className="inv-chart-foot">{di.subscriptionFunnelFoot(view.sequestre)}</p>
       </div>
 
       {/* Warnings du moteur (cohérence — affichés honnêtement, non gatés) */}
       {!kycGated && sheet.warnings.length > 0 ? (
-        <div style={{ marginBottom: "var(--ct-space-lg)" }}>
+        <div className="inv-mb-lg">
           <Banner tone="warn">
-            <b>Points d’attention :</b>
-            <ul style={{ margin: "var(--ct-space-2xs) 0 0", paddingLeft: "var(--ct-space-md)" }}>
+            <b>{di.warningsTitle}</b>
+            <ul className="inv-list-ul">
               {sheet.warnings.map((w, i) => (
                 <li key={i}>{w}</li>
               ))}
@@ -343,31 +311,19 @@ export default async function DealDetailPage({
       ) : null}
 
       {/* KPI économie de l'opération (structure — toujours visible) */}
-      <div className="ct-kpi-grid cols-4">
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">Coût total projet</div>
-          <div className="ct-kpi-value">{eur(metrics.cout_total_eur)}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">Dette senior</div>
-          <div className="ct-kpi-value">{eur(sheet.input.funding.dette_senior_eur)}</div>
-        </div>
-        <div className="ct-kpi-card accent">
-          <div className="ct-kpi-label">Obligations (vous)</div>
-          <div className="ct-kpi-value">{eur(sheet.input.funding.obligations_cible_eur)}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">Equity sponsor</div>
-          <div className="ct-kpi-value">{eur(sheet.input.funding.equity_sponsor_eur)}</div>
-        </div>
-      </div>
+      <KpiGrid className="cols-4">
+        <KpiCard label={di.kpis.totalCost} value={eur(metrics.cout_total_eur)} />
+        <KpiCard label={di.kpis.seniorDebt} value={eur(sheet.input.funding.dette_senior_eur)} />
+        <KpiCard label={di.kpis.bonds} value={eur(sheet.input.funding.obligations_cible_eur)} accent />
+        <KpiCard label={di.kpis.sponsorEquity} value={eur(sheet.input.funding.equity_sponsor_eur)} />
+      </KpiGrid>
 
       {/* Les 11 graphiques (P8). Structure publique non gatée ; détails sous <Gate>. */}
       <div className="inv-chart-grid">
         {/* G1 — Répartition dette/equity (structure — non gatée) */}
-        <ChartCard title="Répartition dette / equity" span={4} foot={charts.g1_dette_equity.interpretation}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "var(--ct-space-md)" }}>
-            <Donut value={sheet.input.funding.obligations_cible_eur / charts.g1_dette_equity.total_eur * 100} centerLabel={pct(sheet.input.funding.obligations_cible_eur / charts.g1_dette_equity.total_eur)} sublabel="Obligations" accent />
+        <ChartCard title={di.charts.debtEquity} span={4} foot={charts.g1_dette_equity.interpretation}>
+          <div className="inv-center">
+            <Donut value={sheet.input.funding.obligations_cible_eur / charts.g1_dette_equity.total_eur * 100} centerLabel={pct(sheet.input.funding.obligations_cible_eur / charts.g1_dette_equity.total_eur)} sublabel={di.obligationsDonut} accent />
           </div>
           <div className="inv-legend">
             {charts.g1_dette_equity.segments.map((s) => (
@@ -380,55 +336,55 @@ export default async function DealDetailPage({
         </ChartCard>
 
         {/* G2 — Use of funds (structure — non gatée) */}
-        <ChartCard title="Use of funds" span={8} foot={charts.g2_use_of_funds.interpretation}>
-          <BarList items={useOfFunds} emptyLabel="Aucun poste." />
+        <ChartCard title={di.charts.useOfFunds} span={8} foot={charts.g2_use_of_funds.interpretation}>
+          <BarList items={useOfFunds} emptyLabel={di.useOfFundsEmpty} />
         </ChartCard>
 
         {/* G3 — Waterfall (DÉTAIL — gaté KYC) */}
-        <ChartCard title="Waterfall de distribution (scénario central)" span={12} foot={kycGated ? undefined : charts.g3_waterfall.interpretation}>
-          <Gate locked={kycGated} message="Détail du waterfall après vérification d'identité (KYC)." cta={kycCta}>
+        <ChartCard title={di.charts.waterfall} span={12} foot={kycGated ? undefined : charts.g3_waterfall.interpretation}>
+          <Gate locked={kycGated} message={di.gate.waterfall} cta={kycCta}>
             <Waterfall chart={charts.g3_waterfall} />
           </Gate>
         </ChartCard>
 
         {/* G5 — Scénarios (DÉTAIL — gaté KYC) */}
-        <ChartCard title="Scénarios (TRI cible · non garanti)" span={6} foot={kycGated ? undefined : charts.g5_scenarios.interpretation}>
-          <Gate locked={kycGated} message="Scénarios pessimiste/optimiste après vérification d'identité (KYC)." cta={kycCta}>
+        <ChartCard title={di.charts.scenarios} span={6} foot={kycGated ? undefined : charts.g5_scenarios.interpretation}>
+          <Gate locked={kycGated} message={di.gate.scenarios} cta={kycCta}>
             <ScenarioBars chart={charts.g5_scenarios} />
           </Gate>
         </ChartCard>
 
         {/* G10 — LTV gauge (structure — non gatée) */}
-        <ChartCard title="LTV (dette / valeur)" span={6} foot={charts.g10_ltv.interpretation}>
+        <ChartCard title={di.charts.ltv} span={6} foot={charts.g10_ltv.interpretation}>
           <Gauge chart={charts.g10_ltv} />
         </ChartCard>
 
         {/* G6 — Sensibilité prix (DÉTAIL — gaté KYC) */}
-        <ChartCard title="Sensibilité : prix de revente → rendement" span={6} foot={kycGated ? undefined : charts.g6_sensibilite_prix.interpretation}>
-          <Gate locked={kycGated} message="Sensibilité détaillée après vérification d'identité (KYC)." cta={kycCta}>
+        <ChartCard title={di.charts.sensPrice} span={6} foot={kycGated ? undefined : charts.g6_sensibilite_prix.interpretation}>
+          <Gate locked={kycGated} message={di.gate.sensPrice} cta={kycCta}>
             <SensitivityCurve chart={charts.g6_sensibilite_prix} />
           </Gate>
         </ChartCard>
 
         {/* G7 — Sensibilité retard (DÉTAIL — gaté KYC) */}
-        <ChartCard title="Sensibilité : retard travaux → rendement" span={6} foot={kycGated ? undefined : charts.g7_sensibilite_retard.interpretation}>
-          <Gate locked={kycGated} message="Sensibilité détaillée après vérification d'identité (KYC)." cta={kycCta}>
+        <ChartCard title={di.charts.sensDelay} span={6} foot={kycGated ? undefined : charts.g7_sensibilite_retard.interpretation}>
+          <Gate locked={kycGated} message={di.gate.sensDelay} cta={kycCta}>
             <SensitivityCurve chart={charts.g7_sensibilite_retard} />
           </Gate>
         </ChartCard>
 
         {/* G9 — Radar de risque (structure — non gatée) */}
-        <ChartCard title="Exposition au risque (/5)" span={6} foot={charts.g9_risque.interpretation}>
+        <ChartCard title={di.charts.risk} span={6} foot={charts.g9_risque.interpretation}>
           <RiskRadar chart={charts.g9_risque} />
         </ChartCard>
 
         {/* G11 — Marge marchand (structure — non gatée) */}
-        <ChartCard title="Marge marchand" span={6} foot={undefined}>
+        <ChartCard title={di.charts.margin} span={6} foot={undefined}>
           <BarList
             items={[
-              { label: "Coût total", value: eur(charts.g11_marge_marchand.cout_total_eur), percent: 100 },
+              { label: di.marginLabels.costTotal, value: eur(charts.g11_marge_marchand.cout_total_eur), percent: 100 },
               {
-                label: "Prix de revente central",
+                label: di.marginLabels.resalePrice,
                 value: eur(charts.g11_marge_marchand.prix_revente_eur),
                 percent: Math.min(100, (charts.g11_marge_marchand.prix_revente_eur / charts.g11_marge_marchand.cout_total_eur) * 100),
               },
@@ -436,13 +392,16 @@ export default async function DealDetailPage({
             emptyLabel="—"
           />
           <p className="inv-chart-foot">
-            Marge : {eur(charts.g11_marge_marchand.marge_eur)} ({pct(charts.g11_marge_marchand.marge_pct)}) ·
-            seuil de fragilité {pct(charts.g11_marge_marchand.seuil_fragilite_pct)}.
+            {di.marginFoot(
+              eur(charts.g11_marge_marchand.marge_eur),
+              pct(charts.g11_marge_marchand.marge_pct),
+              pct(charts.g11_marge_marchand.seuil_fragilite_pct),
+            )}
           </p>
         </ChartCard>
 
         {/* G4 — Gantt (calendrier — non gaté) */}
-        <ChartCard title="Calendrier opérationnel" span={8} foot={charts.g4_gantt.interpretation}>
+        <ChartCard title={di.charts.gantt} span={8} foot={charts.g4_gantt.interpretation}>
           <div className="inv-gantt">
             {charts.g4_gantt.jalons.map((j) => {
               const left = (j.debut_mois / charts.g4_gantt.duree_totale_mois) * 100;
@@ -468,8 +427,8 @@ export default async function DealDetailPage({
         </ChartCard>
 
         {/* G8 — Cashflow (J-curve) (DÉTAIL — gaté KYC) */}
-        <ChartCard title="Cashflow prévisionnel (J-curve)" span={4} foot={kycGated ? undefined : charts.g8_cashflow.interpretation}>
-          <Gate locked={kycGated} message="Cashflow détaillé après vérification d'identité (KYC)." cta={kycCta}>
+        <ChartCard title={di.charts.cashflow} span={4} foot={kycGated ? undefined : charts.g8_cashflow.interpretation}>
+          <Gate locked={kycGated} message={di.gate.cashflow} cta={kycCta}>
             <SensitivityCurve
               chart={{
                 type: "line",
@@ -484,13 +443,13 @@ export default async function DealDetailPage({
       </div>
 
       {/* Sûretés + Token */}
-      <div className="inv-grid-2" style={{ marginTop: "var(--ct-space-lg)" }}>
+      <div className="inv-grid-2 inv-mt-lg">
         <div className="inv-chart-card">
           <div className="inv-chart-head">
-            <span className="inv-chart-title">Sûretés & sécurités</span>
+            <span className="inv-chart-title">{di.securitiesTitle}</span>
           </div>
           <ul className="inv-doc-list">
-            {suretes.map((s) => (
+            {di.suretes.map((s) => (
               <li className="inv-doc-row" key={s}>
                 <span className="inv-doc-name">{s}</span>
               </li>
@@ -500,27 +459,27 @@ export default async function DealDetailPage({
 
         <div className="inv-chart-card">
           <div className="inv-chart-head">
-            <span className="inv-chart-title">Token & structure</span>
+            <span className="inv-chart-title">{di.tokenTitle}</span>
           </div>
           <dl className="inv-dl">
-            <dt>Nature</dt>
-            <dd>Titre de créance tokenisé (obligation)</dd>
-            <dt>Standard</dt>
-            <dd>ERC-3643 · miroir du registre légal DEEP</dd>
-            <dt>Émission</dt>
-            <dd>Au closing (pas avant)</dd>
-            <dt>Règlement</dt>
-            <dd>EUR par défaut · EURC/EURe via CASP régulé</dd>
-            <dt>Cadre</dt>
-            <dd>Security token · hors MiCA pour le token</dd>
+            <dt>{di.tokenDl.nature}</dt>
+            <dd>{di.tokenDl.natureVal}</dd>
+            <dt>{di.tokenDl.standard}</dt>
+            <dd>{di.tokenDl.standardVal}</dd>
+            <dt>{di.tokenDl.emission}</dt>
+            <dd>{di.tokenDl.emissionVal}</dd>
+            <dt>{di.tokenDl.settlement}</dt>
+            <dd>{di.tokenDl.settlementVal}</dd>
+            <dt>{di.tokenDl.framework}</dt>
+            <dd>{di.tokenDl.frameworkVal}</dd>
           </dl>
         </div>
       </div>
 
       {/* Data room (inv_documents publics du deal) */}
-      <div className="inv-chart-card" style={{ marginTop: "var(--ct-space-lg)" }}>
+      <div className="inv-chart-card inv-chart-mt">
         <div className="inv-chart-head">
-          <span className="inv-chart-title">Data room — documents</span>
+          <span className="inv-chart-title">{di.dataRoomTitle}</span>
         </div>
         {view.documents.length > 0 ? (
           <ul className="inv-doc-list">
@@ -532,27 +491,19 @@ export default async function DealDetailPage({
             ))}
           </ul>
         ) : (
-          <p className="inv-chart-foot">
-            Aucun document publié pour le moment. Les pièces (contrat d’émission, expertise,
-            intercreditor, K-bis) seront mises à disposition au fil de l’instruction.
-          </p>
+          <p className="inv-chart-foot">{di.dataRoomEmpty}</p>
         )}
       </div>
 
       {/* Closing timeline */}
-      <div className="inv-chart-card" style={{ marginTop: "var(--ct-space-lg)" }}>
+      <div className="inv-chart-card inv-chart-mt">
         <div className="inv-chart-head">
-          <span className="inv-chart-title">Closing — séquence</span>
+          <span className="inv-chart-title">{di.closingTitle}</span>
         </div>
-        <Timeline items={closing} />
+        <Timeline items={[...di.closing]} />
       </div>
 
-      <p className="inv-fineprint" style={{ marginTop: "var(--ct-space-lg)" }}>
-        Risques (non exhaustif) : perte en capital · illiquidité (lock-up) · retard/dépassement des
-        travaux · baisse du marché · défaut de l’opérateur · risque de taux · risque réglementaire. Le
-        coupon central retenu est de {pct(view.couponCentral)} (cible, non garanti). Vous êtes
-        créancier obligataire de la SAS, pas propriétaire du bien.
-      </p>
-    </div>
+      <p className="inv-fineprint inv-mt-lg">{di.fineprint(pct(view.couponCentral))}</p>
+    </PageStack>
   );
 }

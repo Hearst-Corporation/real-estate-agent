@@ -42,3 +42,24 @@ test("login avec credentials admin → 200 + cookie posé", async ({ request }) 
   const setCookie = res.headers()["set-cookie"] ?? "";
   expect(setCookie).toContain("real_estate_agent_token");
 });
+
+test("mobile connecté → bottom bar expose les raccourcis cockpit", async ({ page }) => {
+  const creds = readAdminCreds();
+  test.skip(!creds, "docs/credentials.local.txt absent");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const res = await page.context().request.post("/api/auth/login", {
+    data: { email: creds!.email, password: creds!.password },
+  });
+  expect(res.status()).toBe(200);
+
+  await page.goto("/");
+  const bottomBar = page.locator(".ct-bottom-bar");
+  await expect(bottomBar).toBeVisible();
+  await expect(bottomBar.getByRole("link", { name: "Missions" })).toBeVisible();
+  await expect(bottomBar.getByRole("link", { name: "Estimations" })).toBeVisible();
+  await expect(bottomBar.getByRole("link", { name: "Prospection" })).toBeVisible();
+  await expect(bottomBar.getByRole("link", { name: "CRM" })).toBeVisible();
+  await expect(bottomBar.getByRole("link", { name: "Swarms" })).toBeVisible();
+  await expect(bottomBar.getByRole("link", { name: "Profil" })).toBeVisible();
+});

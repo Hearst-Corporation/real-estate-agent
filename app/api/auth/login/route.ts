@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { signJwt } from "@/lib/server/auth";
+import { captureServer } from "@/lib/providers/posthog";
 import { setTokenCookie, TOKEN_TTL_SECONDS } from "@/lib/server/auth-cookie";
 import { DEFAULT_TENANT } from "@/lib/tenant";
 
@@ -42,6 +43,7 @@ export async function POST(req: Request) {
   const candidate = body.data.next;
   const next = candidate && candidate.startsWith("/") && !candidate.startsWith("//") ? candidate : "/";
 
+  captureServer(data.user.id, "login", { role });
   const res = NextResponse.json({ user_id: data.user.id, tenant_id, redirect: next });
   setTokenCookie(res, token, req.headers.get("host"));
   return res;

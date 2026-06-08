@@ -1,28 +1,9 @@
 "use client";
 
-/**
- * OnboardingWizard — parcours investisseur en 4 étapes (Epic 1.1, écran WF-2/3).
- *
- *   1. Profil investisseur (identité déclarative).
- *   2. Test ECSP : connaissances + capacité de perte → plafond calculé serveur.
- *   3. KYC (lance Sumsub ; si non configuré → état "bientôt disponible", non bloquant).
- *   4. Wallet (saisie d'adresse EVM manuelle + explication ONCHAINID).
- *
- * Client component : interactivité + fetch vers les routes /api/invest/*. Gère les
- * états vide/chargement/erreur/succès. Réutilise les primitives components/invest
- * (Stepper, Banner) et les classes DS --ct-*. Accent gold hérité du layout /invest.
- *
- * Anti-FIA (lint:legal) : l'investisseur prête à une société (créancier), aucun
- * rendement n'est garanti, l'investissement comporte un risque de perte, et les
- * fonds transitent par un séquestre tiers — jamais par la plateforme. Aucune
- * pré-collecte : ce parcours débloque la capacité de souscrire, il ne place rien.
- */
-
 import { useCallback, useEffect, useState } from "react";
 import { Stepper, Banner, eur } from "@/components/invest";
+import { UI } from "@/lib/ui-strings";
 import styles from "./onboarding.module.css";
-
-// ─── Types de vue (miroir des réponses API) ──────────────────────────────────
 
 interface ProfileView {
   id: string;
@@ -49,40 +30,9 @@ interface IdentityStatusView {
   onchainVerified: boolean | null;
 }
 
-const STEPS = [
-  { label: "Profil" },
-  { label: "Test ECSP" },
-  { label: "Identité (KYC)" },
-  { label: "Wallet" },
-];
-
-/** Questions de connaissance ECSP (v1 — 3 items, seuil 2/3). */
-const KNOWLEDGE_QUESTIONS = [
-  {
-    id: "q1",
-    prompt:
-      "Quelle est la nature de votre titre ? Vous prêtez à une société (créance), ou vous détenez un droit réel sur l'immeuble ?",
-    answer: false,
-    yes: "Je détiens un droit réel sur l'immeuble",
-    no: "Je suis créancier de la société (je lui prête)",
-  },
-  {
-    id: "q2",
-    prompt:
-      "Le rendement cible affiché est-il un objectif assuré ?",
-    answer: false,
-    yes: "Oui, le rendement est assuré",
-    no: "Non, le rendement n'est pas garanti",
-  },
-  {
-    id: "q3",
-    prompt:
-      "Votre placement peut-il perdre de la valeur, voire la totalité du capital ?",
-    answer: true,
-    yes: "Oui, il existe un risque de perte en capital",
-    no: "Non, le capital est protégé",
-  },
-] as const;
+const o = UI.invest.onboarding;
+const STEPS = [...o.steps];
+const KNOWLEDGE_QUESTIONS = o.questions;
 
 export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileView | null }) {
   const [step, setStep] = useState(0);
@@ -90,27 +40,22 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Étape 1 — profil ──
   const [fullName, setFullName] = useState(initialProfile?.fullName ?? "");
   const [country, setCountry] = useState(initialProfile?.country ?? "FR");
   const [investorKind, setInvestorKind] = useState(initialProfile?.investorKind ?? "natural_person");
 
-  // ── Étape 2 — test ECSP ──
   const [answers, setAnswers] = useState<Record<string, boolean | null>>({ q1: null, q2: null, q3: null });
   const [annualIncome, setAnnualIncome] = useState("");
   const [liquidAssets, setLiquidAssets] = useState("");
   const [commitments, setCommitments] = useState("");
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResultView | null>(null);
 
-  // ── Étape 3 — KYC ──
   const [kycState, setKycState] = useState<"idle" | "started" | "unavailable">("idle");
   const [kycToken, setKycToken] = useState<string | null>(null);
 
-  // ── Étape 4 — wallet ──
   const [walletAddress, setWalletAddress] = useState(initialProfile?.walletAddress ?? "");
   const [identity, setIdentity] = useState<IdentityStatusView | null>(null);
 
-  // ── Mode invitation (placeholder — code non requis au pilote) ──
   const [inviteCode, setInviteCode] = useState("");
 
   const knowledgeScore = KNOWLEDGE_QUESTIONS.reduce(
@@ -120,7 +65,6 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
   const knowledgePassed = knowledgeScore >= 2;
   const allAnswered = KNOWLEDGE_QUESTIONS.every((q) => answers[q.id] !== null);
 
-  // ── Soumission étape 1 (profil) ──
   const saveProfile = useCallback(async () => {
     setBusy(true);
     setError(null);
@@ -135,13 +79,12 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
       setProfile(json.profile as ProfileView);
       setStep(1);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur lors de l'enregistrement du profil.");
+      setError(e instanceof Error ? e.message : o.errors.profile);
     } finally {
       setBusy(false);
     }
   }, [fullName, country, investorKind]);
 
-  // ── Soumission étape 2 (test ECSP) ──
   const submitAssessment = useCallback(async () => {
     setBusy(true);
     setError(null);
@@ -166,13 +109,12 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
       setAssessmentResult(json.assessment as AssessmentResultView);
       setStep(2);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur lors du test ECSP.");
+      setError(e instanceof Error ? e.message : o.errors.assessment);
     } finally {
       setBusy(false);
     }
   }, [knowledgePassed, knowledgeScore, annualIncome, liquidAssets, commitments]);
 
-  // ── Lancement étape 3 (KYC) ──
   const startKyc = useCallback(async () => {
     setBusy(true);
     setError(null);
@@ -191,13 +133,12 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
       setKycState("started");
       setKycToken(json.sdkToken ?? null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur lors du lancement du KYC.");
+      setError(e instanceof Error ? e.message : o.errors.kyc);
     } finally {
       setBusy(false);
     }
   }, []);
 
-  // ── Soumission étape 4 (wallet) ──
   const linkWallet = useCallback(async () => {
     setBusy(true);
     setError(null);
@@ -210,17 +151,15 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "link_failed");
       setProfile(json.profile as ProfileView);
-      // Rafraîchit l'état d'identité consolidé.
       const st = await fetch("/api/invest/identity/status").then((r) => r.json()).catch(() => null);
       if (st?.status) setIdentity(st.status as IdentityStatusView);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur lors de l'ajout du wallet.");
+      setError(e instanceof Error ? e.message : o.errors.wallet);
     } finally {
       setBusy(false);
     }
   }, [walletAddress]);
 
-  // Charge l'état d'identité quand on arrive à l'étape wallet.
   useEffect(() => {
     if (step === 3 && !identity) {
       fetch("/api/invest/identity/status")
@@ -232,6 +171,8 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
 
   const walletValid = /^0x[a-fA-F0-9]{40}$/.test(walletAddress.trim());
   const done = step === 3 && profile?.walletAddress;
+
+  const { profile: p, assessment: a, kyc: k, wallet: w } = o;
 
   return (
     <div className={styles.wizard}>
@@ -245,83 +186,78 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
         </div>
       ) : null}
 
-      {/* ─── ÉTAPE 1 — PROFIL ─────────────────────────────────────────────── */}
       {step === 0 ? (
-        <section className={`ct-card ${styles.card}`} aria-label="Profil investisseur">
-          <h2 className="ct-card-title">Votre profil</h2>
+        <section className={`ct-card ${styles.card}`} aria-label={o.aria.profile}>
+          <h2 className="ct-card-title">{p.title}</h2>
           <p className={`ct-card-body ${styles.intro}`}>
-            En investissant ici, vous devenez <b>créancier</b> d&apos;une société : vous lui prêtez, vous
-            n&apos;êtes pas propriétaire du bien. Ce parcours débloque votre capacité à souscrire, il ne
-            place aucun argent.
+            {p.introBefore}
+            <b>{p.introBold}</b>
+            {p.introAfter}
           </p>
 
           <div className={`ct-form ${styles.form}`}>
             <div className="ct-field">
-              <label className="ct-field-label" htmlFor="onb-name">Nom complet</label>
+              <label className="ct-field-label" htmlFor="onb-name">{p.fullName}</label>
               <input
                 id="onb-name"
                 className="ct-input"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Prénom Nom"
+                placeholder={p.fullNamePlaceholder}
                 autoComplete="name"
               />
             </div>
 
             <div className="inv-grid-2">
               <div className="ct-field">
-                <label className="ct-field-label" htmlFor="onb-country">Pays de résidence</label>
+                <label className="ct-field-label" htmlFor="onb-country">{p.country}</label>
                 <input
                   id="onb-country"
                   className="ct-input"
                   value={country}
                   onChange={(e) => setCountry(e.target.value.toUpperCase().slice(0, 2))}
-                  placeholder="FR"
+                  placeholder={p.countryPlaceholder}
                   maxLength={2}
                 />
               </div>
               <div className="ct-field">
-                <label className="ct-field-label" htmlFor="onb-kind">Type d&apos;investisseur</label>
+                <label className="ct-field-label" htmlFor="onb-kind">{p.investorKind}</label>
                 <select
                   id="onb-kind"
                   className="ct-input"
                   value={investorKind}
                   onChange={(e) => setInvestorKind(e.target.value)}
                 >
-                  <option value="natural_person">Personne physique</option>
-                  <option value="legal_entity">Personne morale</option>
+                  <option value="natural_person">{p.naturalPerson}</option>
+                  <option value="legal_entity">{p.legalEntity}</option>
                 </select>
               </div>
             </div>
 
             <div className="ct-field">
-              <label className="ct-field-label" htmlFor="onb-invite">Code d&apos;invitation (optionnel)</label>
+              <label className="ct-field-label" htmlFor="onb-invite">{p.inviteCode}</label>
               <input
                 id="onb-invite"
                 className="ct-input"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
-                placeholder="Sur invitation — laissez vide au pilote"
+                placeholder={p.invitePlaceholder}
               />
             </div>
           </div>
 
           <div className={styles.actions}>
             <button className="inv-btn-reserve" onClick={saveProfile} disabled={busy}>
-              {busy ? "Enregistrement…" : "Continuer"}
+              {busy ? p.saving : p.continue}
             </button>
           </div>
         </section>
       ) : null}
 
-      {/* ─── ÉTAPE 2 — TEST ECSP ──────────────────────────────────────────── */}
       {step === 1 ? (
-        <section className={`ct-card ${styles.card}`} aria-label="Test de connaissances ECSP">
-          <h2 className="ct-card-title">Test de connaissances et capacité de perte</h2>
-          <p className={`ct-card-body ${styles.intro}`}>
-            Réglementation ECSP (UE 2020/1503). Trois questions, puis votre capacité de perte. Le résultat
-            fixe votre plafond d&apos;investissement annuel.
-          </p>
+        <section className={`ct-card ${styles.card}`} aria-label={o.aria.assessment}>
+          <h2 className="ct-card-title">{a.title}</h2>
+          <p className={`ct-card-body ${styles.intro}`}>{a.intro}</p>
 
           <div className={styles.quiz}>
             {KNOWLEDGE_QUESTIONS.map((q, i) => (
@@ -334,7 +270,7 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
                       name={q.id}
                       className="inv-sr-only"
                       checked={answers[q.id] === true}
-                      onChange={() => setAnswers((a) => ({ ...a, [q.id]: true }))}
+                      onChange={() => setAnswers((prev) => ({ ...prev, [q.id]: true }))}
                     />
                     {q.yes}
                   </label>
@@ -344,7 +280,7 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
                       name={q.id}
                       className="inv-sr-only"
                       checked={answers[q.id] === false}
-                      onChange={() => setAnswers((a) => ({ ...a, [q.id]: false }))}
+                      onChange={() => setAnswers((prev) => ({ ...prev, [q.id]: false }))}
                     />
                     {q.no}
                   </label>
@@ -353,24 +289,24 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
             ))}
           </div>
 
-          <h3 className={styles.subtitle}>Capacité de perte (en euros)</h3>
+          <h3 className={styles.subtitle}>{a.lossCapacity}</h3>
           <div className={`ct-form ${styles.form}`}>
             <div className="inv-grid-2">
               <div className="ct-field">
-                <label className="ct-field-label" htmlFor="onb-income">Revenu annuel net</label>
+                <label className="ct-field-label" htmlFor="onb-income">{a.annualIncome}</label>
                 <input id="onb-income" className="ct-input" type="number" min={0} value={annualIncome}
-                  onChange={(e) => setAnnualIncome(e.target.value)} placeholder="0" />
+                  onChange={(e) => setAnnualIncome(e.target.value)} placeholder={a.amountPlaceholder} />
               </div>
               <div className="ct-field">
-                <label className="ct-field-label" htmlFor="onb-assets">Actifs liquides</label>
+                <label className="ct-field-label" htmlFor="onb-assets">{a.liquidAssets}</label>
                 <input id="onb-assets" className="ct-input" type="number" min={0} value={liquidAssets}
-                  onChange={(e) => setLiquidAssets(e.target.value)} placeholder="0" />
+                  onChange={(e) => setLiquidAssets(e.target.value)} placeholder={a.amountPlaceholder} />
               </div>
             </div>
             <div className="ct-field">
-              <label className="ct-field-label" htmlFor="onb-commit">Engagements financiers annuels</label>
+              <label className="ct-field-label" htmlFor="onb-commit">{a.commitments}</label>
               <input id="onb-commit" className="ct-input" type="number" min={0} value={commitments}
-                onChange={(e) => setCommitments(e.target.value)} placeholder="0" />
+                onChange={(e) => setCommitments(e.target.value)} placeholder={a.amountPlaceholder} />
             </div>
           </div>
 
@@ -378,141 +314,130 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
             <Banner tone={knowledgePassed ? "info" : "warn"}>
               {allAnswered
                 ? knowledgePassed
-                  ? `Connaissances : ${knowledgeScore}/${KNOWLEDGE_QUESTIONS.length}. Vous serez classé non-averti ; votre plafond sera le plus élevé entre 1000 € et 5 % de votre patrimoine net.`
-                  : `Connaissances : ${knowledgeScore}/${KNOWLEDGE_QUESTIONS.length}. Reprenez les réponses : tout rendement est non garanti et le capital comporte un risque de perte.`
-                : "Répondez aux trois questions, puis renseignez votre capacité de perte."}
+                  ? a.bannerPass(knowledgeScore, KNOWLEDGE_QUESTIONS.length)
+                  : a.bannerFail(knowledgeScore, KNOWLEDGE_QUESTIONS.length)
+                : a.bannerPending}
             </Banner>
           </div>
 
           <div className={styles.actions}>
-            <button className="ct-seg-btn" onClick={() => setStep(0)} disabled={busy}>Retour</button>
+            <button className="ct-seg-btn" onClick={() => setStep(0)} disabled={busy}>{a.back}</button>
             <button className="inv-btn-reserve" onClick={submitAssessment} disabled={busy || !allAnswered}>
-              {busy ? "Calcul…" : "Valider le test"}
+              {busy ? a.calculating : a.validate}
             </button>
           </div>
         </section>
       ) : null}
 
-      {/* ─── ÉTAPE 3 — KYC ────────────────────────────────────────────────── */}
       {step === 2 ? (
-        <section className={`ct-card ${styles.card}`} aria-label="Vérification d'identité">
-          <h2 className="ct-card-title">Vérification d&apos;identité (KYC)</h2>
+        <section className={`ct-card ${styles.card}`} aria-label={o.aria.kyc}>
+          <h2 className="ct-card-title">{k.title}</h2>
 
           {assessmentResult ? (
             <div className={styles.cap}>
-              <span className={styles.capLabel}>Plafond d&apos;investissement annuel</span>
+              <span className={styles.capLabel}>{k.capLabel}</span>
               <span className={styles.capValue}>
-                {assessmentResult.capCents == null ? "Non plafonné" : eur(assessmentResult.capCents / 100)}
+                {assessmentResult.capCents == null ? k.capUnlimited : eur(assessmentResult.capCents / 100)}
               </span>
               <span className={styles.capSub}>
-                Classification : {assessmentResult.classification === "retail" ? "non-averti" : "averti"}
+                {k.classification(
+                  assessmentResult.classification === "retail" ? k.retail : k.sophisticated,
+                )}
               </span>
             </div>
           ) : null}
 
-          <p className={`ct-card-body ${styles.intro}`}>
-            La vérification d&apos;identité (LCB-FT) est obligatoire avant toute souscription. Elle est
-            opérée par un prestataire tiers ; aucune pièce n&apos;est stockée chez nous.
-          </p>
+          <p className={`ct-card-body ${styles.intro}`}>{k.intro}</p>
 
           {kycState === "unavailable" ? (
             <div className={styles.block}>
-              <Banner tone="info">
-                La vérification d&apos;identité sera bientôt disponible. Vous pouvez poursuivre votre
-                parcours et ajouter votre wallet ; la souscription restera bloquée tant que le KYC
-                n&apos;est pas finalisé.
-              </Banner>
+              <Banner tone="info">{k.unavailable}</Banner>
             </div>
           ) : kycState === "started" ? (
             <div className={styles.block}>
-              <Banner tone="success">
-                Dossier KYC ouvert. Suivez les étapes du prestataire pour finaliser la vérification.
-              </Banner>
-              {kycToken ? <p className="inv-fineprint">Jeton de session généré.</p> : null}
+              <Banner tone="success">{k.started}</Banner>
+              {kycToken ? <p className="inv-fineprint">{k.sessionToken}</p> : null}
             </div>
           ) : (
             <div className={styles.block}>
               <Banner tone="warn">
-                Statut KYC actuel : {profile?.kycStatus ?? "non démarré"}.
+                {k.statusCurrent(profile?.kycStatus ?? k.statusNotStarted)}
               </Banner>
             </div>
           )}
 
           <div className={styles.actions}>
-            <button className="ct-seg-btn" onClick={() => setStep(1)} disabled={busy}>Retour</button>
+            <button className="ct-seg-btn" onClick={() => setStep(1)} disabled={busy}>{a.back}</button>
             {kycState === "idle" ? (
               <button className="inv-btn-reserve" onClick={startKyc} disabled={busy}>
-                {busy ? "Ouverture…" : "Démarrer la vérification"}
+                {busy ? k.starting : k.start}
               </button>
             ) : (
               <button className="inv-btn-reserve" onClick={() => setStep(3)} disabled={busy}>
-                Continuer vers le wallet
+                {k.continueWallet}
               </button>
             )}
           </div>
         </section>
       ) : null}
 
-      {/* ─── ÉTAPE 4 — WALLET ─────────────────────────────────────────────── */}
       {step === 3 ? (
-        <section className={`ct-card ${styles.card}`} aria-label="Adresse wallet">
-          <h2 className="ct-card-title">Votre wallet</h2>
+        <section className={`ct-card ${styles.card}`} aria-label={o.aria.wallet}>
+          <h2 className="ct-card-title">{w.title}</h2>
           <p className={`ct-card-body ${styles.intro}`}>
-            Vos titres seront reflétés on-chain (miroir du registre légal) sur votre wallet. Une identité
-            <b> ONCHAINID</b> (non transférable) y sera rattachée à l&apos;approbation de votre KYC : elle
-            atteste que vous êtes vérifié, sans exposer vos données. Saisissez l&apos;adresse manuellement.
+            {w.introBefore}
+            <b>{w.introBold}</b>
+            {w.introAfter}
           </p>
 
           <div className={`ct-form ${styles.form}`}>
             <div className="ct-field">
-              <label className="ct-field-label" htmlFor="onb-wallet">Adresse EVM (0x…)</label>
+              <label className="ct-field-label" htmlFor="onb-wallet">{w.addressLabel}</label>
               <input
                 id="onb-wallet"
                 className="ct-input"
                 value={walletAddress}
                 onChange={(e) => setWalletAddress(e.target.value)}
-                placeholder="0x0000000000000000000000000000000000000000"
+                placeholder={w.addressPlaceholder}
                 spellCheck={false}
                 autoComplete="off"
               />
             </div>
             {walletAddress && !walletValid ? (
-              <p className="inv-fineprint">Format attendu : 0x suivi de 40 caractères hexadécimaux.</p>
+              <p className="inv-fineprint">{w.formatHint}</p>
             ) : null}
           </div>
 
           {profile?.walletAddress ? (
             <div className={styles.block}>
               <Banner tone="success">
-                Wallet enregistré : <span className="inv-mono">{profile.walletAddress}</span>
-                {identity?.onchainidAddress ? " · ONCHAINID rattaché." : " · ONCHAINID rattaché après approbation KYC."}
+                {w.savedPrefix}
+                <span className="inv-mono">{profile.walletAddress}</span>
+                {identity?.onchainidAddress ? w.onchainLinked : w.onchainAfterKyc}
               </Banner>
             </div>
           ) : null}
 
           <div className={styles.actions}>
-            <button className="ct-seg-btn" onClick={() => setStep(2)} disabled={busy}>Retour</button>
+            <button className="ct-seg-btn" onClick={() => setStep(2)} disabled={busy}>{a.back}</button>
             <button className="inv-btn-reserve" onClick={linkWallet} disabled={busy || !walletValid}>
-              {busy ? "Enregistrement…" : profile?.walletAddress ? "Mettre à jour" : "Enregistrer le wallet"}
+              {busy ? w.saving : profile?.walletAddress ? w.update : w.save}
             </button>
           </div>
         </section>
       ) : null}
 
-      {/* ─── RÉCAP FINAL ──────────────────────────────────────────────────── */}
       {done ? (
         <div className={styles.block}>
           <Banner tone="info">
-            Votre profil est prêt. Vous pourrez souscrire deal par deal une fois votre KYC approuvé. Les
-            fonds transiteront toujours par un <b>séquestre</b> tiers, jamais par la plateforme.
+            {o.doneBefore}
+            <b>{o.doneBold}</b>
+            {o.doneAfter}
           </Banner>
         </div>
       ) : null}
 
-      <p className={`inv-fineprint ${styles.foot}`}>
-        Investir comporte un risque de perte en capital et une illiquidité. Tout rendement cible est non
-        garanti. Vous prêtez à une société (vous êtes créancier), vous n&apos;achetez pas le bien.
-      </p>
+      <p className={`inv-fineprint ${styles.foot}`}>{o.foot}</p>
     </div>
   );
 }

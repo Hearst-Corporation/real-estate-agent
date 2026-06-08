@@ -23,6 +23,12 @@ function pct(value: number, low: number, high: number): number {
   return Math.min(100, Math.max(0, ((value - low) / span) * 100));
 }
 
+const CONFIDENCE_COLOR: Record<string, string> = {
+  indicative: "muted",
+  moyenne: "base",
+  elevee: "accent",
+};
+
 export function ValuationHero({ id, valuation }: Props) {
   const [shareLabel, setShareLabel] = useState<string>(UI.estimations.share);
   const [sharing, setSharing] = useState(false);
@@ -49,11 +55,11 @@ export function ValuationHero({ id, valuation }: Props) {
     }
   }
 
-  const confidenceBadge: Record<string, string> = {
-    indicative: "Indicative",
-    moyenne: "Moyenne",
-    elevee: "Élevée",
-  };
+  const confidenceLabel =
+    UI.estimations.confidenceLabels[valuation.confidence] ?? valuation.confidence;
+  const confidenceTooltip =
+    UI.estimations.confidenceTooltips[valuation.confidence] ?? "";
+  const confidenceColor = CONFIDENCE_COLOR[valuation.confidence] ?? "base";
 
   const marketPct = pct(valuation.marketValue, valuation.lowValue, valuation.highValue);
   const recoPct = pct(
@@ -67,12 +73,15 @@ export function ValuationHero({ id, valuation }: Props) {
       {/* ── Colonne valeur : badge, valeur, fourchette visuelle ── */}
       <div className="est-hero-main">
         <div className="est-hero-meta">
-          <span className="est-hero-badge">
-            {confidenceBadge[valuation.confidence] ?? valuation.confidence}
+          <span
+            className={`est-hero-badge est-hero-badge--${confidenceColor}`}
+            title={confidenceTooltip}
+          >
+            {confidenceLabel}
           </span>
           {valuation.nbComparables > 0 && (
             <span className="est-hero-comps">
-              {valuation.nbComparables} comparables DVF
+              {UI.estimations.comparablesDvf(valuation.nbComparables)}
             </span>
           )}
         </div>
@@ -95,7 +104,7 @@ export function ValuationHero({ id, valuation }: Props) {
         <p className="est-hero-range">
           <span>{fmt.format(valuation.lowValue)}</span>
           <span className="reco-lab">
-            Conseillé · {fmt.format(valuation.recommendedListingPrice)}
+            {UI.estimations.recoPriceLabel} · {fmt.format(valuation.recommendedListingPrice)}
           </span>
           <span>{fmt.format(valuation.highValue)}</span>
         </p>
@@ -113,7 +122,7 @@ export function ValuationHero({ id, valuation }: Props) {
           </div>
           <div className="est-hero-kpi">
             <span className="est-hero-kpi-label">{UI.estimations.recommended}</span>
-            <span className="est-hero-kpi-value">
+            <span className="est-hero-kpi-value est-hero-kpi-value--accent">
               {fmt.format(valuation.recommendedListingPrice)}
             </span>
           </div>

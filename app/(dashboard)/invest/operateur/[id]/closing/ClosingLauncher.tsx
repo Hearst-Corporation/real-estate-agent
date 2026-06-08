@@ -61,17 +61,12 @@ export function ClosingLauncher({ dealId, ready }: { dealId: string; ready: bool
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-2xs)" }}>
+    <div className="inv-stack-2xs">
       <button
         type="button"
         onClick={launch}
         disabled={!ready || busy}
-        className="inv-btn-reserve"
-        style={{
-          opacity: !ready || busy ? 0.55 : 1,
-          cursor: !ready || busy ? "not-allowed" : "pointer",
-          alignSelf: "flex-start",
-        }}
+        className={`inv-btn-reserve inv-btn-self-start${!ready || busy ? " is-disabled" : ""}`}
       >
         {busy ? "Closing en cours…" : "Lancer le closing"}
       </button>
@@ -82,15 +77,7 @@ export function ClosingLauncher({ dealId, ready }: { dealId: string; ready: bool
       ) : null}
       {msg ? (
         <span
-          className="inv-chart-foot"
-          style={{
-            color:
-              tone === "err"
-                ? "var(--ct-text-danger)"
-                : tone === "warn"
-                  ? "var(--ct-warning)"
-                  : "var(--ct-text-muted)",
-          }}
+          className={`inv-chart-foot${tone === "err" ? " inv-msg-err" : tone === "warn" ? " inv-msg-warn" : ""}`}
         >
           {msg}
         </span>

@@ -11,7 +11,7 @@
  * de perte en capital. (Voir lint:legal.)
  */
 
-import { Eyebrow, Title, Sub } from "@/components/cockpit/primitives";
+import { PageStack, PageHeader, Sub } from "@/components/cockpit/primitives";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
@@ -45,14 +45,18 @@ export default async function SubscriptionsPage() {
   }
 
   return (
-    <div className="ct-page-area">
-      <Eyebrow>Invest · Souscriptions</Eyebrow>
-      <Title>Mes souscriptions</Title>
-      <Sub>
-        Suivez l&apos;état de vos souscriptions : réservation non engageante, signature, versement en
-        séquestre tiers. Vous prêtez à une société (vous êtes créancier) ; tout rendement est une cible
-        non garantie et comporte un risque de perte en capital.
-      </Sub>
+    <PageStack>
+      <PageHeader
+        kicker="Invest · Souscriptions"
+        title="Mes souscriptions"
+        meta={
+          <Sub>
+            Suivez l&apos;état de vos souscriptions : réservation non engageante, signature, versement en
+            séquestre tiers. Vous prêtez à une société (vous êtes créancier) ; tout rendement est une cible
+            non garantie et comporte un risque de perte en capital.
+          </Sub>
+        }
+      />
 
       {!configured ? (
         <Banner tone="warn">
@@ -62,6 +66,6 @@ export default async function SubscriptionsPage() {
       ) : (
         <SubscriptionsList initial={initial} />
       )}
-    </div>
+    </PageStack>
   );
 }

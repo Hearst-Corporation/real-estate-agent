@@ -26,7 +26,7 @@
 
 .swarm-kickoff-panel { display: flex; flex-direction: column; gap: var(--ct-space-md); }
 .swarm-kickoff-output { background: var(--ct-surface-1); border: 1px solid var(--ct-border); border-radius: var(--ct-radius-md); padding: var(--ct-space-md); font-size: var(--ct-fs-sm); color: var(--ct-text-body); white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; }
-.swarm-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--ct-border); border-top-color: var(--ct-accent); border-radius: 50%; animation: swarm-spin 0.8s linear infinite; }
+.swarm-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--ct-border); border-top-color: var(--ct-accent); border-radius: 50%; animation: swarm-spin var(--ct-dur-spin) linear infinite; }
 @keyframes swarm-spin { to { transform: rotate(360deg); } }
 
 /* Swarms pages */

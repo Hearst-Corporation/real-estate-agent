@@ -14,6 +14,8 @@ Application de gestion immobilière de nouvelle génération, intégrant un CRM 
 
 - `/app/(dashboard)` : Vues principales (CRM, Estimations, Prospection, Swarms, Agenda).
 - `/components/cockpit` : Design System propriétaire (RailLeft, DataTable, Kanban, etc.).
+- Navigation Cockpit : manifeste unique `config/nav.ts` pour le rail gauche, les onglets de page et la bottom bar mobile.
+- Typographie Cockpit : échelle `--ct-fs-*` dans `app/cockpit/00-tokens.css` ; primitives `Title` (H1), `SectionTitle` (H2), `SubsectionTitle` (H3), `Caption` (meta), `PageHeader` + `PageStack` ; `PageSegmentTabs` pour onglets locaux ; `Card` avec `titleAs="section"` pour titres de fiche lisibles.
 - `/docs` : Documentation technique et produit (voir `docs/produit/PROPOSITION_REFONTE_ECOLE.md` pour le plan de refonte actuel).
 - `/lib` : Utilitaires, clients Supabase, et logique métier.
 

@@ -42,9 +42,12 @@
     "next": "16.2.7",
     "openai": "^6.42.0",
     "playwright-core": "1.60.0",
+    "posthog-js": "^1.382.0",
+    "posthog-node": "^5.36.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^6.12.4",
+    "server-only": "^0.0.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {

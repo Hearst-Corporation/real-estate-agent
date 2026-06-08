@@ -225,6 +225,11 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
   ];
 
   let assistantText = "";
+  // Usage cumulé sur tous les tours : l'API OpenAI-compatible n'émet l'usage que
+  // sur le DERNIER chunk de chaque stream (avec `stream_options.include_usage`).
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let sawUsage = false;
   // Vrai si le dernier tour a poussé des messages tool jamais « vus » par le modèle.
   let pendingToolResults = false;
 
@@ -232,6 +237,7 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
     const stream = await kimi.chat.completions.create({
       model,
       stream: true,
+      stream_options: { include_usage: true },
       max_tokens: AGENT_MAX_TOKENS,
       messages,
       tools,
@@ -243,6 +249,12 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
     const toolCalls: Record<number, AccumulatedToolCall> = {};
 
     for await (const chunk of stream) {
+      // L'usage arrive sur le tout dernier chunk du stream (choices vide).
+      if (chunk.usage) {
+        inputTokens += chunk.usage.prompt_tokens;
+        outputTokens += chunk.usage.completion_tokens;
+        sawUsage = true;
+      }
       const delta = chunk.choices?.[0]?.delta;
       if (!delta) continue;
 
@@ -308,12 +320,18 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
       const finalStream = await kimi.chat.completions.create({
         model,
         stream: true,
+        stream_options: { include_usage: true },
         max_tokens: AGENT_MAX_TOKENS,
         messages,
         tool_choice: "none",
       });
 
       for await (const chunk of finalStream) {
+        if (chunk.usage) {
+          inputTokens += chunk.usage.prompt_tokens;
+          outputTokens += chunk.usage.completion_tokens;
+          sawUsage = true;
+        }
         const delta = chunk.choices?.[0]?.delta;
         if (delta?.content) {
           assistantText += delta.content;
@@ -325,8 +343,11 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
     }
   }
 
-  // Kimi ne remonte pas l'usage de façon fiable en stream → pas d'usage.
-  return { assistantText };
+  // Usage remonté uniquement si le provider l'a émis (dernier chunk de stream).
+  return {
+    assistantText,
+    usage: sawUsage ? { input: inputTokens, output: outputTokens, model } : undefined,
+  };
 }
 
 // ─── Entrée publique ────────────────────────────────────────────────────────

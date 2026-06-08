@@ -91,7 +91,7 @@ export default async function VisitsPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={TAB_GROUPS.crm} />}
+        nav={<PageNavTabs tabs={TAB_GROUPS.clients} />}
         action={<VisitForm cta={t.newCta} />}
         kpis={[
           { label: t.kpis.total, value: String(visits.length) },

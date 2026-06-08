@@ -15,8 +15,9 @@
  */
 
 import Link from "next/link";
-import { Eyebrow, Title, Sub } from "@/components/cockpit/primitives";
+import { PageStack, PageHeader, KpiGrid, KpiCard, Sub } from "@/components/cockpit/primitives";
 import { Banner, StatusPill, type StatusTone } from "@/components/invest";
+import { UI } from "@/lib/ui-strings";
 import { fetchClosingState } from "../../../_data/server";
 import { ClosingLauncher } from "./ClosingLauncher";
 
@@ -36,35 +37,29 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
 
   if (!state.configured) {
     return (
-      <div className="ct-page-area">
-        <Eyebrow>Invest · Back-office · Closing</Eyebrow>
-        <Title>Closing du deal</Title>
-        <Banner tone="warn">Base de données non configurée — closing indisponible.</Banner>
-      </div>
+      <PageStack>
+        <PageHeader kicker={UI.invest.operator.closing.kicker} title={UI.invest.operator.closing.title} />
+        <Banner tone="warn">{UI.invest.operator.closing.dbUnavailable}</Banner>
+      </PageStack>
     );
   }
   if (!state.authorized) {
     return (
-      <div className="ct-page-area">
-        <Eyebrow>Invest · Back-office · Closing</Eyebrow>
-        <Title>Closing du deal</Title>
-        <Banner tone="warn">
-          Accès réservé aux opérateurs, à l&apos;administration et à la conformité. Investir comporte
-          un risque de perte en capital ; les rendements affichés sont non garantis.
-        </Banner>
-      </div>
+      <PageStack>
+        <PageHeader kicker={UI.invest.operator.closing.kicker} title={UI.invest.operator.closing.title} />
+        <Banner tone="warn">{UI.invest.operator.closing.unauthorized}</Banner>
+      </PageStack>
     );
   }
   if (!state.found) {
     return (
-      <div className="ct-page-area">
-        <Eyebrow>Invest · Back-office · Closing</Eyebrow>
-        <Title>Closing du deal</Title>
-        <Banner tone="warn">Deal introuvable pour ce tenant.</Banner>
+      <PageStack>
+        <PageHeader kicker={UI.invest.operator.closing.kicker} title={UI.invest.operator.closing.title} />
+        <Banner tone="warn">{UI.invest.operator.closing.notFound}</Banner>
         <p className="inv-chart-foot">
-          <Link href="/invest/operateur">← Retour aux opérations</Link>
+          <Link href="/invest/operateur">{UI.invest.operator.closing.backToOperations}</Link>
         </p>
-      </div>
+      </PageStack>
     );
   }
 
@@ -72,75 +67,68 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
   const totalUnits = state.holdings.reduce((s, h) => s + h.units, 0);
 
   return (
-    <div className="ct-page-area">
-      <Eyebrow>Invest · Back-office · Closing (DvP)</Eyebrow>
-      <Title>{state.dealName}</Title>
-      <Sub>
-        Closing en livraison-contre-paiement : inscription au registre DEEP (source de vérité)
-        d&apos;abord, puis miroir on-chain, réconciliation, et libération du séquestre en dernier.
-        Le porteur est créancier obligataire ; rendement non garanti, risque de perte en capital.
-      </Sub>
+    <PageStack>
+      <PageHeader
+        kicker={UI.invest.operator.closing.kickerDvp}
+        title={state.dealName}
+        meta={<Sub>{UI.invest.operator.closing.headerSub}</Sub>}
+      />
 
-      <div className="inv-mk-toolbar" style={{ justifyContent: "space-between", alignItems: "center" }}>
+      <div className="inv-mk-toolbar inv-toolbar-between">
         <span>
-          Statut du deal : <StatusPill tone="neutral">{state.dealStatus}</StatusPill>
+          {UI.invest.operator.closing.dealStatusPrefix}
+          <StatusPill tone="neutral">{state.dealStatus}</StatusPill>
         </span>
         <Link href={`/invest/${state.dealSlug}`} className="inv-doc-name">
-          Voir la fiche publique
+          {UI.invest.operator.closing.viewPublicSheet}
         </Link>
       </div>
 
       {/* ── Bandeau source de vérité ───────────────────────────────────────── */}
-      <Banner tone="info">
-        DEEP = source de vérité juridique (Ord. 2017-1674). Le token ERC-3643 n&apos;en est que le
-        miroir : en cas de divergence, le DEEP prime ; une position on-chain supérieure au DEEP met
-        la saga en pause (escalade conformité).
-      </Banner>
+      <Banner tone="info">{UI.invest.operator.closing.sourceOfTruthBanner}</Banner>
 
       {/* ── KPIs ───────────────────────────────────────────────────────────── */}
-      <div className="ct-kpi-grid cols-4" style={{ margin: "var(--ct-space-md) 0" }}>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">Conditions suspensives</div>
-          <div className="ct-kpi-value">
-            {state.conditionsSnapshot.total - state.conditionsSnapshot.unmet.length}/
-            {state.conditionsSnapshot.total}
-          </div>
-        </div>
-        <div className={`ct-kpi-card ${state.fourEyesApproved ? "accent" : ""}`}>
-          <div className="ct-kpi-label">Double validation (4-eyes)</div>
-          <div className="ct-kpi-value">{state.fourEyesApproved ? "OK" : "Requise"}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">Souscriptions financées</div>
-          <div className="ct-kpi-value">{state.fundedCount}</div>
-        </div>
-        <div className="ct-kpi-card">
-          <div className="ct-kpi-label">Obligations inscrites (DEEP)</div>
-          <div className="ct-kpi-value">{totalUnits}</div>
-        </div>
-      </div>
+      <KpiGrid className="cols-4 inv-kpi-my">
+        <KpiCard
+          label={UI.invest.operator.closing.kpiConditions}
+          value={`${state.conditionsSnapshot.total - state.conditionsSnapshot.unmet.length}/${state.conditionsSnapshot.total}`}
+        />
+        <KpiCard
+          label={UI.invest.operator.closing.kpiFourEyes}
+          value={state.fourEyesApproved ? UI.invest.operator.closing.kpiFourEyesOk : UI.invest.operator.closing.kpiFourEyesRequired}
+          accent={state.fourEyesApproved}
+        />
+        <KpiCard
+          label={UI.invest.operator.closing.kpiFundedSubscriptions}
+          value={String(state.fundedCount)}
+        />
+        <KpiCard
+          label={UI.invest.operator.closing.kpiDeepUnits}
+          value={String(totalUnits)}
+        />
+      </KpiGrid>
 
       {/* ── Conditions suspensives ─────────────────────────────────────────── */}
-      <div className="inv-chart-card" style={{ marginBottom: "var(--ct-space-md)" }}>
-        <h3 className="inv-chart-title">Conditions suspensives</h3>
+      <div className="inv-chart-card inv-chart-mb">
+        <h3 className="inv-chart-title">{UI.invest.operator.closing.conditionsTitle}</h3>
         {state.conditions.length === 0 ? (
-          <p className="inv-chart-foot">Aucune condition suspensive paramétrée pour ce deal.</p>
+          <p className="inv-chart-foot">{UI.invest.operator.closing.conditionsEmpty}</p>
         ) : (
-          <table className="inv-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table className="inv-table">
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "var(--ct-space-2xs)" }}>Code</th>
-                <th style={{ textAlign: "left", padding: "var(--ct-space-2xs)" }}>Libellé</th>
-                <th style={{ textAlign: "right", padding: "var(--ct-space-2xs)" }}>État</th>
+                <th>{UI.invest.operator.closing.conditionsColCode}</th>
+                <th>{UI.invest.operator.closing.conditionsColLabel}</th>
+                <th className="r">{UI.invest.operator.closing.conditionsColState}</th>
               </tr>
             </thead>
             <tbody>
               {state.conditions.map((c) => (
-                <tr key={c.code} style={{ borderTop: "1px solid var(--ct-border)" }}>
-                  <td style={{ padding: "var(--ct-space-2xs)" }}>{c.code}</td>
-                  <td style={{ padding: "var(--ct-space-2xs)" }}>{c.label}</td>
-                  <td style={{ padding: "var(--ct-space-2xs)", textAlign: "right" }}>
-                    <StatusPill tone={c.isMet ? "open" : "soon"}>{c.isMet ? "remplie" : "en attente"}</StatusPill>
+                <tr key={c.code}>
+                  <td>{c.code}</td>
+                  <td>{c.label}</td>
+                  <td className="r">
+                    <StatusPill tone={c.isMet ? "open" : "soon"}>{c.isMet ? UI.invest.operator.closing.conditionMet : UI.invest.operator.closing.conditionPending}</StatusPill>
                   </td>
                 </tr>
               ))}
@@ -150,65 +138,56 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* ── Lancement de la saga ───────────────────────────────────────────── */}
-      <div className="inv-chart-card" style={{ marginBottom: "var(--ct-space-md)" }}>
-        <h3 className="inv-chart-title">Lancer le closing (DvP)</h3>
-        <p className="inv-chart-foot" style={{ marginBottom: "var(--ct-space-xs)" }}>
-          Ordre exécuté : fonds en séquestre confirmés → inscription DEEP → mint miroir (idempotent) →
-          réconciliation → libération du séquestre vers le SPV (en dernier). En cas d&apos;échec avant
-          la libération, remboursement intégral des souscriptions.
-        </p>
+      <div className="inv-chart-card inv-chart-mb">
+        <h3 className="inv-chart-title">{UI.invest.operator.closing.launchTitle}</h3>
+        <p className="inv-chart-foot inv-chart-intro">{UI.invest.operator.closing.launchIntro}</p>
         <ClosingLauncher dealId={state.dealId} ready={ready} />
       </div>
 
       {/* ── Réconciliation DEEP↔chaîne ─────────────────────────────────────── */}
-      <div className="inv-chart-card" style={{ marginBottom: "var(--ct-space-md)" }}>
-        <h3 className="inv-chart-title">Réconciliation DEEP ↔ chaîne</h3>
+      <div className="inv-chart-card inv-chart-mb">
+        <h3 className="inv-chart-title">{UI.invest.operator.closing.reconTitle}</h3>
         {state.lastReconciliation ? (
           <p className="inv-chart-foot">
-            Dernière passe :{" "}
+            {UI.invest.operator.closing.reconLastPass}
             <StatusPill
               tone={reconTone(state.lastReconciliation.result, state.lastReconciliation.triggeredPause)}
             >
-              {state.lastReconciliation.triggeredPause ? "pause (chaîne > DEEP)" : state.lastReconciliation.result}
+              {state.lastReconciliation.triggeredPause ? UI.invest.operator.closing.reconPaused : state.lastReconciliation.result}
             </StatusPill>{" "}
             {state.lastReconciliation.finishedAt
               ? `· ${new Date(state.lastReconciliation.finishedAt).toLocaleString("fr-FR")}`
               : ""}
           </p>
         ) : (
-          <p className="inv-chart-foot">
-            Aucune passe enregistrée. Sans indexer chaîne branché, la réconciliation reste « legal_only »
-            (le registre DEEP fait foi seul).
-          </p>
+          <p className="inv-chart-foot">{UI.invest.operator.closing.reconEmpty}</p>
         )}
       </div>
 
       {/* ── Registre DEEP (holdings) ───────────────────────────────────────── */}
       <div className="inv-chart-card">
-        <h3 className="inv-chart-title">Registre DEEP — positions (source de vérité)</h3>
+        <h3 className="inv-chart-title">{UI.invest.operator.closing.deepTitle}</h3>
         {state.holdings.length === 0 ? (
-          <p className="inv-chart-foot">Aucune position inscrite. Le registre se remplit à l&apos;étape DEEP du closing.</p>
+          <p className="inv-chart-foot">{UI.invest.operator.closing.deepEmpty}</p>
         ) : (
-          <table className="inv-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table className="inv-table">
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "var(--ct-space-2xs)" }}>Porteur (créancier)</th>
-                <th style={{ textAlign: "right", padding: "var(--ct-space-2xs)" }}>Obligations</th>
+                <th>{UI.invest.operator.closing.deepColHolder}</th>
+                <th className="r">{UI.invest.operator.closing.deepColUnits}</th>
               </tr>
             </thead>
             <tbody>
               {state.holdings.map((h) => (
-                <tr key={h.walletAddress} style={{ borderTop: "1px solid var(--ct-border)" }}>
-                  <td style={{ padding: "var(--ct-space-2xs)", fontFamily: "var(--ct-font-mono, monospace)" }}>
-                    {h.walletAddress}
-                  </td>
-                  <td style={{ padding: "var(--ct-space-2xs)", textAlign: "right" }}>{h.units}</td>
+                <tr key={h.walletAddress}>
+                  <td className="mono">{h.walletAddress}</td>
+                  <td className="r">{h.units}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
-    </div>
+    </PageStack>
   );
 }

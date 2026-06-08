@@ -9,22 +9,16 @@
   display: grid;
   grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
   gap: var(--ct-space-lg);
-  align-items: stretch;
-  margin-bottom: 0;
-  height: 220px;
-  min-height: 220px;
-  max-height: 220px;
+  align-items: start;
   flex-shrink: 0;
 }
 .ct-viz-row > * {
   min-height: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--ct-space-lg);
 }
 @media (max-width: 1100px) {
-  .ct-viz-row { grid-template-columns: 1fr; height: auto; min-height: auto; max-height: none; }
+  .ct-viz-row { grid-template-columns: 1fr; }
 }
 
 /* La grille KPI par défaut est déjà 4 colonnes ; alias explicite. */
@@ -66,7 +60,7 @@
 }
 
 /* ── BarList (barres horizontales label + valeur + piste) ── */
-.ct-chart-barlist { display: flex; flex-direction: column; gap: var(--ct-space-md); flex: 1; justify-content: center; }
+.ct-chart-barlist { display: flex; flex-direction: column; gap: var(--ct-space-md); min-height: 140px; justify-content: center; }
 .ct-chart-barlist-item { display: flex; flex-direction: column; gap: var(--ct-space-xs); }
 .ct-chart-barlist-head {
   display: flex; align-items: center; justify-content: space-between; gap: var(--ct-space-sm);
@@ -106,7 +100,7 @@
 }
 
 /* ── Funnel (entonnoir vertical par statut) ── */
-.ct-chart-funnel { display: flex; flex-direction: column; gap: var(--ct-space-sm); flex: 1; justify-content: center; }
+.ct-chart-funnel { display: flex; flex-direction: column; gap: var(--ct-space-sm); min-height: 140px; }
 .ct-chart-funnel-step {
   display: grid;
   grid-template-columns: minmax(150px, 0.42fr) minmax(180px, 1fr);
@@ -136,30 +130,28 @@
 }
 .ct-chart-funnel-count { font-size: var(--ct-fs-base); font-weight: var(--ct-fw-heavy); color: var(--ct-text-primary); }
 .ct-chart-funnel-track {
-  height: 34px;
-  border-radius: var(--ct-radius-lg);
-  background: var(--ct-surface-1);
+  height: 10px;
+  border-radius: var(--ct-radius-pill);
+  background: var(--ct-surface-3);
   box-shadow: inset 0 0 0 1px var(--ct-border-soft);
   overflow: hidden;
+  align-self: center;
 }
 .ct-chart-funnel-bar {
-  height: 100%; min-width: 3px; border-radius: var(--ct-radius-lg);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--ct-accent-strong) 18%, transparent), color-mix(in srgb, var(--ct-accent-strong) 44%, transparent));
-  border: 1px solid var(--ct-border-accent);
-  box-shadow: 0 0 22px color-mix(in srgb, var(--ct-accent-strong) 18%, transparent);
-  transition: width var(--ct-dur-base) var(--ct-ease);
+  height: 100%;
+  border-radius: var(--ct-radius-pill);
+  background: linear-gradient(90deg, var(--ct-accent), var(--ct-accent-strong));
+  transition: width var(--ct-dur-slow) var(--ct-ease);
+  min-width: 0;
 }
 .ct-chart-funnel-bar.is-positive {
-  background: color-mix(in srgb, var(--ct-accent-strong) 28%, transparent);
-  border-color: var(--ct-border-accent);
+  background: linear-gradient(90deg, var(--ct-accent), var(--ct-accent-strong));
 }
 .ct-chart-funnel-bar.is-negative {
-  background: color-mix(in srgb, var(--ct-text-muted) 14%, transparent);
-  border-color: color-mix(in srgb, var(--ct-text-muted) 30%, transparent);
+  background: color-mix(in srgb, var(--ct-text-muted) 40%, transparent);
 }
 .ct-chart-funnel-bar.is-pending {
-  background: color-mix(in srgb, var(--ct-border-strong) 40%, transparent);
-  border-color: var(--ct-border-strong);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ct-accent-strong) 35%, transparent), color-mix(in srgb, var(--ct-accent-strong) 55%, transparent));
 }
 
 /* ── Bouton segment destructif (remplace les style={{color:var(--ct-danger,red)}}) ── */

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { captureServer } from "@/lib/providers/posthog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -86,5 +87,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "create_failed", detail: error?.message }, { status: 500 });
   }
 
+  captureServer(claims.sub, "lead_created", { lead_id: data.id, kind: kind ?? "acheteur" });
   return NextResponse.json({ id: data.id }, { status: 201 });
 }
