@@ -165,8 +165,11 @@ html, body {
   transition: transform var(--ct-dur-base) var(--ct-ease);
 }
 .ct-rail-right.collapsed {
+  /* Replié : largeur réduite, ancré à droite, AUCUN translateX. L'ancien
+     transform translateX(420-48) poussait le rail (48px) 372px hors écran →
+     le bouton de réouverture devenait invisible (chat impossible à rouvrir). */
   width: var(--ct-rail-collapsed);
-  transform: translateX(calc(var(--ct-rail-right) - var(--ct-rail-collapsed)));
+  transform: translateX(0);
 }
 .ct-rail-right-header {
   display: flex; align-items: center; justify-content: space-between;
