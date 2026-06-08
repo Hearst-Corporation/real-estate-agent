@@ -25,9 +25,26 @@ describe("scrape-custom — chemin avec données (intégration matching)", () =>
     expect(result!.score).toBeGreaterThanOrEqual(MATCH_SCORE_MIN_PERSIST);
   });
 
+  it("matche par COMMUNE quand la zone est une ville (Apify ne résout pas toujours le CP)", () => {
+    // Critère BienCible typique : zones = nom de ville, pas de CP.
+    const critere = dbRowToCritere({
+      id: "c2", tenant_id: "t", user_id: "u", nom: "Elena BATTAGION",
+      zones: ["Antibes"], type_bien: ["appartement"],
+      budget_min: 279000, budget_max: 356500, pieces_min: 2, actif: true,
+    });
+    const annonce = dbRowToAnnonce({
+      id: "a2", tenant_id: "t", source_id: "s2", hash_dedup: "h2",
+      type_bien: "appartement", prix: 320000, nb_pieces: 3,
+      code_postal: "", commune: "Antibes", // CP vide → match par commune
+    });
+    const result = matchAnnonce(critere, annonce);
+    expect(result).not.toBeNull();
+    expect(result!.score).toBeGreaterThanOrEqual(MATCH_SCORE_MIN_PERSIST);
+  });
+
   it("une annonce hors zone (CP ne matche pas le préfixe) est rejetée", () => {
     const critere = dbRowToCritere({ id: "c", tenant_id: "t", user_id: "u", nom: "X", zones: ["75011"], actif: true });
-    const annonce = dbRowToAnnonce({ id: "a", tenant_id: "t", source_id: "s", hash_dedup: "h", type_bien: "appartement", prix: 300000, code_postal: "13001" });
+    const annonce = dbRowToAnnonce({ id: "a", tenant_id: "t", source_id: "s", hash_dedup: "h", type_bien: "appartement", prix: 300000, code_postal: "13001", commune: "Marseille" });
     expect(matchAnnonce(critere, annonce)).toBeNull();
   });
 });

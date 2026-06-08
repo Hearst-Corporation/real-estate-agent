@@ -1,10 +1,26 @@
 import type { Annonce, CritereAcquereur, MatchResult, PrefSouple } from "../types";
 import { MATCH_WEIGHTS, DPE_ORDER } from "./weights";
 
+/**
+ * Une zone de critère (CP « 06600 » OU nom de commune « Antibes ») matche une
+ * annonce si elle préfixe son code postal OU correspond à sa commune (insensible
+ * à la casse). Indispensable car le scraper Apify cherche par VILLE et ne résout
+ * pas toujours le code postal (codePostal vide) — sans ça, aucun match possible.
+ */
+export function zoneMatches(zone: string, annonce: Annonce): boolean {
+  const z = zone.trim().toLowerCase();
+  if (!z) return false;
+  const cp = (annonce.codePostal ?? "").trim().toLowerCase();
+  const commune = (annonce.ville ?? "").trim().toLowerCase();
+  if (cp && cp.startsWith(z)) return true;
+  if (commune && commune === z) return true;
+  return false;
+}
+
 export function matchAnnonce(critere: CritereAcquereur, annonce: Annonce): MatchResult | null {
   // ── Filtres durs ──
   if (critere.typeBien?.length && !critere.typeBien.includes(annonce.typeBien)) return null;
-  if (!critere.zones.some(z => (annonce.codePostal ?? "").startsWith(z))) return null;
+  if (!critere.zones.some(z => zoneMatches(z, annonce))) return null;
   if (critere.budgetMax != null && annonce.prix != null && annonce.prix > critere.budgetMax) return null;
   if (critere.budgetMin != null && annonce.prix != null && annonce.prix < critere.budgetMin) return null;
   if (critere.surfaceMin != null && annonce.surface != null && annonce.surface < critere.surfaceMin) return null;
