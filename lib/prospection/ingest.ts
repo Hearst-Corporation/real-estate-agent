@@ -51,7 +51,8 @@ export async function upsertAnnonces(
         dpe_note:         listing.dpe,
         source_url:       listing.url,
         photos_urls:      listing.photos ?? [],
-        type_annonceur:   listing.isPap ? "PAP" : "PRO",
+        // CHECK prosp_annonces_type_annonceur_check n'accepte que pap|pro|inconnu (minuscules).
+        type_annonceur:   listing.isPap ? "pap" : "pro",
         premiere_parution_at: listing.datePublication,
         prix_original:    listing.prixPrecedent,
         derniere_republication_at: listing.republication ? new Date().toISOString() : null,
