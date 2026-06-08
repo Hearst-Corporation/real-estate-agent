@@ -3,10 +3,21 @@
  */
 import { PageStack, PageHeader, Sub, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
 import { DealCard, Banner, type DealCardData } from "@/components/invest";
-import { eur } from "@/components/invest";
+import { eur, pct } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
 import { DEMO_DEALS } from "./_data/demo";
 import { fetchOpenDeals, toDealCardData } from "./_data/server";
+
+/** Médiane du TRI cible (scénario central) des deals affichés. Retourne "—" si aucun deal. */
+function medianTri(cards: DealCardData[]): string {
+  const tris = cards.map((c) => c.triCible).filter((v): v is number => v != null);
+  if (tris.length === 0) return "—";
+  const sorted = [...tris].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const median =
+    sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+  return pct(median);
+}
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +68,7 @@ export default async function MarketplacePage() {
       <KpiGrid className="cols-4">
         <KpiCard label={m.kpis.openDeals} value={String(dealsOuverts)} />
         <KpiCard label={m.kpis.collected} value={eur(collecteTotale)} />
-        <KpiCard label={m.kpis.medianTri} value={m.kpis.medianTriValue} accent />
+        <KpiCard label={m.kpis.medianTri} value={medianTri(cards)} accent />
         <KpiCard label={m.kpis.ticketFrom} value={eur(ticketMinAffiche)} />
       </KpiGrid>
 

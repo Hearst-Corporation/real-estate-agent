@@ -13,6 +13,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { rateLimit } from "@/lib/ratelimit";
 import { KIMI_MODEL, kimiIsConfigured } from "@/lib/llm/kimi";
 import { tenantOf, uuidOwnerOf } from "@/lib/tenant";
 import { trace, type TraceUsage } from "@/lib/providers/langfuse";
@@ -32,6 +33,8 @@ const MESSAGE_MAX = 8000;
 const CHAT_TITLE_MAX = 60;
 const HISTORY_LIMIT = 40;
 const MEMORY_LIMIT = 20;
+const CHAT_RL_MAX = 20;
+const CHAT_RL_WINDOW_S = 60;
 
 const BodySchema = z.object({
   chatId: z.string().uuid().optional(),
@@ -95,6 +98,8 @@ export async function POST(req: Request) {
 
   const sb = getSupabaseAdmin();
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+
+  if (!(await rateLimit(`chat:${claims.sub}`, CHAT_RL_MAX, CHAT_RL_WINDOW_S))) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
 
   const userId = claims.sub;
   const tenant = tenantOf(claims);

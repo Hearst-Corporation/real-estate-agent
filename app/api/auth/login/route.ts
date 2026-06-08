@@ -5,8 +5,12 @@ import { signJwt } from "@/lib/server/auth";
 import { captureServer } from "@/lib/providers/posthog";
 import { setTokenCookie, TOKEN_TTL_SECONDS } from "@/lib/server/auth-cookie";
 import { DEFAULT_TENANT } from "@/lib/tenant";
+import { rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
+
+const LOGIN_RL_MAX = 10;
+const LOGIN_RL_WINDOW_S = 60;
 
 const LoginSchema = z.object({
   email: z.string().email(),
@@ -17,6 +21,15 @@ const LoginSchema = z.object({
 export async function POST(req: Request) {
   const body = LoginSchema.safeParse(await req.json().catch(() => null));
   if (!body.success) return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+
+  const xff = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const ip = xff || req.headers.get("x-real-ip")?.trim() || "";
+  // Pas d'IP fiable (proxy sans XFF) → on segmente par email pour éviter un bucket
+  // global partagé qui gèlerait le login de tous les clients sans XFF.
+  const rlKey = ip ? `login:ip:${ip}` : `login:email:${body.data.email.toLowerCase()}`;
+  if (!(await rateLimit(rlKey, LOGIN_RL_MAX, LOGIN_RL_WINDOW_S))) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
 
   const sb = getSupabaseAdmin();
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });

@@ -3,9 +3,13 @@ import { getSession } from "@/lib/server/session"
 import { uuidOwnerOf } from "@/lib/tenant"
 import { getSupabaseAdmin } from "@/lib/server/supabase"
 import { kickoffSwarm } from "@/lib/swarms/client"
+import { rateLimit } from "@/lib/ratelimit"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+
+const KICKOFF_RL_MAX = 10
+const KICKOFF_RL_WINDOW_S = 60
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -20,6 +24,8 @@ export async function POST(_req: Request, { params }: Params) {
 
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 })
+
+  if (!(await rateLimit(`kickoff:${claims.sub}`, KICKOFF_RL_MAX, KICKOFF_RL_WINDOW_S))) return NextResponse.json({ error: "rate_limited" }, { status: 429 })
 
   try {
     const result = await kickoffSwarm(id, ownerId)
