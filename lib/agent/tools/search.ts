@@ -22,6 +22,7 @@ import {
   perplexityIsConfigured,
   type SearchResult,
 } from "@/lib/providers/search";
+import { paidCall } from "@/lib/providers/cost-guard";
 
 // ─── Constantes (pas de magic number nu) ────────────────────────────────────────
 
@@ -29,6 +30,10 @@ const DEFAULT_NUM_RESULTS = 5;
 const MAX_NUM_RESULTS = 10;
 const SNIPPET_MAX_LEN = 280;
 const MAX_CITATIONS = 8;
+const SEARCH_CACHE_TTL_S = 3600;
+const EXA_DAILY_CAP = 200;
+const TAVILY_DAILY_CAP = 200;
+const PERPLEXITY_DAILY_CAP = 100;
 
 // ─── Helpers (typage défensif des inputs LLM) ───────────────────────────────────
 
@@ -136,12 +141,16 @@ const searchWeb: AgentTool = {
     // Exa en priorité.
     if (exaOk) {
       try {
-        const results = await exaSearch(query, numResults);
-        return {
-          ok: true,
-          summary: `Recherche web : ${results.length} résultat(s)`,
-          observation: formatResults(query, "Exa", results),
-        };
+        const exaRes = await paidCall("exa", `web:${query}:${numResults}`, () => exaSearch(query, numResults), { ttlSec: SEARCH_CACHE_TTL_S, dailyCap: EXA_DAILY_CAP });
+        if (exaRes.ok) {
+          return {
+            ok: true,
+            summary: `Recherche web : ${exaRes.data.length} résultat(s)`,
+            observation: formatResults(query, "Exa", exaRes.data),
+          };
+        }
+        // cost-guard a refusé l'appel → repli sur Tavily si disponible, sinon erreur.
+        if (!tavilyOk) return providerError("recherche Exa");
       } catch {
         // Repli sur Tavily si disponible, sinon erreur.
         if (!tavilyOk) return providerError("recherche Exa");
@@ -150,12 +159,15 @@ const searchWeb: AgentTool = {
 
     // Tavily (fallback, ou seul provider configuré).
     try {
-      const results = await tavilySearch(query, numResults);
-      return {
-        ok: true,
-        summary: `Recherche web : ${results.length} résultat(s)`,
-        observation: formatResults(query, "Tavily", results),
-      };
+      const tavilyRes = await paidCall("tavily", `web:${query}:${numResults}`, () => tavilySearch(query, numResults), { ttlSec: SEARCH_CACHE_TTL_S, dailyCap: TAVILY_DAILY_CAP });
+      if (tavilyRes.ok) {
+        return {
+          ok: true,
+          summary: `Recherche web : ${tavilyRes.data.length} résultat(s)`,
+          observation: formatResults(query, "Tavily", tavilyRes.data),
+        };
+      }
+      return providerError("recherche Tavily");
     } catch {
       return providerError("recherche Tavily");
     }
@@ -197,7 +209,9 @@ const askPerplexity: AgentTool = {
     }
 
     try {
-      const { answer, citations } = await perplexityAnswer(query);
+      const ppxRes = await paidCall("perplexity", `ask:${query}`, () => perplexityAnswer(query), { ttlSec: SEARCH_CACHE_TTL_S, dailyCap: PERPLEXITY_DAILY_CAP });
+      if (!ppxRes.ok) return providerError("réponse Perplexity");
+      const { answer, citations } = ppxRes.data;
       const trimmed = answer.trim();
       if (!trimmed) {
         return {
