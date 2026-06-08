@@ -18,6 +18,7 @@ import { tenantOf } from '@/lib/tenant';
 import { loadOwnedEstimation } from '@/lib/estimation/owned';
 import { rateLimit } from '@/lib/ratelimit';
 import { captureFatal } from '@/lib/server/observe';
+import { captureServer } from '@/lib/providers/posthog';
 import { geocode } from '@/lib/estimation/geocode';
 import { resolveParcelle } from '@/lib/estimation/cadastre';
 import { candidateSections } from '@/lib/estimation/sections';
@@ -241,6 +242,15 @@ export async function POST(
             updated_at: new Date().toISOString(),
           })
           .eq('id', id);
+
+        captureServer(userId, 'estimation_generated', {
+          estimation_id: id,
+          type_bien: property.type_bien ?? null,
+          code_postal: property.code_postal ?? null,
+          nb_comparables: nbComparables,
+          confidence,
+          market_value: valuation.marketValue ?? null,
+        });
 
         emit({ type: 'done', valuation, market });
       } catch (err) {
