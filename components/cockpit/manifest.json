@@ -13,8 +13,8 @@
     "app/cockpit/90-missions.css"
   ],
   "counts": {
-    "tokens": 94,
-    "classes": 179
+    "tokens": 95,
+    "classes": 178
   },
   "tokens": [
     "--ct-accent",
@@ -36,6 +36,7 @@
     "--ct-border-strong",
     "--ct-danger",
     "--ct-dur-base",
+    "--ct-dur-fast",
     "--ct-ease",
     "--ct-font-mono",
     "--ct-fs-2xl",
@@ -241,7 +242,6 @@
     "ct-page-header-kpi",
     "ct-page-header-kpis",
     "ct-page-header-kpis-track",
-    "ct-page-header-meta",
     "ct-page-header-nav",
     "ct-page-header-nav-item",
     "ct-page-header-nav-track",
