@@ -112,7 +112,7 @@
   position: absolute;
   top: var(--ct-space-xs);
   left: var(--ct-space-xs);
-  background: rgba(0,0,0,0.6);
+  background: var(--ct-overlay-scrim);
   backdrop-filter: blur(var(--ct-overlay-blur));
   color: var(--ct-text-strong);
   font-size: var(--ct-fs-xs);
