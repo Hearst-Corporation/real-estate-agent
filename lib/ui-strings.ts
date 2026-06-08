@@ -1598,6 +1598,18 @@ export const UI = {
     sessionTitle: "Session",
     sessionHint: "Fermer la session sur cet appareil.",
     integrationsTitle: "Intégrations",
+    mfa: {
+      title: "Double authentification (2FA)",
+      titleEnabled: "Double authentification (2FA) — activée",
+      badge: "2FA activée",
+      step1: "Étape 1 —",
+      step2: "Étape 2 —",
+      secretLabel: "Clé secrète",
+      uriLabel: "URI otpauth (copier dans une app)",
+      codeLabel: "Code de vérification",
+      codePlaceholderDisable: "123456 ou code de secours",
+      backupWarning: "⚠ Codes de secours — notez-les maintenant.",
+    },
     integrationsHint: "Connectez vos services Google pour que l'assistant puisse les utiliser. Ce panneau ne fait que rendre visible et gérer les connexions existantes.",
     integrations: {
       loadError: "Impossible de récupérer l'état des intégrations. Réessayez.",

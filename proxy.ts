@@ -1,11 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyJwt } from "@/lib/server/auth";
-import { TOKEN_COOKIE, setTokenCookie } from "@/lib/server/auth-cookie";
+import { TOKEN_COOKIE, setTokenCookie, MFA_PENDING_SCOPE } from "@/lib/server/auth-cookie";
 
 // Routes publiques (aucune session requise).
 const OPEN_ROUTES = [
   "/api/auth/login",
   "/api/auth/logout",
+  // 2e étape MFA : s'auto-valide via le cookie PENDING (séparé de TOKEN_COOKIE).
+  // Le reste de /api/auth/mfa/* RESTE protégé par session normale.
+  "/api/auth/mfa/verify-login",
   "/api/health",
   "/api/inngest", // sécurisé par signature HMAC Inngest (INNGEST_SIGNING_KEY), pas par JWT
   "/api/invest/webhooks", // sécurisé par HMAC, pas JWT
@@ -28,16 +31,20 @@ export async function proxy(request: NextRequest) {
   const claims = await verifyJwt(token, {
     checkRevocation: process.env.AUTH_CHECK_REVOCATION === "true",
   });
+  // Un token de scope "mfa-pending" est valide cryptographiquement mais N'AUTHENTIFIE
+  // PAS (2e facteur non encore fourni) : on le traite comme non connecté dans toute
+  // la logique de gate. verifyJwt ne valide pas le scope, le rejet se fait ici.
+  const authed = !!claims && !claims.scope?.includes(MFA_PENDING_SCOPE);
 
   // Connecté + sur /auth/login → renvoyer au dashboard.
-  if (claims && pathname.startsWith("/auth/login")) {
+  if (authed && pathname.startsWith("/auth/login")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
   if (isOpen(pathname)) return NextResponse.next();
 
   // Non connecté + route API → 401 JSON (jamais une redirection HTML).
-  if (!claims) {
+  if (!authed) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
