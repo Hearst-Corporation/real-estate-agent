@@ -18,6 +18,7 @@ import { rateLimit } from "@/lib/ratelimit";
 import { paidCall } from "@/lib/providers/cost-guard";
 import { llamaParseIsConfigured, parseDocument } from "@/lib/providers/llamaparse";
 import { r2IsConfigured, getObject, putObject } from "@/lib/storage/r2";
+import { captureServer } from "@/lib/providers/posthog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -93,5 +94,6 @@ export async function POST(req: Request) {
     const status = result.reason === "disabled" ? 503 : 429;
     return Response.json({ error: result.reason }, { status });
   }
+  captureServer(claims.sub, "document_parsed", { size_bytes: buffer.length });
   return Response.json({ markdown: result.data, cached: false, hash });
 }

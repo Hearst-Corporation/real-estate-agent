@@ -16,6 +16,7 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { KIMI_MODEL, kimiIsConfigured } from "@/lib/llm/kimi";
 import { tenantOf, uuidOwnerOf } from "@/lib/tenant";
 import { trace, type TraceUsage } from "@/lib/providers/langfuse";
+import { captureServer } from "@/lib/providers/posthog";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import type { PropertyData } from "@/lib/estimation/types";
 import { runAgent } from "@/lib/agent/run";
@@ -98,6 +99,7 @@ export async function POST(req: Request) {
   const userId = claims.sub;
   const tenant = tenantOf(claims);
   const ownerId = uuidOwnerOf(claims);
+  captureServer(userId, "chat_message", { model: KIMI_MODEL });
   const { message, context } = parsed.data;
   const estimationId = estimationIdFromPathname(context?.pathname);
   const chatScope = estimationId ? `estimation:${estimationId}` : `page:${context?.pathname ?? "global"}`;
