@@ -176,9 +176,54 @@ export const prospScoring = inngest.createFunction(
             .single();
 
           if (matchRow && !matchRow.alerted_at && result.score >= MATCH_SCORE_ALERT) {
-            const alertResult = await sendMatchAlerte("real-estate-agent", critere, annonce, result.score);
-            if (alertResult.sent) {
-              await db.from("prosp_matchs").update({ alerted_at: new Date().toISOString(), statut: "alerte_envoyee" }).eq("id", matchRow.id);
+            // CLAIM ATOMIQUE anti-double-alerte : on pose `alerted_at` AVANT l'envoi,
+            // conditionné à `alerted_at IS NULL`. Sur rejeu Inngest (step.run relancé),
+            // seul le 1er passage gagne la ligne → pas de spam WhatsApp. Filtrage
+            // tenant systématique. Si l'envoi échoue ensuite, on compense (reset NULL).
+            const claimedAt = new Date().toISOString();
+            const { data: claimed } = await db
+              .from("prosp_matchs")
+              .update({ alerted_at: claimedAt })
+              .eq("id", matchRow.id)
+              .eq("tenant_id", "real-estate-agent")
+              .is("alerted_at", null)
+              .select("id")
+              .maybeSingle();
+
+            if (claimed) {
+              try {
+                const alertResult = await sendMatchAlerte("real-estate-agent", critere, annonce, result.score);
+                if (alertResult.sent) {
+                  await db
+                    .from("prosp_matchs")
+                    .update({ statut: "alerte_envoyee" })
+                    .eq("id", matchRow.id)
+                    .eq("tenant_id", "real-estate-agent");
+                } else {
+                  // Pas d'envoi réel (cooldown/cap/no_channel) : on relâche le claim
+                  // pour réessayer au prochain run dès que la condition se débloque.
+                  await db
+                    .from("prosp_matchs")
+                    .update({ alerted_at: null })
+                    .eq("id", matchRow.id)
+                    .eq("tenant_id", "real-estate-agent");
+                }
+              } catch (err) {
+                // L'envoi a jeté (Twilio/réseau) : on compense le claim et on logue.
+                // L'exception ne casse JAMAIS le job → les autres critères continuent.
+                console.error("[prospScoring] alert failed", {
+                  critereId: critere.id,
+                  annonceId: annonce.id,
+                  matchId: matchRow.id,
+                  error: err instanceof Error ? err.message : String(err),
+                });
+                await db
+                  .from("prosp_matchs")
+                  .update({ alerted_at: null })
+                  .eq("id", matchRow.id)
+                  .eq("tenant_id", "real-estate-agent");
+                captureFatal(err, "inngest/prosp-scoring:alert");
+              }
             }
           }
           totalMatched++;

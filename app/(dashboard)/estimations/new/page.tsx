@@ -12,26 +12,30 @@ export default function NewEstimationPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    const ctrl = new AbortController();
 
     (async () => {
       try {
-        const res = await fetch("/api/estimations", { method: "POST" });
-        if (cancelled) return;
+        const res = await fetch("/api/estimations", {
+          method: "POST",
+          signal: ctrl.signal,
+        });
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           setError(body.error ?? UI.estimations.createError);
           return;
         }
         const { id } = await res.json();
-        if (!cancelled) router.replace(`/estimations/${id}`);
-      } catch {
-        if (!cancelled) setError(UI.common.networkError);
+        router.replace(`/estimations/${id}`);
+      } catch (e) {
+        // Abort au démontage (Strict Mode) → on ignore, pas une vraie erreur.
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        setError(UI.common.networkError);
       }
     })();
 
     return () => {
-      cancelled = true;
+      ctrl.abort();
     };
   }, [router]);
 

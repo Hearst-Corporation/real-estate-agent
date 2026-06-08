@@ -18,6 +18,27 @@ export async function POST() {
   const userId = claims.sub;
   const tenant = tenantOf(claims);
 
+  // Un draft vierge (property/field_status vides) est réutilisable : on n'en
+  // empile jamais deux. Protège contre le double-montage Strict Mode, le
+  // double-clic et le retour navigateur sur /estimations/new.
+  const findBlankDraft = () =>
+    sb
+      .from("estimations")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("tenant_id", tenant)
+      .eq("status", "draft")
+      .eq("property", "{}")
+      .eq("field_status", "{}")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+  const { data: reusable } = await findBlankDraft();
+  if (reusable) {
+    return NextResponse.json({ id: reusable.id }, { status: 200 });
+  }
+
   const { data, error } = await sb
     .from("estimations")
     .insert({
@@ -29,6 +50,12 @@ export async function POST() {
     .single();
 
   if (error || !data) {
+    // Course perdue contre l'index unique partiel estimations_one_blank_draft_per_user
+    // → un autre INSERT concurrent a créé le draft : on renvoie le gagnant.
+    if (error?.code === "23505") {
+      const { data: winner } = await findBlankDraft();
+      if (winner) return NextResponse.json({ id: winner.id }, { status: 200 });
+    }
     return NextResponse.json({ error: "create_failed", detail: error?.message }, { status: 500 });
   }
 

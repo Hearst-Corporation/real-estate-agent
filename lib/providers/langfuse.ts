@@ -11,6 +11,7 @@
 
 import { Langfuse } from "langfuse";
 import { envPresent } from "./types";
+import { calculateCostUsd } from "@/lib/pricing/models";
 
 let client: Langfuse | null | undefined;
 
@@ -62,8 +63,12 @@ export function trace(
     end: (output: unknown, usage?: TraceUsage) => {
       t.update({ output });
       if (usage !== undefined) {
+        // Coûts USD calculés depuis le barème modèle (no-op si modèle inconnu).
+        const cost = usage.model
+          ? calculateCostUsd(usage.model, usage.input, usage.output)
+          : null;
         // Enregistre les tokens via une génération enfant (seul objet Langfuse
-        // qui accepte `usage` au niveau ingestion).
+        // qui accepte `usage`/`costDetails` au niveau ingestion).
         const gen = t.generation({
           name: `${name}-generation`,
           model: usage.model,
@@ -72,6 +77,8 @@ export function trace(
             completionTokens: usage.output,
             totalTokens: usage.input + usage.output,
           },
+          // Coûts USD (clé `total` = somme, convention Langfuse).
+          ...(cost ? { costDetails: { input: cost.input, output: cost.output, total: cost.total } } : {}),
         });
         gen.end();
       }

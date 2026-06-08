@@ -44,6 +44,16 @@ yarn-error.log*
 estimation-layout-*.png
 ui-architect-*.png
 ui-test-architect-*.png
+# screenshots & scratch de session (audits manuels)
+rail-*.png
+prop-header.png
+visite-*.png
+moteurimmo-*.png
+dashboard_scan.png
+dashboard_content.html
+scan_dashboard.py
+uiux-audit-*.html
+docs/audit/*.html
 
 # typescript
 *.tsbuildinfo

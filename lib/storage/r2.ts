@@ -6,6 +6,7 @@
  *   getObject(key)                      → Buffer | null
  *   deleteObject(key)                   → void
  *   publicUrl(key)                      → string
+ *   presignedUrl(key, ttlSeconds)       → string | null
  *   r2IsConfigured()                    → boolean
  */
 
@@ -117,4 +118,31 @@ export async function deleteObject(key: string): Promise<void> {
 export function publicUrl(key: string): string {
   const base = (process.env.R2_PUBLIC_URL ?? "").replace(/\/$/, "");
   return `${base}/${key}`;
+}
+
+/**
+ * URL pré-signée SigV4 (query-string) d'un objet, valable `ttlSeconds`.
+ * Pour servir un document PRIVÉ sans exposer le bucket publiquement : le caller
+ * a déjà vérifié auth + tenant + visibilité, on délivre alors un lien GET signé
+ * et expirant (X-Amz-Expires).
+ *
+ * Fail-soft : renvoie null si R2 n'est pas configuré (même contrat que getObject).
+ */
+export async function presignedUrl(
+  key: string,
+  ttlSeconds = 3600,
+): Promise<string | null> {
+  const client = getClient();
+  if (!client || !r2IsConfigured()) return null;
+
+  // Même cible que les opérations directes (endpoint S3 du bucket).
+  const url = new URL(bucketUrl(key));
+  url.searchParams.set("X-Amz-Expires", String(ttlSeconds));
+
+  // signQuery → signature portée dans la query-string (lien partageable, pas de header).
+  const signed = await client.sign(url.toString(), {
+    method: "GET",
+    aws: { signQuery: true },
+  });
+  return signed.url;
 }

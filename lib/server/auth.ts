@@ -1,4 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/server/supabase";
 
 export type SessionClaims = {
   sub: string;
@@ -6,6 +8,7 @@ export type SessionClaims = {
   tenant_id: string;
   role: string;
   scope: string[];
+  jti?: string; // identifiant de token (révocation). Absent sur les tokens legacy → check sauté.
   iat?: number;
   exp?: number;
 };
@@ -23,29 +26,60 @@ export async function signJwt(
   const key = secret();
   if (!key) return null;
   const now = Math.floor(Date.now() / 1000);
-  return await new SignJWT({ ...payload })
+  // jti unique par token → permet la révocation ciblée (logout / kill admin).
+  const jti = crypto.randomUUID();
+  return await new SignJWT({ ...payload, jti })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuedAt(now)
     .setExpirationTime(now + ttlSeconds)
     .sign(key);
 }
 
-export async function verifyJwt(token: string | undefined | null): Promise<SessionClaims | null> {
+export async function verifyJwt(
+  token: string | undefined | null,
+  opts?: { checkRevocation?: boolean },
+): Promise<SessionClaims | null> {
   const key = secret();
   if (!key || !token) return null;
+  let claims: SessionClaims;
   try {
     const { payload } = await jwtVerify(token, key);
     if (!payload.sub || typeof payload.tenant_id !== "string") return null;
-    return {
+    claims = {
       sub: payload.sub,
       email: typeof payload.email === "string" ? payload.email : undefined,
       tenant_id: payload.tenant_id,
       role: typeof payload.role === "string" ? payload.role : "user",
       scope: Array.isArray(payload.scope) ? (payload.scope as string[]) : [],
+      jti: typeof payload.jti === "string" ? payload.jti : undefined,
       iat: typeof payload.iat === "number" ? payload.iat : undefined,
       exp: typeof payload.exp === "number" ? payload.exp : undefined,
     };
   } catch {
     return null;
   }
+
+  // Check révocation : seulement si demandé ET si le token porte un jti.
+  // Tokens legacy (sans jti) → check sauté → restent acceptés (rétro-compat).
+  // FAIL-OPEN : toute erreur de lookup (réseau/Supabase non configuré) laisse
+  // passer le token — un blip DB ne doit jamais verrouiller tous les users.
+  if (opts?.checkRevocation && claims.jti) {
+    try {
+      // `revoked_sessions` n'est pas (encore) dans les types générés tant que la
+      // migration 0028 n'est pas appliquée → client non typé pour cette requête.
+      const sb = getSupabaseAdmin() as SupabaseClient | null;
+      if (sb) {
+        const { data, error } = await sb
+          .from("revoked_sessions")
+          .select("jti")
+          .eq("jti", claims.jti)
+          .maybeSingle();
+        if (!error && data) return null; // jti révoqué → session invalide
+      }
+    } catch {
+      // fail-open : on ignore et on retourne les claims
+    }
+  }
+
+  return claims;
 }

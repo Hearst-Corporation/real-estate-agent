@@ -14,7 +14,7 @@ export function register() {
     if (dsn) {
       Sentry.init({
         dsn,
-        tracesSampleRate: 0.1,
+        tracesSampleRate: 0.2,
         environment: process.env.NODE_ENV,
         // Anti-fuite : scrub secrets/PII de tout event avant envoi.
         beforeSend: (event) => scrubSentryEvent(event),

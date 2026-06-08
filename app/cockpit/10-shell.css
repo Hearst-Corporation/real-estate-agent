@@ -696,3 +696,41 @@ html, body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--ct-surface-2); border-radius: var(--ct-radius-xs); }
 ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--ct-text-strong) 12%, transparent); }
+
+/* ── Skeletons (états loading.tsx) ─────────────────────────────────────────
+   Placeholder shimmer composé des surfaces tokenisées. Dimensions pilotées
+   en style inline côté composant (<Skeleton/>) ; ici uniquement la couleur,
+   le radius par défaut et l'animation. Tokens --ct-* uniquement. */
+.ct-skeleton {
+  display: block;
+  border-radius: var(--ct-radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--ct-surface-1) 25%,
+    var(--ct-surface-2) 37%,
+    var(--ct-surface-1) 63%
+  );
+  background-size: 400% 100%;
+  animation: ct-skeleton-shimmer 1.4s ease infinite;
+}
+
+.ct-skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-sm);
+}
+
+.ct-loading-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--ct-space-md);
+}
+
+@keyframes ct-skeleton-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-skeleton { animation: none; }
+}

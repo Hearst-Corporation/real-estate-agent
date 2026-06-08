@@ -21,7 +21,12 @@ function isOpen(pathname: string): boolean {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(TOKEN_COOKIE)?.value;
-  const claims = await verifyJwt(token);
+  // Check révocation GATÉ par env (défaut OFF → pas de coût latence sur chaque
+  // requête). Quand activé, fail-open en interne : un blip Supabase laisse passer
+  // plutôt que de verrouiller tous les users. Tokens legacy sans jti = ignorés.
+  const claims = await verifyJwt(token, {
+    checkRevocation: process.env.AUTH_CHECK_REVOCATION === "true",
+  });
 
   // Connecté + sur /auth/login → renvoyer au dashboard.
   if (claims && pathname.startsWith("/auth/login")) {

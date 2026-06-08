@@ -15,7 +15,7 @@ import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { KIMI_MODEL, kimiIsConfigured } from "@/lib/llm/kimi";
 import { tenantOf, uuidOwnerOf } from "@/lib/tenant";
-import { trace } from "@/lib/providers/langfuse";
+import { trace, type TraceUsage } from "@/lib/providers/langfuse";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import type { PropertyData } from "@/lib/estimation/types";
 import { runAgent } from "@/lib/agent/run";
@@ -161,7 +161,7 @@ export async function POST(req: Request) {
     .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
 
   // Observabilité (no-op si non configurée).
-  let t: { end: (output: unknown) => void } = { end: () => {} };
+  let t: { end: (output: unknown, usage?: TraceUsage) => void } = { end: () => {} };
   try {
     t = trace("cockpit-chat", { model: KIMI_MODEL, historyLen: history.length }, { provider: "kimi", model: KIMI_MODEL });
   } catch {
@@ -178,9 +178,11 @@ export async function POST(req: Request) {
 
       const ctx: ToolContext = { userId, tenant, ownerId, origin: new URL(req.url).origin, sb, emit: write };
       let assistantText = "";
+      let usage: TraceUsage | undefined;
       try {
         const res = await runAgent({ model: KIMI_MODEL, system, history, userMessage: message, ctx });
         assistantText = res.assistantText;
+        usage = res.usage;
       } catch (err) {
         console.error("[cockpit-chat] runAgent error:", err instanceof Error ? err.message : String(err));
         write({ type: "error", message: "La génération a échoué." });
@@ -188,7 +190,7 @@ export async function POST(req: Request) {
         if (assistantText.trim()) {
           await sb.from("cockpit_messages").insert({ chat_id: finalChatId, tenant_id: tenant, role: "assistant", content: assistantText });
         }
-        t.end({ outputLen: assistantText.length });
+        t.end({ outputLen: assistantText.length }, usage);
         write({ type: "done" });
         controller.close();
       }
