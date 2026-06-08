@@ -44,16 +44,40 @@ const INTENT_KEYWORDS = [
 /** Termes IMMOBILIERS — au moins un requis pour écarter les faux positifs
  *  (recouvrement, énergie, finance… qui contiennent « estimation »). */
 const REALESTATE_KEYWORDS = [
-  "bien", "appartement", "appart", "maison", "studio", "immeuble", "villa",
+  "bien immobilier", "appartement", "appart", "maison", "studio", "immeuble", "villa",
   "local commercial", "terrain", "loft", "duplex", "m²", "m2", "mètres carrés",
   "metres carres", "pièces", "pieces", "chambres", "propriété", "propriete",
   "logement", "résidence", "residence", "property", "house", "flat", "apartment",
+  "t2", "t3", "t4", "t5", "f2", "f3", "f4",
 ];
 
 /** Expressions fortes qui suffisent à elles seules (intention + immo combinés). */
 const STRONG_PHRASES = [
   "valeur de mon bien", "valeur du bien", "vendre mon", "vendre ma",
   "estimer mon", "estimer ma", "appartement à vendre", "maison à vendre",
+  "estimation de mon", "estimation de ma", "faire estimer", "demande d'estimation",
+];
+
+/** Termes d'EXCLUSION — domaines qui contiennent souvent « estimation/vendre »
+ *  mais ne sont PAS des demandes immobilières. Un email qui en contient (sans
+ *  expression forte immobilière) est rejeté → réduit drastiquement les faux
+ *  positifs (énergie, factures, recouvrement, assurance, newsletters, e-commerce). */
+const EXCLUSION_KEYWORDS = [
+  // énergie / utilities
+  "engie", "edf", "total energies", "totalenergies", "électricité", "electricite",
+  "gaz naturel", "fournisseur d'énergie", "fournisseur d'energie", "consommation d'énergie",
+  // facturation / recouvrement / finance
+  "facture", "échéance", "echeance", "recouvrement", "impayé", "impaye",
+  "relance de paiement", "montant dû", "montant du", "prélèvement", "prelevement",
+  "rappel de paiement", "avis d'échéance",
+  // assurance / mutuelle / banque
+  "assurance", "mutuelle", "cotisation", "contrat d'assurance",
+  // newsletter / marketing / e-commerce
+  "newsletter", "se désabonner", "se desabonner", "désabonner", "desabonner",
+  "unsubscribe", "promotion", "code promo", "soldes", "livraison", "votre colis",
+  "votre commande", "abonnement", "offre exclusive",
+  // administratif générique
+  "rgpd", "conditions générales", "conditions generales", "mise à jour de nos",
 ];
 
 // ─── Normalisation des emails Composio ───────────────────────────────────────
@@ -99,25 +123,75 @@ function normalizeEmails(raw: unknown): NormalizedEmail[] {
   return out;
 }
 
-/** Heuristique déterministe : l'email ressemble-t-il à une demande d'estimation
- *  IMMOBILIÈRE ? Exige une intention (estimer/vendre) ET un terme immobilier,
- *  sauf si une expression forte combine les deux. Retourne un score 0..1.
- *  Le filtre reste volontairement permissif (le LLM tranche ensuite) mais écarte
- *  les faux positifs évidents (recouvrement, énergie, finance). */
-function estimationScore(email: NormalizedEmail): number {
+export type EmailText = { subject: string; body: string };
+
+export type Classification = {
+  /** Score 0..1 ; 0 = écarté. */
+  score: number;
+  /** true si écarté par un terme d'exclusion (sans expression forte immo). */
+  excluded: boolean;
+};
+
+/** Classifie un email : demande d'estimation immobilière ? Déterministe & testable.
+ *  Règles, par priorité :
+ *   1. Expression forte immobilière (« faire estimer », « vendre mon appartement »…)
+ *      → accepté (0.9), même si un terme d'exclusion traîne dans le corps.
+ *   2. Sinon, présence d'un terme d'exclusion (énergie/facture/newsletter…) → écarté.
+ *   3. Sinon exige intention (estimer/vendre) ET terme immobilier ; score pondéré.
+ *  Le filtre est volontairement strict : il ne crée jamais rien (création =
+ *  confirmation explicite), il réduit seulement le bruit présenté à l'utilisateur. */
+export function classifyEstimationEmail(email: EmailText): Classification {
   const hay = `${email.subject}\n${email.body}`.toLowerCase();
 
   const strong = STRONG_PHRASES.some((p) => hay.includes(p));
-  if (strong) return 0.9;
+  if (strong) return { score: 0.9, excluded: false };
+
+  const isExcluded = EXCLUSION_KEYWORDS.some((kw) => hay.includes(kw));
+  if (isExcluded) return { score: 0, excluded: true };
 
   const intentHits = INTENT_KEYWORDS.filter((kw) => hay.includes(kw)).length;
   const realEstateHits = REALESTATE_KEYWORDS.filter((kw) => hay.includes(kw)).length;
 
   // Sans intention OU sans terme immobilier → pas un candidat.
-  if (intentHits === 0 || realEstateHits === 0) return 0;
+  if (intentHits === 0 || realEstateHits === 0) return { score: 0, excluded: false };
 
   // 1 intention + 1 immo = 0.6 ; plus de signaux = score plus haut (plafond 0.95).
-  return Math.min(0.95, 0.4 + intentHits * 0.15 + realEstateHits * 0.1);
+  return { score: Math.min(0.95, 0.4 + intentHits * 0.15 + realEstateHits * 0.1), excluded: false };
+}
+
+function estimationScore(email: NormalizedEmail): number {
+  return classifyEstimationEmail(email).score;
+}
+
+/** Indices d'extraction déterministes (FR) — n'INVENTENT rien : si le motif
+ *  n'est pas présent, le champ reste null. Servent à GUIDER le LLM (il garde la
+ *  décision finale) et à rendre l'extraction testable. */
+export function extractHints(email: EmailText): {
+  phone: string | null;
+  postalCode: string | null;
+  surface: number | null;
+  rooms: number | null;
+} {
+  const text = `${email.subject}\n${email.body}`;
+
+  // Téléphone FR : 0X XX XX XX XX (espaces/points/tirets tolérés) ou +33…
+  const phoneMatch = text.match(/(?:(?:\+33|0033)\s?|0)[1-9](?:[\s.\-]?\d{2}){4}/);
+  const phone = phoneMatch ? phoneMatch[0].trim() : null;
+
+  // Code postal FR : 5 chiffres (évite de capter une année/un montant via bornes \b).
+  const cpMatch = text.match(/\b(\d{5})\b/);
+  const postalCode = cpMatch ? cpMatch[1] : null;
+
+  // Surface : « 72 m² », « 72m2 », « 72 mètres carrés ».
+  const surfaceMatch = text.match(/(\d{1,4})\s?(?:m²|m2|mètres?\s?carrés?|metres?\s?carres?)/i);
+  const surface = surfaceMatch ? Number(surfaceMatch[1]) : null;
+
+  // Pièces : « T3 » / « F4 » / « 3 pièces ».
+  const tMatch = text.match(/\b[tf]\s?([2-9])\b/i);
+  const piecesMatch = text.match(/(\d{1,2})\s?pi[eè]ces?/i);
+  const rooms = tMatch ? Number(tMatch[1]) : piecesMatch ? Number(piecesMatch[1]) : null;
+
+  return { phone, postalCode, surface, rooms };
 }
 
 // ─── Outil scan_gmail_estimation_requests ────────────────────────────────────
@@ -186,8 +260,16 @@ const scanGmailEstimationRequests: AgentTool = {
       };
     }
 
-    // On renvoie au LLM les candidats avec leur contenu pour qu'il extraie les champs.
+    // On renvoie au LLM les candidats avec leur contenu + des indices déterministes
+    // (tél/CP/surface/pièces) pour qu'il extraie les champs sans inventer.
     const lines = candidates.map((c, i) => {
+      const hints = extractHints(c);
+      const detected = [
+        hints.phone ? `tél≈${hints.phone}` : null,
+        hints.postalCode ? `CP≈${hints.postalCode}` : null,
+        hints.surface !== null ? `surface≈${hints.surface} m²` : null,
+        hints.rooms !== null ? `pièces≈${hints.rooms}` : null,
+      ].filter(Boolean);
       return [
         `### Candidat ${i + 1} (confiance ${c.confidence.toFixed(2)})`,
         `messageId: ${c.messageId}`,
@@ -195,7 +277,8 @@ const scanGmailEstimationRequests: AgentTool = {
         `Date : ${c.date}`,
         `Sujet : ${c.subject}`,
         `Contenu : ${c.body}`,
-      ].join("\n");
+        detected.length ? `Indices détectés (à vérifier) : ${detected.join(" · ")}` : null,
+      ].filter(Boolean).join("\n");
     });
 
     return {
@@ -203,8 +286,17 @@ const scanGmailEstimationRequests: AgentTool = {
       summary: `${candidates.length} demande(s) d'estimation détectée(s)`,
       observation:
         `${candidates.length} email(s) candidat(s) trouvé(s).\n\n${lines.join("\n\n")}\n\n` +
-        "INSTRUCTIONS : pour chaque candidat, extrais les champs disponibles (contactName, contactEmail, phone, address, city, postalCode, propertyType, surface, rooms, notes) UNIQUEMENT depuis le contenu — n'invente jamais une valeur absente (laisse vide). " +
-        "Présente une PREVIEW claire à l'utilisateur et demande confirmation AVANT de créer quoi que ce soit. Une fois confirmé, appelle create_estimation_from_gmail avec le messageId et les champs extraits.",
+        "INSTRUCTIONS D'EXTRACTION :\n" +
+        "- Extrais UNIQUEMENT depuis le contenu : contactName, contactEmail, phone, address, city, postalCode, propertyType, surface, rooms, notes.\n" +
+        "- N'invente JAMAIS un champ absent : laisse-le vide.\n" +
+        "- Les « indices détectés » sont des suggestions à confirmer, pas des certitudes.\n" +
+        "- Recopie le message original pertinent dans notes (contexte).\n\n" +
+        "PREVIEW À AFFICHER (par candidat), puis ARRÊTE-TOI :\n" +
+        "1. Expéditeur + sujet + niveau de confiance.\n" +
+        "2. Champs extraits (uniquement ceux trouvés).\n" +
+        "3. Champs manquants (liste explicite de ce qui n'a pas pu être extrait).\n" +
+        "4. Demande une CONFIRMATION EXPLICITE (« Je crée le brouillon ? »).\n" +
+        "Ne crée RIEN tant que l'utilisateur n'a pas confirmé. Après confirmation seulement, appelle create_estimation_from_gmail avec le messageId et les champs extraits.",
     };
   },
 };
