@@ -1002,6 +1002,10 @@ export const UI = {
     } as Record<string, string>,
     form: {
       title: "Bien",
+      sectionMain: "Informations principales",
+      sectionLocation: "Localisation",
+      sectionFeatures: "Caractéristiques",
+      sectionPrice: "Prix / mandat",
       name: "Titre",
       type: "Type",
       address: "Adresse",
