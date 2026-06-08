@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { normalizeVerdict } from "@/lib/prospection/feedback";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -85,8 +86,22 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null);
   const { match_id, verdict } = body ?? {};
-  if (!match_id || !["like","dislike","contact","visite"].includes(verdict)) {
+  if (!match_id || typeof verdict !== "string") {
     return NextResponse.json({ error: "match_id + verdict requis" }, { status: 400 });
+  }
+
+  // La CHECK DB prosp_match_feedback_verdict_check n'accepte que up|down. On mappe
+  // 👍→up / 👎→down (+ legacy like/dislike). `contact`/`visite` ne sont PAS du
+  // feedback noté : pas de parcours défini → no-op sans écriture DB invalide.
+  const dbVerdict = normalizeVerdict(verdict);
+  if (dbVerdict === "noop") {
+    return NextResponse.json(
+      { ok: true, action: "noop", reason: "feedback_not_recorded" },
+      { status: 200 },
+    );
+  }
+  if (dbVerdict === null) {
+    return NextResponse.json({ error: "verdict invalide" }, { status: 400 });
   }
 
   const { data: match, error: matchError } = await db
@@ -108,7 +123,7 @@ export async function POST(req: NextRequest) {
     tenant_id: tenantId,
     user_id:   claims.sub,
     match_id,
-    verdict,
+    verdict: dbVerdict,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true }, { status: 201 });

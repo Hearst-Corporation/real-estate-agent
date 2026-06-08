@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
+import { useOpenFromQuery } from "@/lib/hooks/useOpenFromQuery";
 import {
   CockpitForm,
   Field,
@@ -112,7 +113,7 @@ export function LeadForm({
 
   return (
     <CockpitForm onSubmit={handleSubmit}>
-      <h3 className="ct-card-title">{t.title}</h3>
+      <div className="ct-card-title">{t.title}</div>
 
       <Field label={t.fullName} htmlFor="lead-full-name" required>
         <TextInput
@@ -209,6 +210,7 @@ export function LeadForm({
 /** Bouton "Nouveau lead" + modale de création (pattern .crm-form-overlay). */
 export default function LeadFormModal({ cta }: { cta: string }) {
   const [open, setOpen] = useState(false);
+  useOpenFromQuery("new", useCallback(() => setOpen(true), []));
 
   if (!open) {
     return (

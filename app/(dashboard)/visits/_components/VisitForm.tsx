@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useOpenFromQuery } from "@/lib/hooks/useOpenFromQuery";
 import {
   CockpitForm,
   Field,
@@ -17,6 +18,7 @@ export default function VisitForm({ cta }: { cta: string }) {
   const t = UI.visits.form;
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  useOpenFromQuery("new", useCallback(() => setOpen(true), []));
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

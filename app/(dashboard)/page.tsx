@@ -6,7 +6,9 @@ import {
 } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
+import { Icon, type IconName } from "@/components/cockpit/Icon";
 import { dateFr } from "@/lib/crm/format";
+import { filterSeed } from "@/lib/crm/demo-filter";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
@@ -107,22 +109,31 @@ function TodayBlock({
   );
 }
 
+/** Bloc d'actions cockpit : une action principale forte + 4 secondaires compactes. */
 function QuickActions({
-  items,
+  primary,
+  secondary,
 }: {
-  items: { href: string; label: string; accent?: boolean }[];
+  primary: { href: string; label: string; desc: string; icon: IconName };
+  secondary: { href: string; label: string; icon: IconName }[];
 }) {
   return (
-    <div className="ct-home-action-grid">
-      {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={`ct-seg-btn${item.accent ? " primary" : ""}`}
-        >
-          {item.label}
-        </Link>
-      ))}
+    <div className="ct-home-actions">
+      <Link href={primary.href} className="ct-home-action-primary">
+        <span className="ct-home-action-icon"><Icon name={primary.icon} /></span>
+        <span className="ct-home-action-text">
+          <span className="ct-home-action-label">{primary.label}</span>
+          <span className="ct-home-action-desc">{primary.desc}</span>
+        </span>
+      </Link>
+      <div className="ct-home-action-secondary-grid">
+        {secondary.map((item) => (
+          <Link key={item.href} href={item.href} className="ct-home-action-secondary">
+            <span className="ct-home-action-icon"><Icon name={item.icon} /></span>
+            <span className="ct-home-action-label">{item.label}</span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
@@ -243,13 +254,13 @@ export default async function DashboardPage() {
         .limit(TODAY_PREVIEW + 1),
     ]);
 
-    properties = (propertiesRes.data ?? []) as PropertyRow[];
+    properties = filterSeed((propertiesRes.data ?? []) as PropertyRow[], (p) => [p.title, p.city]);
     nbProperties = propertiesTotalRes.count ?? 0;
     nbLeadsActifs = leadsCountRes.count ?? (leadsCountRes.data?.length ?? 0);
     nbVisitesAVenir = visitsCountRes.count ?? 0;
     nbMandatsActifs = mandatesCountRes.count ?? 0;
 
-    leadsToFollow = ((leadsFollowRes.data ?? []) as LeadRow[]).slice(
+    leadsToFollow = filterSeed((leadsFollowRes.data ?? []) as LeadRow[], (l) => [l.full_name]).slice(
       0,
       TODAY_PREVIEW
     );
@@ -292,12 +303,17 @@ export default async function DashboardPage() {
 
   const t = UI.dashboard;
 
-  const quickActionItems = [
-    { href: "/estimations/new", label: t.actions.newEstimation, accent: true },
-    { href: "/properties?new=1", label: t.actions.newProperty },
-    { href: "/leads?new=1", label: t.actions.newClient },
-    { href: "/visits?new=1", label: t.actions.newVisit },
-    { href: "/prospection", label: t.actions.launchPros },
+  const primaryAction = {
+    href: "/estimations/new",
+    label: t.actions.newEstimation,
+    desc: t.actions.newEstimationDesc,
+    icon: "estimate" as IconName,
+  };
+  const secondaryActions: { href: string; label: string; icon: IconName }[] = [
+    { href: "/properties?new=1", label: t.actions.newProperty, icon: "properties" },
+    { href: "/leads?new=1", label: t.actions.newClient, icon: "leads" },
+    { href: "/visits?new=1", label: t.actions.newVisit, icon: "visits" },
+    { href: "/prospection", label: t.actions.launchPros, icon: "search" },
   ];
 
   // leads / visits / mandates n'ont pas de page détail [id] (édition via drawer
@@ -354,6 +370,11 @@ export default async function DashboardPage() {
         ]}
       />
 
+      {/* Actions juste sous les KPIs : l'agent peut agir sans scroller. */}
+      <Card title={t.actions.title} titleAs="section">
+        <QuickActions primary={primaryAction} secondary={secondaryActions} />
+      </Card>
+
       <Card title={t.today.title} titleAs="section">
         <div className="ct-today-grid">
           <TodayBlock
@@ -381,10 +402,6 @@ export default async function DashboardPage() {
             href="/estimations"
           />
         </div>
-      </Card>
-
-      <Card title={t.actions.title} titleAs="section">
-        <QuickActions items={quickActionItems} />
       </Card>
 
       <Card title={t.recentPortfolio} variant="dense" className="ct-card-fill">

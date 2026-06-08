@@ -3,25 +3,21 @@
 import React, { useState } from "react";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { PropertyKanban } from "@/components/cockpit/PropertyKanban";
+import { PropertiesCockpit, type CockpitProperty } from "./PropertiesCockpit";
 import { eur, sqm } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
 import Link from "next/link";
 import { DeleteButton } from "@/components/cockpit/DeleteButton";
 
-type Property = {
-  id: string;
-  status: string;
-  title: string | null;
-  property_type: string | null;
-  city: string | null;
+type Property = CockpitProperty & {
   surface: number | null;
-  asking_price: number | null;
   cover_photo_url?: string | null;
 };
 
 export function PropertiesViewToggle({ properties }: { properties: Property[] }) {
-  const [view, setView] = useState<"kanban" | "list">("kanban");
+  // Vue COCKPIT par défaut (métier) ; kanban + liste restent accessibles.
+  const [view, setView] = useState<"cockpit" | "kanban" | "list">("cockpit");
   const t = UI.properties;
 
   const columns: Column<Property>[] = [
@@ -65,24 +61,32 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
   return (
     <div className="crm-view-panel">
       <div className="crm-toolbar crm-toolbar-shrink">
-        <h3 className="ct-card-title">VOS BIENS</h3>
+        <div className="ct-card-title">{t.cockpit.panelTitle}</div>
         <div className="ct-seg-track">
-          <button 
+          <button
+            className={`ct-seg-btn ${view === "cockpit" ? "active" : ""}`}
+            onClick={() => setView("cockpit")}
+          >
+            {t.cockpit.tabCockpit}
+          </button>
+          <button
             className={`ct-seg-btn ${view === "kanban" ? "active" : ""}`}
             onClick={() => setView("kanban")}
           >
-            Kanban
+            {t.cockpit.tabKanban}
           </button>
-          <button 
+          <button
             className={`ct-seg-btn ${view === "list" ? "active" : ""}`}
             onClick={() => setView("list")}
           >
-            Liste
+            {t.cockpit.tabList}
           </button>
         </div>
       </div>
 
-      {view === "kanban" ? (
+      {view === "cockpit" ? (
+        <PropertiesCockpit properties={properties} />
+      ) : view === "kanban" ? (
         <PropertyKanban properties={properties} />
       ) : (
         <div className="crm-view-panel">

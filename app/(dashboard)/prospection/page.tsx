@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { UI } from "@/lib/ui-strings";
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
+import { ScrapeCustomModal } from "./_components/ScrapeCustomModal";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
 
@@ -373,7 +375,7 @@ export default function ProspectionPage() {
     };
   }, []);
 
-  async function sendFeedback(matchId: string, signal: "like" | "dislike" | "contact" | "visite") {
+  async function sendFeedback(matchId: string, signal: "up" | "down") {
     setError(null);
     try {
       const res = await fetch("/api/prospection/matchs", {
@@ -423,25 +425,36 @@ export default function ProspectionPage() {
         kicker={UI.prospection.kicker}
         title={UI.prospection.title}
         action={
-          <button type="button" className="ct-seg-btn primary" onClick={() => selectTab("criteres")}>
-            {UI.prospection.newAcquereurBtn}
-          </button>
+          <div className="ct-inline-actions">
+            <ScrapeCustomModal
+              onDone={() => {
+                setTab("matching");
+                void loadAnnonces();
+                void loadMatchs();
+              }}
+            />
+            <button type="button" className="ct-seg-btn primary" onClick={() => selectTab("criteres")}>
+              {UI.prospection.newAcquereurBtn}
+            </button>
+          </div>
         }
-        nav={TABS.map((t) => (
-          <button
-            key={t}
-            className={`ct-page-header-nav-item${tab === t ? " active" : ""}`}
-            onClick={() => selectTab(t)}
-          >
-            {t === "acquereurs"
-              ? UI.prospection.tabAcquereurs
-              : t === "annonces"
-              ? UI.prospection.annonces
-              : t === "matching"
-              ? UI.prospection.matching
-              : UI.prospection.criteres}
-          </button>
-        ))}
+        nav={
+          <PageSegmentTabs
+            tabs={TABS.map((t) => ({
+              id: t,
+              label:
+                t === "acquereurs"
+                  ? UI.prospection.tabAcquereurs
+                  : t === "annonces"
+                  ? UI.prospection.annonces
+                  : t === "matching"
+                  ? UI.prospection.matching
+                  : UI.prospection.criteres,
+            }))}
+            active={tab}
+            onSelect={selectTab}
+          />
+        }
         kpis={[
           { label: UI.prospection.kpiAcquereurs, value: String(criteres.length) },
           { label: UI.prospection.kpiMatchs, value: String(matchs.length) },
@@ -589,7 +602,11 @@ export default function ProspectionPage() {
                 />
               </div>
             ) : (
-              <MatchList matchs={matchs} onFeedback={sendFeedback} />
+              <MatchList
+                matchs={matchs}
+                onFeedback={sendFeedback}
+                onContactSoon={() => setError(UI.prospection.contactSoon)}
+              />
             )}
           </div>
         )}
@@ -606,9 +623,11 @@ export default function ProspectionPage() {
 function MatchList({
   matchs,
   onFeedback,
+  onContactSoon,
 }: {
   matchs: Match[];
-  onFeedback: (id: string, signal: "like" | "dislike" | "contact" | "visite") => Promise<void>;
+  onFeedback: (id: string, signal: "up" | "down") => Promise<void>;
+  onContactSoon: () => void;
 }) {
   // Trier : bons matchs en premier
   const sorted = [...matchs].sort((a, b) => b.score_match - a.score_match);
@@ -650,20 +669,21 @@ function MatchList({
               <button
                 className="prospection-feedback-btn"
                 aria-label={UI.prospection.feedbackLikeAria}
-                onClick={() => onFeedback(m.id, "like")}
+                onClick={() => onFeedback(m.id, "up")}
               >
                 👍
               </button>
               <button
                 className="prospection-feedback-btn"
                 aria-label={UI.prospection.feedbackDislikeAria}
-                onClick={() => onFeedback(m.id, "dislike")}
+                onClick={() => onFeedback(m.id, "down")}
               >
                 👎
               </button>
               <button
                 className="ct-seg-btn primary"
-                onClick={() => onFeedback(m.id, "contact")}
+                title={UI.prospection.contactSoon}
+                onClick={() => onContactSoon()}
               >
                 {UI.prospection.matchContactBtn}
               </button>

@@ -6,6 +6,7 @@ import { PropertiesViewToggle } from "./_components/PropertiesViewToggle";
 import { barsByStatus, topByCategory, distributeByBand, autoBands, ratio } from "@/lib/crm/aggregate";
 import { eur, PROPERTY_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
+import { filterSeed } from "@/lib/crm/demo-filter";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -22,6 +23,8 @@ type Property = {
   surface: number | null;
   asking_price: number | null;
   cover_photo_url?: string | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export default async function PropertiesPage() {
@@ -36,7 +39,7 @@ export default async function PropertiesPage() {
     const { data, count } = await sb
       .from("properties")
       .select(
-        `id, status, title, property_type, city, surface, asking_price,
+        `id, status, title, property_type, city, surface, asking_price, created_at, updated_at,
         property_photos!property_photos_property_id_fkey(url, is_cover, position)`,
         { count: "exact" }
       )
@@ -52,10 +55,12 @@ export default async function PropertiesPage() {
       city: string | null;
       surface: number | null;
       asking_price: number | null;
+      created_at: string;
+      updated_at: string;
       property_photos?: Array<{ url: string; is_cover: boolean; position: number }>;
     }>;
 
-    properties = rawProperties.map((p) => ({
+    properties = filterSeed(rawProperties, (p) => [p.title, p.city]).map((p) => ({
       id: p.id,
       status: p.status,
       title: p.title,
@@ -63,6 +68,8 @@ export default async function PropertiesPage() {
       city: p.city,
       surface: p.surface,
       asking_price: p.asking_price,
+      created_at: p.created_at,
+      updated_at: p.updated_at,
       cover_photo_url:
         p.property_photos?.find((ph) => ph.is_cover)?.url ??
         p.property_photos?.slice().sort((a, b) => a.position - b.position)[0]?.url ??

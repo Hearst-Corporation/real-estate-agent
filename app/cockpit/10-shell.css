@@ -165,8 +165,11 @@ html, body {
   transition: transform var(--ct-dur-base) var(--ct-ease);
 }
 .ct-rail-right.collapsed {
+  /* Replié : largeur réduite, ancré à droite, AUCUN translateX. L'ancien
+     transform translateX(420-48) poussait le rail (48px) 372px hors écran →
+     le bouton de réouverture devenait invisible (chat impossible à rouvrir). */
   width: var(--ct-rail-collapsed);
-  transform: translateX(calc(var(--ct-rail-right) - var(--ct-rail-collapsed)));
+  transform: translateX(0);
 }
 .ct-rail-right-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -292,14 +295,73 @@ html, body {
   font-size: var(--ct-fs-sm);
   line-height: var(--ct-lh-base);
 }
-.ct-home-action-grid {
+/* ── Bloc Actions principales : 1 action forte + 4 secondaires compactes ── */
+.ct-home-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--ct-space-xs);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr);
+  gap: var(--ct-space-sm);
+  align-items: stretch;
 }
-.ct-home-quick .ct-home-action-grid {
+/* Action principale : carte large, accent, icône + label + description. */
+.ct-home-action-primary {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-md);
+  padding: var(--ct-space-md) var(--ct-space-lg);
+  border-radius: var(--ct-radius-lg);
+  background: var(--ct-accent-soft);
+  border: 1px solid var(--ct-border-accent);
+  color: var(--ct-text-primary);
+  text-decoration: none;
+  transition: background var(--ct-dur-base) var(--ct-ease), border-color var(--ct-dur-base) var(--ct-ease);
+}
+.ct-home-action-primary:hover {
+  background: color-mix(in srgb, var(--ct-accent-strong) 22%, transparent);
+  border-color: var(--ct-accent);
+}
+.ct-home-action-text { display: flex; flex-direction: column; gap: var(--ct-space-3xs); min-width: 0; }
+.ct-home-action-desc { font-size: var(--ct-fs-sm); color: var(--ct-text-muted); line-height: var(--ct-lh-snug); }
+/* Grille 2×2 des actions secondaires. */
+.ct-home-action-secondary-grid {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ct-space-sm);
 }
+.ct-home-action-secondary {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-sm);
+  padding: var(--ct-space-sm) var(--ct-space-md);
+  border-radius: var(--ct-radius-md);
+  background: var(--ct-surface-1);
+  border: 1px solid var(--ct-border);
+  color: var(--ct-text-body);
+  text-decoration: none;
+  transition: background var(--ct-dur-base) var(--ct-ease), border-color var(--ct-dur-base) var(--ct-ease), color var(--ct-dur-base) var(--ct-ease);
+}
+.ct-home-action-secondary:hover {
+  background: var(--ct-surface-2);
+  border-color: var(--ct-border-accent);
+  color: var(--ct-text-strong);
+}
+/* Icône d'action (réutilisée primaire + secondaire). */
+.ct-home-action-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  width: var(--ct-icon-md); height: var(--ct-icon-md);
+  color: var(--ct-accent-strong);
+}
+.ct-home-action-icon svg { width: var(--ct-icon-sm); height: var(--ct-icon-sm); }
+.ct-home-action-primary .ct-home-action-icon {
+  width: var(--ct-icon-lg); height: var(--ct-icon-lg);
+}
+.ct-home-action-primary .ct-home-action-icon svg { width: var(--ct-icon-md); height: var(--ct-icon-md); }
+.ct-home-action-label {
+  font-size: var(--ct-fs-base); font-weight: var(--ct-fw-semibold);
+  letter-spacing: var(--ct-ls-tight); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.ct-home-action-primary .ct-home-action-label { font-size: var(--ct-fs-md); font-weight: var(--ct-fw-bold); }
 
 /* ── Accueil : grille "À faire maintenant" + blocs ── */
 .ct-today-grid {
@@ -713,7 +775,44 @@ html, body {
   .ct-skeleton { animation: none; }
 }
 
-/* ── RAIL GAUCHE — Flyout menu ── */
+/* ── RAIL GAUCHE — Flyout menu « Créer » ── */
 .ct-rail-flyout-anchor { position: relative; }
-.ct-rail-flyout { position: absolute; left: 100%; top: 0; z-index: var(--ct-z-flyout); min-width: var(--ct-prose-sm); padding: var(--ct-space-2xs) 0; }
-.ct-rail-flyout-link { padding: var(--ct-space-xs) var(--ct-space-md); display: block; white-space: nowrap; }
+.ct-rail-flyout {
+  position: absolute;
+  left: calc(100% + var(--ct-space-xs)); /* décollé du rail, ne le chevauche pas */
+  top: 0;
+  z-index: var(--ct-z-flyout);
+  /* Compact : juste assez pour les 4 libellés (avant : 380px = trop large). */
+  min-width: 196px;
+  width: max-content;
+  padding: var(--ct-space-2xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-3xs);
+  /* Surface opaque + bordure + ombre nettes → ne « bave » plus sur le contenu. */
+  background: var(--ct-bg-deep);
+  border: 1px solid var(--ct-border-strong);
+  border-radius: var(--ct-radius-md);
+  box-shadow: var(--ct-shadow-depth);
+}
+/* Les liens du flyout sont des RANGÉES compactes (≠ gros boutons carrés du rail).
+   On annule width:72px / min-height:54px / centrage colonne hérités de
+   .ct-rail-action pour une vraie liste lisible. */
+.ct-rail-flyout .ct-rail-flyout-link {
+  width: 100%;
+  min-height: 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  padding: var(--ct-space-xs) var(--ct-space-sm);
+  white-space: nowrap;
+  font-size: var(--ct-fs-sm);
+  border: none;
+  background: transparent;
+  border-radius: var(--ct-radius-sm);
+}
+.ct-rail-flyout .ct-rail-flyout-link:hover {
+  background: var(--ct-surface-2);
+  border: none;
+}

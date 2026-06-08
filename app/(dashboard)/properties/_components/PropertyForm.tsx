@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
+import { useOpenFromQuery } from "@/lib/hooks/useOpenFromQuery";
 import { CockpitForm, Field, TextInput, Textarea, Select, MoneyInput } from "@/components/cockpit/form";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
+import { emitPropertyChanged } from "@/lib/hooks/usePropertyLive";
 
 interface PropertyFormProps {
   /** Si fourni, passe en mode édition (PATCH) */
@@ -122,6 +124,8 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
       return;
     }
 
+    emitPropertyChanged();
+
     if (onClose) {
       router.refresh();
       onClose();
@@ -134,100 +138,65 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
 
   return (
     <CockpitForm onSubmit={handleSubmit}>
-      <p className="ct-card-title">{t.form.title}</p>
+      <div className="ct-card-title">{t.form.title}</div>
 
-      <Field label={t.form.name} htmlFor="property-title" required>
-        <TextInput
-          id="property-title"
-          name="title"
-          required
-          defaultValue={defaultValues.title ?? ""}
-        />
-      </Field>
+      {/* Section : informations principales */}
+      <fieldset className="ct-form-fieldset">
+        <legend>{t.form.sectionMain}</legend>
+        <div className="ct-form-row-2col">
+          <Field label={t.form.name} htmlFor="property-title" required>
+            <TextInput id="property-title" name="title" required defaultValue={defaultValues.title ?? ""} />
+          </Field>
+          <Field label={t.form.type} htmlFor="property-type" required>
+            <TextInput id="property-type" name="property_type" required defaultValue={defaultValues.property_type ?? ""} />
+          </Field>
+        </div>
+      </fieldset>
 
-      <Field label={t.form.type} htmlFor="property-type" required>
-        <TextInput
-          id="property-type"
-          name="property_type"
-          required
-          defaultValue={defaultValues.property_type ?? ""}
-        />
-      </Field>
+      {/* Section : localisation */}
+      <fieldset className="ct-form-fieldset">
+        <legend>{t.form.sectionLocation}</legend>
+        <Field label={t.form.address} htmlFor="property-address" required>
+          <TextInput id="property-address" name="address" required defaultValue={defaultValues.address ?? ""} />
+        </Field>
+        <div className="ct-form-row-2col">
+          <Field label={t.form.city} htmlFor="property-city" required>
+            <TextInput id="property-city" name="city" required defaultValue={defaultValues.city ?? ""} />
+          </Field>
+          <Field label={t.form.postalCode} htmlFor="property-postal-code" required>
+            <TextInput id="property-postal-code" name="postal_code" required defaultValue={defaultValues.postal_code ?? ""} />
+          </Field>
+        </div>
+      </fieldset>
 
-      <Field label={t.form.address} htmlFor="property-address" required>
-        <TextInput
-          id="property-address"
-          name="address"
-          required
-          defaultValue={defaultValues.address ?? ""}
-        />
-      </Field>
+      {/* Section : caractéristiques */}
+      <fieldset className="ct-form-fieldset">
+        <legend>{t.form.sectionFeatures}</legend>
+        <div className="ct-form-row-2col">
+          <Field label={t.form.surface} htmlFor="property-surface">
+            <TextInput id="property-surface" name="surface" type="number" min={0} defaultValue={defaultValues.surface ?? ""} />
+          </Field>
+          <Field label={t.form.rooms} htmlFor="property-rooms">
+            <TextInput id="property-rooms" name="rooms" type="number" min={0} defaultValue={defaultValues.rooms ?? ""} />
+          </Field>
+        </div>
+        <div className="ct-form-row-2col">
+          <Field label={t.form.bedrooms} htmlFor="property-bedrooms">
+            <TextInput id="property-bedrooms" name="bedrooms" type="number" min={0} defaultValue={defaultValues.bedrooms ?? ""} />
+          </Field>
+        </div>
+      </fieldset>
 
-      <Field label={t.form.city} htmlFor="property-city" required>
-        <TextInput
-          id="property-city"
-          name="city"
-          required
-          defaultValue={defaultValues.city ?? ""}
-        />
-      </Field>
-
-      <Field label={t.form.postalCode} htmlFor="property-postal-code" required>
-        <TextInput
-          id="property-postal-code"
-          name="postal_code"
-          required
-          defaultValue={defaultValues.postal_code ?? ""}
-        />
-      </Field>
-
-      <Field label={t.form.surface} htmlFor="property-surface">
-        <TextInput
-          id="property-surface"
-          name="surface"
-          type="number"
-          min={0}
-          defaultValue={defaultValues.surface ?? ""}
-        />
-      </Field>
-
-      <Field label={t.form.rooms} htmlFor="property-rooms">
-        <TextInput
-          id="property-rooms"
-          name="rooms"
-          type="number"
-          min={0}
-          defaultValue={defaultValues.rooms ?? ""}
-        />
-      </Field>
-
-      <Field label={t.form.bedrooms} htmlFor="property-bedrooms">
-        <TextInput
-          id="property-bedrooms"
-          name="bedrooms"
-          type="number"
-          min={0}
-          defaultValue={defaultValues.bedrooms ?? ""}
-        />
-      </Field>
-
-      <Field label={t.form.askingPrice} htmlFor="property-asking-price">
-        <MoneyInput
-          id="property-asking-price"
-          name="asking_price"
-          min={0}
-          defaultValue={defaultValues.asking_price ?? ""}
-        />
-      </Field>
-
-      <Field label={t.form.notes} htmlFor="property-notes">
-        <Textarea
-          id="property-notes"
-          name="notes"
-          rows={FORM_LIMITS.textareaRows}
-          defaultValue={defaultValues.notes ?? ""}
-        />
-      </Field>
+      {/* Section : prix / mandat */}
+      <fieldset className="ct-form-fieldset">
+        <legend>{t.form.sectionPrice}</legend>
+        <Field label={t.form.askingPrice} htmlFor="property-asking-price">
+          <MoneyInput id="property-asking-price" name="asking_price" min={0} defaultValue={defaultValues.asking_price ?? ""} />
+        </Field>
+        <Field label={t.form.notes} htmlFor="property-notes">
+          <Textarea id="property-notes" name="notes" rows={FORM_LIMITS.textareaRows} defaultValue={defaultValues.notes ?? ""} />
+        </Field>
+      </fieldset>
 
       {/* Informations complémentaires */}
       <fieldset className="ct-form-fieldset">
@@ -331,6 +300,8 @@ interface PropertyFormModalProps {
 export default function PropertyFormModal({ id, defaultValues, triggerLabel }: PropertyFormModalProps) {
   const t = UI.properties;
   const [open, setOpen] = useState(false);
+  // `?new=1` ouvre uniquement la modale de CRÉATION (pas l'édition d'une fiche).
+  useOpenFromQuery(id ? "" : "new", useCallback(() => setOpen(true), []));
 
   if (!open) {
     return (
