@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
+import { useOpenFromQuery } from "@/lib/hooks/useOpenFromQuery";
 import { CockpitForm, Field, TextInput, Textarea, Select, MoneyInput } from "@/components/cockpit/form";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
@@ -331,6 +332,8 @@ interface PropertyFormModalProps {
 export default function PropertyFormModal({ id, defaultValues, triggerLabel }: PropertyFormModalProps) {
   const t = UI.properties;
   const [open, setOpen] = useState(false);
+  // `?new=1` ouvre uniquement la modale de CRÉATION (pas l'édition d'une fiche).
+  useOpenFromQuery(id ? "" : "new", useCallback(() => setOpen(true), []));
 
   if (!open) {
     return (
