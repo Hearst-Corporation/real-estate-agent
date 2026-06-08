@@ -289,11 +289,13 @@ export default async function DashboardPage() {
     { href: "/prospection", label: t.actions.launchPros },
   ];
 
+  // leads / visits / mandates n'ont pas de page détail [id] (édition via drawer
+  // inline dans la liste) — on pointe vers la liste, pas vers une route 404.
   const leadItems = leadsToFollow.map((l) => ({
     id: l.id,
     line1: l.full_name ?? "Lead sans nom",
     line2: `Statut : ${l.status} · ${dateFr(l.updated_at)}`,
-    href: `/leads/${l.id}`,
+    href: "/leads",
   }));
 
   const visitItems = upcomingVisits.map((v) => {
@@ -302,7 +304,7 @@ export default async function DashboardPage() {
       id: v.id,
       line1: prop?.title ?? prop?.city ?? "Bien non renseigné",
       line2: dateFr(v.scheduled_at),
-      href: `/visits/${v.id}`,
+      href: "/visits",
     };
   });
 
@@ -312,7 +314,7 @@ export default async function DashboardPage() {
       id: m.id,
       line1: prop?.title ?? m.reference ?? "Mandat",
       line2: `Expire le ${dateFr(m.expires_at)}`,
-      href: `/mandates/${m.id}`,
+      href: "/mandates",
     };
   });
 
