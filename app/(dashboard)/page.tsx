@@ -370,6 +370,11 @@ export default async function DashboardPage() {
         ]}
       />
 
+      {/* Actions juste sous les KPIs : l'agent peut agir sans scroller. */}
+      <Card title={t.actions.title} titleAs="section">
+        <QuickActions primary={primaryAction} secondary={secondaryActions} />
+      </Card>
+
       <Card title={t.today.title} titleAs="section">
         <div className="ct-today-grid">
           <TodayBlock
@@ -397,10 +402,6 @@ export default async function DashboardPage() {
             href="/estimations"
           />
         </div>
-      </Card>
-
-      <Card title={t.actions.title} titleAs="section">
-        <QuickActions primary={primaryAction} secondary={secondaryActions} />
       </Card>
 
       <Card title={t.recentPortfolio} variant="dense" className="ct-card-fill">
