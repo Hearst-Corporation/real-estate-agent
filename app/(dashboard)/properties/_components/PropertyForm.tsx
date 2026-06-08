@@ -7,6 +7,7 @@ import { useOpenFromQuery } from "@/lib/hooks/useOpenFromQuery";
 import { CockpitForm, Field, TextInput, Textarea, Select, MoneyInput } from "@/components/cockpit/form";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
+import { emitPropertyChanged } from "@/lib/hooks/usePropertyLive";
 
 interface PropertyFormProps {
   /** Si fourni, passe en mode édition (PATCH) */
@@ -122,6 +123,8 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
       setError((json as { error?: string }).error ?? UI.common.networkError);
       return;
     }
+
+    emitPropertyChanged();
 
     if (onClose) {
       router.refresh();
