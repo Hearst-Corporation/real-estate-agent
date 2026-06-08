@@ -378,15 +378,18 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 720px;
+  max-width: 860px;
   margin: 0 auto;
-  flex: 1;
   min-height: 0;
 }
 
 .est-wizard-head {
   flex-shrink: 0;
-  padding: var(--ct-space-sm) 0 var(--ct-space-md);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--ct-space-md) 0;
+  background: var(--ct-bg-deep);
 }
 
 .est-wizard-stepper { width: 100%; }
@@ -433,14 +436,17 @@
 
 .est-wizard-progress-track { display: none; }
 
+/* Hauteur naturelle (plus de fill forcé) : le contenu d'entretien se place
+   directement sous le header → page guidée top-alignée, sans vide central.
+   Le scroll des longues conversations est porté par .ct-page-area. */
 .est-wizard-messages {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-height: 0;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: var(--ct-space-md);
   padding-right: var(--ct-space-2xs);
+  padding-top: var(--ct-space-md);
   scroll-behavior: smooth;
 }
 
@@ -449,7 +455,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1;
+  min-height: 60vh;
   gap: var(--ct-space-md);
   text-align: center;
   padding: var(--ct-space-xl) 0;
@@ -485,8 +491,6 @@
 }
 
 .est-wizard-start { margin-top: var(--ct-space-xs); }
-
-.est-wizard-msg:first-child { margin-top: auto; }
 
 .est-wizard-msg-avatar {
   flex-shrink: 0;
@@ -646,9 +650,13 @@
 
 .est-wizard-footer {
   flex-shrink: 0;
-  padding-top: var(--ct-space-md);
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding: var(--ct-space-md) 0 var(--ct-space-lg);
   margin-top: var(--ct-space-sm);
   border-top: 1px solid var(--ct-border-soft);
+  background: var(--ct-bg-deep);
   display: flex;
   flex-direction: column;
   gap: var(--ct-space-sm);
