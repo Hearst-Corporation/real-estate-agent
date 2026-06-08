@@ -5,7 +5,11 @@
   padding: var(--ct-space-lg);
   border: 1px solid var(--ct-border);
   border-radius: var(--ct-radius-2xl);
+  /* Halo accent discret en bas (derrière les KPIs) + glow coin haut-droit :
+     c'est ce que les KPIs verre miroir révèlent en flou. TINTED léger = accent. */
   background:
+    radial-gradient(70% 130% at 18% 118%, color-mix(in srgb, var(--ct-accent) 26%, transparent), transparent 60%),
+    radial-gradient(60% 130% at 82% 118%, color-mix(in srgb, var(--ct-accent-strong) 18%, transparent), transparent 60%),
     radial-gradient(circle at 88% 8%, color-mix(in srgb, var(--ct-accent-strong) 22%, transparent), transparent 38%),
     var(--ct-surface-sheen),
     var(--ct-surface-1);
@@ -90,27 +94,52 @@
   gap: var(--ct-space-sm);
   height: 100%;
 }
+/* KPI = widget carré VERRE MIROIR (liquid glass) — appliqué aux 3 pages.
+   Fond transparent : seul le flou révèle le halo du header derrière → vraie
+   transparence. Reflet de bord (rim) + ombre = relief premium. Picto en chip. */
 .ct-page-header-kpi {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-sm);
   padding: var(--ct-space-md);
-  border: 1px solid var(--ct-border-soft);
+  border: 1px solid var(--ct-border-strong);
   border-radius: var(--ct-radius-2xl);
-  background: var(--ct-surface-1);
+  background: transparent;
+  backdrop-filter: var(--ct-glass-backdrop);
+  -webkit-backdrop-filter: var(--ct-glass-backdrop);
+  box-shadow:
+    inset 0 1px 0 var(--ct-glass-rim),
+    var(--ct-shadow-depth);
+  transition: transform var(--ct-dur-base) var(--ct-ease),
+    border-color var(--ct-dur-base) var(--ct-ease);
 }
-.ct-page-header-kpi span {
-  display: block;
+.ct-page-header-kpi:hover {
+  transform: translateY(var(--ct-lift-sm));
+  border-color: var(--ct-border-accent);
+}
+/* Picto chip (optionnel) */
+.ct-page-header-kpi-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; flex: 0 0 auto;
+  border-radius: var(--ct-radius-lg);
+  background: var(--ct-surface-2);
+  color: var(--ct-text-body);
+}
+.ct-page-header-kpi-icon svg { width: var(--ct-icon-sm); height: var(--ct-icon-sm); }
+.ct-page-header-kpi-text { display: flex; flex-direction: column; gap: var(--ct-space-3xs); min-width: 0; }
+.ct-page-header-kpi-text span {
   color: var(--ct-text-muted);
-  font-size: var(--ct-fs-xs);
+  font-size: var(--ct-fs-2xs);
   font-weight: var(--ct-fw-bold);
   letter-spacing: var(--ct-ls-wider);
   text-transform: uppercase;
 }
-.ct-page-header-kpi strong {
-  display: block;
-  margin-top: var(--ct-space-xs);
+.ct-page-header-kpi-text strong {
   color: var(--ct-text-strong);
-  font-size: var(--ct-fs-3xl);
+  font-size: var(--ct-fs-2xl);
   font-weight: var(--ct-fw-heavy);
   letter-spacing: var(--ct-ls-tight);
+  line-height: var(--ct-lh-none);
 }
 
 /* ── PROSPECTION ── */

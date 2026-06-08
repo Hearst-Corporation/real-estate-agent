@@ -363,10 +363,10 @@ export default async function DashboardPage() {
           </Link>
         }
         kpis={[
-          { label: t.kpis.properties, value: String(nbProperties) },
-          { label: t.kpis.activeLeads, value: String(nbLeadsActifs) },
-          { label: t.kpis.upcomingVisits, value: String(nbVisitesAVenir) },
-          { label: t.kpis.activeMandates, value: String(nbMandatsActifs) },
+          { label: t.kpis.properties, value: String(nbProperties), icon: "properties" },
+          { label: t.kpis.activeLeads, value: String(nbLeadsActifs), icon: "leads" },
+          { label: t.kpis.upcomingVisits, value: String(nbVisitesAVenir), icon: "visits" },
+          { label: t.kpis.activeMandates, value: String(nbMandatsActifs), icon: "mandates" },
         ]}
       />
 

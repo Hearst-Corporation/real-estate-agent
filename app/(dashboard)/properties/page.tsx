@@ -99,10 +99,10 @@ export default async function PropertiesPage() {
         nav={<PageNavTabs tabs={TAB_GROUPS.portefeuille} />}
         action={<PropertyFormModal />}
         kpis={[
-          { label: t.kpis.total, value: String(total) },
-          { label: t.kpis.forSale, value: String(forSale) },
-          { label: t.kpis.sold, value: String(sold) },
-          { label: t.kpis.portfolio, value: eur(portfolio) },
+          { label: t.kpis.total, value: String(total), icon: "properties" },
+          { label: t.kpis.forSale, value: String(forSale), icon: "mandates" },
+          { label: t.kpis.sold, value: String(sold), icon: "estimate" },
+          { label: t.kpis.portfolio, value: eur(portfolio), icon: "home" },
         ]}
       />
 

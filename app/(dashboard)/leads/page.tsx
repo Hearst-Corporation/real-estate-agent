@@ -67,10 +67,10 @@ export default async function LeadsPage() {
         nav={<PageNavTabs tabs={TAB_GROUPS.clients} />}
         action={<LeadFormModal cta={t.newCta} />}
         kpis={[
-          { label: t.kpis.total, value: String(total) },
-          { label: t.kpis.active, value: String(active) },
-          { label: t.kpis.won, value: String(won) },
-          { label: t.kpis.conversion, value: `${conversion}%` },
+          { label: t.kpis.total, value: String(total), icon: "leads" },
+          { label: t.kpis.active, value: String(active), icon: "user" },
+          { label: t.kpis.won, value: String(won), icon: "mandates" },
+          { label: t.kpis.conversion, value: `${conversion}%`, icon: "crm" },
         ]}
       />
 
