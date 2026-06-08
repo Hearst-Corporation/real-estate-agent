@@ -4,6 +4,7 @@ import { getSession } from "@/lib/server/session";
 import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { LogoutButton } from "@/components/cockpit/LogoutButton";
+import { IntegrationsPanel } from "./_components/IntegrationsPanel";
 import { UI } from "@/lib/ui-strings";
 
 export default async function ProfilePage() {
@@ -61,6 +62,11 @@ export default async function ProfilePage() {
           )}
         </div>
       </div>
+
+      <Card title={t.integrationsTitle} titleAs="section">
+        <p className="ct-mb-sm">{t.integrationsHint}</p>
+        <IntegrationsPanel />
+      </Card>
 
       <Card variant="dense">
         <DataTable columns={columns} rows={identityRows} emptyLabel="Vide" getKey={(r) => r.key} />
