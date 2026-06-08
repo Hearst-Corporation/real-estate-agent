@@ -1,8 +1,8 @@
 /*
  * onboarding.module.css — styles scopés du parcours d'onboarding investisseur.
  *
- * 100 % tokens --ct-* (aucun hex), aligné Cockpit. Scopé via CSS Modules pour ne
- * pas toucher app/cockpit.css. Complète les primitives partagées (ct-card,
+ * Utilise les tokens --ct-* du DS local, aligné Cockpit. Scopé via CSS Modules pour
+ * cohabiter avec app/cockpit/*.css. Complète les primitives partagées (ct-card,
  * ct-field, inv-chip, inv-btn-reserve…) sans les redéfinir.
  */
 

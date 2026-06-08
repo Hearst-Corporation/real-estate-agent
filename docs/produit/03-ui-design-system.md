@@ -15,17 +15,17 @@ Un prototype 4 écrans — **marketplace · fiche deal · portefeuille · flux d
 ## 1. Décisions de design system
 
 ### 1.1 Accent produit = `gold` (`#d4af37`)
-- `data-product="gold"` sur `<html>` — **seul switch d'accent autorisé** (règle Cockpit).
-- Cet accent **existe déjà** dans `app/cockpit.css` (ligne 63) : aucun token inventé.
+- `data-product="gold"` sur `<html>` — switch d'accent par défaut (convention interne du repo).
+- Cet accent **existe déjà** dans `app/cockpit/*.css` ; libre de l'ajuster ou d'en ajouter un dans le DS local.
 - Justification : différencie l'app d'investissement (finance/premium) de l'app CRM/estimation existante (bordeaux `default`), **sans sortir du DS**. Le shell reste le bordeaux verre dépoli (`--ct-bg-deep`, `--ct-accent-maroon` pour l'ambient glow) ; seul l'accent d'action bascule en or.
 
 ### 1.2 Zéro hex hors tokens
-- Tout `:root` est une **copie conforme** de `cockpit.css` (tokens + spacing + ombres + timing).
+- Le `:root` reprend les tokens du DS local `app/cockpit/*.css` (tokens + spacing + ombres + timing) — éditable ici, pas une copie figée d'une source externe.
 - Toutes les couleurs sémantiques passent par `color-mix(in srgb, var(--ct-*) …)`. Aucun `#xxxxxx` n'apparaît dans le corps du document (seuls les tokens `:root` portent des hex, comme dans la source).
 - States de risque : `--ct-warning` (risque), `--ct-success` (sûreté/sécurisé), `--ct-text-danger` (perte), `--ct-accent-strong` (votre position / nature du deal).
 
 ### 1.3 Shell Cockpit respecté à l'identique
-- Rail gauche 88px (`--ct-rail-left`), centre + bottom-bar pilule flottante, rail droit 420px (`--ct-rail-right`) **repliable** avec chat Kimi (présent sur toutes les vues, jamais une page sans chat — règle SPEC §3).
+- Rail gauche 88px (`--ct-rail-left`), centre + bottom-bar pilule flottante, rail droit 420px (`--ct-rail-right`) **repliable** avec chat Kimi (présent sur toutes les vues, jamais une page sans chat — convention shell du repo).
 - Classes shell reprises 1:1 : `.ct-root`, `.ct-ambient-*`, `.ct-panels-row`, `.ct-rail-left`, `.ct-center-panel`, `.ct-page-area`, `.ct-bottom-bar`, `.ct-rail-right`, `.ct-chat-*`.
 - Primitives reprises : `.ct-eyebrow`, `.ct-title`, `.ct-sub`, `.ct-kpi-grid`/`.ct-kpi-card`(+`.accent`), `.ct-card`, `.ct-field`, `.ct-input`, `.ct-badge`.
 
@@ -114,8 +114,8 @@ Les charts sont implémentés en **SVG/CSS pur via tokens** dans le prototype (c
 
 ## 5. Garde-fous DS respectés (checklist)
 
-- [x] Tokens `--ct-*` uniquement — aucun hex hors `:root` (copie conforme cockpit.css).
-- [x] `data-product="gold"` = seul switch d'accent (token déjà présent dans cockpit.css).
+- [x] Tokens `--ct-*` du DS local pour les couleurs sémantiques (cohérence interne).
+- [x] `data-product="gold"` = switch d'accent par défaut (token présent dans `app/cockpit/*.css`).
 - [x] Shell bordeaux verre dépoli (ambient glow `--ct-accent-maroon`, surfaces `rgba(255,255,255,…)`, `backdrop-filter`).
 - [x] Rail droit chat Kimi repliable, présent sur toutes les vues.
 - [x] Bottom-bar pilule flottante (segments nav + CTA primaire).

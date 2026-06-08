@@ -1,6 +1,6 @@
 /**
  * Icônes inline (SVG, stroke=currentColor) pour les primitives invest.
- * `currentColor` → la couleur vient du token CSS du conteneur. Aucun hex.
+ * `currentColor` → la couleur vient du token CSS du conteneur (héritée du DS local).
  */
 import type { SVGProps } from "react";
 
