@@ -368,6 +368,11 @@
 .inv-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 .est-phase { display: flex; flex-direction: column; }
+/* Le modificateur `fill` (phases wizard/generating) doit remplir .ct-page-area :
+   sans ce flex:1, .est-phase reste à la hauteur de son contenu (~61px) et la
+   carte d'entretien se retrouve hors écran → page « vide ». Règle manquante
+   depuis l'introduction de `est-phase fill` (refonte entretien). */
+.est-phase.fill { flex: 1; min-height: 0; }
 
 .est-wizard {
   display: flex;
