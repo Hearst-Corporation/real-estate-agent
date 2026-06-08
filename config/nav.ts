@@ -7,7 +7,7 @@
  * en dérivent. Ajouter une page = ajouter UNE entrée ici.
  *
  *   - `NAV`              : items du rail gauche + tabs (groupe "main").
- *   - `navRail`          : les 5 items affichés dans le rail (filtré de NAV).
+ *   - `navRail`          : les 6 items affichés dans le rail (filtré de NAV).
  *   - `MOBILE_SHORTCUTS` : items de la bottom bar, dérivés du même manifeste.
  *   - `TAB_GROUPS`       : groupes d'onglets de sous-nav.
  *   - `AppRoute`         : union typée de toutes les routes connues.
@@ -48,13 +48,14 @@ export const NAV = [
   { href: "/leads",       label: UI.nav.clients,      icon: "leads",      group: "main", tabs: "clients" },
   { href: "/visits",      label: UI.nav.visits,       icon: "visits",     group: "main", tabs: "clients" },
   { href: "/agenda",      label: UI.nav.agenda,       icon: "agenda",     group: "main" },
+  { href: "/swarms",      label: UI.nav.swarms,       icon: "network",    group: "main", tabs: "swarms" },
 ] as const satisfies readonly NavItem[];
 
 /** Alias complet du manifeste. */
 export const navMain = NAV;
 
-/** Les 5 items affichés dans le rail gauche (entry points des groupes). */
-const RAIL_HREFS = ["/", "/prospection", "/properties", "/leads", "/agenda"] as const;
+/** Les 6 items affichés dans le rail gauche (entry points des groupes). */
+const RAIL_HREFS = ["/", "/prospection", "/properties", "/leads", "/agenda", "/swarms"] as const;
 export const navRail = NAV.filter((i) =>
   (RAIL_HREFS as readonly string[]).includes(i.href)
 );
@@ -76,6 +77,8 @@ export type AppRoute =
   | "/missions"
   | "/swarms"
   | "/swarms/new"
+  | "/swarms/scrapers"
+  | "/swarms/tools"
   | "/invest"
   | "/invest/subscriptions"
   | "/invest/onboarding";
@@ -96,6 +99,8 @@ export const TAB_GROUPS: Record<TabGroupKey, readonly TabItem[]> = {
     { href: "/visits", label: UI.nav.visits },
   ],
   swarms: [
-    { href: "/swarms", label: UI.nav.swarms },
+    { href: "/swarms",          label: UI.nav.swarms },
+    { href: "/swarms/scrapers", label: UI.nav.scrapers },
+    { href: "/swarms/tools",    label: UI.nav.tools },
   ],
 };
