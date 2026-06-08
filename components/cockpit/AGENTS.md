@@ -1,15 +1,21 @@
 # Cockpit — guide agent (à lire AVANT toute UI)
 
-> Source de vérité **locale** pour construire une page ou un composant dans ce repo.
-> Tu n'as pas besoin de lire le CSS (découpé en sections dans `app/cockpit/`) ni le
-> SPEC global : **compose les primitives ci-dessous**. Le vocabulaire exact (tokens +
-> classes) est dans `components/cockpit/manifest.json` (auto-généré). Si une primitive
-> manque, ajoute-la dans `components/cockpit/` plutôt que d'écrire du CSS/inline.
+> **Design system — copie locale éditable.** Le DS Cockpit vit dans ce repo
+> (`components/cockpit/` + `app/cockpit/*.css`). C'est LA copie de ce repo, éditable
+> librement ici : composants, tokens (`--ct-*`), CSS se modifient directement. Pas de
+> source centrale à mettre à jour, pas de resync. Seule règle : garder la cohérence
+> visuelle interne du repo.
+>
+> Pour construire une page ou un composant : **compose les primitives ci-dessous** quand
+> elles existent. Le vocabulaire exact (tokens + classes) est dans
+> `components/cockpit/manifest.json` (auto-généré — régénère via `npm run cockpit:manifest`
+> après une modif CSS). Si une primitive manque ou ne convient pas, libre de la créer ou
+> de la faire évoluer dans `components/cockpit/`, et d'ajuster le CSS dans `app/cockpit/`.
 
 ## TL;DR — l'essentiel
 
 1. **Une page = composition de primitives** (`PageHeader` + `PageStack` + `Card`). Jamais de `<div className="...">` brut quand une primitive existe.
-2. **Zéro couleur en dur.** Pas de hex, pas de `rgb()/rgba()`, pas de `style={{ color }}`. Tout via token `--ct-*` ou classe `ct-*`. → bloqué par `npm run lint:cockpit`.
+2. **Couleurs via tokens, par cohérence.** Dans le code consommateur (pages, features), préfère les tokens `--ct-*` / classes `ct-*` plutôt qu'un hex en dur — c'est ce qui garde le repo cohérent. Pour le DS lui-même (`components/cockpit/`, `app/cockpit/*.css`), tu es libre : ajoute/édite tokens et CSS directement.
 3. **Ne jamais réimporter `CockpitShell`** dans une page : le shell (rails gauche/droite + chat Kimi) est posé une fois par `app/(dashboard)/layout.tsx`. Une page rend **seulement** son contenu.
 4. **Server component par défaut.** Data fetchée côté serveur, filtrée `user_id` + `tenant_id`. Les bits interactifs vont dans `_components/*` (`"use client"`).
 5. **`data-product` = seul switch d'accent.** Jamais re-styler l'accent à la main.
@@ -156,14 +162,16 @@ Liste exhaustive : `components/cockpit/manifest.json` → `tokens` (ou `grep -rh
 
 ## Classes `ct-*` (126)
 
-Préfère **toujours** une primitive React. Si tu écris une classe à la main, elle DOIT exister.
+Préfère une primitive React quand elle existe. Si tu écris une classe à la main, elle doit exister — ou ajoute-la dans le CSS du DS (`app/cockpit/*.css`), c'est éditable ici.
 Liste complète : `components/cockpit/manifest.json` → `classes` (régénéré par `npm run cockpit:manifest`).
 Structurelles utiles : `ct-page-stack`, `ct-page-header*`, `ct-card*`, `ct-kpi-*`, `ct-badge` (+ `ct-badge-overlay`), `ct-btn` (`ct-btn-primary`/`ct-btn-secondary`/`ct-btn-block`), `ct-field*`/`ct-form*` (formulaires), `ct-data-table*`, `ct-placeholder` (état vide).
 
 ## Interdits (échouent en CI — `npm run check`)
 
-- ❌ Couleur hex / `rgb()` / `rgba()` / `hsl()` dans `app/(dashboard)/**` ou `components/**` (hors `components/brochure`). → `lint:cockpit`.
-- ❌ `style={{ color/background/border: "…" }}` avec une valeur littérale. Seule exception tolérée : **largeur pilotée par la donnée** (ex. `width: ${pct}%` dans Funnel/BarList) — sinon ajoute `// cockpit-lint-allow` sur la ligne, avec justification.
+> Note DS : il n'y a **plus** de garde couleur (`lint:cockpit` est retiré). Tu peux éditer
+> librement tokens, CSS et composants du DS, y compris avec des hex. Garde juste la
+> cohérence visuelle interne du repo (préfère les tokens dans le code consommateur).
+
 - ❌ Réimporter `CockpitShell` dans une page.
 - ❌ Texte UI en dur (texte JSX / props d'affichage) : passe par `lib/ui-strings` (`UI.*`). → `lint:strings` (baseline gelée `gate/strings-baseline.json` : seules les NOUVELLES strings bloquent ; échappatoire `strings-lint-allow`).
 - ❌ Clé/token d'API en dur : toujours `process.env.X`. → `lint:secrets` (tous tiers ; ne logge jamais la valeur).
@@ -180,8 +188,7 @@ Structurelles utiles : `ct-page-stack`, `ct-page-header*`, `ct-card*`, `ct-kpi-*
 ## Avant de livrer
 
 ```bash
-npm run lint:cockpit   # tokens DS (couleurs en dur)
 npm run lint:nav       # pages ↔ NAV (aucune page orpheline)
 npm run cockpit:manifest  # SI tu as touché au CSS (app/cockpit/*.css) → régénère le vocabulaire
-npm run check          # lint:cockpit + lint:legal + lint:secrets + eslint + lint:nav + lint:strings + manifest --check + typecheck
+npm run check          # lint:legal + lint:secrets + eslint + lint:nav + lint:strings + manifest --check + typecheck
 ```

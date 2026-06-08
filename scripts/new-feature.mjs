@@ -16,9 +16,9 @@
  * Garde-fous :
  *   - refuse si l'arg <resource> manque ;
  *   - refuse (et N'ÉCRASE RIEN) si une cible existe déjà ;
- *   - le code généré passe lint:cockpit (zéro couleur en dur) ET lint:strings
- *     (zéro texte en dur : les templates référencent UI.<resource>, et le namespace
- *     correspondant est injecté dans lib/ui-strings.ts — merge additif) ;
+ *   - le code généré passe lint:strings (zéro texte en dur : les templates
+ *     référencent UI.<resource>, et le namespace correspondant est injecté dans
+ *     lib/ui-strings.ts — merge additif) ;
  *   - NE MODIFIE PAS config/nav.ts (keystone fragile) → imprime l'entrée NAV à coller.
  *
  * Timestamp de migration :

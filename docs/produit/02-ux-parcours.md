@@ -3,7 +3,7 @@
 
 > **Statut.** Document de conception UX produit (architecture de l'information + parcours écran par écran). Source juridique : `docs/etude-immobilier-tokenise-2026.md` (lue en entier). Toute décision UX ci-dessous **découle** des contraintes verrouillées de l'étude. Tags : **[FAIT]** = imposé par une norme/décision citée dans l'étude · **[ANALYSE]** = choix UX raisonné · **[HYPOTHÈSE]** = à valider (produit ou avocat).
 >
-> **Design system.** Cockpit (shell bordeaux verre dépoli). Accent produit = `data-product="gold"` (`--ct-accent: #d4af37`) — l'or = code couleur « investissement/valeur », distinct du CRM estimation (bordeaux par défaut). Tokens `--ct-*` uniquement, aucun hex. Réf : `~/.claude/assets/cockpit/SPEC.md`, `app/cockpit.css`.
+> **Design system.** Cockpit (shell bordeaux verre dépoli) — copie locale éditable de ce repo. Accent produit = `data-product="gold"` (`--ct-accent: #d4af37`) — l'or = code couleur « investissement/valeur », distinct du CRM estimation (bordeaux par défaut). Tokens `--ct-*` préférés par cohérence, mais tokens et CSS s'éditent directement. Réf : `components/cockpit/`, `app/cockpit/*.css`.
 >
 > **Cadre de non-régression.** Cette plateforme d'investissement est une **surface produit séparée** de l'app d'estimation/CRM existante (`app/(dashboard)/estimations|leads|mandates|...`). Préfixe de namespace proposé : `/invest/*` (espace investisseur) et `/operateur/*` (espace opérateur). On NE touche PAS aux routes existantes.
 

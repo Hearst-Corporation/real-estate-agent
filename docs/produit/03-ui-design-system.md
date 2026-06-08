@@ -1,7 +1,7 @@
 # 03 — UI & Design System
 
 > Domaine : **UI / front design**. Livrable principal : `docs/produit/prototype-ui.html` (prototype HTML autonome, ouvrable en `file://`, zéro dépendance).
-> Fondation : `docs/etude-immobilier-tokenise-2026.md` (parties P5 parcours · P6 badges · P7 fiche produit · P8 graphiques · P9 token). DS : `~/.claude/assets/cockpit/SPEC.md` + `app/cockpit.css`.
+> Fondation : `docs/etude-immobilier-tokenise-2026.md` (parties P5 parcours · P6 badges · P7 fiche produit · P8 graphiques · P9 token). DS : **copie locale éditable** de ce repo — `components/cockpit/` + `app/cockpit/*.css` (source de vérité du repo, modifiable directement, pas de source centrale).
 > Statut juridique du document : ce sont des choix de **présentation** qui matérialisent les contraintes verrouillées (anti-FIA). Aucune affirmation de droit nouvelle ici — tout découle de l'étude.
 
 ---
@@ -144,4 +144,4 @@ Les charts sont implémentés en **SVG/CSS pur via tokens** dans le prototype (c
 - **07 — Moteur financier** : fournit les vraies valeurs des 11 graphiques + waterfall + projections de la souscription (les structures de données JS du proto sont prêtes à recevoir ces sorties).
 - **05 — Smart contracts** : adresse de contrat, état du mint, whitelist ONCHAINID affichés dans le panneau Token & au step confirmation.
 - **06 — Migrations / DB** : tables deals, souscriptions, positions, registre cap table (alimentent marketplace / portefeuille).
-- **DS Cockpit** (`~/.claude/assets/cockpit/`) : porter les nouvelles classes chart (`.waterfall/.gantt/.gauge/.radar/.scenario`) dans `cockpit.css` ou le catalog si on veut les réutiliser hors invest.
+- **DS Cockpit** (copie locale `app/cockpit/*.css`) : ajouter les nouvelles classes chart (`.waterfall/.gantt/.gauge/.radar/.scenario`) directement dans le CSS local pour les réutiliser hors invest, puis `npm run cockpit:manifest`. Pas de remontée vers une source centrale.

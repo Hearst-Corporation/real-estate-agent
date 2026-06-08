@@ -12,7 +12,7 @@
 - **Cache/Queue** : Redis (Railway `redis.railway.internal:6379` ou Upstash REST en runtime)
 - **Hosting** : Vercel (`hearst-corporation/real-estate-agent`) + Railway (`6f1ed5d5-a69a-4f43-bb0b-54270ac5607a`)
 - **Desktop** : Electron (splash sélecteur d'env local/prod, build signé/notarisé)
-- **Design system** : Cockpit (`app/cockpit.css` + `components/cockpit/`) — source de vérité `~/.claude/assets/cockpit/SPEC.md`
+- **Design system** : Cockpit — **copie locale éditable** de ce repo (`app/cockpit.css` + `components/cockpit/`). Pas de source centrale, pas de resync.
 
 ## ⚡ MCP Supabase — règle absolue
 
@@ -73,15 +73,18 @@ Tunnel SSH si besoin GPU : `ssh -L 8188:localhost:8188 gpu2-remote -N &`. Doc : 
 - `npm run test:e2e` — smoke Playwright
 - `/dev-adrien` · `/audit-adrien` · `/ship-adrien` · `/brief-adrien` · `/ready-adrien` (stubs locaux)
 
+## Design system — copie locale éditable
+Le DS Cockpit vit dans ce repo (`components/cockpit/` + `app/cockpit/*.css`). C'est LA copie de ce repo, éditable librement ici : composants, tokens (`--ct-*`), CSS se modifient directement. Pas de source centrale à mettre à jour, pas de resync. Seule règle : garder la cohérence visuelle interne du repo.
+- Recette de page, primitives et vocabulaire : **[components/cockpit/AGENTS.md](components/cockpit/AGENTS.md)**. Compose les primitives quand elles existent ; sinon, libre de les faire évoluer ou d'en créer ici.
+- `data-product` = switch d'accent par défaut, mais tokens et CSS s'éditent directement dans `app/cockpit/`.
+
 ## Conventions
 - Pas de magic numbers. Tout via `.env.local` ou `config/`.
 - RLS activée sur toutes les tables — toute nouvelle table DOIT avoir une policy + index sur chaque FK.
-- **UI / Cockpit** : avant de créer une page ou un composant, lire **[components/cockpit/AGENTS.md](components/cockpit/AGENTS.md)** (recette de page, primitives, tokens, interdits). On compose les primitives — pas de CSS/inline brut.
-- Design : tokens `--ct-*` uniquement, aucune couleur hex hors `cockpit.css`. `data-product` = seul switch d'accent. Garde-fou : `npm run lint:cockpit` (inclus dans `npm run check`).
 - Secrets dans `.env.local` (gitignored) + `docs/api-config/SERVICES.md` (gitignored).
 
 ## Référentiels
 - Services & API keys : [docs/api-config/SERVICES.md](docs/api-config/SERVICES.md) *(gitignored)*
 - Variables locales : [.env.local](.env.local) *(gitignored)*
 - Guide UI agent : [components/cockpit/AGENTS.md](components/cockpit/AGENTS.md)
-- Design system : `~/.claude/assets/cockpit/SPEC.md`
+- Design system (copie locale, source de vérité de CE repo) : `components/cockpit/` + `app/cockpit/*.css`
