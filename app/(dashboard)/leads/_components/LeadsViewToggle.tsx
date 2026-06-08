@@ -91,7 +91,7 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
   return (
     <div className="crm-view-panel">
       <div className="crm-toolbar crm-toolbar-shrink">
-        <div className="ct-card-title">VOS LEADS</div>
+        <h3 className="ct-card-title">VOS LEADS</h3>
         <div className="ct-seg-track">
           <button 
             className={`ct-seg-btn ${view === "kanban" ? "active" : ""}`}

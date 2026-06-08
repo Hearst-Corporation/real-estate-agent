@@ -65,7 +65,7 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
   return (
     <div className="crm-view-panel">
       <div className="crm-toolbar crm-toolbar-shrink">
-        <div className="ct-card-title">VOS BIENS</div>
+        <h3 className="ct-card-title">VOS BIENS</h3>
         <div className="ct-seg-track">
           <button 
             className={`ct-seg-btn ${view === "kanban" ? "active" : ""}`}
