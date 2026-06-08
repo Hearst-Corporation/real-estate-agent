@@ -784,6 +784,11 @@ html, body {
   100% { background-position: 0 50%; }
 }
 
+@keyframes ct-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ct-skeleton { animation: none; }
 }

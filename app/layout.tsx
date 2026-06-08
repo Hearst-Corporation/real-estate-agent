@@ -3,6 +3,7 @@ import "./globals.css";
 import "./cockpit.css";
 import { UI } from "@/lib/ui-strings";
 import PostHogProvider from "@/components/providers/PostHogProvider";
+import WebVitals from "@/components/WebVitals";
 
 export const metadata: Metadata = {
   title: UI.app.name,
@@ -16,7 +17,10 @@ export default function RootLayout({
   return (
     <html lang="fr" data-product="default">
       <body>
-        <PostHogProvider>{children}</PostHogProvider>
+        <PostHogProvider>
+          <WebVitals />
+          {children}
+        </PostHogProvider>
       </body>
     </html>
   );

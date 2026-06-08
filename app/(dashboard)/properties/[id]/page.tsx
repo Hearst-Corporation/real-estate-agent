@@ -1,16 +1,17 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { PageHeader, Sub, Card, Badge } from "@/components/cockpit/primitives";
+import { PageHeader, Card } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
-import { eur, sqm, dateTimeFr, dateFr, daysSince } from "@/lib/crm/format";
+import { eur, sqm, dateFr, daysSince } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { PropertyStatusControl } from "./_components/PropertyStatusControl";
-import { PhotoGallery } from "./_components/PhotoGallery";
-import { PhotoUploader } from "./_components/PhotoUploader";
 import { DpeBadge } from "./_components/DpeBadge";
 import PropertyFormModal from "../_components/PropertyForm";
+import { PropertyPhotosSection } from "./_components/PropertyPhotosSection";
+import { PropertyRelatedSection } from "./_components/PropertyRelatedSection";
 
 /** Type étendu property — inclut les colonnes enrichissement (migration agent A). */
 type PropertyRow = {
@@ -50,12 +51,20 @@ type PropertyRow = {
   parking_count?: number | null;
 };
 
-type PhotoRow = {
-  id: string;
-  url: string;
-  position: number;
-  is_cover: boolean;
-};
+/** Skeleton léger pour les sections en cours de chargement. */
+function SectionSkeleton() {
+  return (
+    <div
+      className="crm-skeleton-card"
+      style={{
+        height: "6rem",
+        borderRadius: "var(--ct-radius-md, 8px)",
+        background: "var(--ct-surface-2, rgba(255,255,255,0.04))",
+        animation: "ct-pulse 1.4s ease-in-out infinite",
+      }}
+    />
+  );
+}
 
 export default async function PropertyDetailPage({
   params,
@@ -65,10 +74,8 @@ export default async function PropertyDetailPage({
   const { id } = await params;
   const t = UI.properties;
   const td = UI.properties.detail;
-  const tLeads = UI.leads;
-  const tVisits = UI.visits;
-  const tMandates = UI.mandates;
 
+  // ── Auth (core) ───────────────────────────────────────────────────────────
   const claims = await getSession();
   if (!claims) notFound();
 
@@ -78,56 +85,16 @@ export default async function PropertyDetailPage({
   const tenantId = tenantOf(claims);
   const userId = claims.sub;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sbAny = sb as any;
+  // ── Donnée COEUR : property uniquement (notFound + shell dépend de ça) ──
+  const { data: propertyData } = await sb
+    .from("properties")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .eq("tenant_id", tenantId)
+    .single();
 
-  const [
-    propertyResult,
-    { data: leads },
-    { data: visits },
-    { data: mandates },
-    photosResult,
-  ] = await Promise.all([
-    sb
-      .from("properties")
-      .select("*")
-      .eq("id", id)
-      .eq("user_id", userId)
-      .eq("tenant_id", tenantId)
-      .single(),
-    sb
-      .from("leads")
-      .select("id, full_name, kind, status, budget_min, budget_max")
-      .eq("property_id", id)
-      .eq("user_id", userId)
-      .eq("tenant_id", tenantId)
-      .order("created_at", { ascending: false }),
-    sb
-      .from("visits")
-      .select("id, scheduled_at, status, duration_min")
-      .eq("property_id", id)
-      .eq("user_id", userId)
-      .eq("tenant_id", tenantId)
-      .order("scheduled_at", { ascending: true }),
-    sb
-      .from("mandates")
-      .select("id, reference, kind, status, commission_pct, asking_price")
-      .eq("property_id", id)
-      .eq("user_id", userId)
-      .eq("tenant_id", tenantId)
-      .order("created_at", { ascending: false }),
-    // property_photos : table créée par migration agent A — any pour compatibilité types DB
-    sbAny
-      .from("property_photos")
-      .select("id, url, position, is_cover")
-      .eq("property_id", id)
-      .eq("user_id", userId)
-      .eq("tenant_id", tenantId)
-      .order("position", { ascending: true }) as Promise<{ data: PhotoRow[] | null }>,
-  ]);
-
-  const property = propertyResult.data as PropertyRow | null;
-
+  const property = propertyData as PropertyRow | null;
   if (!property) notFound();
 
   const displayPrice = property.asking_price ?? property.estimated_value;
@@ -136,10 +103,7 @@ export default async function PropertyDetailPage({
       ? Math.round(displayPrice / property.surface)
       : null;
 
-  // Calcul jours au portefeuille
   const daysOnMarket = daysSince(property.created_at);
-
-  const photoList = ((photosResult as { data: PhotoRow[] | null }).data ?? []);
 
   // Équipements présents
   type EquipItem = { key: string; icon: string; label: string };
@@ -283,15 +247,14 @@ export default async function PropertyDetailPage({
         )}
       </div>
 
-      {/* ── Photos ────────────────────────────────────────────────────────── */}
-      <Card title={td.cardPhotos}>
-        <div className="crm-gallery-hero">
-          <PhotoGallery photos={photoList} propertyId={id} />
-        </div>
-        <div className="ct-mt-sm">
-          <PhotoUploader propertyId={id} />
-        </div>
-      </Card>
+      {/* ── Photos (secondaire — streamée) ────────────────────────────────── */}
+      <Suspense fallback={<SectionSkeleton />}>
+        <PropertyPhotosSection
+          propertyId={id}
+          userId={userId}
+          tenantId={tenantId}
+        />
+      </Suspense>
 
       {/* ── Caractéristiques ─────────────────────────────────────────────── */}
       <Card title={td.cardCaracteristiques}>
@@ -462,79 +425,22 @@ export default async function PropertyDetailPage({
         )}
       </Card>
 
-      {/* ── Leads ────────────────────────────────────────────────────────── */}
-      <Card title={td.cardLeads}>
-        {leads && leads.length > 0 ? (
-          <ul className="crm-related-list">
-            {leads.map((lead) => (
-              <li key={lead.id} className="crm-related-row">
-                <span className="crm-related-primary">{lead.full_name}</span>
-                <div className="crm-related-badges">
-                  <Badge>{tLeads.kindLabels[lead.kind] ?? lead.kind}</Badge>
-                  <Badge>{tLeads.statusLabels[lead.status] ?? lead.status}</Badge>
-                </div>
-                {(lead.budget_min != null || lead.budget_max != null) && (
-                  <span className="crm-related-secondary">
-                    {lead.budget_min != null ? eur(lead.budget_min) : ""}
-                    {lead.budget_min != null && lead.budget_max != null ? " – " : ""}
-                    {lead.budget_max != null ? eur(lead.budget_max) : ""}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="ct-placeholder">{td.leadsEmpty}</p>
-        )}
-        <div className="crm-card-footer">
-          <Link href="/leads" className="crm-link">{td.seeAllLeads}</Link>
-        </div>
-      </Card>
-
-      {/* ── Visites ──────────────────────────────────────────────────────── */}
-      <Card title={td.cardVisites}>
-        {visits && visits.length > 0 ? (
-          <ul className="crm-related-list">
-            {visits.map((visit) => (
-              <li key={visit.id} className="crm-related-row">
-                <span className="crm-related-primary">{dateTimeFr(visit.scheduled_at)}</span>
-                <div className="crm-related-badges">
-                  <Badge>{tVisits.statusLabels[visit.status] ?? visit.status}</Badge>
-                </div>
-                {visit.duration_min > 0 && (
-                  <span className="crm-related-secondary">{td.visitDuration(visit.duration_min)}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="ct-placeholder">{td.visitsEmpty}</p>
-        )}
-      </Card>
-
-      {/* ── Mandats ──────────────────────────────────────────────────────── */}
-      <Card title={td.cardMandats}>
-        {mandates && mandates.length > 0 ? (
-          <ul className="crm-related-list">
-            {mandates.map((mandate) => (
-              <li key={mandate.id} className="crm-related-row">
-                <span className="crm-related-primary">
-                  {mandate.reference ?? td.mandateRef}
-                </span>
-                <div className="crm-related-badges">
-                  <Badge>{tMandates.statusLabels[mandate.status] ?? mandate.status}</Badge>
-                  <Badge>{tMandates.kindLabels[mandate.kind] ?? mandate.kind}</Badge>
-                </div>
-                {mandate.commission_pct != null && (
-                  <span className="crm-related-secondary">{td.commission(mandate.commission_pct)}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="ct-placeholder">{td.mandatesEmpty}</p>
-        )}
-      </Card>
+      {/* ── Leads + Visites + Mandats (secondaires — streamés) ───────────── */}
+      <Suspense
+        fallback={
+          <>
+            <SectionSkeleton />
+            <SectionSkeleton />
+            <SectionSkeleton />
+          </>
+        }
+      >
+        <PropertyRelatedSection
+          propertyId={id}
+          userId={userId}
+          tenantId={tenantId}
+        />
+      </Suspense>
     </>
   );
 }

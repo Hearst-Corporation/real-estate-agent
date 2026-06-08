@@ -10,7 +10,17 @@ import {
   connectionStatus,
   fetchEmails,
   findCalendarEvents,
+  createGmailDraft,
+  createCalendarEvent,
 } from "@/lib/providers/composio";
+
+// ─── Constantes d'affichage ───────────────────────────────────────────────────
+
+/** Nombre de caractères max pour le fallback JSON brut renvoyé à l'agent. */
+const MAX_RAW_OBSERVATION_CHARS = 800;
+
+/** Durée par défaut de la fenêtre calendrier (7 jours en millisecondes). */
+const DEFAULT_CALENDAR_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 // ─── Messages de dégradation ─────────────────────────────────────────────────
 
@@ -72,7 +82,7 @@ function extractEmailSummary(raw: unknown): string {
   } catch {
     // ignore
   }
-  return JSON.stringify(raw).slice(0, 800);
+  return JSON.stringify(raw).slice(0, MAX_RAW_OBSERVATION_CHARS);
 }
 
 /** Extrait une liste d'événements depuis la réponse brute Composio (unknown). */
@@ -112,7 +122,7 @@ function extractEventSummary(raw: unknown): string {
   } catch {
     // ignore
   }
-  return JSON.stringify(raw).slice(0, 800);
+  return JSON.stringify(raw).slice(0, MAX_RAW_OBSERVATION_CHARS);
 }
 
 function extractDateTime(dt: unknown): string {
@@ -235,7 +245,7 @@ const readCalendarTool: AgentTool = {
 
     // Plage par défaut : maintenant → +7 jours
     const now = new Date();
-    const plus7 = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const plus7 = new Date(now.getTime() + DEFAULT_CALENDAR_WINDOW_MS);
 
     const timeMin =
       typeof args.time_min === "string" && args.time_min.trim()
@@ -278,6 +288,194 @@ const readCalendarTool: AgentTool = {
   },
 };
 
+// ─── Messages de dégradation écriture ────────────────────────────────────────
+
+const MSG_NON_CONNECTE_GMAIL_WRITE: ToolResult = {
+  ok: false,
+  summary: "Boîte mail non connectée",
+  observation:
+    "Impossible de créer le brouillon : la boîte Gmail de l'utilisateur n'est pas connectée à Composio. " +
+    "Invite l'utilisateur à la connecter depuis la page Profil avant de réessayer.",
+};
+
+const MSG_NON_CONNECTE_CALENDAR_WRITE: ToolResult = {
+  ok: false,
+  summary: "Agenda non connecté",
+  observation:
+    "Impossible de créer l'événement : l'agenda Google de l'utilisateur n'est pas connecté à Composio. " +
+    "Invite l'utilisateur à le connecter depuis la page Profil avant de réessayer.",
+};
+
+// ─── Outil create_email_draft ─────────────────────────────────────────────────
+
+const createEmailDraftTool: AgentTool = {
+  name: "create_email_draft",
+  description:
+    "Crée un BROUILLON d'email Gmail (n'envoie PAS). Pour proposer un email à l'agent immobilier avant envoi manuel. " +
+    "Requiert que l'utilisateur ait connecté son compte Gmail depuis la page Profil.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      to: {
+        type: "string",
+        description: "Adresse email du destinataire (ex. 'jean.dupont@example.com').",
+      },
+      subject: {
+        type: "string",
+        description: "Objet de l'email.",
+      },
+      body: {
+        type: "string",
+        description: "Corps de l'email en texte brut ou HTML.",
+      },
+    },
+    required: ["to", "subject", "body"],
+  },
+  execute: async (args, ctx): Promise<ToolResult> => {
+    const status = await connectionStatus(ctx.userId);
+    if (!status.gmail) {
+      return MSG_NON_CONNECTE_GMAIL_WRITE;
+    }
+
+    const to = typeof args.to === "string" ? args.to.trim() : "";
+    const subject = typeof args.subject === "string" ? args.subject.trim() : "";
+    const body = typeof args.body === "string" ? args.body : "";
+
+    if (!to || !subject || !body) {
+      return {
+        ok: false,
+        summary: "Paramètres manquants",
+        observation:
+          "Les champs 'to', 'subject' et 'body' sont tous obligatoires pour créer un brouillon.",
+      };
+    }
+
+    const result = await createGmailDraft(ctx.userId, { to, subject, body });
+
+    if (!result.ok) {
+      return {
+        ok: false,
+        summary: "Erreur lors de la création du brouillon",
+        observation: `Impossible de créer le brouillon Gmail via Composio. Détail : ${result.error}`,
+      };
+    }
+
+    return {
+      ok: true,
+      summary: `Brouillon créé pour ${to}`,
+      observation:
+        `Brouillon Gmail créé avec succès (n'a PAS été envoyé). Destinataire : ${to} | Objet : ${subject}. ` +
+        `L'utilisateur peut le retrouver dans ses brouillons Gmail pour le relire et l'envoyer manuellement.`,
+    };
+  },
+};
+
+// ─── Outil create_calendar_event ──────────────────────────────────────────────
+
+const createCalendarEventTool: AgentTool = {
+  name: "create_calendar_event",
+  description:
+    "Crée un événement dans Google Calendar de l'utilisateur (ex : visite, RDV client, signature). " +
+    "Requiert que l'utilisateur ait connecté son agenda depuis la page Profil.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      summary: {
+        type: "string",
+        description: "Titre de l'événement (ex. 'Visite — 12 rue de la Paix').",
+      },
+      start_iso: {
+        type: "string",
+        description:
+          "Date/heure de début en ISO 8601 avec offset (ex. '2026-06-10T14:00:00+02:00').",
+      },
+      end_iso: {
+        type: "string",
+        description:
+          "Date/heure de fin en ISO 8601 avec offset (ex. '2026-06-10T15:00:00+02:00').",
+      },
+      description: {
+        type: "string",
+        description: "Description ou notes de l'événement (optionnel).",
+      },
+      attendees: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Liste d'adresses email des participants à inviter (optionnel).",
+      },
+    },
+    required: ["summary", "start_iso", "end_iso"],
+  },
+  execute: async (args, ctx): Promise<ToolResult> => {
+    const status = await connectionStatus(ctx.userId);
+    if (!status.calendar) {
+      return MSG_NON_CONNECTE_CALENDAR_WRITE;
+    }
+
+    const summary =
+      typeof args.summary === "string" ? args.summary.trim() : "";
+    const startIso =
+      typeof args.start_iso === "string" ? args.start_iso.trim() : "";
+    const endIso =
+      typeof args.end_iso === "string" ? args.end_iso.trim() : "";
+
+    if (!summary || !startIso || !endIso) {
+      return {
+        ok: false,
+        summary: "Paramètres manquants",
+        observation:
+          "Les champs 'summary', 'start_iso' et 'end_iso' sont obligatoires pour créer un événement.",
+      };
+    }
+
+    const description =
+      typeof args.description === "string" && args.description.trim()
+        ? args.description.trim()
+        : undefined;
+
+    const attendees: string[] = [];
+    if (Array.isArray(args.attendees)) {
+      for (const a of args.attendees) {
+        if (typeof a === "string" && a.trim()) {
+          attendees.push(a.trim());
+        }
+      }
+    }
+
+    const result = await createCalendarEvent(ctx.userId, {
+      summary,
+      startIso,
+      endIso,
+      description,
+      attendees: attendees.length > 0 ? attendees : undefined,
+    });
+
+    if (!result.ok) {
+      return {
+        ok: false,
+        summary: "Erreur lors de la création de l'événement",
+        observation: `Impossible de créer l'événement dans Google Calendar via Composio. Détail : ${result.error}`,
+      };
+    }
+
+    const attendeesSummary =
+      attendees.length > 0 ? ` | Participants invités : ${attendees.join(", ")}` : "";
+
+    return {
+      ok: true,
+      summary: `Événement « ${summary} » créé`,
+      observation:
+        `Événement Google Calendar créé avec succès. Titre : ${summary} | Début : ${startIso} | Fin : ${endIso}${attendeesSummary}.`,
+    };
+  },
+};
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 
-export const composioTools: AgentTool[] = [scanEmailsTool, readCalendarTool];
+export const composioTools: AgentTool[] = [
+  scanEmailsTool,
+  readCalendarTool,
+  createEmailDraftTool,
+  createCalendarEventTool,
+];

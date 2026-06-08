@@ -19,6 +19,8 @@ const PATHS = {
 const ACTIONS = {
   fetchEmails: "GMAIL_FETCH_EMAILS",
   findEvents: "GOOGLECALENDAR_FIND_EVENT",
+  createDraft: "GMAIL_CREATE_EMAIL_DRAFT",
+  createEvent: "GOOGLECALENDAR_CREATE_EVENT",
 } as const;
 
 const DEFAULTS = {
@@ -227,6 +229,97 @@ export async function fetchEmails(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return { ok: false, error: `fetchEmails_exception: ${message}` };
+  }
+}
+
+/**
+ * Crée un BROUILLON d'email Gmail via Composio.
+ * Ne déclenche PAS d'envoi — le brouillon est consultable/modifiable dans Gmail.
+ */
+export async function createGmailDraft(
+  userId: string,
+  params: { to: string; subject: string; body: string },
+): Promise<{ ok: true; data: unknown } | { ok: false; error: string }> {
+  try {
+    const result = await composioFetch(
+      PATHS.executeAction(ACTIONS.createDraft),
+      {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          arguments: {
+            recipient_email: params.to,
+            subject: params.subject,
+            body: params.body,
+          },
+        }),
+      },
+    );
+
+    if (!result.ok) {
+      return { ok: false, error: `createGmailDraft_failed_${result.status}` };
+    }
+
+    return { ok: true, data: result.data };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: `createGmailDraft_exception: ${message}` };
+  }
+}
+
+/**
+ * Crée un événement dans Google Calendar (agenda "primary") via Composio.
+ * startIso / endIso : ISO 8601 avec offset (ex. "2026-06-10T14:00:00+02:00").
+ * attendees : liste d'emails optionnelle.
+ */
+export async function createCalendarEvent(
+  userId: string,
+  params: {
+    summary: string;
+    startIso: string;
+    endIso: string;
+    description?: string;
+    attendees?: string[];
+  },
+): Promise<{ ok: true; data: unknown } | { ok: false; error: string }> {
+  try {
+    const body: Record<string, unknown> = {
+      calendar_id: "primary",
+      summary: params.summary,
+      start_datetime: params.startIso,
+      end_datetime: params.endIso,
+    };
+
+    if (params.description) {
+      body["description"] = params.description;
+    }
+
+    if (Array.isArray(params.attendees) && params.attendees.length > 0) {
+      body["attendees"] = params.attendees.map((email) => ({ email }));
+    }
+
+    const result = await composioFetch(
+      PATHS.executeAction(ACTIONS.createEvent),
+      {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          arguments: body,
+        }),
+      },
+    );
+
+    if (!result.ok) {
+      return {
+        ok: false,
+        error: `createCalendarEvent_failed_${result.status}`,
+      };
+    }
+
+    return { ok: true, data: result.data };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: `createCalendarEvent_exception: ${message}` };
   }
 }
 
