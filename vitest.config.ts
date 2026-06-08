@@ -19,5 +19,10 @@ export default defineConfig({
     environment: 'node',
     include: ['lib/**/*.test.ts', 'test/**/*.test.ts'],
     exclude: ['node_modules/**', 'e2e/**', 'electron/**', 'dist-electron/**', '.next/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      reportsDirectory: './coverage',
+    },
   },
 });

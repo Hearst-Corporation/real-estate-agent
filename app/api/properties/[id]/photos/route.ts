@@ -3,6 +3,8 @@ import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { r2IsConfigured, putObject, publicUrl, deleteObject } from "@/lib/storage/r2";
+import { rateLimit } from "@/lib/ratelimit";
+import { isValidImageContent } from "@/lib/storage/magic-bytes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,6 +56,12 @@ export async function POST(
 
   const { id: propertyId } = await params;
   const tenantId = tenantOf(claims);
+
+  // ── Rate-limit : 20 uploads / 60 s par user + propriété ──────────────────
+  const withinLimit = await rateLimit(`photo:${claims.sub}:${propertyId}`, 20, 60);
+  if (!withinLimit) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
 
   // Vérifier que la propriété appartient à l'utilisateur
   const { data: prop } = await sb
@@ -108,6 +116,12 @@ export async function POST(
   const storageKey = `properties/${propertyId}/${uuid}.${ext}`;
 
   const buffer = Buffer.from(await file.arrayBuffer());
+
+  // ── Validation magic-bytes : vérifie le contenu réel du fichier ───────────
+  if (!isValidImageContent(buffer, file.type)) {
+    return NextResponse.json({ error: "invalid_image_content" }, { status: 400 });
+  }
+
   await putObject(storageKey, buffer, file.type);
   const photoUrl = publicUrl(storageKey);
 

@@ -1,6 +1,7 @@
 import type { NextResponse } from "next/server";
 
-export const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 jours
+const _ttlDays = Number(process.env.AUTH_SESSION_TTL_DAYS);
+export const TOKEN_TTL_SECONDS = (_ttlDays > 0 ? _ttlDays : 30) * 86400; // défaut 30 jours
 export const TOKEN_COOKIE = "real_estate_agent_token";
 
 function cookieDomain(host: string | null | undefined): string | undefined {

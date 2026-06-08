@@ -1,6 +1,13 @@
 import { SignJWT, jwtVerify } from "jose";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { captureFatal } from "@/lib/server/observe";
+
+// Throttle captureFatal pour le check de révocation : en prod, ce code tourne
+// à chaque requête authentifiée. Si Supabase a un incident, émettre un event
+// Sentry par requête déclencherait un flood + surcoût. On limite à 1 event/60s.
+let _lastRevocationCapture = 0;
+const REVOCATION_CAPTURE_THROTTLE_MS = 60_000;
 
 export type SessionClaims = {
   sub: string;
@@ -76,8 +83,15 @@ export async function verifyJwt(
           .maybeSingle();
         if (!error && data) return null; // jti révoqué → session invalide
       }
-    } catch {
-      // fail-open : on ignore et on retourne les claims
+    } catch (err) {
+      // fail-open : un blip DB ne doit jamais verrouiller les users.
+      // Throttle anti-flood : on n'émet qu'un event Sentry toutes les 60s
+      // pour éviter de saturer le quota sur un incident Supabase en prod.
+      const now = Date.now();
+      if (now - _lastRevocationCapture > REVOCATION_CAPTURE_THROTTLE_MS) {
+        _lastRevocationCapture = now;
+        captureFatal(err, "auth/revocation-check");
+      }
     }
   }
 

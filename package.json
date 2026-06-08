@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3002",
+    "dev": "next dev -p 3002 --turbopack",
     "build": "next build",
     "start": "next start -p 3002",
     "lint": "eslint",
@@ -14,9 +14,11 @@
     "cockpit:manifest": "node scripts/gen-cockpit-manifest.mjs",
     "new:feature": "node scripts/new-feature.mjs",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint:legal && npm run lint:secrets && npm run lint && npm run lint:nav && npm run lint:strings && node scripts/gen-cockpit-manifest.mjs --check && npm run typecheck",
+    "check": "concurrently --kill-others-on-fail -n legal,secrets,lint,nav,strings,manifest,types \"npm:lint:legal\" \"npm:lint:secrets\" \"npm:lint\" \"npm:lint:nav\" \"npm:lint:strings\" \"node scripts/gen-cockpit-manifest.mjs --check\" \"npm:typecheck\"",
+    "prepare": "husky",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
     "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:3002 && npm run electron:start\"",
     "electron:start": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron .",
     "electron:build": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron-builder",
@@ -55,7 +57,10 @@
     "@types/node": "^20.19.41",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.8",
     "concurrently": "^10.0.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "electron": "^42.3.3",
     "electron-builder": "^26.8.1",
     "electron-store": "^8.2.0",
@@ -66,6 +71,11 @@
     "typescript": "^5",
     "vitest": "^4.1.8",
     "wait-on": "^9.0.10"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ]
   },
   "main": "dist-electron/main.js",
   "build": {
