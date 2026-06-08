@@ -436,17 +436,40 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
 /* Modale formulaire (PropertyFormModal) */
 .crm-form-overlay {
   position: fixed; inset: 0; z-index: var(--ct-z-overlay);
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: var(--ct-space-xl) var(--ct-space-md);
+  /* Centré verticalement → les modales hautes restent dans le viewport. */
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--ct-space-lg) var(--ct-space-md);
   background: var(--ct-overlay-scrim);
   backdrop-filter: blur(var(--ct-overlay-blur)); -webkit-backdrop-filter: blur(var(--ct-overlay-blur));
   overflow-y: auto;
 }
 .crm-form-modal {
   width: 100%; max-width: 480px;
+  /* Ne dépasse jamais le viewport : le formulaire scrolle À L'INTÉRIEUR.
+     display:flex+column permet à un footer d'actions de rester collé en bas. */
+  max-height: calc(100vh - 2 * var(--ct-space-lg));
+  display: flex; flex-direction: column;
   background: var(--ct-surface-2); border: 1px solid var(--ct-border-strong);
   border-radius: var(--ct-radius-lg); padding: var(--ct-space-lg);
   box-shadow: var(--ct-shadow-depth);
+  overflow: hidden;
+}
+/* Le formulaire scrolle À L'INTÉRIEUR de la modale ; le footer d'actions reste
+   collé en bas (sticky) → bouton « Rechercher » toujours visible sans scroller. */
+.crm-form-modal > form {
+  display: flex; flex-direction: column; min-height: 0;
+  overflow-y: auto;
+  /* compense le padding du conteneur pour que le sticky colle au vrai bord bas */
+  margin: calc(-1 * var(--ct-space-lg));
+  padding: var(--ct-space-lg);
+}
+.crm-form-modal .crm-form-actions {
+  position: sticky; bottom: calc(-1 * var(--ct-space-lg));
+  margin-top: var(--ct-space-md);
+  padding-top: var(--ct-space-sm);
+  padding-bottom: var(--ct-space-lg);
+  background: var(--ct-surface-2);
+  flex-shrink: 0;
 }
 
 /* Sélecteur de statut inline (fiche bien) — compact, ne prend pas 100% */
