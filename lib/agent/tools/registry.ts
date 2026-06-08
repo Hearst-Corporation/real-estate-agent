@@ -9,6 +9,7 @@ import type { AgentTool } from "@/lib/agent/types";
 import { crmTools } from "./crm";
 import { navTools } from "./nav";
 import { composioTools } from "./composio";
+import { gmailEstimationTools } from "./gmail-estimation";
 import { missionTools } from "./missions";
 import { estimationTools } from "./estimation";
 import { swarmsTools } from "./swarms";
@@ -19,6 +20,7 @@ export const ALL_TOOLS: AgentTool[] = [
   ...crmTools,
   ...navTools,
   ...composioTools,
+  ...gmailEstimationTools,
   ...missionTools,
   ...estimationTools,
   ...swarmsTools,
