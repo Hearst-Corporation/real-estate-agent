@@ -12,8 +12,6 @@ export type IconName =
   | "agenda"
   | "home"
   | "user"
-  | "settings"
-  | "logout"
   | "plus"
   | "chevron-down"
   | "chevron-right";

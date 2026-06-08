@@ -177,7 +177,7 @@
   border-radius: var(--ct-radius-md);
   background: linear-gradient(90deg, var(--ct-surface-1) 25%, var(--ct-surface-2) 37%, var(--ct-surface-1) 63%);
   background-size: 400% 100%;
-  animation: inv-shimmer 1.4s ease infinite;
+  animation: ct-skeleton-shimmer 1.4s ease infinite;
 }
 
 .inv-toast {
@@ -546,6 +546,11 @@
   animation: est-think-pulse 1s var(--ct-ease) infinite;
 }
 
+@keyframes est-think-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.8); }
+}
+
 .est-wizard-reasoning-live {
   display: block;
   font-size: var(--ct-fs-sm);
@@ -738,6 +743,11 @@
   background: var(--ct-accent-soft);
   border: 1px solid var(--ct-border-accent);
   animation: est-gen-pulse 2s var(--ct-ease) infinite;
+}
+
+@keyframes est-gen-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.08); }
 }
 
 .est-generating-title {
