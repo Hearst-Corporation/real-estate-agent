@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Caption, Eyebrow, Title, Sub, Card, Badge } from "@/components/cockpit/primitives";
+import { Caption, PageHeader, Sub, Card, Badge } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateTimeFr, dateFr, daysSince } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
@@ -138,13 +138,17 @@ export default async function PropertyDetailPage({
 
   return (
     <>
-      <Eyebrow>{t.eyebrow}</Eyebrow>
-
       {/* Header */}
-      <div className="crm-detail-header">
-        <div className="crm-detail-title-row">
-          <Title>{property.title ?? t.fallbackTitle}</Title>
-          <div className="crm-detail-actions">
+      <PageHeader
+        kicker={t.eyebrow}
+        title={property.title ?? t.fallbackTitle}
+        meta={
+          property.city ? (
+            <Sub>{property.city}{property.postal_code ? ` (${property.postal_code})` : ""}</Sub>
+          ) : undefined
+        }
+        action={
+          <>
             <PropertyStatusControl
               id={id}
               currentStatus={property.status}
@@ -182,16 +186,15 @@ export default async function PropertyDetailPage({
               }}
               triggerLabel={t.editBtn}
             />
-          </div>
-        </div>
-        {property.city && <Sub>{property.city}{property.postal_code ? ` (${property.postal_code})` : ""}</Sub>}
-        {displayPrice != null && (
-          <p className="crm-detail-price">{eur(displayPrice)}</p>
-        )}
-        {daysOnMarket !== null && (
-          <p className="crm-detail-meta">{t.daysOnMarket(daysOnMarket)}</p>
-        )}
-      </div>
+          </>
+        }
+      />
+      {displayPrice != null && (
+        <p className="crm-detail-price">{eur(displayPrice)}</p>
+      )}
+      {daysOnMarket !== null && (
+        <p className="crm-detail-meta">{t.daysOnMarket(daysOnMarket)}</p>
+      )}
 
       {/* Photos */}
       <Card title={t.photos.title} titleAs="section">
