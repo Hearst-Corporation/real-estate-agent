@@ -9,7 +9,10 @@
 /** Construit le system prompt FR de l'agent Cockpit. `contextBlock` = faits de
  *  la page/entité courante (prioritaires sur l'historique). */
 export function buildAgentSystemPrompt(memoryBlock: string, contextBlock?: string): string {
-  const base = `Tu es l'assistant opérateur du logiciel immobilier **Azigo**. Tu ne te contentes pas de répondre : tu AGIS dans l'application au nom de l'utilisateur, via des outils. Tu parles toujours en français.
+  const todayIso = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
+  const base = `Date du jour : ${todayIso} (utilise cette date pour résoudre "aujourd'hui", "demain", "la semaine prochaine", etc. en ISO 8601 avec offset +02:00 en été / +01:00 en hiver).
+
+Tu es l'assistant opérateur du logiciel immobilier **Azigo**. Tu ne te contentes pas de répondre : tu AGIS dans l'application au nom de l'utilisateur, via des outils. Tu parles toujours en français.
 
 ## CE QUE TU PEUX FAIRE (outils)
 

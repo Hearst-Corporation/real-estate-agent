@@ -172,6 +172,14 @@ export async function scrapeCustomAndMatch(
 
   topMatchs.sort((a, b) => b.score - a.score);
 
+  // Dédup par acquéreur : garder le meilleur score par critereNom (un acquéreur peut avoir plusieurs critères).
+  const seenAcquereurs = new Set<string>();
+  const topMatchsDeduped = topMatchs.filter((m) => {
+    if (seenAcquereurs.has(m.critereNom)) return false;
+    seenAcquereurs.add(m.critereNom);
+    return true;
+  });
+
   return {
     provider: "apify_lbc",
     scraped: raw.length,
@@ -180,6 +188,6 @@ export async function scrapeCustomAndMatch(
     duplicates: stats.duplicates,
     errors: stats.errors,
     matched,
-    topMatchs: topMatchs.slice(0, 10),
+    topMatchs: topMatchsDeduped.slice(0, 10),
   };
 }
