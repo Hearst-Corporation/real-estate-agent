@@ -713,7 +713,44 @@ html, body {
   .ct-skeleton { animation: none; }
 }
 
-/* ── RAIL GAUCHE — Flyout menu ── */
+/* ── RAIL GAUCHE — Flyout menu « Créer » ── */
 .ct-rail-flyout-anchor { position: relative; }
-.ct-rail-flyout { position: absolute; left: 100%; top: 0; z-index: var(--ct-z-flyout); min-width: var(--ct-prose-sm); padding: var(--ct-space-2xs) 0; }
-.ct-rail-flyout-link { padding: var(--ct-space-xs) var(--ct-space-md); display: block; white-space: nowrap; }
+.ct-rail-flyout {
+  position: absolute;
+  left: calc(100% + var(--ct-space-xs)); /* décollé du rail, ne le chevauche pas */
+  top: 0;
+  z-index: var(--ct-z-flyout);
+  /* Compact : juste assez pour les 4 libellés (avant : 380px = trop large). */
+  min-width: 196px;
+  width: max-content;
+  padding: var(--ct-space-2xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-3xs);
+  /* Surface opaque + bordure + ombre nettes → ne « bave » plus sur le contenu. */
+  background: var(--ct-bg-deep);
+  border: 1px solid var(--ct-border-strong);
+  border-radius: var(--ct-radius-md);
+  box-shadow: var(--ct-shadow-depth);
+}
+/* Les liens du flyout sont des RANGÉES compactes (≠ gros boutons carrés du rail).
+   On annule width:72px / min-height:54px / centrage colonne hérités de
+   .ct-rail-action pour une vraie liste lisible. */
+.ct-rail-flyout .ct-rail-flyout-link {
+  width: 100%;
+  min-height: 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  padding: var(--ct-space-xs) var(--ct-space-sm);
+  white-space: nowrap;
+  font-size: var(--ct-fs-sm);
+  border: none;
+  background: transparent;
+  border-radius: var(--ct-radius-sm);
+}
+.ct-rail-flyout .ct-rail-flyout-link:hover {
+  background: var(--ct-surface-2);
+  border: none;
+}
