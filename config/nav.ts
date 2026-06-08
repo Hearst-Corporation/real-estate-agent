@@ -55,7 +55,10 @@ export const NAV = [
 export const navMain = NAV;
 
 /** Les 6 items affichés dans le rail gauche (entry points des groupes). */
-const RAIL_HREFS = ["/", "/prospection", "/properties", "/leads", "/agenda", "/swarms"] as const;
+// Nav principale AGENT immobilier. Swarms/Scrapers (outil IA avancé) sont
+// volontairement HORS rail — la route /swarms reste accessible par URL et via
+// NAV/AppRoute, mais ne pollue plus le parcours agent.
+const RAIL_HREFS = ["/", "/prospection", "/properties", "/leads", "/agenda"] as const;
 export const navRail = NAV.filter((i) =>
   (RAIL_HREFS as readonly string[]).includes(i.href)
 );
