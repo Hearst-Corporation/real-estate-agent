@@ -8,7 +8,7 @@ import ReportMarkdown from "./ReportMarkdown";
 import type { SwarmRun, SwarmRunStatus, SwarmStep } from "@/lib/swarms/types";
 
 const POLL_MS = 3000;
-const ACTIVE: SwarmRunStatus[] = ["pending", "running"];
+const ACTIVE: SwarmRunStatus[] = ["pending", "running", "paused_hitl"];
 const STEP_MAX_CHARS = 600;
 
 export default function RunReport({
@@ -22,6 +22,8 @@ export default function RunReport({
   const [steps, setSteps] = useState<SwarmStep[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState<string | null>(null);
+  const [decisionErr, setDecisionErr] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stop = () => {
@@ -46,6 +48,27 @@ export default function RunReport({
       stop();
     }
   }, [swarmId, runId]);
+
+  const choose = async (value: string) => {
+    setSending(value);
+    setDecisionErr(false);
+    try {
+      const res = await fetch(`/api/swarms/${swarmId}/runs/${runId}/resume`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value }),
+      });
+      if (!res.ok) {
+        setDecisionErr(true);
+      } else {
+        await fetchRun();
+      }
+    } catch {
+      setDecisionErr(true);
+    } finally {
+      setSending(null);
+    }
+  };
 
   // (Re)charge quand le run sélectionné change.
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -103,7 +126,32 @@ export default function RunReport({
         )}
       </div>
 
-      {isActive && (
+      {run.status === "paused_hitl" && run.decision && (
+        <div className="mv-dock">
+          <span className="mv-pill mv-pill-ask">{UI.missions.decisionPill}</span>
+          <div className="mv-q">{run.decision.question}</div>
+          {run.decision.hint && <div className="mv-hint">{run.decision.hint}</div>}
+          <div className="mv-choices">
+            {run.decision.options.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                className="mv-choice"
+                disabled={sending !== null}
+                aria-busy={sending === o.value}
+                onClick={() => void choose(o.value)}
+              >
+                {sending === o.value ? UI.missions.decisionBusy : o.label}
+              </button>
+            ))}
+          </div>
+          {decisionErr && (
+            <div className="mv-hint mv-dock-err">{UI.missions.decisionError}</div>
+          )}
+        </div>
+      )}
+
+      {isActive && run.status !== "paused_hitl" && (
         <div className="swarm-report-active">
           <span className="swarm-spinner" />
           {UI.swarms.runActive}

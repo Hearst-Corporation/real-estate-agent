@@ -3877,6 +3877,35 @@ export type Database = {
         }
         Relationships: []
       }
+      revoked_sessions: {
+        Row: {
+          jti: string
+          revoked_at: string | null
+          token_iat: string | null
+          user_id: string | null
+        }
+        Insert: {
+          jti: string
+          revoked_at?: string | null
+          token_iat?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          jti?: string
+          revoked_at?: string | null
+          token_iat?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revoked_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sessions: {
         Row: {
           created_at: string | null

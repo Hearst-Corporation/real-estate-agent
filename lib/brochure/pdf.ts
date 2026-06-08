@@ -20,24 +20,38 @@ async function launchBrowser(): Promise<Browser> {
 
   if (isServerless) {
     // Vercel / Lambda → sparticuz chromium headless shell
-    const chromium = (await import("@sparticuz/chromium")).default;
-    const { chromium: pw } = await import("playwright-core");
-    return pw.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: true,
-    });
+    try {
+      const chromium = (await import("@sparticuz/chromium")).default;
+      const { chromium: pw } = await import("playwright-core");
+      return await pw.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+        headless: true,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `pdf_chromium_unavailable: Chromium introuvable — lance 'npx playwright install chromium' (local/Railway) ou vérifie @sparticuz/chromium (Vercel). Cause: ${msg}`
+      );
+    }
   } else {
     // Local / Railway → playwright-core bundled chromium
-    const { chromium } = await import("playwright-core");
-    return chromium.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--font-render-hinting=none",
-      ],
-    });
+    try {
+      const { chromium } = await import("playwright-core");
+      return await chromium.launch({
+        headless: true,
+        args: [
+          "--no-sandbox",
+          "--disable-dev-shm-usage",
+          "--font-render-hinting=none",
+        ],
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `pdf_chromium_unavailable: Chromium introuvable — lance 'npx playwright install chromium' (local/Railway) ou vérifie @sparticuz/chromium (Vercel). Cause: ${msg}`
+      );
+    }
   }
 }
 

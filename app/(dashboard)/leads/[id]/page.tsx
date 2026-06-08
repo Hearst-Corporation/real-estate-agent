@@ -6,6 +6,8 @@ import { eur, dateFr, dateTimeFr } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { isEnrichable } from "@/lib/crm/enrichable";
+import { LeadEnrichButton } from "../_components/LeadEnrichButton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -424,29 +426,65 @@ export default async function LeadDetailPage({
         )}
       </Card>
 
-      {/* ── Enrichissement (conditionnel) ── */}
-      {lead.enriched_data != null && (
-        <Card title={td.cardEnrichissement}>
-          {lead.enriched_at && (
-            <p className="crm-detail-meta">
-              {td.fields.enrichedAt} {dateFr(lead.enriched_at)}
-              {lead.enriched_source ? ` · ${lead.enriched_source}` : ""}
-            </p>
-          )}
-          <dl className="crm-detail-dl crm-dl-mt-sm">
-            {Object.entries(lead.enriched_data).map(([key, val]) => (
-              <span key={key}>
-                <dt>{key}</dt>
-                <dd>
-                  {typeof val === "object" && val !== null
-                    ? JSON.stringify(val)
-                    : String(val ?? "—")}
-                </dd>
-              </span>
-            ))}
-          </dl>
-        </Card>
-      )}
+      {/* ── Enrichissement ── */}
+      {(() => {
+        const canEnrich = isEnrichable(lead.type_personne) && !!lead.email;
+        if (canEnrich) {
+          return (
+            <Card title={td.enrich.cardTitle}>
+              <p className="crm-detail-meta">{td.enrich.intro}</p>
+              <LeadEnrichButton leadId={lead.id} hasData={lead.enriched_data != null} />
+              {lead.enriched_data != null && (
+                <>
+                  {lead.enriched_at && (
+                    <p className="crm-detail-meta">
+                      {td.fields.enrichedAt} {dateFr(lead.enriched_at)}
+                      {lead.enriched_source ? ` · ${lead.enriched_source}` : ""}
+                    </p>
+                  )}
+                  <dl className="crm-detail-dl crm-dl-mt-sm">
+                    {Object.entries(lead.enriched_data).map(([key, val]) => (
+                      <span key={key}>
+                        <dt>{key}</dt>
+                        <dd>
+                          {typeof val === "object" && val !== null
+                            ? JSON.stringify(val)
+                            : String(val ?? "—")}
+                        </dd>
+                      </span>
+                    ))}
+                  </dl>
+                </>
+              )}
+            </Card>
+          );
+        }
+        if (lead.enriched_data != null) {
+          return (
+            <Card title={td.cardEnrichissement}>
+              {lead.enriched_at && (
+                <p className="crm-detail-meta">
+                  {td.fields.enrichedAt} {dateFr(lead.enriched_at)}
+                  {lead.enriched_source ? ` · ${lead.enriched_source}` : ""}
+                </p>
+              )}
+              <dl className="crm-detail-dl crm-dl-mt-sm">
+                {Object.entries(lead.enriched_data).map(([key, val]) => (
+                  <span key={key}>
+                    <dt>{key}</dt>
+                    <dd>
+                      {typeof val === "object" && val !== null
+                        ? JSON.stringify(val)
+                        : String(val ?? "—")}
+                    </dd>
+                  </span>
+                ))}
+              </dl>
+            </Card>
+          );
+        }
+        return null;
+      })()}
     </>
   );
 }

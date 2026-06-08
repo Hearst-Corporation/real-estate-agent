@@ -1202,6 +1202,17 @@ export const UI = {
       emptyVisites: "Aucune visite planifiée pour ce lead.",
       emptyBienLie: "Aucun bien lié.",
       emptyEnrichissement: "Aucune donnée d'enrichissement disponible.",
+      enrich: {
+        cardTitle: "Enrichissement B2B",
+        intro: "Récupère les données professionnelles publiques de ce contact (entreprise, poste) via nos fournisseurs partenaires. Consentement requis.",
+        button: "Enrichir ce contact",
+        reenrich: "Réactualiser l'enrichissement",
+        busy: "Enrichissement…",
+        errorGeneric: "Enrichissement indisponible pour le moment.",
+        errorNoEmail: "Un email est nécessaire pour enrichir ce contact.",
+        errorNotConfigured: "Enrichissement non configuré (clés fournisseur absentes).",
+        empty: "Aucune donnée d'enrichissement pour l'instant.",
+      },
       bienLie: {
         city: "Ville",
         price: "Prix affiché",

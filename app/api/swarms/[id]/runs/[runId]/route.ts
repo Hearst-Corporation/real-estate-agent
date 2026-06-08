@@ -64,6 +64,7 @@ export async function GET(_req: Request, { params }: Params) {
       ...record,
       status: liveStatus,
       output: engineRun?.output ?? null,
+      decision: engineRun?.decision ?? null,
       created_at: engineRun?.created_at ?? record.created_at,
       updated_at: engineRun?.updated_at ?? record.updated_at,
       tokens_in: engineRun?.tokens_in ?? null,
