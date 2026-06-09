@@ -15,6 +15,7 @@ import { estimationTools } from "./estimation";
 import { swarmsTools } from "./swarms";
 import { prospectionTools } from "./prospection";
 import { searchTools } from "./search";
+import { mediaTools } from "./media";
 
 export const ALL_TOOLS: AgentTool[] = [
   ...crmTools,
@@ -26,6 +27,7 @@ export const ALL_TOOLS: AgentTool[] = [
   ...swarmsTools,
   ...prospectionTools,
   ...searchTools,
+  ...mediaTools,
 ];
 
 export function getTool(name: string): AgentTool | undefined {
