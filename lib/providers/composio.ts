@@ -29,6 +29,9 @@ const DEFAULTS = {
   maxCalendarResults: 20,
 } as const;
 
+const DEFAULT_EVENT_DURATION_MINUTES = 30;
+const MAX_EVENT_DURATION_HOURS = 24;
+
 // ─── Types internes ───────────────────────────────────────────────────────────
 
 type Toolkit = "gmail" | "googlecalendar";
@@ -283,19 +286,39 @@ export async function createCalendarEvent(
   },
 ): Promise<{ ok: true; data: unknown } | { ok: false; error: string }> {
   try {
+    const start = new Date(params.startIso);
+    const end = new Date(params.endIso);
+    // start_datetime NAÏF (wall-clock UTC, sans Z) + timezone="UTC" → instant non ambigu.
+    const startNaive = Number.isNaN(start.getTime())
+      ? params.startIso
+      : start.toISOString().slice(0, 19);
+    // Durée depuis start/end → heures (0-24) + minutes (0-59). Défaut 30 min.
+    let durationHour = 0;
+    let durationMinutes = DEFAULT_EVENT_DURATION_MINUTES;
+    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end > start) {
+      const totalMinutes = Math.round((end.getTime() - start.getTime()) / 60_000);
+      durationHour = Math.min(MAX_EVENT_DURATION_HOURS, Math.floor(totalMinutes / 60));
+      durationMinutes = totalMinutes % 60;
+    }
     const body: Record<string, unknown> = {
       calendar_id: "primary",
       summary: params.summary,
-      start_datetime: params.startIso,
-      end_datetime: params.endIso,
+      start_datetime: startNaive,
+      timezone: "UTC",
+      event_duration_hour: durationHour,
+      event_duration_minutes: durationMinutes,
     };
 
     if (params.description) {
       body["description"] = params.description;
     }
 
+    // Composio attend des emails (strings), pas des objets {email}.
     if (Array.isArray(params.attendees) && params.attendees.length > 0) {
-      body["attendees"] = params.attendees.map((email) => ({ email }));
+      const emails = params.attendees.filter(
+        (e): e is string => typeof e === "string" && e.trim().length > 0,
+      );
+      if (emails.length > 0) body["attendees"] = emails;
     }
 
     const result = await composioFetch(
