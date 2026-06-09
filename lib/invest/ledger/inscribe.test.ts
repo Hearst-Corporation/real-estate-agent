@@ -43,7 +43,7 @@ function memStore(initialFunded: FundedSubscriptionRow[]): {
 } {
   const rows: CapTableRow[] = [];
   const allocated: string[] = [];
-  let pool = [...initialFunded];
+  const pool = [...initialFunded];
   const store: LedgerStore = {
     async listFundedSubscriptions() {
       // Les déjà-alloués ne sont plus `funded` (idempotence).
@@ -90,8 +90,6 @@ function memStore(initialFunded: FundedSubscriptionRow[]): {
       return [...rows];
     },
   };
-  // Garde une réf pour réinjecter (non utilisé mais clair) :
-  void (pool = pool);
   return { store, rows, allocated };
 }
 

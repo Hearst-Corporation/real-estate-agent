@@ -1,0 +1,161 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!node_modules/**",
+      "!.next/**",
+      "!dist-electron/**",
+      "!coverage/**",
+      "!public/**",
+      "!.claude/**",
+      "!supabase/**",
+      "!e2e/**",
+      "!test/**",
+      "!test-results/**",
+      "!docs/**",
+      "!pnpm-lock.yaml",
+      "!next-env.d.ts",
+      "!next.config.ts",
+      "!postcss.config.mjs",
+      "!playwright.config.ts",
+      "!vitest.config.ts",
+      "!eslint.config.mjs"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        "recommended": true,
+        "useAriaPropsSupportedByRole": "off",
+        "useButtonType": "off",
+        "useAltText": "off",
+        "noSvgWithoutTitle": "off",
+        "useSemanticElements": "off",
+        "noAriaHiddenOnFocusable": "off",
+        "useAriaPropsForRole": "off",
+        "noRedundantAlt": "off",
+        "useFocusableInteractive": "off",
+        "useKeyWithClickEvents": "off",
+        "useKeyWithMouseEvents": "off",
+        "noNoninteractiveElementToInteractiveRole": "off",
+        "noInteractiveElementToNoninteractiveRole": "off",
+        "noNoninteractiveTabindex": "off",
+        "noLabelWithoutControl": "off",
+        "noDistractingElements": "off",
+        "useHtmlLang": "off",
+        "useIframeTitle": "off",
+        "useMediaCaption": "off",
+        "useValidAnchor": "off",
+        "noAccessKey": "off",
+        "noAutofocus": "off",
+        "noHeaderScope": "off",
+        "noPositiveTabindex": "off",
+        "useAnchorContent": "off",
+        "useHeadingContent": "off",
+        "useValidAriaRole": "off",
+        "useValidAriaValues": "off",
+        "noStaticElementInteractions": "off",
+        "noNoninteractiveElementInteractions": "off"
+      },
+      "complexity": {
+        "recommended": true,
+        "noExcessiveCognitiveComplexity": "off",
+        "noForEach": "off",
+        "noImportantStyles": "off"
+      },
+      "correctness": {
+        "recommended": true,
+        "noUnusedVariables": "off",
+        "noUnusedImports": "off",
+        "noUndeclaredVariables": "off",
+        "useExhaustiveDependencies": "off",
+        "useHookAtTopLevel": "off",
+        "noUnusedFunctionParameters": "off"
+      },
+      "style": {
+        "recommended": true,
+        "noNonNullAssertion": "off",
+        "useImportType": "off",
+        "noParameterAssign": "off",
+        "useDefaultParameterLast": "off",
+        "useNamingConvention": "off",
+        "noUnusedTemplateLiteral": "off",
+        "useConst": "off",
+        "useTemplate": "off",
+        "useExponentiationOperator": "off",
+        "useSingleVarDeclarator": "off",
+        "useNumberNamespace": "off",
+        "noUselessElse": "off",
+        "useBlockStatements": "off",
+        "useCollapsedElseIf": "off",
+        "useSelfClosingElements": "off",
+        "useShorthandAssign": "off",
+        "useShorthandFunctionType": "off",
+        "useDefaultSwitchClause": "off",
+        "noDefaultExport": "off",
+        "useCollapsedIf": "off",
+        "noDescendingSpecificity": "off"
+      },
+      "suspicious": {
+        "recommended": true,
+        "noExplicitAny": "off",
+        "noConsole": "off",
+        "noAssignInExpressions": "off",
+        "noArrayIndexKey": "off",
+        "noDoubleEquals": "off",
+        "noEmptyBlockStatements": "off",
+        "useIsArray": "off",
+        "noFallthroughSwitchClause": "off",
+        "noImplicitAnyLet": "off",
+        "noShadowRestrictedNames": "off",
+        "noEmptyBlock": "off",
+        "noReactSpecificProps": "off",
+        "noEvolvingTypes": "off",
+        "useIterableCallbackReturn": "off",
+        "useBiomeIgnoreFolder": "off"
+      },
+      "nursery": {
+        "recommended": false
+      },
+      "performance": {
+        "recommended": true,
+        "noBarrelFile": "off",
+        "noReExportAll": "off",
+        "noImgElement": "off"
+      },
+      "security": {
+        "recommended": true,
+        "noDangerouslySetInnerHtml": "off"
+      }
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": false
+  }
+}
