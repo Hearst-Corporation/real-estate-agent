@@ -11,6 +11,7 @@ import {
 } from "@/lib/server/auth-cookie";
 import { getUserMfa } from "@/lib/server/mfa-store";
 import { DEFAULT_TENANT } from "@/lib/tenant";
+import { recordAuthEvent } from "@/lib/server/audit-log";
 
 export const runtime = "nodejs";
 
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
     password: body.data.password,
   });
   if (error || !data.session || !data.user) {
+    await recordAuthEvent({ event: "login_failed", req, userId: null, meta: { email: body.data.email } });
     return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
   }
 
@@ -57,6 +59,7 @@ export async function POST(req: Request) {
       MFA_PENDING_TTL_SECONDS,
     );
     if (!pending) return NextResponse.json({ error: "jwt_not_configured" }, { status: 503 });
+    await recordAuthEvent({ event: "login_pending_mfa", req, userId: data.user.id });
     const res = NextResponse.json({ mfa_required: true });
     setMfaPendingCookie(res, pending, req.headers.get("host"));
     return res; // PAS de setTokenCookie : la session n'est émise qu'après verify-login.
@@ -67,6 +70,7 @@ export async function POST(req: Request) {
   if (!token) return NextResponse.json({ error: "jwt_not_configured" }, { status: 503 });
 
   captureServer(data.user.id, "login", { role });
+  await recordAuthEvent({ event: "login", req, userId: data.user.id });
   const res = NextResponse.json({ user_id: data.user.id, tenant_id, redirect: next });
   setTokenCookie(res, token, req.headers.get("host"));
   return res;

@@ -11,6 +11,7 @@ import {
   clearMfaPendingCookie,
 } from "@/lib/server/auth-cookie";
 import { rateLimit } from "@/lib/ratelimit";
+import { recordAuthEvent } from "@/lib/server/audit-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -104,7 +105,10 @@ export async function POST(req: Request) {
       verified = true;
     }
   }
-  if (!verified) return NextResponse.json({ error: "invalid_code" }, { status: 401 });
+  if (!verified) {
+    await recordAuthEvent({ event: "login_mfa_failed", req, userId });
+    return NextResponse.json({ error: "invalid_code" }, { status: 401 });
+  }
 
   // 5) Succès : recompute le scope depuis le rôle, émet la VRAIE session, efface le pending.
   const scope = claims.role === "admin" ? ["read", "write", "admin"] : ["read", "write"];
@@ -115,6 +119,7 @@ export async function POST(req: Request) {
   if (!token) return NextResponse.json({ error: "jwt_not_configured" }, { status: 503 });
 
   const next = safeNext(body?.next);
+  await recordAuthEvent({ event: "login_mfa", req, userId });
   const res = NextResponse.json({ user_id: userId, tenant_id: claims.tenant_id, redirect: next });
   setTokenCookie(res, token, req.headers.get("host"));
   clearMfaPendingCookie(res, req.headers.get("host"));

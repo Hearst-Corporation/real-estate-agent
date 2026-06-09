@@ -3,6 +3,7 @@ import { getSession } from "@/lib/server/session";
 import { verifyTotp, verifyAndConsumeBackupCode } from "@/lib/server/mfa";
 import { getUserMfa, disableMfa } from "@/lib/server/mfa-store";
 import { rateLimit } from "@/lib/ratelimit";
+import { recordAuthEvent } from "@/lib/server/audit-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,5 +43,6 @@ export async function POST(req: Request) {
   const ok = await disableMfa(claims.sub);
   if (!ok) return NextResponse.json({ error: "mfa_unavailable" }, { status: 503 });
 
+  await recordAuthEvent({ event: "mfa_disabled", req, userId: claims.sub });
   return NextResponse.json({ enabled: false });
 }

@@ -16,6 +16,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { disableMfa } from "@/lib/server/mfa-store";
 import { captureServer } from "@/lib/providers/posthog";
+import { recordAuthEvent } from "@/lib/server/audit-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
 
   // Audit best-effort (fail-soft, ne casse jamais la réponse) — acteur = admin, cible = userId.
   captureServer(claims.sub, "admin.mfa_reset", { target_user_id: userId });
+  await recordAuthEvent({ event: "mfa_reset", req, userId, meta: { actor: claims.sub } });
 
   return NextResponse.json({ ok: true, userId });
 }

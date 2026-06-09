@@ -3,6 +3,7 @@ import { getSession } from "@/lib/server/session";
 import { verifyTotp, generateBackupCodes, hashBackupCode } from "@/lib/server/mfa";
 import { getUserMfa, enableMfa } from "@/lib/server/mfa-store";
 import { rateLimit } from "@/lib/ratelimit";
+import { recordAuthEvent } from "@/lib/server/audit-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,5 +43,6 @@ export async function POST(req: Request) {
   if (!saved) return NextResponse.json({ error: "mfa_unavailable" }, { status: 503 });
 
   // backupCodes en CLAIR : unique occurrence où ils sortent du serveur.
+  await recordAuthEvent({ event: "mfa_enabled", req, userId: claims.sub });
   return NextResponse.json({ enabled: true, backupCodes: codes });
 }
