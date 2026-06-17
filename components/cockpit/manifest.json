@@ -13,7 +13,7 @@
     "app/cockpit/90-missions.css"
   ],
   "counts": {
-    "tokens": 132,
+    "tokens": 135,
     "classes": 191
   },
   "tokens": [
@@ -53,6 +53,7 @@
     "--ct-fs-2xl",
     "--ct-fs-2xs",
     "--ct-fs-3xl",
+    "--ct-fs-3xs",
     "--ct-fs-4xl",
     "--ct-fs-5xl",
     "--ct-fs-base",
@@ -101,6 +102,7 @@
     "--ct-prose-sm",
     "--ct-prose-xl",
     "--ct-radius-2xl",
+    "--ct-radius-full",
     "--ct-radius-lg",
     "--ct-radius-md",
     "--ct-radius-pill",
@@ -113,6 +115,7 @@
     "--ct-rail-right",
     "--ct-shadow-depth",
     "--ct-shadow-pin",
+    "--ct-shadow-sm",
     "--ct-space-2xl",
     "--ct-space-2xs",
     "--ct-space-3xs",

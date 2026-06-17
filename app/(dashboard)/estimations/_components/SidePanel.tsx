@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { UI } from "@/lib/ui-strings";
 import { RECAP_FIELDS } from "@/lib/estimation/spec";
+import { buildStaticMap } from "@/lib/estimation/staticmap";
 import type { Coverage } from "@/lib/estimation/spec";
 import type { Valuation, MarketAnalysis, ListingsFetchSource, PropertyData, FieldStatusMap } from "@/lib/estimation/types";
 
@@ -57,6 +58,19 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
   const listings = marketProp?.listing_comparables ?? [];
   const listingFetchSource = (marketProp?.listing_source?.source ?? null) as ListingsFetchSource | null;
   const listingFallbackUsed = marketProp?.listing_source?.fallbackUsed ?? false;
+
+  // Carte de secteur (tuiles OSM) : bien estimé + annonces géolocalisées.
+  const sectorMap = buildStaticMap({
+    subject:
+      marketProp?.subject_lat != null && marketProp?.subject_lon != null
+        ? { lat: marketProp.subject_lat, lon: marketProp.subject_lon }
+        : null,
+    listings: listings
+      .filter((l) => l.lat != null && l.lon != null)
+      .map((l) => ({ lat: l.lat as number, lon: l.lon as number })),
+    width: 560,
+    height: 240,
+  });
   const marketHasContent = Boolean(market && (market.summary || market.citations.length > 0));
 
   const filledFields = RECAP_FIELDS.filter(({ field }) => {
@@ -207,6 +221,36 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                 </strong>
               </p>
             )}
+            {sectorMap && (
+              <figure
+                className="est-sectormap"
+                style={{ width: sectorMap.width, height: sectorMap.height }}
+                aria-label={UI.estimations.sectorMapTitle}
+              >
+                <div className="est-sectormap-tiles">
+                  {sectorMap.tiles.map((t, i) => (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      key={i}
+                      src={t.url}
+                      alt=""
+                      width={256}
+                      height={256}
+                      style={{ position: "absolute", left: t.left, top: t.top }}
+                    />
+                  ))}
+                </div>
+                {sectorMap.listings.map((m, i) => (
+                  <span key={i} className="est-mappin" style={{ left: m.left, top: m.top }}>
+                    {i + 1}
+                  </span>
+                ))}
+                {sectorMap.subject && (
+                  <span className="est-mappin me" style={{ left: sectorMap.subject.left, top: sectorMap.subject.top }} />
+                )}
+                <figcaption className="est-sectormap-attr">{UI.estimations.sectorMapAttribution}</figcaption>
+              </figure>
+            )}
             {listings.length === 0 ? (
               <p className="ct-placeholder">{UI.estimations.listingComparablesEmpty}</p>
             ) : (
@@ -214,6 +258,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                 <table className="est-listing-table">
                   <thead>
                     <tr>
+                      <th aria-hidden="true" />
                       <th>{UI.estimations.listingColAnnonce}</th>
                       <th>{UI.estimations.listingColPrix}</th>
                       <th>{UI.estimations.listingColSurface}</th>
@@ -222,8 +267,17 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                     </tr>
                   </thead>
                   <tbody>
-                    {listings.map((item) => (
+                    {listings.map((item, i) => (
                       <tr key={item.id}>
+                        <td className="est-listing-photo">
+                          {item.photo_url ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={item.photo_url} alt={UI.estimations.listingPhotoAlt} loading="lazy" />
+                          ) : (
+                            <span className="est-listing-photo-ph" />
+                          )}
+                          <span className="est-listing-photo-no">{i + 1}</span>
+                        </td>
                         <td>
                           {item.titre.length > LISTING_TITLE_MAX_CHARS
                             ? item.titre.slice(0, LISTING_TITLE_MAX_CHARS) + "…"

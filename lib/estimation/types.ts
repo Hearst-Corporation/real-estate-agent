@@ -108,6 +108,13 @@ export type ListingComparable = {
   nb_pieces: number | null;
   date_publication: string | null;
   statut: 'actif' | 'vendu' | 'retire';
+  /** Photo principale de l'annonce (vignette CDN). null si absente. */
+  photo_url: string | null;
+  /** Géolocalisation de l'annonce (pour la carte de secteur). */
+  lat: number | null;
+  lon: number | null;
+  /** Quartier / secteur tel que renvoyé par la source. */
+  quartier: string | null;
 };
 
 export type ListingsFetchSource = 'apify' | 'myswarms' | 'none';
@@ -130,6 +137,9 @@ export type MarketAnalysis = {
   dvf_comparables: DvfComparable[];
   listing_comparables: ListingComparable[];
   listing_source?: ListingsFetchResult;
+  /** Géolocalisation du bien estimé (centre de la carte de secteur). */
+  subject_lat?: number | null;
+  subject_lon?: number | null;
   fetched_at: string;
 };
 

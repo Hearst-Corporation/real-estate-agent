@@ -98,6 +98,18 @@ function str(v: unknown): string | null {
   return typeof v === "string" && v.length > 0 ? v : null;
 }
 
+/** Photo de carte : vignette légère (images_thumbnail) en priorité, sinon images_urls[0]. */
+function firstPhoto(it: Record<string, unknown>): string | null {
+  const thumb = str(it.images_thumbnail ?? it.image ?? it.photo);
+  if (thumb) return thumb;
+  const arr = it.images_urls;
+  if (Array.isArray(arr)) {
+    const first = arr.find((u) => typeof u === "string" && u.startsWith("http"));
+    if (typeof first === "string") return first;
+  }
+  return null;
+}
+
 function mapStatut(raw: unknown): ListingComparable["statut"] {
   const s = typeof raw === "string" ? raw.toLowerCase() : "";
   if (s.includes("sold") || s.includes("vendu")) return "vendu";
@@ -195,6 +207,10 @@ function normalizeApify(items: unknown[], source: string = SOURCE_LEBONCOIN): Li
       nb_pieces: num(it.rooms ?? it.pieces),
       date_publication: str(it.published_at ?? it.date),
       statut: mapStatut(it.status),
+      photo_url: firstPhoto(it),
+      lat: num(it.location_lat ?? it.lat ?? it.latitude),
+      lon: num(it.location_lng ?? it.lng ?? it.lon ?? it.longitude),
+      quartier: str(it.location_district ?? it.location_city ?? it.quartier),
     });
   }
   return out.slice(0, MAX_LISTINGS);

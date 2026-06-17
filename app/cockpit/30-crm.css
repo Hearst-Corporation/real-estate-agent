@@ -417,6 +417,90 @@ textarea.ct-input { resize: vertical; min-height: 80px; line-height: var(--ct-lh
   text-align: right;
 }
 
+/* ── est-sectormap (carte de secteur, tuiles OSM) ── */
+.est-sectormap {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: var(--ct-radius-md);
+  border: 1px solid var(--ct-border);
+  margin: 0 0 var(--ct-space-sm);
+  background: var(--ct-surface-2);
+}
+.est-sectormap-tiles {
+  position: absolute;
+  inset: 0;
+  filter: grayscale(0.3) brightness(0.92);
+}
+.est-sectormap-tiles img { display: block; max-width: none; }
+.est-mappin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--ct-radius-full, 999px);
+  background: var(--ct-surface-3);
+  border: 1.5px solid var(--ct-text-strong);
+  color: var(--ct-text-strong);
+  font-size: var(--ct-fs-3xs, 9px);
+  font-weight: var(--ct-fw-bold, 700);
+  font-variant-numeric: tabular-nums;
+  padding: 0 4px;
+  box-shadow: var(--ct-shadow-sm, 0 1px 4px rgba(0, 0, 0, 0.4));
+}
+.est-mappin.me {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: var(--ct-accent);
+  box-shadow: 0 0 0 4px var(--ct-accent-soft, rgba(225, 29, 72, 0.25));
+  z-index: 2;
+}
+.est-sectormap-attr {
+  position: absolute;
+  right: var(--ct-space-2xs);
+  bottom: var(--ct-space-2xs);
+  font-size: var(--ct-fs-3xs, 9px);
+  color: var(--ct-text-muted);
+  background: var(--ct-surface-1);
+  padding: 1px var(--ct-space-2xs);
+  border-radius: var(--ct-radius-sm);
+}
+
+/* ── vignette photo des annonces ── */
+.est-listing-photo { width: 52px; }
+.est-listing-table td.est-listing-photo { position: relative; padding: var(--ct-space-2xs); }
+.est-listing-photo img {
+  width: 44px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: var(--ct-radius-sm);
+  display: block;
+}
+.est-listing-photo-ph {
+  display: block;
+  width: 44px;
+  height: 36px;
+  border-radius: var(--ct-radius-sm);
+  background: var(--ct-surface-3);
+}
+.est-listing-photo-no {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--ct-radius-full, 999px);
+  background: var(--ct-accent);
+  color: var(--ct-text-strong);
+  font-size: var(--ct-fs-3xs, 9px);
+  font-weight: var(--ct-fw-bold, 700);
+}
+
 /* ─── CRM — classes complémentaires référencées par les composants ───
    Complètent le vocabulaire .crm-* (mêmes surfaces / bordures / tokens).
    Évite tout rendu en style natif sur leads-board, fiche bien, agenda, modales. */

@@ -210,6 +210,8 @@ export async function POST(
           dvf_comparables: comparables,
           listing_comparables: listingComparables,
           listing_source: listingResult,
+          subject_lat: geo.lat,
+          subject_lon: geo.lon,
           fetched_at: new Date().toISOString(),
         };
 

@@ -282,6 +282,49 @@ export const BROCHURE_CSS = `
 .disc{font-size:7.5px;line-height:1.5;color:var(--ct-text-muted)}
 .disc b{color:var(--ct-text-primary);font-weight:700}
 
+/* ---------- carte de secteur (tuiles OSM) + cartes photo ---------- */
+.sectormap{position:relative;overflow:hidden;border-radius:14px;margin-bottom:12px;
+  border:1px solid var(--ct-border-strong);box-shadow:var(--ct-shadow-depth);
+  background:#0d0306}
+.smtiles{position:absolute;inset:0;filter:grayscale(.35) brightness(.82) contrast(1.04)}
+.smtiles img{display:block;max-width:none}
+/* voile bordeaux pour intégrer la carte au thème */
+.smfade{position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(138,21,56,.30) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(26,5,11,.12) 0%, rgba(26,5,11,.40) 100%)}
+.smpin{position:absolute;transform:translate(-50%,-50%);min-width:16px;height:16px;
+  display:grid;place-items:center;border-radius:50%;
+  background:var(--ct-surface-3);border:1.5px solid var(--ct-text-strong);
+  color:var(--ct-text-strong);font-size:8px;font-weight:800;line-height:1;
+  font-variant-numeric:tabular-nums;padding:0 3px;
+  box-shadow:0 2px 8px -1px rgba(0,0,0,.6)}
+.smpin.me{width:18px;height:18px;border:0;background:var(--ct-accent-strong);
+  box-shadow:0 0 0 4px var(--ct-accent-soft),0 2px 10px -1px rgba(225,29,72,.8);z-index:2}
+.smattr{position:absolute;right:7px;bottom:6px;font-size:6.5px;font-weight:600;
+  color:var(--ct-text-faint);background:rgba(13,3,6,.6);padding:1px 6px;border-radius:5px}
+.smleg{position:absolute;left:9px;top:8px;font-size:7px;font-weight:700;letter-spacing:.04em;
+  color:var(--ct-text-primary);background:rgba(13,3,6,.55);padding:3px 8px;border-radius:6px;
+  border:1px solid var(--ct-border)}
+
+.lstgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.lcard{display:flex;flex-direction:column;border-radius:11px;overflow:hidden;
+  text-decoration:none;color:inherit;
+  background:linear-gradient(160deg,rgba(255,255,255,.05) 0%,transparent 44%),var(--ct-surface-1);
+  border:1px solid var(--ct-border);box-shadow:var(--ct-shadow-depth)}
+.lcard-img{position:relative;width:100%;height:84px;overflow:hidden;background:var(--ct-surface-2)}
+.lcard-img img{width:100%;height:100%;object-fit:cover;display:block}
+.lcard-no{position:absolute;left:6px;top:6px;width:15px;height:15px;display:grid;place-items:center;
+  border-radius:50%;background:var(--ct-accent-strong);color:var(--ct-text-strong);
+  font-size:8px;font-weight:800;line-height:1;box-shadow:0 1px 5px -1px rgba(0,0,0,.7)}
+.lcard-b{padding:7px 9px 9px}
+.lcard-px{font-size:13px;font-weight:800;color:var(--ct-accent-strong);
+  letter-spacing:-.02em;line-height:1}
+.lcard-t{font-size:8px;font-weight:700;color:var(--ct-text-strong);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lcard-m{font-size:7.5px;color:var(--ct-text-muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.lcard-q{color:var(--ct-text-faint)}
+
 /* ---------- footer ---------- */
 .foot{margin-top:auto;padding-top:9px;border-top:1px solid var(--ct-border);display:flex;
   justify-content:space-between;align-items:center;font-size:7.5px;
