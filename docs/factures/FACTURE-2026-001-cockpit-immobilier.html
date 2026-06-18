@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Facture FAC-2026-001 — Cockpit Immobilier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --mint:#a7fb90; --mint-dark:#85c873; --mint-darker:#426439; --mint-darkest:#324b2b;
+    --mint-lighter:#edfee8; --mint-lightest:#f6fef3;
+    --gin-lighter:#fafcfa;
+    --ink:#0b0b0b; --muted:#5c605c; --faint:#7f7f7f;
+    --line:#0000001a; --line-strong:#00000026; --paper:#fff;
+    --radius:8px; --maxw:820px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:#eaece9;color:var(--ink);
+    font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  }
+  .sheet{max-width:var(--maxw);margin:28px auto;background:var(--paper);padding:48px 52px;
+    box-shadow:0 8px 50px rgba(0,0,0,.12);border-radius:12px;}
+  strong{color:#000;font-weight:500;}
+  small{color:var(--faint);}
+
+  /* Header */
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;
+    background:#0b0b0b;color:#fff;border-radius:12px;padding:28px 32px;position:relative;overflow:hidden;}
+  .head::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--mint);}
+  .head .brand{width:118px;color:#fff;line-height:0;}
+  .head .brand svg{width:100%;height:auto;display:block;}
+  .head .doctype{text-align:right;}
+  .head .doctype .t{font-size:30px;letter-spacing:-.02em;font-weight:400;}
+  .head .doctype .n{color:var(--mint);font-size:13px;font-weight:500;margin-top:2px;letter-spacing:.04em;}
+  .head .doctype .d{color:rgba(255,255,255,.6);font-size:12px;margin-top:6px;}
+
+  /* Parties */
+  .parties{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:26px 0 8px;}
+  .party{border:1px solid var(--line-strong);border-radius:var(--radius);padding:16px 18px;background:var(--gin-lighter);}
+  .party.client{background:var(--mint-lightest);border-color:var(--mint-dark);}
+  .party .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--mint-darker);font-weight:500;margin-bottom:8px;}
+  .party .nm{font-size:16px;font-weight:500;color:#000;margin-bottom:4px;}
+  .party p{margin:2px 0;font-size:12.8px;color:var(--muted);}
+
+  /* Table */
+  table{width:100%;border-collapse:collapse;margin:22px 0 0;font-size:13px;}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  thead th{background:var(--mint-lighter);color:#000;font-weight:500;border-bottom:1px solid var(--mint-dark);
+    font-size:11px;text-transform:uppercase;letter-spacing:.05em;}
+  th.r,td.r{text-align:right;white-space:nowrap;}
+  td .desc-sub{display:block;color:var(--faint);font-size:11.5px;margin-top:3px;}
+  .pill{display:inline-block;font-size:10px;font-weight:500;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+  .pill.firm{background:var(--mint);color:#000;}
+  .pill.opt{background:#fff;color:var(--muted);border:1px solid var(--line-strong);}
+  tbody tr.opt td{background:var(--gin-lighter);}
+
+  /* Totaux */
+  .totals{display:flex;justify-content:flex-end;margin-top:18px;}
+  .totals .box{width:360px;max-width:100%;}
+  .totals .row{display:flex;justify-content:space-between;gap:16px;padding:7px 12px;font-size:13px;border-bottom:1px solid var(--line);}
+  .totals .row .k{color:var(--muted);}
+  .totals .row .v{white-space:nowrap;font-weight:500;color:#000;}
+  .totals .row.ttc{background:#0b0b0b;color:#fff;border-radius:var(--radius);border:0;margin-top:8px;padding:13px 16px;font-size:16px;font-weight:500;}
+  .totals .row.ttc .v{color:var(--mint);}
+
+  .callout{border-left:4px solid var(--mint);background:var(--mint-lightest);padding:13px 16px;
+    border-radius:0 var(--radius) var(--radius) 0;margin:24px 0;font-size:13px;}
+  .callout .lbl{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--mint-darker);font-weight:500;margin-bottom:4px;}
+
+  .pay{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0;}
+  .pay .blk{border:1px solid var(--line-strong);border-radius:var(--radius);padding:14px 16px;}
+  .pay .blk .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--mint-darker);font-weight:500;margin-bottom:6px;}
+  .pay .blk p{margin:2px 0;font-size:12.6px;color:var(--muted);}
+
+  .legal{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);font-size:10.8px;color:var(--faint);line-height:1.5;}
+
+  @media print{
+    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+    html,body{background:#fff !important;}
+    .sheet{box-shadow:none;margin:0;max-width:none;padding:0;border-radius:0;}
+    @page{size:A4;margin:14mm 13mm;}
+  }
+  @media (max-width:680px){
+    .sheet{padding:28px 20px;}.parties,.pay{grid-template-columns:1fr;}
+    .head{flex-direction:column;}.head .doctype{text-align:left;}.totals .box{width:100%;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="head">
+    <div class="brand" aria-label="Hearst">
+      <svg viewBox="0 0 131 25" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"><title>Hearst</title>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M30.2563 13.3499V21.1273H43.281L42.0717 23.7968H25.6046V0.448242H45.1367L43.5878 3.0243H30.2563V10.8017H37.3068L36.0647 13.3482H30.2563V13.3499ZM108.304 1.37036H130.47L127.323 4.45507H121.744V23.7952H117.028V4.45507H111.307L108.304 1.37036ZM77.6787 10.9723H77.6771V10.9707H77.6787V10.9723ZM77.6787 16.323V10.9723H80.8274C82.7816 10.9723 84.3699 9.43327 84.3699 7.54306C84.3699 5.65286 82.78 4.11379 80.8274 4.11379H73.9623V23.7968H69.2466V0.448242H80.8274C84.8769 0.448242 88.1585 3.62483 88.1585 7.54306C88.1585 11.4613 85.2001 14.3114 81.4378 14.6116L91.089 23.9511H86.0632L77.6787 16.323ZM57.6774 0.448242H54.1743L44.7101 23.7968H49.4619L55.9266 7.86138L62.3914 23.7968H67.1415L57.6774 0.448242ZM106.133 12.3703C106.924 12.8477 107.581 13.3383 108.106 13.8453V13.847H108.112C108.634 14.3523 109.072 14.9676 109.427 15.6929C109.778 16.4181 109.955 17.1827 109.955 17.99C109.955 19.1074 109.676 20.0968 109.12 20.9549C108.564 21.8131 107.814 22.4809 106.873 22.9567C105.932 23.4325 104.927 23.7853 103.858 24.0117C102.79 24.2415 101.677 24.3547 100.522 24.3547C98.0837 24.3547 96.0672 23.8526 94.474 22.8484C93.1564 22.0182 92.2228 20.9024 91.6731 19.4979H95.4666C96.479 21.0353 98.3643 21.8081 101.131 21.8081C102.307 21.8081 103.356 21.4931 104.274 20.8614C105.193 20.2281 105.654 19.3847 105.654 18.3296C105.654 17.9572 105.569 17.6208 105.397 17.3206C105.226 17.0203 105.008 16.7578 104.739 16.5297C104.471 16.3016 104.06 16.0588 103.503 15.7995C102.949 15.5419 102.424 15.3139 101.933 15.117C101.439 14.9201 100.735 14.6657 99.8148 14.3556L98.8861 14.0455L98.5453 13.9239C98.1275 13.7747 97.7915 13.6547 97.5373 13.5648C97.2157 13.4499 96.7711 13.276 96.205 13.0364C95.6373 12.7985 95.1943 12.5869 94.8727 12.3998C94.5527 12.2144 94.1622 11.9765 93.7028 11.686C93.2417 11.3973 92.8857 11.0954 92.6281 10.7852C92.3721 10.4751 92.1096 10.124 91.8421 9.73022C91.5747 9.33642 91.381 8.90654 91.2645 8.44055C91.1448 7.97456 91.0873 7.47247 91.0873 6.93429C91.0873 6.39611 91.194 5.83659 91.4073 5.25739C91.6206 4.67983 91.9701 4.09898 92.4508 3.51978C92.9316 2.94058 93.5108 2.43029 94.1835 1.98399C94.8579 1.53933 95.6931 1.18164 96.6874 0.912547C97.6817 0.645096 98.7663 0.508911 99.9427 0.508911C104.004 0.508911 106.998 1.88718 108.929 4.63552H104.626C103.336 3.45907 101.869 2.86838 100.007 2.86838C98.1444 2.86838 96.8072 3.35406 95.995 4.32705C95.7817 4.59614 95.611 4.89149 95.483 5.21145C95.3567 5.53304 95.2911 5.81198 95.2911 6.04989C95.2911 6.28781 95.3009 6.49947 95.3222 6.68653C95.4092 7.08032 95.5651 7.41668 95.7882 7.69562C96.0114 7.97619 96.3707 8.24528 96.863 8.50453C97.3552 8.76378 97.8409 8.98529 98.3233 9.17234C98.804 9.35939 99.5145 9.61864 100.456 9.94844C100.883 10.0942 101.263 10.2225 101.595 10.3344L101.739 10.3833C102.552 10.672 103.29 10.9575 103.953 11.2365C104.614 11.517 105.343 11.8944 106.133 12.3703Z" fill="currentColor"></path>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M0.895813 0.354736H5.67711V8.65555L16.1815 18.8236H10.8243L5.67711 13.8421V23.7952H0.895813V0.354736ZM17.3235 10.4046V0.354736H22.1048V23.7952H17.3235V15.5896L7.35727 5.9433H12.7145L17.3235 10.4046Z" fill="#A7FB90"></path>
+      </svg>
+    </div>
+    <div class="doctype">
+      <div class="t">Facture</div>
+      <div class="n">N° FAC-2026-001</div>
+      <div class="d">Date d'émission : 11 juin 2026</div>
+    </div>
+  </header>
+
+  <div class="parties">
+    <div class="party emetteur">
+      <div class="lbl">Émetteur</div>
+      <div class="nm">HEARST</div>
+      <p>Unit 705, Mazaya Business Avenue BB2,</p>
+      <p>Jumeirah Lakes Towers, Dubaï, EAU</p>
+      <p>Trade License No. : [n°]</p>
+      <p>TRN : [n°, le cas échéant]</p>
+      <p>[email] · [téléphone]</p>
+    </div>
+    <div class="party client">
+      <div class="lbl">Client</div>
+      <div class="nm">URBANI REAL ESTATE</div>
+      <p>SARL à associé unique, capital 1 000 €</p>
+      <p>251 Chemin des Rastines, 06600 Antibes, France</p>
+      <p>RCS Antibes 984 983 874</p>
+      <p>TVA : FR88 984 983 874</p>
+      <p>Représentée par M. Robin Urbani, gérant</p>
+    </div>
+  </div>
+
+  <p style="margin:24px 0 0;font-size:13px;color:var(--muted);"><strong>Objet :</strong> Acquisition de la plateforme Cockpit Immobilier, montant total du contrat. Réf. dossier « Cockpit Immobilier » v2.0 du 11 juin 2026.</p>
+
+  <table>
+    <thead>
+      <tr><th>Phase</th><th>Désignation</th><th>Statut</th><th class="r">Montant</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1</strong></td>
+        <td><strong>Signature, acompte initial</strong><span class="desc-sub">Engagement d'acquisition et lancement du projet.</span></td>
+        <td><span class="pill firm">Ferme</span></td>
+        <td class="r">30 000,00 €</td>
+      </tr>
+      <tr>
+        <td><strong>2</strong></td>
+        <td><strong>Livraison &amp; mise en production (V1)</strong><span class="desc-sub">Déploiement du Cockpit pour l'agence : socle sécurisé, CRM, agenda, estimation, assistant. Sous quelques jours.</span></td>
+        <td><span class="pill firm">Ferme</span></td>
+        <td class="r">30 000,00 €</td>
+      </tr>
+      <tr class="opt">
+        <td><strong>3</strong></td>
+        <td><strong>Développement, nouvelles fonctionnalités</strong><span class="desc-sub">Prospection automatisée et connecteurs email/agenda (détection d'estimations, brouillons, rendez-vous).</span></td>
+        <td><span class="pill opt">Optionnel</span></td>
+        <td class="r">30 000,00 €</td>
+      </tr>
+      <tr class="opt">
+        <td><strong>4</strong></td>
+        <td><strong>Studio média &amp; intelligence avancée</strong><span class="desc-sub">Contenus média (visuels, voix, options vidéo/3D) et missions autonomes étendues.</span></td>
+        <td><span class="pill opt">Optionnel</span></td>
+        <td class="r">30 000,00 €</td>
+      </tr>
+      <tr class="opt">
+        <td><strong>5</strong></td>
+        <td><strong>Recette, durcissement &amp; transfert</strong><span class="desc-sub">Application bureau signée, recette finale, formation et transfert de propriété.</span></td>
+        <td><span class="pill opt">Optionnel</span></td>
+        <td class="r">30 000,00 €</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div class="box">
+      <div class="row"><span class="k">Engagement ferme (phases 1 et 2)</span><span class="v">60 000,00 €</span></div>
+      <div class="row"><span class="k">Phases optionnelles (3 à 5)</span><span class="v">90 000,00 €</span></div>
+      <div class="row"><span class="k">TVA</span><span class="v">Non applicable</span></div>
+      <div class="row ttc"><span class="k">Montant total du contrat</span><span class="v">150 000,00 €</span></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="lbl">Modalités de l'échéancier</span>
+    <strong>Engagement ferme : 60 000 €</strong>, exigibles sur les phases 1 et 2, soit 30 000 € à la signature et 30 000 € à la livraison, sous quelques jours. Les phases 3 à 5 (<strong>90 000 €</strong>) sont optionnelles : elles ne sont exigibles qu'au déclenchement de chaque phase, selon validation. Option maintenance Année 1 : +10 000 € (total porté à 160 000 €).
+  </div>
+
+  <div class="pay">
+    <div class="blk">
+      <div class="lbl">Règlement</div>
+      <p><strong>Phases 1 et 2 (60 000 €) : à réception.</strong></p>
+      <p>Phases 3 à 5 : au déclenchement de chacune.</p>
+      <p>Coordonnées bancaires communiquées séparément.</p>
+      <p>Référence à rappeler : FAC-2026-001</p>
+    </div>
+    <div class="blk">
+      <div class="lbl">Conditions</div>
+      <p>Acompte à la signature de l'accord d'acquisition.</p>
+      <p>TVA non applicable (prestataire établi à Dubaï, EAU).</p>
+      <p>Coûts d'accès tiers non inclus (refacturés au réel).</p>
+      <p>Transfert de propriété au paiement complet du contrat.</p>
+    </div>
+  </div>
+
+  <div class="legal">
+    TVA non applicable : prestataire établi hors Union européenne (Dubaï, Émirats arabes unis). Le cas échéant, la taxe est due par le preneur par autoliquidation.
+    <br>HEARST, Unit 705 Mazaya Business Avenue BB2, Jumeirah Lakes Towers, Dubaï, Émirats arabes unis. Trade License No. [n°]. Tout retard de paiement pourra donner lieu à des intérêts de retard au taux convenu entre les parties.
+    <br>Document établi sur la base du dossier « Cockpit Immobilier » v2.0 du 11 juin 2026.
+  </div>
+
+</div>
+</body>
+</html>

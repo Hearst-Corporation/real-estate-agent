@@ -80,6 +80,8 @@ html, body {
   display: flex;
   flex-direction: column;
   padding: var(--ct-space-xl) var(--ct-space-2xl) var(--ct-space-xl);
+  container-type: inline-size;
+  container-name: slot;
 }
 
 /* Quand le drawer chat est ouvert, réserver de l'espace à droite

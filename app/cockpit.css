@@ -6,6 +6,10 @@
    lisibilité et l'hygiène de merge (les blocs GRAFT/WRITE qui se
    perdaient au merge sont désormais isolés). L'ORDRE des @import =
    l'ordre de cascade d'origine : NE PAS réordonner.
+   Exception volontaire : 61-container.css est importé EN DERNIER pour que ses
+   container queries gagnent la cascade sur les grilles redéfinies dans 70-graft
+   et 90-missions (ex. .inv-grid-2, .mv-cols, .inv-chart-grid) — sans cela les
+   media queries viewport et définitions de base écrasaient les container queries.
 
    Ajouter une règle → l'ajouter dans la bonne section, pas ici.
    DS local éditable : tokens et CSS se modifient directement dans
@@ -22,3 +26,4 @@
 @import "./cockpit/70-graft.css";
 @import "./cockpit/80-write.css";
 @import "./cockpit/90-missions.css";
+@import "./cockpit/61-container.css";

@@ -1,0 +1,78 @@
+/* ============================================================
+   61-container.css — Container queries sur le content-slot réel
+   ============================================================
+
+   Complète 60-responsive.css (media queries viewport) en rendant
+   les grilles structurantes du dashboard responsives au slot
+   réel `.ct-page-area`, pas au viewport.
+
+   Pourquoi c'est nécessaire : quand le chat à droite est ouvert,
+   `.ct-page-area` reçoit `padding-right` ≈ 468px ce qui réduit
+   le slot à ~806px (vp1440) ou ~566px (vp1200) — mais le viewport
+   reste > 1024px, donc aucun repli de 60-responsive.css ne se
+   déclenche. Les container queries, elles, réagissent au slot réel.
+
+   Prérequis : `.ct-page-area` doit porter
+     container-type: inline-size;
+     container-name: slot;
+   (posé dans 10-shell.css).
+
+   ⚠️ `.ct-today-grid` utilise déjà `repeat(auto-fit, minmax(240px,1fr))`
+   → elle s'adapte seule au conteneur, ne pas la toucher ici.
+   ============================================================ */
+
+/* ── Slot réduit (chat ouvert sur écran moyen/large, ou petit écran) ── */
+@container slot (max-width: 900px) {
+  .ct-kpi-grid,
+  .ct-kpi-grid.cols-4,
+  .ct-kpi-grid.cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ct-home-grid,
+  .ct-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ct-home-actions {
+    grid-template-columns: 1fr;
+  }
+
+  /* Grilles de page (invest/swarms/leads/missions/properties) — repli 1 col quand le slot rétrécit */
+  .swarm-agents-grid,
+  .mv-cols,
+  .ct-viz-row,
+  .inv-grid-2,
+  .lead-cockpit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Page estimations (phase résultat) — hero + side + KPI hero empilent quand le slot rétrécit */
+  .est-hero,
+  .est-side,
+  .est-hero-kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Slot très étroit (chat ouvert sur petit écran, ou mobile) ── */
+@container slot (max-width: 560px) {
+  .ct-kpi-grid,
+  .ct-kpi-grid.cols-4,
+  .ct-kpi-grid.cols-3,
+  .ct-kpi-grid.cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .ct-home-action-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Grille de charts à 12 colonnes (span system) — sous un slot très étroit,
+   chaque ChartCard occupe toute la largeur pour rester lisible. */
+@container slot (max-width: 700px) {
+  .inv-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
