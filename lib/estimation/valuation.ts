@@ -228,6 +228,30 @@ export function computeValuation(
     });
   }
 
+  // ── 2c-bis. Vue mer ──────────────────────────────────────────────────
+  // Prime de rareté forte sur le littoral. Détectée via le champ `vue` ou
+  // les prestations ("vue mer", "vue panoramique mer", "front de mer").
+  const vueStr = (property.vue ?? '').toLowerCase();
+  const prestaJoined = (property.prestations ?? []).map((p) => p.toLowerCase()).join(' ');
+  const hasVueMer =
+    vueStr.includes('mer') ||
+    prestaJoined.includes('vue mer') ||
+    prestaJoined.includes('vue sur mer') ||
+    prestaJoined.includes('front de mer');
+  if (hasVueMer) {
+    const panoramique =
+      vueStr.includes('panoram') ||
+      prestaJoined.includes('panoram') ||
+      vueStr.includes('front de mer') ||
+      prestaJoined.includes('front de mer');
+    pushAdj({
+      label: panoramique ? 'Vue mer panoramique' : 'Vue mer',
+      type: 'premium',
+      pct: panoramique ? 18 : 12,
+      rationale: 'Vue mer : prime de rareté forte sur le littoral',
+    });
+  }
+
   // ── 2d. État général ─────────────────────────────────────────────────
   const etat = property.etat_general;
   if (etat === 'a_renover') {
@@ -367,6 +391,11 @@ export function computeValuation(
   // Cave
   if (property.cave === true) {
     annexes += 4_000;
+  }
+
+  // Piscine (prestation) — plus-value en € absolu hors clamp
+  if ((property.prestations ?? []).some((p) => p.toLowerCase().includes('piscine'))) {
+    annexes += 30_000;
   }
 
   // Terrasse / balcon
