@@ -98,11 +98,6 @@ export const MANDATE_STATUSES = [
   "realise",
 ] as const;
 
-export type MandateStatus = (typeof MANDATE_STATUSES)[number];
-
-export const MANDATE_KINDS = ["simple", "exclusif", "semi_exclusif"] as const;
-export type MandateKind = (typeof MANDATE_KINDS)[number];
-
 // ─── Énumérations Leads (valeurs CHECK constraints DB) ────────────────────────
 
 export const LEAD_KINDS = ["acheteur", "vendeur"] as const;

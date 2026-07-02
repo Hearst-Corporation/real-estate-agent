@@ -98,14 +98,6 @@ export function PageStack({ children }: { children: ReactNode }) {
   return <div className="flex flex-col gap-6 pb-12">{children}</div>;
 }
 
-export function DashboardGrid({ children }: { children: ReactNode }) {
-  return <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-3">{children}</div>;
-}
-
-export function InsightRail({ children }: { children: ReactNode }) {
-  return <aside className="flex flex-col gap-4">{children}</aside>;
-}
-
 const CARD_VARIANT: Record<"hero" | "chart" | "dense", string> = {
   hero: "bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03]",
   chart: "p-4",
@@ -188,30 +180,5 @@ export function Badge({ children }: { children: ReactNode }) {
     <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
       {children}
     </span>
-  );
-}
-
-export function HeroMetric({
-  eyebrow,
-  value,
-  label,
-  children,
-}: {
-  eyebrow: string;
-  value: string;
-  label: string;
-  children?: ReactNode;
-}) {
-  return (
-    <section className="flex flex-wrap items-end justify-between gap-6 rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6">
-      <div>
-        <div className="text-xs font-semibold uppercase tracking-widest text-indigo-300">
-          {eyebrow}
-        </div>
-        <div className="mt-1 text-5xl font-black tracking-tight text-white">{value}</div>
-        <div className="mt-1 text-sm text-slate-400">{label}</div>
-      </div>
-      {children ? <div>{children}</div> : null}
-    </section>
   );
 }

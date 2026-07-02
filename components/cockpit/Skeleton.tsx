@@ -36,13 +36,3 @@ export function Skeleton({
   );
 }
 
-/** Bloc de lignes en skeleton (mime un paragraphe / une carte de contenu). */
-export function SkeletonLines({ count = 3 }: { count?: number }) {
-  return (
-    <div className="flex flex-col gap-2" aria-busy="true">
-      {Array.from({ length: count }, (_, i) => (
-        <Skeleton key={i} width={i === count - 1 ? "60%" : "100%"} height={14} />
-      ))}
-    </div>
-  );
-}

@@ -62,12 +62,6 @@ export const PRESETS: Record<"api" | "doc", MandatWeights> = {
   doc: { pap: 30, anciennete_45j: 20, baisse_prix: 15, zone_prioritaire: 20 },
 };
 
-export const DEFAULT_MANDAT_CONFIG: MandatConfig = {
-  preset: "api",
-  weights: PRESETS.api,
-  seuil: 60,
-};
-
 export interface CritereAcquereur {
   id: string;
   tenantId: string;

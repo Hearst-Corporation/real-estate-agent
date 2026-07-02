@@ -188,17 +188,6 @@ export async function getRunStatus(
   return getRun(runId, ownerId)
 }
 
-export async function listSwarmRuns(
-  swarmId: string,
-  ownerId: string,
-  limit = 20
-): Promise<SwarmRun[]> {
-  const raw = await engineFetch<Record<string, unknown>[]>(
-    `/swarms/${encodeURIComponent(swarmId)}/runs?owner_id=${encodeURIComponent(ownerId)}&limit=${limit}`
-  )
-  return Array.isArray(raw) ? raw.map(normalizeRun) : []
-}
-
 export async function getRun(runId: string, ownerId: string): Promise<SwarmRun> {
   const raw = await engineFetch<Record<string, unknown>>(
     `/runs/${encodeURIComponent(runId)}?owner_id=${encodeURIComponent(ownerId)}`

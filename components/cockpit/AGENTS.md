@@ -110,9 +110,6 @@ Génère : la page liste (`CockpitResourcePage` + `DataTable`), `_components/<Re
 | `PageHeader` | en-tête (kicker, titre, action, nav, KPIs) | `kicker?`, `title`, `action?`, `nav?`, `kpis?: {label,value}[]` |
 | `Card` | carte verre dépoli | `title?`, `variant?: "hero"\|"chart"\|"dense"`, `className?` |
 | `KpiGrid` / `KpiCard` | grille de KPIs | `KpiCard: {label,value,accent?}` |
-| `DashboardGrid` | grille dashboard multi-colonnes | `children` |
-| `InsightRail` | colonne latérale d'insights | `children` |
-| `HeroMetric` | grosse métrique mise en avant | `eyebrow`, `value`, `label` |
 | `Title` / `Sub` / `Eyebrow` / `Badge` | typo & labels | `children` |
 
 ## Composants riches (à composer, ne pas recoder)

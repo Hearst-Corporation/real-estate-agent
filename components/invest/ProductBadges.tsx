@@ -31,7 +31,7 @@ const FAMILY_DOT_CLASS: Record<BadgeFamily, string> = {
   conf: "bg-slate-500",
 };
 
-export function LegalBadge({ family, label, detail }: ProductBadge) {
+function LegalBadge({ family, label, detail }: ProductBadge) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${FAMILY_CLASS[family]}`}
