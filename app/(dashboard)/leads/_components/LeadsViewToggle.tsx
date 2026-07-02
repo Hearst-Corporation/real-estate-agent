@@ -90,27 +90,25 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
     },
   ];
 
+  const segBtn = (active: boolean) =>
+    `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+      active ? "bg-indigo-500/15 text-indigo-300" : "text-slate-400 hover:text-slate-100"
+    }`;
+
   return (
-    <div className="crm-view-panel">
-      <div className="crm-toolbar crm-toolbar-shrink">
-        <div className="ct-card-title">{t.cockpit.panelTitle}</div>
-        <div className="ct-seg-track">
-          <button
-            className={`ct-seg-btn ${view === "cockpit" ? "active" : ""}`}
-            onClick={() => setView("cockpit")}
-          >
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          {t.cockpit.panelTitle}
+        </div>
+        <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] p-1">
+          <button className={segBtn(view === "cockpit")} onClick={() => setView("cockpit")}>
             {t.cockpit.tabCockpit}
           </button>
-          <button
-            className={`ct-seg-btn ${view === "kanban" ? "active" : ""}`}
-            onClick={() => setView("kanban")}
-          >
+          <button className={segBtn(view === "kanban")} onClick={() => setView("kanban")}>
             {t.cockpit.tabKanban}
           </button>
-          <button
-            className={`ct-seg-btn ${view === "list" ? "active" : ""}`}
-            onClick={() => setView("list")}
-          >
+          <button className={segBtn(view === "list")} onClick={() => setView("list")}>
             {t.cockpit.tabList}
           </button>
         </div>
@@ -121,7 +119,7 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
       ) : view === "kanban" ? (
         <LeadKanban leads={leads} />
       ) : (
-        <div className="crm-view-panel">
+        <div className="flex flex-col gap-4">
           <DataTable columns={columns} rows={leads} emptyLabel={t.empty} getKey={(l) => l.id} />
         </div>
       )}

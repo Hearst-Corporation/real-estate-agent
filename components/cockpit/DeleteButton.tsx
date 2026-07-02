@@ -12,7 +12,7 @@ type DeleteButtonProps = {
   confirmMessage?: string;
 };
 
-/** Bouton de suppression destructif (DELETE + refresh). Style .ct-seg-btn.danger. */
+/** Bouton de suppression destructif (DELETE + refresh). */
 export function DeleteButton({ endpoint, label, confirmMessage }: DeleteButtonProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -38,10 +38,14 @@ export function DeleteButton({ endpoint, label, confirmMessage }: DeleteButtonPr
 
   return (
     <>
-      <button className="ct-seg-btn danger" onClick={handleDelete} disabled={busy}>
+      <button
+        className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+        onClick={handleDelete}
+        disabled={busy}
+      >
         {busy ? UI.common.busy : label}
       </button>
-      {error ? <span className="ct-error">{error}</span> : null}
+      {error ? <span className="ml-2 text-xs text-red-400">{error}</span> : null}
     </>
   );
 }

@@ -39,18 +39,23 @@ export function MissionLauncher() {
   }
 
   return (
-    <div className="mv-launch">
+    <div className="flex flex-col gap-3">
       <textarea
-        className="ct-field-input"
+        className="min-h-24 w-full resize-y rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none disabled:opacity-50"
         placeholder={t.placeholder}
         value={objective}
         onChange={(e) => setObjective(e.target.value)}
         disabled={busy}
       />
-      <button type="button" className="ct-btn ct-btn-primary" onClick={launch} disabled={busy || !objective.trim()}>
+      <button
+        type="button"
+        className="self-start rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={launch}
+        disabled={busy || !objective.trim()}
+      >
         {busy ? t.launchBusy : t.launchBtn}
       </button>
-      {error && <p className="ct-error ct-error-full">{error}</p>}
+      {error && <p className="w-full text-sm text-red-400">{error}</p>}
     </div>
   );
 }

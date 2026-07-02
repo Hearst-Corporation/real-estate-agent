@@ -44,47 +44,51 @@ export default async function MarketplacePage() {
     <PageStack>
       <PageHeader kicker={m.eyebrow} title={m.title} meta={<Sub>{m.sub}</Sub>} />
 
-      {isDemo ? (
-        <div className="inv-mb-md">
-          <Banner tone="warn">{m.demoBanner}</Banner>
-        </div>
-      ) : null}
+      {isDemo ? <Banner tone="warn">{m.demoBanner}</Banner> : null}
 
-      <div className="inv-mb-lg">
-        <Banner tone="info">{m.infoBanner}</Banner>
-      </div>
+      <Banner tone="info">{m.infoBanner}</Banner>
 
-      <KpiGrid className="cols-4">
+      <KpiGrid>
         <KpiCard label={m.kpis.openDeals} value={String(dealsOuverts)} />
         <KpiCard label={m.kpis.collected} value={eur(collecteTotale)} />
         <KpiCard label={m.kpis.medianTri} value={m.kpis.medianTriValue} accent />
         <KpiCard label={m.kpis.ticketFrom} value={eur(ticketMinAffiche)} />
       </KpiGrid>
 
-      <div className="inv-mk-toolbar">
-        <div className="inv-mk-filters" aria-label={m.filtersAria}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2" aria-label={m.filtersAria}>
           {m.filters.map((f) => (
-            <span className="inv-chip" key={f}>
+            <span
+              key={f}
+              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-300"
+            >
               {f}
             </span>
           ))}
         </div>
-        <div className="inv-mk-filters" aria-label={m.sortAria}>
+        <div className="flex flex-wrap gap-2" aria-label={m.sortAria}>
           {m.sorts.map((t, i) => (
-            <span className={`inv-chip${i === 0 ? " active" : ""}`} key={t}>
+            <span
+              key={t}
+              className={`rounded-full border px-3 py-1 text-xs ${
+                i === 0
+                  ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-200"
+                  : "border-white/10 bg-white/[0.03] text-slate-300"
+              }`}
+            >
               {t}
             </span>
           ))}
         </div>
       </div>
 
-      <div className="inv-deal-grid">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((d) => (
           <DealCard key={d.slug} deal={d} />
         ))}
       </div>
 
-      <p className="inv-fineprint inv-mt-lg">{m.fineprint}</p>
+      <p className="text-xs text-slate-500">{m.fineprint}</p>
     </PageStack>
   );
 }

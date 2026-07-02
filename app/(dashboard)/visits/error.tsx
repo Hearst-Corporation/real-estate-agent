@@ -22,16 +22,20 @@ export default function VisitsError({
     <PageStack>
       <PageHeader kicker={UI.visits.eyebrow} title={title} />
       <Card>
-        <div className="ct-skeleton-stack">
-          <p className="ct-sub">
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-slate-400">
             Impossible de charger {UI.visits.title.toLowerCase()}. Réessayez ; si
             le problème persiste, rechargez la page.
           </p>
           {process.env.NODE_ENV === "development" && error.message ? (
-            <p className="ct-subtext">{error.message}</p>
+            <p className="text-xs text-slate-500">{error.message}</p>
           ) : null}
           <div>
-            <button type="button" className="ct-btn ct-btn-primary" onClick={reset}>
+            <button
+              type="button"
+              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400"
+              onClick={reset}
+            >
               Réessayer
             </button>
           </div>

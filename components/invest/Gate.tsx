@@ -20,13 +20,16 @@ export function Gate({
 }) {
   if (!locked) return <>{children}</>;
   return (
-    <div className="inv-gate">
-      <div className="inv-gate-content" aria-hidden>
+    <div className="relative overflow-hidden rounded-2xl">
+      <div className="pointer-events-none select-none blur-sm" aria-hidden>
         {children}
       </div>
-      <div className="inv-gate-overlay" role="note">
-        <IconLock className="inv-gate-ic" />
-        <p className="inv-gate-msg">{message}</p>
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 p-6 text-center backdrop-blur-sm"
+        role="note"
+      >
+        <IconLock className="size-6 text-slate-300" />
+        <p className="max-w-xs text-sm text-slate-300">{message}</p>
         {cta}
       </div>
     </div>

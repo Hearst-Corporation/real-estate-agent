@@ -51,7 +51,15 @@ const di = UI.invest.dealDetail;
 
 export const dynamic = "force-dynamic";
 
-/** Carte de chart (wrapper local, tokens --ct-*). */
+/** Carte de chart (wrapper local, utilities Tailwind — grille 12 colonnes). */
+const CHART_SPAN: Record<12 | 8 | 6 | 4 | 3, string> = {
+  12: "md:col-span-12",
+  8: "md:col-span-8",
+  6: "md:col-span-6",
+  4: "md:col-span-4",
+  3: "md:col-span-3",
+};
+
 function ChartCard({
   title,
   span = 6,
@@ -64,12 +72,14 @@ function ChartCard({
   children: ReactNode;
 }) {
   return (
-    <div className={`inv-chart-card inv-col-${span}`}>
-      <div className="inv-chart-head">
-        <span className="inv-chart-title">{title}</span>
+    <div
+      className={`col-span-12 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm ${CHART_SPAN[span]}`}
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">{title}</span>
       </div>
       {children}
-      {foot ? <p className="inv-chart-foot">{foot}</p> : null}
+      {foot ? <p className="text-xs text-slate-500">{foot}</p> : null}
     </div>
   );
 }
@@ -183,70 +193,89 @@ export default async function DealDetailPage({
   }));
 
   const kycCta = (
-    <Link href="/invest/onboarding" className="inv-btn-reserve inv-link-inline">
+    <Link
+      href="/invest/onboarding"
+      className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400"
+    >
       {di.kycCta}
     </Link>
   );
 
   return (
     <PageStack>
-      <Link href="/invest" className="inv-deal-loc inv-mb-md">
+      <Link href="/invest" className="text-sm text-slate-400 hover:text-slate-200">
         {di.backLink}
       </Link>
 
       {/* HERO + bloc souscription */}
-      <div className="inv-detail-head">
-        <div className="inv-detail-hero">
-          <div className="inv-detail-hero-inner">
-            <div className="inv-detail-loc">{view.localisation}</div>
-            <h1 className="inv-detail-name">{view.nom}</h1>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
+        <div className="flex items-end rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6 min-h-56">
+          <div className="flex flex-col gap-3">
+            <div className="text-sm text-slate-400">{view.localisation}</div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">{view.nom}</h1>
             <ProductBadges badges={view.badges} />
           </div>
         </div>
 
-        <div className="inv-detail-side">
-          <div className="inv-raise-box">
-            <div className="inv-raise-amt">
-              <span className="inv-big">{eur(view.collecteEur)}</span>
-              <span className="inv-goal">/ {eur(view.objectifEur)} {di.goalSuffix}</span>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
+            <div className="flex flex-wrap items-baseline gap-1.5">
+              <span className="text-2xl font-bold text-white">{eur(view.collecteEur)}</span>
+              <span className="text-sm text-slate-400">
+                / {eur(view.objectifEur)} {di.goalSuffix}
+              </span>
             </div>
-            <div className="inv-progress-track" role="progressbar" aria-valuenow={taux} aria-valuemin={0} aria-valuemax={100} aria-label={di.raiseProgressAria}>
-              <div className="inv-progress-fill" style={{ width: `${Math.min(100, taux)}%` }} />
+            <div
+              className="h-2 w-full overflow-hidden rounded-full bg-white/10"
+              role="progressbar"
+              aria-valuenow={taux}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={di.raiseProgressAria}
+            >
+              <div
+                className="h-full rounded-full bg-indigo-400"
+                style={{ width: `${Math.min(100, taux)}%` }}
+              />
             </div>
-            <div className="inv-raise-stats">
-              <div className="inv-raise-stat">
-                <span className="inv-v">{pct(sheet.rendement_cible_irr)}</span>
-                <span className="inv-l">{di.stats.triTarget}</span>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-slate-100">{pct(sheet.rendement_cible_irr)}</span>
+                <span className="text-xs text-slate-500">{di.stats.triTarget}</span>
               </div>
-              <div className="inv-raise-stat">
-                <span className="inv-v">{pct(metrics.ltv)}</span>
-                <span className="inv-l">{di.stats.ltv}</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-slate-100">{pct(metrics.ltv)}</span>
+                <span className="text-xs text-slate-500">{di.stats.ltv}</span>
               </div>
-              <div className="inv-raise-stat">
-                <span className="inv-v">{sheet.input.schedule.duree_mois} m</span>
-                <span className="inv-l">{di.stats.duration}</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-slate-100">{sheet.input.schedule.duree_mois} m</span>
+                <span className="text-xs text-slate-500">{di.stats.duration}</span>
               </div>
             </div>
-            <div className="inv-raise-stats">
-              <div className="inv-raise-stat">
-                <span className="inv-v">{eur(view.ticketMinEur)}</span>
-                <span className="inv-l">{di.stats.ticketMin}</span>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-slate-100">{eur(view.ticketMinEur)}</span>
+                <span className="text-xs text-slate-500">{di.stats.ticketMin}</span>
               </div>
-              <div className="inv-raise-stat">
-                <span className="inv-v">{eur(view.ticketMaxEur)}</span>
-                <span className="inv-l">{di.stats.ticketMax}</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-slate-100">{eur(view.ticketMaxEur)}</span>
+                <span className="text-xs text-slate-500">{di.stats.ticketMax}</span>
               </div>
-              <div className="inv-raise-stat">
-                <span className="inv-v">{taux}%</span>
-                <span className="inv-l">{di.stats.raised}</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-slate-100">{taux}%</span>
+                <span className="text-xs text-slate-500">{di.stats.raised}</span>
               </div>
             </div>
             {view.dealId ? null : (
               <>
-                <button className="inv-btn-reserve" type="button" disabled>
+                <button
+                  className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white opacity-50"
+                  type="button"
+                  disabled
+                >
                   {di.demoReserveBtn}
                 </button>
-                <p className="inv-reserve-note">{di.demoReserveNote}</p>
+                <p className="text-xs text-slate-500">{di.demoReserveNote}</p>
               </>
             )}
           </div>
@@ -257,61 +286,58 @@ export default async function DealDetailPage({
       {/* BLOC SOUSCRIPTION (Epic 1.3) — soft-commit → signature eIDAS → séquestre tiers.
           Rendu uniquement pour un deal réel (DB) ; la démo affiche le bouton désactivé ci-dessus. */}
       {view.dealId ? (
-        <div className="inv-mb-lg">
-          <SubscribePanel
-            dealId={view.dealId}
-            dealName={view.nom}
-            dealOpen={view.statusTone === "open"}
-            ticketMinEur={view.ticketMinEur}
-            ticketMaxEur={view.ticketMaxEur}
-            settlementCurrency="EUR"
-            sequestreLabel={view.sequestre}
-            kycApproved={!view.kycGated}
-            spvLabel={view.sasName}
-          />
-        </div>
+        <SubscribePanel
+          dealId={view.dealId}
+          dealName={view.nom}
+          dealOpen={view.statusTone === "open"}
+          ticketMinEur={view.ticketMinEur}
+          ticketMaxEur={view.ticketMaxEur}
+          settlementCurrency="EUR"
+          sequestreLabel={view.sequestre}
+          kycApproved={!view.kycGated}
+          spvLabel={view.sasName}
+        />
       ) : null}
 
       {/* L4 — nature juridique permanente */}
-      <div className="inv-mb-lg">
-        <LegalNatureBadge sasName={view.sasName} />
-      </div>
+      <LegalNatureBadge sasName={view.sasName} />
 
       {/* GATE KYC — bandeau d'invitation tant que les chiffres détaillés sont masqués */}
       {kycGated ? (
-        <div className="inv-mb-lg">
-          <Banner tone="warn">
-            {di.kycBanner}{" "}
-            <Link href="/invest/onboarding">{di.kycCta}</Link>.
-          </Banner>
-        </div>
+        <Banner tone="warn">
+          {di.kycBanner}{" "}
+          <Link href="/invest/onboarding" className="underline hover:text-slate-100">
+            {di.kycCta}
+          </Link>
+          .
+        </Banner>
       ) : null}
 
       {/* Funnel de souscription (aperçu des 4 étapes) */}
-      <div className="inv-chart-card inv-mb-lg">
-        <div className="inv-chart-head">
-          <span className="inv-chart-title">{di.subscriptionFunnelTitle}</span>
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            {di.subscriptionFunnelTitle}
+          </span>
         </div>
         <Stepper current={0} steps={[...di.stepperSteps]} />
-        <p className="inv-chart-foot">{di.subscriptionFunnelFoot(view.sequestre)}</p>
+        <p className="text-xs text-slate-500">{di.subscriptionFunnelFoot(view.sequestre)}</p>
       </div>
 
       {/* Warnings du moteur (cohérence — affichés honnêtement, non gatés) */}
       {!kycGated && sheet.warnings.length > 0 ? (
-        <div className="inv-mb-lg">
-          <Banner tone="warn">
-            <b>{di.warningsTitle}</b>
-            <ul className="inv-list-ul">
-              {sheet.warnings.map((w, i) => (
-                <li key={i}>{w}</li>
-              ))}
-            </ul>
-          </Banner>
-        </div>
+        <Banner tone="warn">
+          <b>{di.warningsTitle}</b>
+          <ul className="ml-4 list-disc">
+            {sheet.warnings.map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </Banner>
       ) : null}
 
       {/* KPI économie de l'opération (structure — toujours visible) */}
-      <KpiGrid className="cols-4">
+      <KpiGrid>
         <KpiCard label={di.kpis.totalCost} value={eur(metrics.cout_total_eur)} />
         <KpiCard label={di.kpis.seniorDebt} value={eur(sheet.input.funding.dette_senior_eur)} />
         <KpiCard label={di.kpis.bonds} value={eur(sheet.input.funding.obligations_cible_eur)} accent />
@@ -319,17 +345,22 @@ export default async function DealDetailPage({
       </KpiGrid>
 
       {/* Les 11 graphiques (P8). Structure publique non gatée ; détails sous <Gate>. */}
-      <div className="inv-chart-grid">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
         {/* G1 — Répartition dette/equity (structure — non gatée) */}
         <ChartCard title={di.charts.debtEquity} span={4} foot={charts.g1_dette_equity.interpretation}>
-          <div className="inv-center">
-            <Donut value={sheet.input.funding.obligations_cible_eur / charts.g1_dette_equity.total_eur * 100} centerLabel={pct(sheet.input.funding.obligations_cible_eur / charts.g1_dette_equity.total_eur)} sublabel={di.obligationsDonut} accent />
+          <div className="flex justify-center py-2">
+            <Donut
+              value={(sheet.input.funding.obligations_cible_eur / charts.g1_dette_equity.total_eur) * 100}
+              centerLabel={pct(sheet.input.funding.obligations_cible_eur / charts.g1_dette_equity.total_eur)}
+              sublabel={di.obligationsDonut}
+              accent
+            />
           </div>
-          <div className="inv-legend">
+          <div className="flex flex-col gap-1.5">
             {charts.g1_dette_equity.segments.map((s) => (
-              <div className="inv-legend-row" key={s.key}>
-                <span className="inv-legend-lab">{s.label}</span>
-                <span className="inv-legend-val">{pct(s.part)}</span>
+              <div className="flex items-center justify-between text-sm" key={s.key}>
+                <span className="text-slate-400">{s.label}</span>
+                <span className="font-semibold text-slate-100">{pct(s.part)}</span>
               </div>
             ))}
           </div>
@@ -391,7 +422,7 @@ export default async function DealDetailPage({
             ]}
             emptyLabel="—"
           />
-          <p className="inv-chart-foot">
+          <p className="text-xs text-slate-500">
             {di.marginFoot(
               eur(charts.g11_marge_marchand.marge_eur),
               pct(charts.g11_marge_marchand.marge_pct),
@@ -402,22 +433,25 @@ export default async function DealDetailPage({
 
         {/* G4 — Gantt (calendrier — non gaté) */}
         <ChartCard title={di.charts.gantt} span={8} foot={charts.g4_gantt.interpretation}>
-          <div className="inv-gantt">
+          <div className="flex flex-col gap-2">
             {charts.g4_gantt.jalons.map((j) => {
               const left = (j.debut_mois / charts.g4_gantt.duree_totale_mois) * 100;
               const width = (j.duree_mois / charts.g4_gantt.duree_totale_mois) * 100;
               return (
-                <div className="inv-gantt-row" key={j.key}>
-                  <span className="inv-gantt-lab">{j.label}</span>
-                  <div className="inv-gantt-track">
-                    <span className="inv-gantt-bar" style={{ left: `${left}%`, width: `${Math.max(2, width)}%` }} />
+                <div className="grid grid-cols-[120px_1fr] items-center gap-2" key={j.key}>
+                  <span className="truncate text-xs text-slate-400">{j.label}</span>
+                  <div className="relative h-2 rounded-full bg-white/10">
+                    <span
+                      className="absolute inset-y-0 rounded-full bg-indigo-400"
+                      style={{ left: `${left}%`, width: `${Math.max(2, width)}%` }}
+                    />
                   </div>
                 </div>
               );
             })}
-            <div className="inv-gantt-axis">
+            <div className="grid grid-cols-[120px_1fr] items-center gap-2">
               <span />
-              <div className="inv-gantt-axis-inner">
+              <div className="flex items-center justify-between text-xs text-slate-500">
                 <span>M0</span>
                 <span>M{Math.round(charts.g4_gantt.duree_totale_mois / 2)}</span>
                 <span>M{charts.g4_gantt.duree_totale_mois}</span>
@@ -443,67 +477,75 @@ export default async function DealDetailPage({
       </div>
 
       {/* Sûretés + Token */}
-      <div className="inv-grid-2 inv-mt-lg">
-        <div className="inv-chart-card">
-          <div className="inv-chart-head">
-            <span className="inv-chart-title">{di.securitiesTitle}</span>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              {di.securitiesTitle}
+            </span>
           </div>
-          <ul className="inv-doc-list">
+          <ul className="flex flex-col divide-y divide-white/5">
             {di.suretes.map((s) => (
-              <li className="inv-doc-row" key={s}>
-                <span className="inv-doc-name">{s}</span>
+              <li className="flex items-center justify-between py-2 text-sm" key={s}>
+                <span className="text-slate-200">{s}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="inv-chart-card">
-          <div className="inv-chart-head">
-            <span className="inv-chart-title">{di.tokenTitle}</span>
+        <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              {di.tokenTitle}
+            </span>
           </div>
-          <dl className="inv-dl">
-            <dt>{di.tokenDl.nature}</dt>
-            <dd>{di.tokenDl.natureVal}</dd>
-            <dt>{di.tokenDl.standard}</dt>
-            <dd>{di.tokenDl.standardVal}</dd>
-            <dt>{di.tokenDl.emission}</dt>
-            <dd>{di.tokenDl.emissionVal}</dd>
-            <dt>{di.tokenDl.settlement}</dt>
-            <dd>{di.tokenDl.settlementVal}</dd>
-            <dt>{di.tokenDl.framework}</dt>
-            <dd>{di.tokenDl.frameworkVal}</dd>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
+            <dt className="text-slate-500">{di.tokenDl.nature}</dt>
+            <dd className="text-slate-200">{di.tokenDl.natureVal}</dd>
+            <dt className="text-slate-500">{di.tokenDl.standard}</dt>
+            <dd className="text-slate-200">{di.tokenDl.standardVal}</dd>
+            <dt className="text-slate-500">{di.tokenDl.emission}</dt>
+            <dd className="text-slate-200">{di.tokenDl.emissionVal}</dd>
+            <dt className="text-slate-500">{di.tokenDl.settlement}</dt>
+            <dd className="text-slate-200">{di.tokenDl.settlementVal}</dd>
+            <dt className="text-slate-500">{di.tokenDl.framework}</dt>
+            <dd className="text-slate-200">{di.tokenDl.frameworkVal}</dd>
           </dl>
         </div>
       </div>
 
       {/* Data room (inv_documents publics du deal) */}
-      <div className="inv-chart-card inv-chart-mt">
-        <div className="inv-chart-head">
-          <span className="inv-chart-title">{di.dataRoomTitle}</span>
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            {di.dataRoomTitle}
+          </span>
         </div>
         {view.documents.length > 0 ? (
-          <ul className="inv-doc-list">
+          <ul className="flex flex-col divide-y divide-white/5">
             {view.documents.map((d) => (
-              <li className="inv-doc-row" key={d.id}>
-                <span className="inv-doc-name">{d.title}</span>
-                <span className="inv-doc-meta">{d.docType}</span>
+              <li className="flex items-center justify-between py-2 text-sm" key={d.id}>
+                <span className="text-slate-200">{d.title}</span>
+                <span className="text-slate-500">{d.docType}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="inv-chart-foot">{di.dataRoomEmpty}</p>
+          <p className="text-xs text-slate-500">{di.dataRoomEmpty}</p>
         )}
       </div>
 
       {/* Closing timeline */}
-      <div className="inv-chart-card inv-chart-mt">
-        <div className="inv-chart-head">
-          <span className="inv-chart-title">{di.closingTitle}</span>
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            {di.closingTitle}
+          </span>
         </div>
         <Timeline items={[...di.closing]} />
       </div>
 
-      <p className="inv-fineprint inv-mt-lg">{di.fineprint(pct(view.couponCentral))}</p>
+      <p className="text-xs text-slate-500">{di.fineprint(pct(view.couponCentral))}</p>
     </PageStack>
   );
 }

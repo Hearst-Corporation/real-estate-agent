@@ -64,8 +64,15 @@ export function RailRight() {
 
   if (!open) {
     return (
-      <aside className="ct-rail-right collapsed" aria-label={UI.chat.title}>
-        <button type="button" className="ct-rail-right-reopen" onClick={toggle}>
+      <aside
+        className="relative z-20 flex w-10 shrink-0 items-start justify-center border-l border-white/10 bg-white/[0.03] pt-6"
+        aria-label={UI.chat.title}
+      >
+        <button
+          type="button"
+          onClick={toggle}
+          className="rounded-md px-1.5 py-3 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-100 [writing-mode:vertical-rl]"
+        >
           {UI.chat.reopen}
         </button>
       </aside>
@@ -73,12 +80,15 @@ export function RailRight() {
   }
 
   return (
-    <aside className="ct-rail-right" aria-label={UI.chat.title}>
-      <div className="ct-rail-right-header">
-        <span className="ct-rail-right-title">{UI.chat.title}</span>
+    <aside
+      className="relative z-20 flex w-[420px] shrink-0 flex-col border-l border-white/10 bg-white/[0.03] backdrop-blur-xl"
+      aria-label={UI.chat.title}
+    >
+      <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+        <span className="text-sm font-semibold text-slate-100">{UI.chat.title}</span>
         <button
           type="button"
-          className="ct-rail-right-btn"
+          className="flex size-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-100"
           onClick={toggle}
           title={UI.chat.collapse}
           aria-label={UI.chat.collapse}
@@ -86,7 +96,7 @@ export function RailRight() {
           ›
         </button>
       </div>
-      <div className="ct-rail-right-body">
+      <div className="min-h-0 flex-1">
         <ChatKimi />
       </div>
     </aside>

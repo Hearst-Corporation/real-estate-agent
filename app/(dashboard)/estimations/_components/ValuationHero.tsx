@@ -24,9 +24,9 @@ function pct(value: number, low: number, high: number): number {
 }
 
 const CONFIDENCE_COLOR: Record<string, string> = {
-  indicative: "muted",
-  moyenne: "base",
-  elevee: "accent",
+  indicative: "border-white/15 bg-white/[0.06] text-slate-300",
+  moyenne: "border-white/15 bg-white/[0.08] text-slate-200",
+  elevee: "border-indigo-400/40 bg-indigo-500/15 text-indigo-200",
 };
 
 export function ValuationHero({ id, valuation }: Props) {
@@ -59,7 +59,7 @@ export function ValuationHero({ id, valuation }: Props) {
     UI.estimations.confidenceLabels[valuation.confidence] ?? valuation.confidence;
   const confidenceTooltip =
     UI.estimations.confidenceTooltips[valuation.confidence] ?? "";
-  const confidenceColor = CONFIDENCE_COLOR[valuation.confidence] ?? "base";
+  const confidenceColor = CONFIDENCE_COLOR[valuation.confidence] ?? CONFIDENCE_COLOR.moyenne;
 
   const marketPct = pct(valuation.marketValue, valuation.lowValue, valuation.highValue);
   const recoPct = pct(
@@ -69,41 +69,51 @@ export function ValuationHero({ id, valuation }: Props) {
   );
 
   return (
-    <div className="est-hero">
+    <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur-sm lg:flex-row lg:items-stretch">
       {/* ── Colonne valeur : badge, valeur, fourchette visuelle ── */}
-      <div className="est-hero-main">
-        <div className="est-hero-meta">
+      <div className="flex flex-1 flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-2">
           <span
-            className={`est-hero-badge est-hero-badge--${confidenceColor}`}
+            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${confidenceColor}`}
             title={confidenceTooltip}
           >
             {confidenceLabel}
           </span>
           {valuation.nbComparables > 0 && (
-            <span className="est-hero-comps">
+            <span className="text-xs text-slate-400">
               {UI.estimations.comparablesDvf(valuation.nbComparables)}
             </span>
           )}
         </div>
 
-        <div className="est-hero-center">
-          <p className="est-hero-label">{UI.estimations.market}</p>
-          <p className="est-hero-value">{fmt.format(valuation.marketValue)}</p>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-300">
+            {UI.estimations.market}
+          </p>
+          <p className="mt-1 text-5xl font-black tracking-tight text-white">
+            {fmt.format(valuation.marketValue)}
+          </p>
         </div>
 
         <div
-          className="est-hero-bar"
+          className="relative mt-2 h-1.5 rounded-full bg-white/10"
           role="img"
           aria-label={`Fourchette ${fmt.format(valuation.lowValue)} à ${fmt.format(
             valuation.highValue
           )}, valeur de marché ${fmt.format(valuation.marketValue)}`}
         >
-          <span className="est-hero-bar-reco" style={{ left: `${recoPct}%` }} />
-          <span className="est-hero-bar-market" style={{ left: `${marketPct}%` }} />
+          <span
+            className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-slate-950 bg-slate-300"
+            style={{ left: `${recoPct}%` }}
+          />
+          <span
+            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-slate-950 bg-indigo-400"
+            style={{ left: `${marketPct}%` }}
+          />
         </div>
-        <p className="est-hero-range">
+        <p className="flex items-center justify-between text-xs text-slate-400">
           <span>{fmt.format(valuation.lowValue)}</span>
-          <span className="reco-lab">
+          <span className="font-medium text-slate-300">
             {UI.estimations.recoPriceLabel} · {fmt.format(valuation.recommendedListingPrice)}
           </span>
           <span>{fmt.format(valuation.highValue)}</span>
@@ -111,34 +121,38 @@ export function ValuationHero({ id, valuation }: Props) {
       </div>
 
       {/* ── Colonne droite : KPIs + actions ── */}
-      <div className="est-hero-side">
-        <div className="est-hero-kpis">
-          <div className="est-hero-kpi">
-            <span className="est-hero-kpi-label">{UI.estimations.perSqm}</span>
-            <span className="est-hero-kpi-value">
+      <div className="flex flex-col justify-between gap-4 lg:w-56 lg:shrink-0">
+        <div className="flex flex-col gap-3">
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+            <span className="block text-xs font-medium uppercase tracking-wide text-slate-500">
+              {UI.estimations.perSqm}
+            </span>
+            <span className="mt-1 block text-lg font-bold text-white">
               {fmt.format(valuation.adjustedPerM2)}
               {UI.estimations.perSqmUnit}
             </span>
           </div>
-          <div className="est-hero-kpi">
-            <span className="est-hero-kpi-label">{UI.estimations.recommended}</span>
-            <span className="est-hero-kpi-value est-hero-kpi-value--accent">
+          <div className="rounded-xl border border-indigo-400/40 bg-indigo-500/10 p-3">
+            <span className="block text-xs font-medium uppercase tracking-wide text-slate-500">
+              {UI.estimations.recommended}
+            </span>
+            <span className="mt-1 block text-lg font-bold text-indigo-200">
               {fmt.format(valuation.recommendedListingPrice)}
             </span>
           </div>
         </div>
 
-        <div className="est-hero-actions">
+        <div className="flex flex-col gap-2">
           <a
             href={`/api/estimations/${id}/pdf`}
             target="_blank"
             rel="noreferrer"
-            className="ct-seg-btn primary est-hero-cta"
+            className="inline-flex items-center justify-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-3 py-2 text-xs font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/25"
           >
             {UI.estimations.downloadPdf}
           </a>
           <button
-            className="ct-seg-btn est-hero-cta"
+            className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
             onClick={handleShare}
             disabled={sharing}
           >

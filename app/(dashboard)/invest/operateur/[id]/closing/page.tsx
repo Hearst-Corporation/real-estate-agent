@@ -15,7 +15,7 @@
  */
 
 import Link from "next/link";
-import { PageStack, PageHeader, KpiGrid, KpiCard, Sub } from "@/components/cockpit/primitives";
+import { PageStack, PageHeader, KpiGrid, KpiCard, Card, Sub } from "@/components/cockpit/primitives";
 import { Banner, StatusPill, type StatusTone } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
 import { fetchClosingState } from "../../../_data/server";
@@ -56,8 +56,10 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
       <PageStack>
         <PageHeader kicker={UI.invest.operator.closing.kicker} title={UI.invest.operator.closing.title} />
         <Banner tone="warn">{UI.invest.operator.closing.notFound}</Banner>
-        <p className="inv-chart-foot">
-          <Link href="/invest/operateur">{UI.invest.operator.closing.backToOperations}</Link>
+        <p className="text-sm text-slate-500">
+          <Link href="/invest/operateur" className="text-indigo-300 hover:text-indigo-200">
+            {UI.invest.operator.closing.backToOperations}
+          </Link>
         </p>
       </PageStack>
     );
@@ -74,12 +76,12 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
         meta={<Sub>{UI.invest.operator.closing.headerSub}</Sub>}
       />
 
-      <div className="inv-mk-toolbar inv-toolbar-between">
-        <span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="flex items-center gap-2 text-sm text-slate-400">
           {UI.invest.operator.closing.dealStatusPrefix}
           <StatusPill tone="neutral">{state.dealStatus}</StatusPill>
         </span>
-        <Link href={`/invest/${state.dealSlug}`} className="inv-doc-name">
+        <Link href={`/invest/${state.dealSlug}`} className="text-sm text-indigo-300 hover:text-indigo-200">
           {UI.invest.operator.closing.viewPublicSheet}
         </Link>
       </div>
@@ -88,7 +90,7 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
       <Banner tone="info">{UI.invest.operator.closing.sourceOfTruthBanner}</Banner>
 
       {/* ── KPIs ───────────────────────────────────────────────────────────── */}
-      <KpiGrid className="cols-4 inv-kpi-my">
+      <KpiGrid>
         <KpiCard
           label={UI.invest.operator.closing.kpiConditions}
           value={`${state.conditionsSnapshot.total - state.conditionsSnapshot.unmet.length}/${state.conditionsSnapshot.total}`}
@@ -109,85 +111,85 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
       </KpiGrid>
 
       {/* ── Conditions suspensives ─────────────────────────────────────────── */}
-      <div className="inv-chart-card inv-chart-mb">
-        <h3 className="inv-chart-title">{UI.invest.operator.closing.conditionsTitle}</h3>
+      <Card title={UI.invest.operator.closing.conditionsTitle} titleAs="section">
         {state.conditions.length === 0 ? (
-          <p className="inv-chart-foot">{UI.invest.operator.closing.conditionsEmpty}</p>
+          <p className="text-sm text-slate-500">{UI.invest.operator.closing.conditionsEmpty}</p>
         ) : (
-          <table className="inv-table">
-            <thead>
-              <tr>
-                <th>{UI.invest.operator.closing.conditionsColCode}</th>
-                <th>{UI.invest.operator.closing.conditionsColLabel}</th>
-                <th className="r">{UI.invest.operator.closing.conditionsColState}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {state.conditions.map((c) => (
-                <tr key={c.code}>
-                  <td>{c.code}</td>
-                  <td>{c.label}</td>
-                  <td className="r">
-                    <StatusPill tone={c.isMet ? "open" : "soon"}>{c.isMet ? UI.invest.operator.closing.conditionMet : UI.invest.operator.closing.conditionPending}</StatusPill>
-                  </td>
+          <div className="-mx-5 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-2 font-medium">{UI.invest.operator.closing.conditionsColCode}</th>
+                  <th className="px-5 py-2 font-medium">{UI.invest.operator.closing.conditionsColLabel}</th>
+                  <th className="px-5 py-2 text-right font-medium">{UI.invest.operator.closing.conditionsColState}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {state.conditions.map((c) => (
+                  <tr key={c.code} className="text-slate-300">
+                    <td className="px-5 py-2.5 font-mono text-xs text-slate-400">{c.code}</td>
+                    <td className="px-5 py-2.5">{c.label}</td>
+                    <td className="px-5 py-2.5 text-right">
+                      <StatusPill tone={c.isMet ? "open" : "soon"}>{c.isMet ? UI.invest.operator.closing.conditionMet : UI.invest.operator.closing.conditionPending}</StatusPill>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
 
       {/* ── Lancement de la saga ───────────────────────────────────────────── */}
-      <div className="inv-chart-card inv-chart-mb">
-        <h3 className="inv-chart-title">{UI.invest.operator.closing.launchTitle}</h3>
-        <p className="inv-chart-foot inv-chart-intro">{UI.invest.operator.closing.launchIntro}</p>
+      <Card title={UI.invest.operator.closing.launchTitle} titleAs="section">
+        <p className="mb-3 text-sm text-slate-400">{UI.invest.operator.closing.launchIntro}</p>
         <ClosingLauncher dealId={state.dealId} ready={ready} />
-      </div>
+      </Card>
 
       {/* ── Réconciliation DEEP↔chaîne ─────────────────────────────────────── */}
-      <div className="inv-chart-card inv-chart-mb">
-        <h3 className="inv-chart-title">{UI.invest.operator.closing.reconTitle}</h3>
+      <Card title={UI.invest.operator.closing.reconTitle} titleAs="section">
         {state.lastReconciliation ? (
-          <p className="inv-chart-foot">
+          <p className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
             {UI.invest.operator.closing.reconLastPass}
             <StatusPill
               tone={reconTone(state.lastReconciliation.result, state.lastReconciliation.triggeredPause)}
             >
               {state.lastReconciliation.triggeredPause ? UI.invest.operator.closing.reconPaused : state.lastReconciliation.result}
-            </StatusPill>{" "}
+            </StatusPill>
             {state.lastReconciliation.finishedAt
               ? `· ${new Date(state.lastReconciliation.finishedAt).toLocaleString("fr-FR")}`
               : ""}
           </p>
         ) : (
-          <p className="inv-chart-foot">{UI.invest.operator.closing.reconEmpty}</p>
+          <p className="text-sm text-slate-500">{UI.invest.operator.closing.reconEmpty}</p>
         )}
-      </div>
+      </Card>
 
       {/* ── Registre DEEP (holdings) ───────────────────────────────────────── */}
-      <div className="inv-chart-card">
-        <h3 className="inv-chart-title">{UI.invest.operator.closing.deepTitle}</h3>
+      <Card title={UI.invest.operator.closing.deepTitle} titleAs="section">
         {state.holdings.length === 0 ? (
-          <p className="inv-chart-foot">{UI.invest.operator.closing.deepEmpty}</p>
+          <p className="text-sm text-slate-500">{UI.invest.operator.closing.deepEmpty}</p>
         ) : (
-          <table className="inv-table">
-            <thead>
-              <tr>
-                <th>{UI.invest.operator.closing.deepColHolder}</th>
-                <th className="r">{UI.invest.operator.closing.deepColUnits}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {state.holdings.map((h) => (
-                <tr key={h.walletAddress}>
-                  <td className="mono">{h.walletAddress}</td>
-                  <td className="r">{h.units}</td>
+          <div className="-mx-5 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-2 font-medium">{UI.invest.operator.closing.deepColHolder}</th>
+                  <th className="px-5 py-2 text-right font-medium">{UI.invest.operator.closing.deepColUnits}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {state.holdings.map((h) => (
+                  <tr key={h.walletAddress} className="text-slate-300">
+                    <td className="px-5 py-2.5 font-mono text-xs">{h.walletAddress}</td>
+                    <td className="px-5 py-2.5 text-right tabular-nums">{h.units}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
     </PageStack>
   );
 }

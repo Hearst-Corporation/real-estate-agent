@@ -155,32 +155,46 @@ function ChatKimiSession({ pathname }: { pathname: string }) {
   }
 
   return (
-    <div className="ct-chat">
-      <div className="ct-chat-status">{UI.chat.status}</div>
-      <div className="ct-chat-messages" ref={scrollRef}>
-        {messages.length === 0 ? <p className="ct-placeholder">{UI.chat.empty}</p> : null}
+    <div className="flex h-full flex-col">
+      <div className="border-b border-white/10 px-4 py-2 text-xs text-slate-500">{UI.chat.status}</div>
+      <div className="scrollbar-thin flex-1 space-y-4 overflow-y-auto px-4 py-4" ref={scrollRef}>
+        {messages.length === 0 ? <p className="text-sm text-slate-500">{UI.chat.empty}</p> : null}
         {messages.map((m, idx) => (
-          <div key={idx} className={`ct-chat-msg ${m.role}`}>
-            <div className="ct-chat-msg-avatar">{m.role === "user" ? UI.chat.userAvatar : UI.chat.assistantAvatar}</div>
-            <div className="ct-chat-msg-bubble">
+          <div key={idx} className={`flex gap-2 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-xs">
+              {m.role === "user" ? UI.chat.userAvatar : UI.chat.assistantAvatar}
+            </div>
+            <div
+              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                m.role === "user" ? "bg-indigo-500/20 text-slate-100" : "bg-white/[0.05] text-slate-200"
+              }`}
+            >
               {m.tools && m.tools.length > 0 ? (
-                <div className="ct-chip-row">
+                <div className="mb-1.5 flex flex-wrap gap-1.5">
                   {m.tools.map((t) => (
-                    <span key={t.id} className="ct-badge" title={t.name}>
+                    <span
+                      key={t.id}
+                      className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs text-slate-300"
+                      title={t.name}
+                    >
                       {TOOL_ICON[t.status]} {t.summary}
                     </span>
                   ))}
                 </div>
               ) : null}
-              {m.content ? renderLight(m.content) : m.tools?.length ? null : <span className="ct-placeholder">…</span>}
+              {m.content ? renderLight(m.content) : m.tools?.length ? null : <span className="text-slate-500">…</span>}
             </div>
           </div>
         ))}
-        {error ? <p className="ct-error">{UI.chat.errorPrefix} : {error}</p> : null}
+        {error ? (
+          <p className="text-sm text-red-400">
+            {UI.chat.errorPrefix} : {error}
+          </p>
+        ) : null}
       </div>
-      <div className="ct-chat-input-wrap">
+      <div className="border-t border-white/10 p-3">
         <input
-          className="ct-chat-input"
+          className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none"
           placeholder={UI.chat.placeholder}
           value={input}
           disabled={busy}

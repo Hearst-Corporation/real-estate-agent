@@ -68,10 +68,13 @@ export function AccessibleModal({
   }
 
   return (
-    <div className="crm-form-overlay" onKeyDown={handleKeyDown}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      onKeyDown={handleKeyDown}
+    >
       <div
         ref={modalRef}
-        className="crm-form-modal"
+        className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-label={title}

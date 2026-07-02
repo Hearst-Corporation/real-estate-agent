@@ -6,7 +6,7 @@ import type { CSSProperties } from "react";
  * Le conteneur portant le Skeleton doit exposer `aria-busy="true"`.
  *
  * Largeur / hauteur / radius pilotés par la donnée via `style` inline ; la
- * couleur reste au CSS (shimmer = classe `.ct-skeleton`). Cf. cockpit/10-shell.css.
+ * couleur reste aux utilities (shimmer = classe `animate-pulse`).
  */
 export function Skeleton({
   width,
@@ -24,7 +24,7 @@ export function Skeleton({
   const px = (v: number | string) => (typeof v === "number" ? `${v}px` : v);
   return (
     <span
-      className={`ct-skeleton${className ? ` ${className}` : ""}`}
+      className={`inline-block animate-pulse rounded-md bg-white/[0.08]${className ? ` ${className}` : ""}`}
       aria-hidden
       style={{
         width: width != null ? px(width) : "100%",
@@ -39,7 +39,7 @@ export function Skeleton({
 /** Bloc de lignes en skeleton (mime un paragraphe / une carte de contenu). */
 export function SkeletonLines({ count = 3 }: { count?: number }) {
   return (
-    <div className="ct-skeleton-stack" aria-busy="true">
+    <div className="flex flex-col gap-2" aria-busy="true">
       {Array.from({ length: count }, (_, i) => (
         <Skeleton key={i} width={i === count - 1 ? "60%" : "100%"} height={14} />
       ))}

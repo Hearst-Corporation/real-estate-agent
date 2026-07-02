@@ -99,36 +99,38 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
   }
 
   return (
-    <div className="est-side">
+    <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
       {/* ── Fiche bien (accordéon, pleine largeur multi-colonnes) ── */}
-      <div className="est-side-section span2">
+      <div className="col-span-full rounded-2xl border border-white/10 bg-white/[0.03] p-4">
         <button
-          className="est-side-header"
+          className="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-slate-100"
           onClick={() => setFicheOpen((v) => !v)}
           aria-expanded={ficheOpen}
         >
           <span>{UI.estimations.ficheTitle}</span>
-          <span className="est-side-stepper">
+          <span className="font-mono text-xs tracking-widest text-indigo-300">
             {"●".repeat(Math.min(coverage.collected, coverage.total))}
             {"○".repeat(Math.max(0, coverage.total - coverage.collected))}
           </span>
-          <span className="est-side-chevron">{ficheOpen ? "▲" : "▼"}</span>
+          <span className="text-xs text-slate-500">{ficheOpen ? "▲" : "▼"}</span>
         </button>
         {ficheOpen && (
-          <div className="est-side-fiche">
+          <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 @lg:grid-cols-2">
             {filledFields.length === 0 ? (
-              <p className="ct-placeholder">{UI.estimations.ficheEmpty}</p>
+              <p className="py-4 text-sm text-slate-500">{UI.estimations.ficheEmpty}</p>
             ) : (
               filledFields.map(({ field, label }) => {
                 const formatted = formatValue(property[field]);
                 const toConfirm = fieldStatus[field] === "to_confirm";
                 return (
-                  <div key={field} className="est-side-fiche-row">
-                    <span className="est-side-fiche-label">{label}</span>
-                    <span className="est-side-fiche-value">
+                  <div key={field} className="flex items-baseline justify-between gap-2 border-b border-white/5 py-1.5 text-sm">
+                    <span className="text-slate-400">{label}</span>
+                    <span className="text-right text-slate-100">
                       {formatted}
                       {toConfirm && (
-                        <span className="est-fiche-confirm">{UI.estimations.toConfirm}</span>
+                        <span className="ml-1.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
+                          {UI.estimations.toConfirm}
+                        </span>
                       )}
                     </span>
                   </div>
@@ -141,21 +143,27 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
 
       {/* ── Ajustements ── */}
       {valuation.adjustments.length > 0 && (
-        <div className="est-side-section">
-          <div className="est-side-header static">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="text-sm font-semibold text-slate-100">
             <span>{UI.estimations.adjustmentsTitle}</span>
           </div>
-          <ul className="est-adjust-list est-side-body">
+          <ul className="mt-3 flex flex-col gap-3">
             {valuation.adjustments.map((adj, i) => (
-              <li key={i} className="est-adjust-row">
-                <span className={`est-adjust-pct${adj.type === "premium" ? " premium" : ""}`}>
+              <li key={i} className="flex items-start gap-3">
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${
+                    adj.type === "premium"
+                      ? "bg-emerald-500/15 text-emerald-300"
+                      : "bg-red-500/15 text-red-300"
+                  }`}
+                >
                   {adj.type === "premium" ? UI.estimations.premiumSign : UI.estimations.discountSign}
                   {Math.abs(adj.pct)}%
                 </span>
-                <span className="est-adjust-body">
-                  <strong className="est-adjust-label">{adj.label}</strong>
+                <span className="text-sm">
+                  <strong className="font-semibold text-slate-100">{adj.label}</strong>
                   {adj.rationale && (
-                    <span className="est-adjust-note">
+                    <span className="text-slate-400">
                       {UI.estimations.adjustSeparator}{adj.rationale}
                     </span>
                   )}
@@ -167,16 +175,16 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
       )}
 
       {/* ── Contexte marché ── */}
-      <div className="est-side-section">
-        <div className="est-side-header static">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="text-sm font-semibold text-slate-100">
           <span>{UI.estimations.marketContextTitle}</span>
         </div>
-        <div className="est-side-body">
+        <div className="mt-3">
           {!marketLoaded && (
             <>
-              <p className="est-adjust-note">{UI.estimations.marketContextHint}</p>
+              <p className="text-sm text-slate-400">{UI.estimations.marketContextHint}</p>
               <button
-                className="ct-seg-btn"
+                className="mt-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-200 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
                 onClick={handleMarketContext}
                 disabled={marketLoading}
               >
@@ -185,16 +193,23 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
             </>
           )}
           {marketLoaded && !marketHasContent && (
-            <p className="est-adjust-note">{UI.estimations.marketContextEmpty}</p>
+            <p className="text-sm text-slate-400">{UI.estimations.marketContextEmpty}</p>
           )}
           {marketLoaded && marketHasContent && market && (
             <>
-              {market.summary && <p className="est-market-summary">{market.summary}</p>}
+              {market.summary && <p className="text-sm leading-relaxed text-slate-200">{market.summary}</p>}
               {market.citations.length > 0 && (
-                <ul className="est-market-sources">
+                <ul className="mt-2 flex flex-col gap-1">
                   {market.citations.map((c, i) => (
                     <li key={i}>
-                      <a href={safeHref(c.url)} target="_blank" rel="noreferrer">{c.title}</a>
+                      <a
+                        href={safeHref(c.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-medium text-indigo-300 hover:text-indigo-200"
+                      >
+                        {c.title}
+                      </a>
                     </li>
                   ))}
                 </ul>
@@ -206,15 +221,15 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
 
       {/* ── Annonces comparables ── */}
       {marketProp != null && (
-        <div className="est-side-section span2">
-          <div className="est-side-header static">
+        <div className="col-span-full rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="text-sm font-semibold text-slate-100">
             <span>{UI.estimations.listingComparablesTitle}</span>
           </div>
-          <div className="est-side-body">
+          <div className="mt-3">
             {listingFetchSource != null && (
-              <p className="ct-placeholder ct-placeholder-sm ct-mb-sm">
+              <p className="mb-3 text-xs text-slate-500">
                 {UI.estimations.listingFetchSourcePrefix}{" "}
-                <strong>
+                <strong className="font-semibold text-slate-300">
                   {listingFallbackUsed && listingFetchSource !== "none"
                     ? UI.estimations.listingFetchSourceLabels["myswarms"]
                     : (UI.estimations.listingFetchSourceLabels[listingFetchSource] ?? listingFetchSource)}
@@ -223,11 +238,11 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
             )}
             {sectorMap && (
               <figure
-                className="est-sectormap"
+                className="relative mb-4 overflow-hidden rounded-xl border border-white/10"
                 style={{ width: sectorMap.width, height: sectorMap.height }}
                 aria-label={UI.estimations.sectorMapTitle}
               >
-                <div className="est-sectormap-tiles">
+                <div className="absolute inset-0">
                   {sectorMap.tiles.map((t, i) => (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -241,58 +256,74 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                   ))}
                 </div>
                 {sectorMap.listings.map((m, i) => (
-                  <span key={i} className="est-mappin" style={{ left: m.left, top: m.top }}>
+                  <span
+                    key={i}
+                    className="absolute flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white shadow"
+                    style={{ left: m.left, top: m.top }}
+                  >
                     {i + 1}
                   </span>
                 ))}
                 {sectorMap.subject && (
-                  <span className="est-mappin me" style={{ left: sectorMap.subject.left, top: sectorMap.subject.top }} />
+                  <span
+                    className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-red-500 shadow"
+                    style={{ left: sectorMap.subject.left, top: sectorMap.subject.top }}
+                  />
                 )}
-                <figcaption className="est-sectormap-attr">{UI.estimations.sectorMapAttribution}</figcaption>
+                <figcaption className="absolute bottom-0 right-0 bg-black/60 px-1.5 py-0.5 text-[10px] text-slate-300">
+                  {UI.estimations.sectorMapAttribution}
+                </figcaption>
               </figure>
             )}
             {listings.length === 0 ? (
-              <p className="ct-placeholder">{UI.estimations.listingComparablesEmpty}</p>
+              <p className="py-4 text-sm text-slate-500">{UI.estimations.listingComparablesEmpty}</p>
             ) : (
-              <div className="est-listing-table-wrap">
-                <table className="est-listing-table">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
                   <thead>
-                    <tr>
+                    <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-500">
                       <th aria-hidden="true" />
-                      <th>{UI.estimations.listingColAnnonce}</th>
-                      <th>{UI.estimations.listingColPrix}</th>
-                      <th>{UI.estimations.listingColSurface}</th>
-                      <th>{UI.estimations.listingColPrixM2}</th>
-                      <th>{UI.estimations.listingColActions}</th>
+                      <th className="px-2 py-2 font-medium">{UI.estimations.listingColAnnonce}</th>
+                      <th className="px-2 py-2 text-right font-medium">{UI.estimations.listingColPrix}</th>
+                      <th className="px-2 py-2 text-right font-medium">{UI.estimations.listingColSurface}</th>
+                      <th className="px-2 py-2 text-right font-medium">{UI.estimations.listingColPrixM2}</th>
+                      <th className="px-2 py-2 font-medium">{UI.estimations.listingColActions}</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/5">
                     {listings.map((item, i) => (
                       <tr key={item.id}>
-                        <td className="est-listing-photo">
+                        <td className="relative w-10 px-2 py-2">
                           {item.photo_url ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
-                            <img src={item.photo_url} alt={UI.estimations.listingPhotoAlt} loading="lazy" />
+                            <img
+                              src={item.photo_url}
+                              alt={UI.estimations.listingPhotoAlt}
+                              loading="lazy"
+                              className="size-9 rounded-lg object-cover"
+                            />
                           ) : (
-                            <span className="est-listing-photo-ph" />
+                            <span className="block size-9 rounded-lg bg-white/[0.06]" />
                           )}
-                          <span className="est-listing-photo-no">{i + 1}</span>
+                          <span className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white">
+                            {i + 1}
+                          </span>
                         </td>
-                        <td>
+                        <td className="px-2 py-2 text-slate-200">
                           {item.titre.length > LISTING_TITLE_MAX_CHARS
                             ? item.titre.slice(0, LISTING_TITLE_MAX_CHARS) + "…"
                             : item.titre}
                         </td>
-                        <td className="ct-table-num">{fmt.format(item.prix)}</td>
-                        <td className="ct-table-num">{item.surface_m2}{UI.estimations.surfaceUnit}</td>
-                        <td className="ct-table-num">{fmt.format(item.prix_m2)}{UI.estimations.perSqmUnit}</td>
-                        <td>
+                        <td className="px-2 py-2 text-right tabular-nums text-slate-200">{fmt.format(item.prix)}</td>
+                        <td className="px-2 py-2 text-right tabular-nums text-slate-200">{item.surface_m2}{UI.estimations.surfaceUnit}</td>
+                        <td className="px-2 py-2 text-right tabular-nums text-slate-200">{fmt.format(item.prix_m2)}{UI.estimations.perSqmUnit}</td>
+                        <td className="px-2 py-2">
                           {item.url ? (
                             <a
                               href={safeHref(item.url)}
                               target="_blank"
                               rel="noreferrer"
-                              className="est-listing-link"
+                              className="text-xs font-medium text-indigo-300 hover:text-indigo-200"
                             >
                               {UI.estimations.listingComparablesLink}
                             </a>

@@ -34,26 +34,56 @@ export function Gauge({ chart }: { chart: ChartLtvGauge }) {
   const valueLabel = pct(chart.valeur, 1);
 
   return (
-    <div className="inv-gauge">
+    <div className="flex flex-col items-center">
       <svg
-        className="inv-gauge-svg"
+        className="w-full max-w-[200px]"
         viewBox={`0 0 ${W} ${H}`}
         role="img"
         aria-label={`LTV ${valueLabel}, seuils ${Math.round(chart.seuils.vert * 100)}, ${Math.round(chart.seuils.orange * 100)} et ${Math.round(chart.seuils.rouge * 100)} pourcent`}
       >
-        <path className="inv-gauge-track" d={arcPath(0, 1)} strokeWidth={GAUGE_STROKE} />
-        <path className="inv-gauge-arc" d={arcPath(0, v)} strokeWidth={GAUGE_STROKE} />
+        <path
+          className="stroke-white/10"
+          fill="none"
+          d={arcPath(0, 1)}
+          strokeWidth={GAUGE_STROKE}
+          strokeLinecap="round"
+        />
+        <path
+          className="stroke-indigo-400"
+          fill="none"
+          d={arcPath(0, v)}
+          strokeWidth={GAUGE_STROKE}
+          strokeLinecap="round"
+        />
         {/* repères de seuils */}
         {[chart.seuils.vert, chart.seuils.orange, chart.seuils.rouge].map((s) => {
           const p = polar(Math.min(1, s));
           const inner = { x: CX + (R - 9) * Math.cos(Math.PI * (1 - s)), y: CY - (R - 9) * Math.sin(Math.PI * (1 - s)) };
-          return <line key={s} x1={inner.x} y1={inner.y} x2={p.x} y2={p.y} className="inv-gauge-track" strokeWidth={GAUGE_TICK_STROKE} />;
+          return (
+            <line
+              key={s}
+              x1={inner.x}
+              y1={inner.y}
+              x2={p.x}
+              y2={p.y}
+              className="stroke-white/20"
+              strokeWidth={GAUGE_TICK_STROKE}
+            />
+          );
         })}
-        <line className="inv-gauge-needle" x1={CX} y1={CY} x2={needle.x} y2={needle.y} />
-        <circle cx={CX} cy={CY} r={4} fill="var(--ct-text-strong)" />
+        <line
+          className="stroke-slate-100"
+          x1={CX}
+          y1={CY}
+          x2={needle.x}
+          y2={needle.y}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+        <circle cx={CX} cy={CY} r={4} fill="#f1f5f9" />
       </svg>
-      <div className="inv-gauge-val">{valueLabel}</div>
-      <div className="inv-gauge-scale">
+      <div className="-mt-6 text-2xl font-bold text-white">{valueLabel}</div>
+      <div className="mt-2 flex w-full max-w-[200px] justify-between text-xs text-slate-500">
         <span>0%</span>
         <span>{Math.round(chart.seuils.vert * 100)}%</span>
         <span>{Math.round(chart.seuils.rouge * 100)}%</span>

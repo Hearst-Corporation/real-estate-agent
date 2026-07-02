@@ -1,4 +1,4 @@
-import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { getSession } from "@/lib/server/session";
@@ -50,7 +50,7 @@ export default async function SwarmsPage() {
       key: "name",
       header: "Nom",
       render: (r) => (
-        <Link href={`/swarms/${r.id}`} className="crm-link">
+        <Link href={`/swarms/${r.id}`} className="font-medium text-indigo-300 hover:text-indigo-200">
           {r.name}
         </Link>
       ),
@@ -59,9 +59,7 @@ export default async function SwarmsPage() {
       key: "status",
       header: "Statut",
       render: (r) => (
-        <span className={`ct-badge${r.is_active ? "" : " is-muted"}`}>
-          {r.is_active ? "Actif" : "Inactif"}
-        </span>
+        <Badge>{r.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}</Badge>
       ),
     },
     {
@@ -83,7 +81,10 @@ export default async function SwarmsPage() {
         title={UI.swarms.title}
         nav={<PageNavTabs tabs={TAB_GROUPS.swarms} />}
         action={
-          <Link href="/swarms/new" className="ct-seg-btn primary">
+          <Link
+            href="/swarms/new"
+            className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
+          >
             {UI.swarms.newCta}
           </Link>
         }
@@ -95,22 +96,18 @@ export default async function SwarmsPage() {
         ]}
       />
 
-      <div className="ct-viz-row">
-        <div>
-          <Card title="Activité" variant="chart">
-            <p className="ct-placeholder">Aucune activité récente.</p>
-          </Card>
-        </div>
-        <div>
-          <Card title="Ressources" variant="chart">
-            <p className="ct-placeholder">Aucune ressource allouée.</p>
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
+        <Card title="Activité" variant="chart">
+          <p className="py-8 text-center text-sm text-slate-500">Aucune activité récente.</p>
+        </Card>
+        <Card title="Ressources" variant="chart">
+          <p className="py-8 text-center text-sm text-slate-500">Aucune ressource allouée.</p>
+        </Card>
       </div>
 
       <Card variant="dense">
         {loadError ? (
-          <p className="ct-error">{loadError}</p>
+          <p className="text-sm text-red-400">{loadError}</p>
         ) : (
           <DataTable
             columns={columns}

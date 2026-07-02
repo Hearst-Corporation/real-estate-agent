@@ -23,13 +23,15 @@ const TO_COMPLETE = new Set(["prospect", "estimation"]);
 /** Statuts terminés. */
 const CLOSED = new Set(["vendu", "archive"]);
 
-/** Tone CSS pour un statut bien. */
+/** Classes Tailwind du badge de statut selon la tonalité métier du bien. */
 function statusToneProp(status: string): string {
-  if (status === "en_vente" || status === "sous_offre") return "nominal";
-  if (status === "mandat") return "nominal";
-  if (status === "vendu") return "";
-  if (status === "prospect" || status === "estimation") return "warn";
-  return "";
+  if (status === "en_vente" || status === "sous_offre" || status === "mandat") {
+    return "border-emerald-400/30 bg-emerald-500/10 text-emerald-300";
+  }
+  if (status === "prospect" || status === "estimation") {
+    return "border-amber-400/30 bg-amber-500/10 text-amber-300";
+  }
+  return "border-white/10 bg-white/[0.06] text-slate-300";
 }
 
 function priceLabel(price: number | null): string {
@@ -57,29 +59,36 @@ function Zone({
 }) {
   const tp = UI.properties;
   return (
-    <div className="lead-cockpit-zone">
-      <div className="lead-cockpit-zone-head">
-        <span className="ct-card-title">{label}</span>
-        <span className="ct-badge is-muted">{count}</span>
+    <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</span>
+        <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-300">
+          {count}
+        </span>
       </div>
       {properties.length === 0 ? (
-        <p className="ct-placeholder lead-cockpit-empty">{emptyLabel}</p>
+        <p className="py-2 text-xs text-slate-500">{emptyLabel}</p>
       ) : (
-        <ul className="lead-cockpit-list">
+        <ul className="flex flex-col gap-1.5">
           {properties.slice(0, 3).map((p) => (
-            <li key={p.id} className="lead-cockpit-item">
-              <Link href={`/properties/${p.id}`} className="lead-cockpit-item-name">
+            <li key={p.id} className="flex items-center justify-between gap-2">
+              <Link
+                href={`/properties/${p.id}`}
+                className="truncate text-sm text-slate-200 hover:text-indigo-300"
+              >
                 {p.title ?? tp.fallbackTitle}
               </Link>
-              <span className="prop-cockpit-item-right">
+              <span className="flex shrink-0 items-center gap-1.5">
                 {showPrice && (
-                  <span className="lead-cockpit-item-meta">{priceLabel(p.asking_price)}</span>
+                  <span className="text-xs text-slate-500">{priceLabel(p.asking_price)}</span>
                 )}
                 {showDate && (
-                  <span className="lead-cockpit-item-meta">{dateFr(p.created_at ?? null)}</span>
+                  <span className="text-xs text-slate-500">{dateFr(p.created_at ?? null)}</span>
                 )}
                 {showStatus && (
-                  <span className={`prop-status-badge ${statusToneProp(p.status)}`}>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-xs font-medium ${statusToneProp(p.status)}`}
+                  >
                     {tp.statusLabels[p.status] ?? p.status}
                   </span>
                 )}
@@ -108,13 +117,20 @@ function HealthBlock({ properties }: { properties: CockpitProperty[] }) {
   if (signals.length === 0) return null;
 
   return (
-    <div className="lead-cockpit-zone prop-health-block">
-      <div className="lead-cockpit-zone-head">
-        <span className="ct-card-title">{t.healthTitle}</span>
+    <div className="flex flex-col gap-2 rounded-xl border border-amber-400/20 bg-amber-500/[0.04] p-4">
+      <div>
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t.healthTitle}</span>
       </div>
-      <div className="prop-health-row">
+      <div className="flex flex-wrap gap-2">
         {signals.map((s) => (
-          <span key={s.label} className={`prop-status-badge ${s.warn ? "warn" : ""}`}>
+          <span
+            key={s.label}
+            className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
+              s.warn
+                ? "border-amber-400/30 bg-amber-500/10 text-amber-300"
+                : "border-white/10 bg-white/[0.06] text-slate-300"
+            }`}
+          >
             {s.count} {s.label}
           </span>
         ))}
@@ -128,13 +144,26 @@ function LiveBadge() {
   const { connected, lastEventAt, pendingRefresh } = usePropertyLive();
   const t = UI.properties.cockpit;
   if (!connected) return null;
+  const base = "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium";
   if (pendingRefresh) {
-    return <span className="prop-live-badge is-refreshing" title={t.liveHint}>{t.liveRefreshing}</span>;
+    return (
+      <span className={`${base} border-indigo-400/30 bg-indigo-500/10 text-indigo-300`} title={t.liveHint}>
+        {t.liveRefreshing}
+      </span>
+    );
   }
   if (lastEventAt) {
-    return <span className="prop-live-badge is-updated" title={t.liveHint}>{t.liveUpdated}</span>;
+    return (
+      <span className={`${base} border-emerald-400/30 bg-emerald-500/10 text-emerald-300`} title={t.liveHint}>
+        {t.liveUpdated}
+      </span>
+    );
   }
-  return <span className="prop-live-badge" title={t.liveHint}>{t.live}</span>;
+  return (
+    <span className={`${base} border-white/10 bg-white/[0.06] text-slate-400`} title={t.liveHint}>
+      {t.live}
+    </span>
+  );
 }
 
 /**
@@ -158,11 +187,11 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
   const closed = byRecent.filter((p) => CLOSED.has(p.status));
 
   return (
-    <div className="lead-cockpit">
-      <div className="prop-live-row">
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-end">
         <LiveBadge />
       </div>
-      <div className="lead-cockpit-grid">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Zone
           label={t.active}
           count={active.length}
@@ -195,26 +224,33 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
 
       <HealthBlock properties={properties} />
 
-      <div className="lead-cockpit-activity">
-        <div className="ct-card-title">{t.recentActivity}</div>
+      <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          {t.recentActivity}
+        </div>
         {byRecent.length === 0 ? (
-          <p className="ct-placeholder">{t.zoneEmpty}</p>
+          <p className="py-2 text-xs text-slate-500">{t.zoneEmpty}</p>
         ) : (
-          <ul className="lead-cockpit-activity-list">
+          <ul className="flex flex-col divide-y divide-white/5">
             {byRecent.slice(0, 5).map((p) => (
-              <li key={p.id} className="lead-cockpit-activity-item">
-                <Link href={`/properties/${p.id}`} className="lead-cockpit-item-name">
+              <li key={p.id} className="flex items-center justify-between gap-2 py-2">
+                <Link
+                  href={`/properties/${p.id}`}
+                  className="truncate text-sm text-slate-200 hover:text-indigo-300"
+                >
                   {p.title ?? tp.fallbackTitle}
                 </Link>
-                <span className="prop-cockpit-item-right">
-                  <span className={`prop-status-badge ${statusToneProp(p.status)}`}>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-xs font-medium ${statusToneProp(p.status)}`}
+                  >
                     {tp.statusLabels[p.status] ?? p.status}
                   </span>
                   {p.city && (
-                    <span className="lead-cockpit-item-meta">{p.city}</span>
+                    <span className="text-xs text-slate-500">{p.city}</span>
                   )}
                   {p.updated_at && (
-                    <span className="lead-cockpit-item-meta">{dateFr(p.updated_at)}</span>
+                    <span className="text-xs text-slate-500">{dateFr(p.updated_at)}</span>
                   )}
                 </span>
               </li>
@@ -223,11 +259,17 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
         )}
       </div>
 
-      <div className="prop-cockpit-links">
-        <Link href="/mandates" className="ct-seg-btn">
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/mandates"
+          className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm text-slate-200 transition-colors hover:bg-white/[0.08]"
+        >
           {t.seeMandates}
         </Link>
-        <Link href="/estimations" className="ct-seg-btn">
+        <Link
+          href="/estimations"
+          className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm text-slate-200 transition-colors hover:bg-white/[0.08]"
+        >
           {t.seeEstimations}
         </Link>
       </div>

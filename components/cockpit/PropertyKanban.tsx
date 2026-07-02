@@ -69,87 +69,97 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
   };
 
   return (
-    <div className="crm-kanban-wrap">
+    <div className="flex flex-col gap-3">
       {dropError && (
-        <div className="ct-error-danger crm-kanban-error" role="alert">
+        <div
+          className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-300"
+          role="alert"
+        >
           {dropError}
         </div>
       )}
-      <div className="crm-kanban">
-      {columns.map(col => (
-        <div 
-          key={col.id} 
-          className="crm-col"
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, col.id)}
-        >
-          <div className="crm-col-head">
-            <span>{col.title}</span>
-            <span className="ct-badge is-muted">{col.properties.length}</span>
-          </div>
-          <div className="crm-col-body">
-            {col.properties.length === 0 ? (
-              <div className="crm-col-empty" />
-            ) : (
-              col.properties.map(property => (
-                <div 
-                  key={property.id} 
-                  className="crm-card crm-card-pad0"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, property.id)}
-                >
-                  <div className="crm-card-media">
-                    {property.cover_photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={property.cover_photo_url}
-                        alt={property.title || t.photos.altFallback}
-                      />
-                    ) : (
-                      <div className="crm-card-media-empty">
-                        <span className="ct-subtext">{t.photos.empty}</span>
-                      </div>
-                    )}
-                    <div className="crm-card-media-badge">
-                      <span className="ct-badge ct-badge-overlay">
-                        {t.typeLabels[property.property_type ?? ""] || property.property_type || "Bien"}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="crm-card-inner">
-                    <div className="crm-card-head crm-card-head-tight">
-                      <span className="crm-card-title" title={property.title || t.fallbackTitle}>
-                        {property.title || t.fallbackTitle}
-                      </span>
-                    </div>
-                    
-                    <div className="crm-card-meta crm-card-meta-tight">
-                      <span className="crm-card-loc">
-                        <Icon name="search" className="ct-icon-xs" /> 
-                        {property.city || "—"}
-                      </span>
-                      {property.surface && (
-                        <span>• {sqm(property.surface)}</span>
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {columns.map(col => (
+          <div
+            key={col.id}
+            className="flex w-72 shrink-0 flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3"
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, col.id)}
+          >
+            <div className="flex items-center justify-between gap-2 px-1">
+              <span className="text-sm font-semibold text-slate-100">{col.title}</span>
+              <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-300">
+                {col.properties.length}
+              </span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {col.properties.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-white/10 py-6" />
+              ) : (
+                col.properties.map(property => (
+                  <div
+                    key={property.id}
+                    className="cursor-grab overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] shadow-lg shadow-black/20 transition-colors hover:border-white/20 active:cursor-grabbing"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, property.id)}
+                  >
+                    <div className="relative h-32 w-full bg-black/20">
+                      {property.cover_photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={property.cover_photo_url}
+                          alt={property.title || t.photos.altFallback}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center">
+                          <span className="text-xs text-slate-500">{t.photos.empty}</span>
+                        </div>
                       )}
+                      <div className="absolute left-2 top-2">
+                        <span className="rounded-full bg-black/70 px-2 py-0.5 text-xs font-medium text-white">
+                          {t.typeLabels[property.property_type ?? ""] || property.property_type || "Bien"}
+                        </span>
+                      </div>
                     </div>
-                    
-                    <div className="crm-card-foot">
-                      <span className="crm-card-price">{eur(property.asking_price)}</span>
 
-                      <div className="crm-card-actions">
-                        <Link href={`/properties/${property.id}`} className="ct-seg-btn crm-card-link-sm">
+                    <div className="flex flex-col gap-1.5 p-3">
+                      <div>
+                        <span
+                          className="block truncate text-sm font-medium text-slate-100"
+                          title={property.title || t.fallbackTitle}
+                        >
+                          {property.title || t.fallbackTitle}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1 text-xs text-slate-400">
+                        <span className="inline-flex items-center gap-1">
+                          <Icon name="search" className="size-3" />
+                          {property.city || "—"}
+                        </span>
+                        {property.surface && (
+                          <span>• {sqm(property.surface)}</span>
+                        )}
+                      </div>
+
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-white">{eur(property.asking_price)}</span>
+
+                        <Link
+                          href={`/properties/${property.id}`}
+                          className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+                        >
                           {t.open}
                         </Link>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
       </div>
     </div>
   );

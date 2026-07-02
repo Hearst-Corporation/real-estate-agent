@@ -75,7 +75,9 @@ function MandateForm({ onClose }: { onClose?: () => void }) {
 
   return (
     <CockpitForm onSubmit={handleSubmit}>
-      <div className="ct-card-title">{t.form.title}</div>
+      <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+        {t.form.title}
+      </div>
 
       <Field label={t.form.property} htmlFor="mandate-property" required>
         <Select
@@ -154,15 +156,19 @@ function MandateForm({ onClose }: { onClose?: () => void }) {
         />
       </Field>
 
-      {error && <p className="ct-error">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
-      <div className="crm-form-actions">
-        <button type="submit" className="ct-seg-btn primary" disabled={loading || !propertyId}>
+      <div className="flex items-center gap-2 pt-2">
+        <button
+          type="submit"
+          className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={loading || !propertyId}
+        >
           {t.form.save}
         </button>
         <button
           type="button"
-          className="ct-seg-btn"
+          className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => onClose?.()}
           disabled={loading}
         >
@@ -178,7 +184,10 @@ export default function MandateFormModal({ cta }: { cta: string }) {
 
   if (!open) {
     return (
-      <button className="ct-seg-btn primary" onClick={() => setOpen(true)}>
+      <button
+        className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400"
+        onClick={() => setOpen(true)}
+      >
         {cta}
       </button>
     );

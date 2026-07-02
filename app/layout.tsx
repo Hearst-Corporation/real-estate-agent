@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "./cockpit.css";
 import { UI } from "@/lib/ui-strings";
 import PostHogProvider from "@/components/providers/PostHogProvider";
 import WebVitals from "@/components/WebVitals";
@@ -13,9 +12,8 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // data-product reste figé pour la palette Cockpit BienCible.
   return (
-    <html lang="fr" data-product="default">
+    <html lang="fr">
       <body>
         <PostHogProvider>
           <WebVitals />

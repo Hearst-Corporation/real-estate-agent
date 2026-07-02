@@ -22,31 +22,31 @@ type DataTableProps<T> = {
 
 export function DataTable<T>({ columns, rows, emptyLabel, getKey }: DataTableProps<T>) {
   if (rows.length === 0) {
-    return <p className="ct-placeholder">{emptyLabel}</p>;
+    return <p className="py-8 text-center text-sm text-slate-500">{emptyLabel}</p>;
   }
 
   return (
-    <div className="ct-data-table-wrap">
-      <table className="ct-data-table">
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm">
         <thead>
-          <tr>
+          <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-500">
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={col.align === "right" ? "ct-table-num" : undefined}
+                className={`px-3 py-2 font-medium ${col.align === "right" ? "text-right tabular-nums" : ""}`}
               >
                 {col.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-white/5">
           {rows.map((row) => (
-            <tr key={getKey(row)}>
+            <tr key={getKey(row)} className="transition-colors hover:bg-white/[0.03]">
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className={col.align === "right" ? "ct-table-num" : undefined}
+                  className={`px-3 py-2.5 text-slate-200 ${col.align === "right" ? "text-right tabular-nums" : ""}`}
                 >
                   {col.render(row)}
                 </td>

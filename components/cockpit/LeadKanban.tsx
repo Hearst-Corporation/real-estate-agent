@@ -75,7 +75,7 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
 
   // Helper to generate a consistent color based on string
   const getAvatarColor = (name: string) => {
-    const colors = ["var(--ct-avatar-1)", "var(--ct-avatar-2)", "var(--ct-avatar-3)", "var(--ct-avatar-4)", "var(--ct-avatar-5)", "var(--ct-avatar-6)", "var(--ct-avatar-7)"];
+    const colors = ["#818cf8", "#22d3ee", "#34d399", "#fbbf24", "#fb7185", "#a78bfa", "#38bdf8"];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -88,55 +88,69 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
     name?.trim() ? name.trim().substring(0, 2).toUpperCase() : t.fallbackInitials;
 
   return (
-    <div className="crm-kanban-wrap">
+    <div className="flex flex-col gap-4">
       {dropError && (
-        <div className="ct-error-danger crm-kanban-error" role="alert">
+        <div
+          className="rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-2 text-sm text-red-400"
+          role="alert"
+        >
           {dropError}
         </div>
       )}
-      <div className="crm-kanban">
+      <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-4">
       {columns.map(col => (
-        <div 
-          key={col.id} 
-          className="crm-col"
+        <div
+          key={col.id}
+          className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-3"
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, col.id)}
         >
-          <div className="crm-col-head">
-            <span>{col.title}</span>
-            <span className="ct-badge is-muted">{col.leads.length}</span>
+          <div className="flex items-center justify-between gap-2 px-1">
+            <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              {col.title}
+            </span>
+            <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-400">
+              {col.leads.length}
+            </span>
           </div>
-          <div className="crm-col-body">
+          <div className="flex min-h-16 flex-col gap-2">
             {col.leads.length === 0 ? (
-              <div className="crm-col-empty" />
+              <div className="rounded-xl border border-dashed border-white/10" />
             ) : (
               col.leads.map(lead => (
-                <div 
-                  key={lead.id} 
-                  className="crm-lead-card"
+                <div
+                  key={lead.id}
+                  className="cursor-grab rounded-xl border border-white/10 bg-white/[0.04] p-3 shadow-sm shadow-black/20 active:cursor-grabbing"
                   draggable
                   onDragStart={(e) => handleDragStart(e, lead.id)}
                 >
-                  <div className="crm-lead-header">
-                    <div className="crm-lead-row">
-                      <div
-                        className="crm-avatar"
-                        style={{ backgroundColor: getAvatarColor(lead.full_name ?? "") }}
-                      >
-                        {initials(lead.full_name)}
-                      </div>
-                      <span className="crm-lead-name" title={lead.full_name ?? ""}>{lead.full_name ?? t.fallbackInitials}</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-slate-950"
+                      style={{ backgroundColor: getAvatarColor(lead.full_name ?? "") }}
+                    >
+                      {initials(lead.full_name)}
                     </div>
+                    <span
+                      className="truncate text-sm font-medium text-slate-100"
+                      title={lead.full_name ?? ""}
+                    >
+                      {lead.full_name ?? t.fallbackInitials}
+                    </span>
                   </div>
-                  <div className="crm-lead-contact">
+                  <div className="mt-2">
                     {lead.budget_max ? (
-                      <span className="crm-lead-budget">{eur(lead.budget_max)}</span>
+                      <span className="text-sm font-semibold tabular-nums text-slate-100">
+                        {eur(lead.budget_max)}
+                      </span>
                     ) : lead.budget_min ? (
-                      <span className="crm-lead-budget">≥ {eur(lead.budget_min)}</span>
+                      <span className="text-sm font-semibold tabular-nums text-slate-100">
+                        ≥ {eur(lead.budget_min)}
+                      </span>
                     ) : null}
                   </div>
-                  <div className="crm-lead-actions crm-lead-actions-row">
-                    <span className="ct-badge is-muted ct-badge-2xs">
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[0.65rem] font-medium text-slate-400">
                       {lead.kind ? (t.kindLabels[lead.kind] || lead.kind) : "Lead"}
                     </span>
                     <LeadRowActions

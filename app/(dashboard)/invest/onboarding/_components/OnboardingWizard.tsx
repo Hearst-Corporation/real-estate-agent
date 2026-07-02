@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Stepper, Banner, eur } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
-import styles from "./onboarding.module.css";
 
 interface ProfileView {
   id: string;
@@ -33,6 +32,21 @@ interface IdentityStatusView {
 const o = UI.invest.onboarding;
 const STEPS = [...o.steps];
 const KNOWLEDGE_QUESTIONS = o.questions;
+
+/** Styles partagés du wizard (card / form / boutons — utilities Tailwind). */
+const CARD = "flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm";
+const CARD_TITLE = "text-xs font-semibold uppercase tracking-widest text-slate-500";
+const CARD_BODY = "text-sm text-slate-300";
+const FORM = "flex flex-col gap-4";
+const FIELD = "flex flex-col gap-1.5";
+const FIELD_LABEL = "text-sm font-medium text-slate-300";
+const INPUT =
+  "w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400/60";
+const ACTIONS = "flex items-center justify-end gap-3 pt-2";
+const BTN_PRIMARY =
+  "inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50";
+const BTN_SECONDARY =
+  "inline-flex items-center justify-center rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileView | null }) {
   const [step, setStep] = useState(0);
@@ -175,32 +189,26 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
   const { profile: p, assessment: a, kyc: k, wallet: w } = o;
 
   return (
-    <div className={styles.wizard}>
-      <div className={styles.stepperWrap}>
-        <Stepper steps={STEPS} current={step} />
-      </div>
+    <div className="flex flex-col gap-6">
+      <Stepper steps={STEPS} current={step} />
 
-      {error ? (
-        <div className={styles.block}>
-          <Banner tone="danger">{error}</Banner>
-        </div>
-      ) : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {step === 0 ? (
-        <section className={`ct-card ${styles.card}`} aria-label={o.aria.profile}>
-          <div className="ct-card-title">{p.title}</div>
-          <p className={`ct-card-body ${styles.intro}`}>
+        <section className={CARD} aria-label={o.aria.profile}>
+          <div className={CARD_TITLE}>{p.title}</div>
+          <p className={CARD_BODY}>
             {p.introBefore}
             <b>{p.introBold}</b>
             {p.introAfter}
           </p>
 
-          <div className={`ct-form ${styles.form}`}>
-            <div className="ct-field">
-              <label className="ct-field-label" htmlFor="onb-name">{p.fullName}</label>
+          <div className={FORM}>
+            <div className={FIELD}>
+              <label className={FIELD_LABEL} htmlFor="onb-name">{p.fullName}</label>
               <input
                 id="onb-name"
-                className="ct-input"
+                className={INPUT}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder={p.fullNamePlaceholder}
@@ -208,23 +216,23 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
               />
             </div>
 
-            <div className="inv-grid-2">
-              <div className="ct-field">
-                <label className="ct-field-label" htmlFor="onb-country">{p.country}</label>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className={FIELD}>
+                <label className={FIELD_LABEL} htmlFor="onb-country">{p.country}</label>
                 <input
                   id="onb-country"
-                  className="ct-input"
+                  className={INPUT}
                   value={country}
                   onChange={(e) => setCountry(e.target.value.toUpperCase().slice(0, 2))}
                   placeholder={p.countryPlaceholder}
                   maxLength={2}
                 />
               </div>
-              <div className="ct-field">
-                <label className="ct-field-label" htmlFor="onb-kind">{p.investorKind}</label>
+              <div className={FIELD}>
+                <label className={FIELD_LABEL} htmlFor="onb-kind">{p.investorKind}</label>
                 <select
                   id="onb-kind"
-                  className="ct-input"
+                  className={INPUT}
                   value={investorKind}
                   onChange={(e) => setInvestorKind(e.target.value)}
                 >
@@ -234,11 +242,11 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
               </div>
             </div>
 
-            <div className="ct-field">
-              <label className="ct-field-label" htmlFor="onb-invite">{p.inviteCode}</label>
+            <div className={FIELD}>
+              <label className={FIELD_LABEL} htmlFor="onb-invite">{p.inviteCode}</label>
               <input
                 id="onb-invite"
-                className="ct-input"
+                className={INPUT}
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
                 placeholder={p.invitePlaceholder}
@@ -246,8 +254,8 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
             </div>
           </div>
 
-          <div className={styles.actions}>
-            <button className="inv-btn-reserve" onClick={saveProfile} disabled={busy}>
+          <div className={ACTIONS}>
+            <button className={BTN_PRIMARY} onClick={saveProfile} disabled={busy}>
               {busy ? p.saving : p.continue}
             </button>
           </div>
@@ -255,30 +263,44 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
       ) : null}
 
       {step === 1 ? (
-        <section className={`ct-card ${styles.card}`} aria-label={o.aria.assessment}>
-          <div className="ct-card-title">{a.title}</div>
-          <p className={`ct-card-body ${styles.intro}`}>{a.intro}</p>
+        <section className={CARD} aria-label={o.aria.assessment}>
+          <div className={CARD_TITLE}>{a.title}</div>
+          <p className={CARD_BODY}>{a.intro}</p>
 
-          <div className={styles.quiz}>
+          <div className="flex flex-col gap-4">
             {KNOWLEDGE_QUESTIONS.map((q, i) => (
-              <fieldset className={styles.question} key={q.id}>
-                <legend className={styles.prompt}>{i + 1}. {q.prompt}</legend>
-                <div className={styles.opts}>
-                  <label className={`inv-chip ${styles.opt}${answers[q.id] === true ? " active" : ""}`}>
+              <fieldset className="flex flex-col gap-2 border-0 p-0" key={q.id}>
+                <legend className="p-0 text-sm font-semibold leading-normal text-slate-100">
+                  {i + 1}. {q.prompt}
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  <label
+                    className={`cursor-pointer rounded-full border px-3 py-1 text-xs ${
+                      answers[q.id] === true
+                        ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-200"
+                        : "border-white/10 bg-white/[0.03] text-slate-300"
+                    }`}
+                  >
                     <input
                       type="radio"
                       name={q.id}
-                      className="inv-sr-only"
+                      className="sr-only"
                       checked={answers[q.id] === true}
                       onChange={() => setAnswers((prev) => ({ ...prev, [q.id]: true }))}
                     />
                     {q.yes}
                   </label>
-                  <label className={`inv-chip ${styles.opt}${answers[q.id] === false ? " active" : ""}`}>
+                  <label
+                    className={`cursor-pointer rounded-full border px-3 py-1 text-xs ${
+                      answers[q.id] === false
+                        ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-200"
+                        : "border-white/10 bg-white/[0.03] text-slate-300"
+                    }`}
+                  >
                     <input
                       type="radio"
                       name={q.id}
-                      className="inv-sr-only"
+                      className="sr-only"
                       checked={answers[q.id] === false}
                       onChange={() => setAnswers((prev) => ({ ...prev, [q.id]: false }))}
                     />
@@ -289,40 +311,38 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
             ))}
           </div>
 
-          <h3 className={styles.subtitle}>{a.lossCapacity}</h3>
-          <div className={`ct-form ${styles.form}`}>
-            <div className="inv-grid-2">
-              <div className="ct-field">
-                <label className="ct-field-label" htmlFor="onb-income">{a.annualIncome}</label>
-                <input id="onb-income" className="ct-input" type="number" min={0} value={annualIncome}
+          <h3 className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">{a.lossCapacity}</h3>
+          <div className={FORM}>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className={FIELD}>
+                <label className={FIELD_LABEL} htmlFor="onb-income">{a.annualIncome}</label>
+                <input id="onb-income" className={INPUT} type="number" min={0} value={annualIncome}
                   onChange={(e) => setAnnualIncome(e.target.value)} placeholder={a.amountPlaceholder} />
               </div>
-              <div className="ct-field">
-                <label className="ct-field-label" htmlFor="onb-assets">{a.liquidAssets}</label>
-                <input id="onb-assets" className="ct-input" type="number" min={0} value={liquidAssets}
+              <div className={FIELD}>
+                <label className={FIELD_LABEL} htmlFor="onb-assets">{a.liquidAssets}</label>
+                <input id="onb-assets" className={INPUT} type="number" min={0} value={liquidAssets}
                   onChange={(e) => setLiquidAssets(e.target.value)} placeholder={a.amountPlaceholder} />
               </div>
             </div>
-            <div className="ct-field">
-              <label className="ct-field-label" htmlFor="onb-commit">{a.commitments}</label>
-              <input id="onb-commit" className="ct-input" type="number" min={0} value={commitments}
+            <div className={FIELD}>
+              <label className={FIELD_LABEL} htmlFor="onb-commit">{a.commitments}</label>
+              <input id="onb-commit" className={INPUT} type="number" min={0} value={commitments}
                 onChange={(e) => setCommitments(e.target.value)} placeholder={a.amountPlaceholder} />
             </div>
           </div>
 
-          <div className={styles.block}>
-            <Banner tone={knowledgePassed ? "info" : "warn"}>
-              {allAnswered
-                ? knowledgePassed
-                  ? a.bannerPass(knowledgeScore, KNOWLEDGE_QUESTIONS.length)
-                  : a.bannerFail(knowledgeScore, KNOWLEDGE_QUESTIONS.length)
-                : a.bannerPending}
-            </Banner>
-          </div>
+          <Banner tone={knowledgePassed ? "info" : "warn"}>
+            {allAnswered
+              ? knowledgePassed
+                ? a.bannerPass(knowledgeScore, KNOWLEDGE_QUESTIONS.length)
+                : a.bannerFail(knowledgeScore, KNOWLEDGE_QUESTIONS.length)
+              : a.bannerPending}
+          </Banner>
 
-          <div className={styles.actions}>
-            <button className="ct-seg-btn" onClick={() => setStep(0)} disabled={busy}>{a.back}</button>
-            <button className="inv-btn-reserve" onClick={submitAssessment} disabled={busy || !allAnswered}>
+          <div className={ACTIONS}>
+            <button className={BTN_SECONDARY} onClick={() => setStep(0)} disabled={busy}>{a.back}</button>
+            <button className={BTN_PRIMARY} onClick={submitAssessment} disabled={busy || !allAnswered}>
               {busy ? a.calculating : a.validate}
             </button>
           </div>
@@ -330,16 +350,16 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
       ) : null}
 
       {step === 2 ? (
-        <section className={`ct-card ${styles.card}`} aria-label={o.aria.kyc}>
-          <div className="ct-card-title">{k.title}</div>
+        <section className={CARD} aria-label={o.aria.kyc}>
+          <div className={CARD_TITLE}>{k.title}</div>
 
           {assessmentResult ? (
-            <div className={styles.cap}>
-              <span className={styles.capLabel}>{k.capLabel}</span>
-              <span className={styles.capValue}>
+            <div className="flex flex-col gap-1.5 rounded-xl border border-indigo-400/30 bg-indigo-500/10 p-4">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-indigo-300">{k.capLabel}</span>
+              <span className="text-2xl font-black leading-tight text-white">
                 {assessmentResult.capCents == null ? k.capUnlimited : eur(assessmentResult.capCents / 100)}
               </span>
-              <span className={styles.capSub}>
+              <span className="text-xs text-slate-400">
                 {k.classification(
                   assessmentResult.classification === "retail" ? k.retail : k.sophisticated,
                 )}
@@ -347,33 +367,29 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
             </div>
           ) : null}
 
-          <p className={`ct-card-body ${styles.intro}`}>{k.intro}</p>
+          <p className={CARD_BODY}>{k.intro}</p>
 
           {kycState === "unavailable" ? (
-            <div className={styles.block}>
-              <Banner tone="info">{k.unavailable}</Banner>
-            </div>
+            <Banner tone="info">{k.unavailable}</Banner>
           ) : kycState === "started" ? (
-            <div className={styles.block}>
+            <div className="flex flex-col gap-2">
               <Banner tone="success">{k.started}</Banner>
-              {kycToken ? <p className="inv-fineprint">{k.sessionToken}</p> : null}
+              {kycToken ? <p className="text-xs text-slate-500">{k.sessionToken}</p> : null}
             </div>
           ) : (
-            <div className={styles.block}>
-              <Banner tone="warn">
-                {k.statusCurrent(profile?.kycStatus ?? k.statusNotStarted)}
-              </Banner>
-            </div>
+            <Banner tone="warn">
+              {k.statusCurrent(profile?.kycStatus ?? k.statusNotStarted)}
+            </Banner>
           )}
 
-          <div className={styles.actions}>
-            <button className="ct-seg-btn" onClick={() => setStep(1)} disabled={busy}>{a.back}</button>
+          <div className={ACTIONS}>
+            <button className={BTN_SECONDARY} onClick={() => setStep(1)} disabled={busy}>{a.back}</button>
             {kycState === "idle" ? (
-              <button className="inv-btn-reserve" onClick={startKyc} disabled={busy}>
+              <button className={BTN_PRIMARY} onClick={startKyc} disabled={busy}>
                 {busy ? k.starting : k.start}
               </button>
             ) : (
-              <button className="inv-btn-reserve" onClick={() => setStep(3)} disabled={busy}>
+              <button className={BTN_PRIMARY} onClick={() => setStep(3)} disabled={busy}>
                 {k.continueWallet}
               </button>
             )}
@@ -382,20 +398,20 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
       ) : null}
 
       {step === 3 ? (
-        <section className={`ct-card ${styles.card}`} aria-label={o.aria.wallet}>
-          <div className="ct-card-title">{w.title}</div>
-          <p className={`ct-card-body ${styles.intro}`}>
+        <section className={CARD} aria-label={o.aria.wallet}>
+          <div className={CARD_TITLE}>{w.title}</div>
+          <p className={CARD_BODY}>
             {w.introBefore}
             <b>{w.introBold}</b>
             {w.introAfter}
           </p>
 
-          <div className={`ct-form ${styles.form}`}>
-            <div className="ct-field">
-              <label className="ct-field-label" htmlFor="onb-wallet">{w.addressLabel}</label>
+          <div className={FORM}>
+            <div className={FIELD}>
+              <label className={FIELD_LABEL} htmlFor="onb-wallet">{w.addressLabel}</label>
               <input
                 id="onb-wallet"
-                className="ct-input"
+                className={INPUT}
                 value={walletAddress}
                 onChange={(e) => setWalletAddress(e.target.value)}
                 placeholder={w.addressPlaceholder}
@@ -404,23 +420,21 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
               />
             </div>
             {walletAddress && !walletValid ? (
-              <p className="inv-fineprint">{w.formatHint}</p>
+              <p className="text-xs text-slate-500">{w.formatHint}</p>
             ) : null}
           </div>
 
           {profile?.walletAddress ? (
-            <div className={styles.block}>
-              <Banner tone="success">
-                {w.savedPrefix}
-                <span className="inv-mono">{profile.walletAddress}</span>
-                {identity?.onchainidAddress ? w.onchainLinked : w.onchainAfterKyc}
-              </Banner>
-            </div>
+            <Banner tone="success">
+              {w.savedPrefix}
+              <span className="font-mono">{profile.walletAddress}</span>
+              {identity?.onchainidAddress ? w.onchainLinked : w.onchainAfterKyc}
+            </Banner>
           ) : null}
 
-          <div className={styles.actions}>
-            <button className="ct-seg-btn" onClick={() => setStep(2)} disabled={busy}>{a.back}</button>
-            <button className="inv-btn-reserve" onClick={linkWallet} disabled={busy || !walletValid}>
+          <div className={ACTIONS}>
+            <button className={BTN_SECONDARY} onClick={() => setStep(2)} disabled={busy}>{a.back}</button>
+            <button className={BTN_PRIMARY} onClick={linkWallet} disabled={busy || !walletValid}>
               {busy ? w.saving : profile?.walletAddress ? w.update : w.save}
             </button>
           </div>
@@ -428,16 +442,14 @@ export function OnboardingWizard({ initialProfile }: { initialProfile: ProfileVi
       ) : null}
 
       {done ? (
-        <div className={styles.block}>
-          <Banner tone="info">
-            {o.doneBefore}
-            <b>{o.doneBold}</b>
-            {o.doneAfter}
-          </Banner>
-        </div>
+        <Banner tone="info">
+          {o.doneBefore}
+          <b>{o.doneBold}</b>
+          {o.doneAfter}
+        </Banner>
       ) : null}
 
-      <p className={`inv-fineprint ${styles.foot}`}>{o.foot}</p>
+      <p className="text-xs text-slate-500">{o.foot}</p>
     </div>
   );
 }

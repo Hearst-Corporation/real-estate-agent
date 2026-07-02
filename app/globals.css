@@ -1,7 +1,44 @@
 @import "tailwindcss";
 
-/* Le design system Cockpit (app/cockpit.css) est la source de vérité visuelle.
-   globals.css reste minimal : Tailwind reste dispo pour l'utilitaire ponctuel,
-   mais aucune couleur de fond ici — le Cockpit gère html/body. */
+/*
+  Design system — palette + thème du repo. Voir DESIGN-SYSTEM.md à la racine
+  pour la doc complète (tokens, primitives, conventions). Éditable librement
+  ici : pas de source centrale, pas de resync, pas de lint bloquant.
+*/
+@theme {
+  --color-accent-50: #eff6ff;
+  --color-accent-100: #dbeafe;
+  --color-accent-200: #bfdbfe;
+  --color-accent-300: #93c5fd;
+  --color-accent-400: #60a5fa;
+  --color-accent-500: #3b82f6;
+  --color-accent-600: #2563eb;
+  --color-accent-700: #1d4ed8;
 
-* { -webkit-font-smoothing: antialiased; }
+  --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
+  --font-mono: var(--font-geist-mono, ui-monospace, "SFMono-Regular", monospace);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background-color: #020617;
+}
+
+/* Scrollbar discrète pour les panneaux internes (page-area, chat, rails). */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #334155;
+  border-radius: 999px;
+}

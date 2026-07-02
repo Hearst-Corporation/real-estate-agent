@@ -176,31 +176,33 @@ export default async function LeadDetailPage({
         kicker={eyebrow}
         title={lead.full_name ?? td.fallbackName}
         action={
-          <Link href="/leads" className="crm-link">
+          <Link href="/leads" className="text-sm font-medium text-indigo-300 hover:text-indigo-200">
             {td.backLink}
           </Link>
         }
       />
 
       {/* Statut + date sous le header */}
-      <div className="crm-detail-meta crm-detail-meta-row">
+      <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
         <Badge>{t.statusLabels[lead.status] ?? lead.status}</Badge>
         {lead.source && (
           <Sub>{lead.source}</Sub>
         )}
         {lead.created_at && (
-          <span className="crm-detail-meta">{td.fields.createdAt} {dateFr(lead.created_at)}</span>
+          <span className="text-sm text-slate-400">
+            {td.fields.createdAt} {dateFr(lead.created_at)}
+          </span>
         )}
       </div>
 
       {/* ── Identité & contact ── */}
       <Card title={td.cardIdentite}>
-        <dl className="crm-detail-dl">
+        <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
           {lead.email && (
             <>
-              <dt>{td.fields.email}</dt>
-              <dd>
-                <a href={`mailto:${lead.email}`} className="crm-link">
+              <dt className="text-xs font-medium text-slate-500">{td.fields.email}</dt>
+              <dd className="text-sm text-slate-200">
+                <a href={`mailto:${lead.email}`} className="text-indigo-300 hover:text-indigo-200">
                   {lead.email}
                 </a>
               </dd>
@@ -208,9 +210,9 @@ export default async function LeadDetailPage({
           )}
           {lead.phone && (
             <>
-              <dt>{td.fields.phone}</dt>
-              <dd>
-                <a href={`tel:${lead.phone}`} className="crm-link">
+              <dt className="text-xs font-medium text-slate-500">{td.fields.phone}</dt>
+              <dd className="text-sm text-slate-200">
+                <a href={`tel:${lead.phone}`} className="text-indigo-300 hover:text-indigo-200">
                   {lead.phone}
                 </a>
               </dd>
@@ -218,32 +220,34 @@ export default async function LeadDetailPage({
           )}
           {lead.source && (
             <>
-              <dt>{td.fields.source}</dt>
-              <dd>{lead.source}</dd>
+              <dt className="text-xs font-medium text-slate-500">{td.fields.source}</dt>
+              <dd className="text-sm text-slate-200">{lead.source}</dd>
             </>
           )}
           {lead.type_personne && (
             <>
-              <dt>{td.fields.typePersonne}</dt>
-              <dd>{t.typePersonneLabels[lead.type_personne] ?? lead.type_personne}</dd>
+              <dt className="text-xs font-medium text-slate-500">{td.fields.typePersonne}</dt>
+              <dd className="text-sm text-slate-200">
+                {t.typePersonneLabels[lead.type_personne] ?? lead.type_personne}
+              </dd>
             </>
           )}
           {lead.consent_at && (
             <>
-              <dt>{td.fields.consentAt}</dt>
-              <dd>{dateFr(lead.consent_at)}</dd>
+              <dt className="text-xs font-medium text-slate-500">{td.fields.consentAt}</dt>
+              <dd className="text-sm text-slate-200">{dateFr(lead.consent_at)}</dd>
             </>
           )}
           {lead.notes && (
             <>
-              <dt>{td.fields.notes}</dt>
-              <dd>{lead.notes}</dd>
+              <dt className="text-xs font-medium text-slate-500">{td.fields.notes}</dt>
+              <dd className="text-sm text-slate-200">{lead.notes}</dd>
             </>
           )}
           {lead.updated_at && (
             <>
-              <dt>{td.fields.updatedAt}</dt>
-              <dd>{dateFr(lead.updated_at)}</dd>
+              <dt className="text-xs font-medium text-slate-500">{td.fields.updatedAt}</dt>
+              <dd className="text-sm text-slate-200">{dateFr(lead.updated_at)}</dd>
             </>
           )}
         </dl>
@@ -252,46 +256,46 @@ export default async function LeadDetailPage({
       {/* ── Budget ── */}
       <Card title={td.cardBudget}>
         {lead.budget_min != null || lead.budget_max != null ? (
-          <dl className="crm-detail-dl">
+          <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
             {lead.budget_min != null && (
               <>
-                <dt>{td.budgetMin}</dt>
-                <dd className="crm-detail-price">{eur(lead.budget_min)}</dd>
+                <dt className="text-xs font-medium text-slate-500">{td.budgetMin}</dt>
+                <dd className="text-sm font-semibold tabular-nums text-slate-100">{eur(lead.budget_min)}</dd>
               </>
             )}
             {lead.budget_max != null && (
               <>
-                <dt>{td.budgetMax}</dt>
-                <dd className="crm-detail-price">{eur(lead.budget_max)}</dd>
+                <dt className="text-xs font-medium text-slate-500">{td.budgetMax}</dt>
+                <dd className="text-sm font-semibold tabular-nums text-slate-100">{eur(lead.budget_max)}</dd>
               </>
             )}
           </dl>
         ) : (
-          <p className="ct-placeholder">{td.emptyBudget}</p>
+          <p className="text-sm text-slate-500">{td.emptyBudget}</p>
         )}
       </Card>
 
       {/* ── Critères de recherche ── */}
       <Card title={td.cardCriteres}>
         {criteres.length > 0 ? (
-          <ul className="crm-list">
+          <ul className="divide-y divide-white/5">
             {criteres.map((c) => (
-              <li key={c.id} className="crm-list-row">
-                <div className="crm-list-grow">
+              <li key={c.id} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                <div className="min-w-0 flex-1">
                   {c.nom && (
-                    <span className="crm-list-name">{c.nom}</span>
+                    <span className="text-sm font-medium text-slate-100">{c.nom}</span>
                   )}
-                  <dl className="crm-detail-dl crm-dl-mt-xs">
+                  <dl className="mt-1 grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1.5">
                     {c.type_bien && c.type_bien.length > 0 && (
                       <>
-                        <dt>{td.criteres.typeBien}</dt>
-                        <dd>{c.type_bien.join(", ")}</dd>
+                        <dt className="text-xs font-medium text-slate-500">{td.criteres.typeBien}</dt>
+                        <dd className="text-sm text-slate-200">{c.type_bien.join(", ")}</dd>
                       </>
                     )}
                     {(c.budget_min != null || c.budget_max != null) && (
                       <>
-                        <dt>{td.criteres.budget}</dt>
-                        <dd>
+                        <dt className="text-xs font-medium text-slate-500">{td.criteres.budget}</dt>
+                        <dd className="text-sm text-slate-200">
                           {c.budget_min != null ? eur(c.budget_min) : "—"}
                           {c.budget_min != null && c.budget_max != null ? " – " : ""}
                           {c.budget_max != null ? eur(c.budget_max) : ""}
@@ -300,8 +304,8 @@ export default async function LeadDetailPage({
                     )}
                     {(c.surface_min != null || c.surface_max != null) && (
                       <>
-                        <dt>{td.criteres.surface}</dt>
-                        <dd>
+                        <dt className="text-xs font-medium text-slate-500">{td.criteres.surface}</dt>
+                        <dd className="text-sm text-slate-200">
                           {c.surface_min != null && c.surface_max != null
                             ? td.criteres.surfaceRange(c.surface_min, c.surface_max)
                             : c.surface_min != null
@@ -312,8 +316,8 @@ export default async function LeadDetailPage({
                     )}
                     {(c.pieces_min != null || c.pieces_max != null) && (
                       <>
-                        <dt>{td.criteres.pieces}</dt>
-                        <dd>
+                        <dt className="text-xs font-medium text-slate-500">{td.criteres.pieces}</dt>
+                        <dd className="text-sm text-slate-200">
                           {c.pieces_min != null && c.pieces_max != null
                             ? td.criteres.piecesRange(c.pieces_min, c.pieces_max)
                             : c.pieces_min != null
@@ -324,20 +328,20 @@ export default async function LeadDetailPage({
                     )}
                     {c.zones != null && (
                       <>
-                        <dt>{td.criteres.zones}</dt>
-                        <dd>{formatZones(c.zones)}</dd>
+                        <dt className="text-xs font-medium text-slate-500">{td.criteres.zones}</dt>
+                        <dd className="text-sm text-slate-200">{formatZones(c.zones)}</dd>
                       </>
                     )}
                     {c.dpe_max && (
                       <>
-                        <dt>{td.criteres.dpeMax}</dt>
-                        <dd>{c.dpe_max}</dd>
+                        <dt className="text-xs font-medium text-slate-500">{td.criteres.dpeMax}</dt>
+                        <dd className="text-sm text-slate-200">{c.dpe_max}</dd>
                       </>
                     )}
                   </dl>
                   {/* Équipements souhaités */}
                   {(c.terrasse || c.parking || c.ascenseur || c.jardin || c.piscine) && (
-                    <div className="crm-tag-cluster">
+                    <div className="mt-2 flex flex-wrap gap-1.5">
                       {c.terrasse && <Badge>{td.criteres.terrasse}</Badge>}
                       {c.parking && <Badge>{td.criteres.parking}</Badge>}
                       {c.ascenseur && <Badge>{td.criteres.ascenseur}</Badge>}
@@ -353,32 +357,32 @@ export default async function LeadDetailPage({
             ))}
           </ul>
         ) : (
-          <p className="ct-placeholder">{td.emptyCriteres}</p>
+          <p className="text-sm text-slate-500">{td.emptyCriteres}</p>
         )}
       </Card>
 
       {/* ── Visites liées ── */}
       <Card title={td.cardVisites}>
         {visits.length > 0 ? (
-          <ul className="crm-list">
+          <ul className="divide-y divide-white/5">
             {visits.map((v) => (
-              <li key={v.id} className="crm-list-row">
-                <span className="crm-list-name">{dateTimeFr(v.scheduled_at)}</span>
+              <li key={v.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">
+                <span className="text-sm font-medium text-slate-100">{dateTimeFr(v.scheduled_at)}</span>
                 {v.properties?.title && (
-                  <span className="crm-list-meta">
+                  <span className="text-sm text-slate-400">
                     {v.properties.title}
                     {v.properties.city ? ` — ${v.properties.city}` : ""}
                   </span>
                 )}
                 <Badge>{tVisits.statusLabels[v.status] ?? v.status}</Badge>
                 {v.duration_min != null && v.duration_min > 0 && (
-                  <span className="crm-list-meta">{v.duration_min} min</span>
+                  <span className="text-sm text-slate-400">{v.duration_min} min</span>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="ct-placeholder">{td.emptyVisites}</p>
+          <p className="text-sm text-slate-500">{td.emptyVisites}</p>
         )}
       </Card>
 
@@ -386,23 +390,23 @@ export default async function LeadDetailPage({
       <Card title={td.cardBienLie}>
         {linkedProperty ? (
           <>
-            <dl className="crm-detail-dl">
+            <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
               {linkedProperty.title && (
                 <>
-                  <dt>{UI.leads.detail.fields.title}</dt>
-                  <dd>{linkedProperty.title}</dd>
+                  <dt className="text-xs font-medium text-slate-500">{UI.leads.detail.fields.title}</dt>
+                  <dd className="text-sm text-slate-200">{linkedProperty.title}</dd>
                 </>
               )}
               {linkedProperty.city && (
                 <>
-                  <dt>{td.bienLie.city}</dt>
-                  <dd>{linkedProperty.city}</dd>
+                  <dt className="text-xs font-medium text-slate-500">{td.bienLie.city}</dt>
+                  <dd className="text-sm text-slate-200">{linkedProperty.city}</dd>
                 </>
               )}
               {linkedProperty.property_type && (
                 <>
-                  <dt>{td.bienLie.type}</dt>
-                  <dd>
+                  <dt className="text-xs font-medium text-slate-500">{td.bienLie.type}</dt>
+                  <dd className="text-sm text-slate-200">
                     {UI.properties.typeLabels[linkedProperty.property_type] ??
                       linkedProperty.property_type}
                   </dd>
@@ -410,19 +414,22 @@ export default async function LeadDetailPage({
               )}
               {linkedProperty.asking_price != null && (
                 <>
-                  <dt>{td.bienLie.price}</dt>
-                  <dd className="crm-detail-price">{eur(linkedProperty.asking_price)}</dd>
+                  <dt className="text-xs font-medium text-slate-500">{td.bienLie.price}</dt>
+                  <dd className="text-sm font-semibold tabular-nums text-slate-100">{eur(linkedProperty.asking_price)}</dd>
                 </>
               )}
             </dl>
-            <div className="crm-card-footer">
-              <Link href={`/properties/${linkedProperty.id}`} className="crm-link">
+            <div className="mt-4 border-t border-white/10 pt-3">
+              <Link
+                href={`/properties/${linkedProperty.id}`}
+                className="text-sm font-medium text-indigo-300 hover:text-indigo-200"
+              >
                 {td.bienLie.seeProperty}
               </Link>
             </div>
           </>
         ) : (
-          <p className="ct-placeholder">{td.emptyBienLie}</p>
+          <p className="text-sm text-slate-500">{td.emptyBienLie}</p>
         )}
       </Card>
 
@@ -432,21 +439,21 @@ export default async function LeadDetailPage({
         if (canEnrich) {
           return (
             <Card title={td.enrich.cardTitle}>
-              <p className="crm-detail-meta">{td.enrich.intro}</p>
+              <p className="text-sm text-slate-400">{td.enrich.intro}</p>
               <LeadEnrichButton leadId={lead.id} hasData={lead.enriched_data != null} />
               {lead.enriched_data != null && (
                 <>
                   {lead.enriched_at && (
-                    <p className="crm-detail-meta">
+                    <p className="text-sm text-slate-400">
                       {td.fields.enrichedAt} {dateFr(lead.enriched_at)}
                       {lead.enriched_source ? ` · ${lead.enriched_source}` : ""}
                     </p>
                   )}
-                  <dl className="crm-detail-dl crm-dl-mt-sm">
+                  <dl className="mt-3 grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
                     {Object.entries(lead.enriched_data).map(([key, val]) => (
                       <span key={key}>
-                        <dt>{key}</dt>
-                        <dd>
+                        <dt className="text-xs font-medium text-slate-500">{key}</dt>
+                        <dd className="text-sm text-slate-200">
                           {typeof val === "object" && val !== null
                             ? JSON.stringify(val)
                             : String(val ?? "—")}
@@ -463,16 +470,16 @@ export default async function LeadDetailPage({
           return (
             <Card title={td.cardEnrichissement}>
               {lead.enriched_at && (
-                <p className="crm-detail-meta">
+                <p className="text-sm text-slate-400">
                   {td.fields.enrichedAt} {dateFr(lead.enriched_at)}
                   {lead.enriched_source ? ` · ${lead.enriched_source}` : ""}
                 </p>
               )}
-              <dl className="crm-detail-dl crm-dl-mt-sm">
+              <dl className="mt-3 grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
                 {Object.entries(lead.enriched_data).map(([key, val]) => (
                   <span key={key}>
-                    <dt>{key}</dt>
-                    <dd>
+                    <dt className="text-xs font-medium text-slate-500">{key}</dt>
+                    <dd className="text-sm text-slate-200">
                       {typeof val === "object" && val !== null
                         ? JSON.stringify(val)
                         : String(val ?? "—")}

@@ -103,17 +103,13 @@ export default async function MandatesPage() {
         ]}
       />
 
-      <div className="ct-viz-row">
-        <div>
-          <Card title={t.charts.pipeline} variant="chart">
-            <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
-          </Card>
-        </div>
-        <div>
-          <Card title={t.charts.byKind} variant="chart">
-            <BarList items={byKind} emptyLabel={UI.viz.empty} />
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
+        <Card title={t.charts.pipeline} variant="chart">
+          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+        </Card>
+        <Card title={t.charts.byKind} variant="chart">
+          <BarList items={byKind} emptyLabel={UI.viz.empty} />
+        </Card>
       </div>
 
       <Card variant="dense">

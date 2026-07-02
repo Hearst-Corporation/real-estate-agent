@@ -26,9 +26,9 @@ export function RiskRadar({ chart }: { chart: ChartRisque }) {
   const shape = chart.axes.map((a, i) => vertex(i, n, Math.max(0, Math.min(1, a.note / MAX))));
 
   return (
-    <div className="inv-radar-wrap">
+    <div className="flex flex-col items-center gap-4 @xl:flex-row @xl:items-start @xl:gap-6">
       <svg
-        className="inv-radar-svg"
+        className="w-full max-w-[220px] shrink-0"
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         role="img"
         aria-label={`Radar de risque : ${chart.axes.map((a) => `${a.label} ${a.note} sur 5`).join(", ")}`}
@@ -39,7 +39,7 @@ export function RiskRadar({ chart }: { chart: ChartRisque }) {
           return (
             <polygon
               key={r}
-              className="inv-radar-grid"
+              className="fill-none stroke-white/10"
               points={polygon(chart.axes.map((_, i) => vertex(i, n, f)))}
             />
           );
@@ -47,16 +47,16 @@ export function RiskRadar({ chart }: { chart: ChartRisque }) {
         {/* axes */}
         {chart.axes.map((_, i) => {
           const p = vertex(i, n, 1);
-          return <line key={i} className="inv-radar-axis" x1={C} y1={C} x2={p.x} y2={p.y} />;
+          return <line key={i} className="stroke-white/10" x1={C} y1={C} x2={p.x} y2={p.y} />;
         })}
         {/* forme du deal */}
-        <polygon className="inv-radar-shape" points={polygon(shape)} />
+        <polygon className="fill-indigo-400/20 stroke-indigo-400" strokeWidth={2} points={polygon(shape)} />
       </svg>
-      <div className="inv-radar-legend">
+      <div className="flex w-full flex-col gap-1.5">
         {chart.axes.map((a) => (
-          <div className="inv-radar-legend-row" key={a.key}>
-            <span>{a.label}</span>
-            <b>{a.note.toLocaleString("fr-FR")} / 5</b>
+          <div className="flex items-center justify-between gap-3 text-sm" key={a.key}>
+            <span className="text-slate-400">{a.label}</span>
+            <b className="text-slate-100">{a.note.toLocaleString("fr-FR")} / 5</b>
           </div>
         ))}
       </div>

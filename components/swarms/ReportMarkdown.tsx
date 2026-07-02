@@ -16,8 +16,13 @@ function renderInline(text: string): React.ReactNode[] {
   while ((m = INLINE_RE.exec(text)) !== null) {
     if (m.index > last) parts.push(text.slice(last, m.index));
     const tok = m[0];
-    if (tok.startsWith("`")) parts.push(<code key={i++}>{tok.slice(1, -1)}</code>);
-    else parts.push(<strong key={i++}>{tok.slice(2, -2)}</strong>);
+    if (tok.startsWith("`"))
+      parts.push(
+        <code key={i++} className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[0.85em] text-indigo-200">
+          {tok.slice(1, -1)}
+        </code>
+      );
+    else parts.push(<strong key={i++} className="font-semibold text-slate-100">{tok.slice(2, -2)}</strong>);
     last = m.index + tok.length;
   }
   if (last < text.length) parts.push(text.slice(last));
@@ -40,7 +45,7 @@ export default function ReportMarkdown({ text }: { text: string }) {
   const flushPara = () => {
     if (!para.length) return;
     blocks.push(
-      <p key={key++} className="md-p">
+      <p key={key++} className="text-sm leading-relaxed text-slate-300">
         {renderInline(para.join(" "))}
       </p>
     );
@@ -49,7 +54,7 @@ export default function ReportMarkdown({ text }: { text: string }) {
   const flushBullets = () => {
     if (!bullets.length) return;
     blocks.push(
-      <ul key={key++} className="md-ul">
+      <ul key={key++} className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-slate-300 marker:text-indigo-400">
         {bullets.map((b, i) => (
           <li key={i}>{renderInline(b)}</li>
         ))}
@@ -60,7 +65,7 @@ export default function ReportMarkdown({ text }: { text: string }) {
   const flushOrdered = () => {
     if (!ordered.length) return;
     blocks.push(
-      <ol key={key++} className="md-ol">
+      <ol key={key++} className="list-decimal space-y-1 pl-5 text-sm leading-relaxed text-slate-300 marker:text-indigo-400">
         {ordered.map((b, i) => (
           <li key={i}>{renderInline(b)}</li>
         ))}
@@ -84,7 +89,7 @@ export default function ReportMarkdown({ text }: { text: string }) {
         fence = [];
       } else {
         blocks.push(
-          <pre key={key++} className="md-pre">
+          <pre key={key++} className="overflow-x-auto rounded-lg border border-white/10 bg-white/[0.02] p-3 font-mono text-xs text-slate-300">
             <code>{fence.join("\n")}</code>
           </pre>
         );
@@ -108,9 +113,9 @@ export default function ReportMarkdown({ text }: { text: string }) {
       const level = h[1].length;
       const content = renderInline(h[2]);
       // # rendu en h2 (la page porte déjà un h1) ; ##→h3 ; ###+→h4
-      if (level === 1) blocks.push(<h2 key={key++} className="md-h1">{content}</h2>);
-      else if (level === 2) blocks.push(<h3 key={key++} className="md-h2">{content}</h3>);
-      else blocks.push(<h4 key={key++} className="md-h3">{content}</h4>);
+      if (level === 1) blocks.push(<h2 key={key++} className="mt-2 text-lg font-semibold text-slate-100">{content}</h2>);
+      else if (level === 2) blocks.push(<h3 key={key++} className="mt-2 text-base font-semibold text-slate-100">{content}</h3>);
+      else blocks.push(<h4 key={key++} className="mt-2 text-sm font-semibold text-slate-200">{content}</h4>);
       continue;
     }
 
@@ -136,12 +141,12 @@ export default function ReportMarkdown({ text }: { text: string }) {
 
   if (fence !== null) {
     blocks.push(
-      <pre key={key++} className="md-pre">
+      <pre key={key++} className="overflow-x-auto rounded-lg border border-white/10 bg-white/[0.02] p-3 font-mono text-xs text-slate-300">
         <code>{fence.join("\n")}</code>
       </pre>
     );
   }
   flushAll();
 
-  return <div className="swarm-report-md">{blocks}</div>;
+  return <div className="flex flex-col gap-3">{blocks}</div>;
 }

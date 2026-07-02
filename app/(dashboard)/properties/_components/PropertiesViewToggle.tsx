@@ -5,7 +5,7 @@ import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { PropertyKanban } from "@/components/cockpit/PropertyKanban";
 import { PropertiesCockpit, type CockpitProperty } from "./PropertiesCockpit";
 import { eur, sqm } from "@/lib/crm/format";
-import { statusTone } from "@/lib/crm/statusTone";
+import { statusTone, type StatusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
 import Link from "next/link";
 import { DeleteButton } from "@/components/cockpit/DeleteButton";
@@ -13,6 +13,13 @@ import { DeleteButton } from "@/components/cockpit/DeleteButton";
 type Property = CockpitProperty & {
   surface: number | null;
   cover_photo_url?: string | null;
+};
+
+/** Classes Tailwind du badge de statut par tonalité métier (`statusTone`). */
+const STATUS_TONE_CLASSES: Record<StatusTone, string> = {
+  "is-positive": "border-emerald-400/30 bg-emerald-500/10 text-emerald-300",
+  "is-negative": "border-red-400/30 bg-red-500/10 text-red-300",
+  "is-pending": "border-amber-400/30 bg-amber-500/10 text-amber-300",
 };
 
 export function PropertiesViewToggle({ properties }: { properties: Property[] }) {
@@ -25,7 +32,7 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
       key: "title",
       header: t.table.title,
       render: (p) => (
-        <Link href={`/properties/${p.id}`} className="crm-link">
+        <Link href={`/properties/${p.id}`} className="text-indigo-300 hover:text-indigo-200">
           {p.title ?? t.fallbackTitle}
         </Link>
       ),
@@ -38,7 +45,9 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
       key: "status",
       header: t.table.status,
       render: (p) => (
-        <span className={`crm-status ${statusTone("property", p.status)}`}>
+        <span
+          className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${STATUS_TONE_CLASSES[statusTone("property", p.status)]}`}
+        >
           {t.statusLabels[p.status] ?? p.status}
         </span>
       ),
@@ -48,8 +57,11 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
       header: t.table.action,
       align: "right",
       render: (p) => (
-        <div className="ct-table-actions">
-          <Link href={`/properties/${p.id}`} className="ct-seg-btn">
+        <div className="flex items-center justify-end gap-2">
+          <Link
+            href={`/properties/${p.id}`}
+            className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+          >
             {t.open}
           </Link>
           <DeleteButton endpoint={`/api/properties/${p.id}`} label={t.delete} confirmMessage={t.delete} />
@@ -58,27 +70,23 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
     },
   ];
 
+  const segBtn = (active: boolean) =>
+    `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+      active ? "bg-indigo-500/15 text-indigo-300" : "text-slate-400 hover:text-slate-100"
+    }`;
+
   return (
-    <div className="crm-view-panel">
-      <div className="crm-toolbar crm-toolbar-shrink">
-        <div className="ct-card-title">{t.cockpit.panelTitle}</div>
-        <div className="ct-seg-track">
-          <button
-            className={`ct-seg-btn ${view === "cockpit" ? "active" : ""}`}
-            onClick={() => setView("cockpit")}
-          >
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="text-sm font-semibold text-slate-100">{t.cockpit.panelTitle}</div>
+        <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+          <button className={segBtn(view === "cockpit")} onClick={() => setView("cockpit")}>
             {t.cockpit.tabCockpit}
           </button>
-          <button
-            className={`ct-seg-btn ${view === "kanban" ? "active" : ""}`}
-            onClick={() => setView("kanban")}
-          >
+          <button className={segBtn(view === "kanban")} onClick={() => setView("kanban")}>
             {t.cockpit.tabKanban}
           </button>
-          <button
-            className={`ct-seg-btn ${view === "list" ? "active" : ""}`}
-            onClick={() => setView("list")}
-          >
+          <button className={segBtn(view === "list")} onClick={() => setView("list")}>
             {t.cockpit.tabList}
           </button>
         </div>
@@ -89,9 +97,7 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
       ) : view === "kanban" ? (
         <PropertyKanban properties={properties} />
       ) : (
-        <div className="crm-view-panel">
-          <DataTable columns={columns} rows={properties} emptyLabel={t.empty} getKey={(p) => p.id} />
-        </div>
+        <DataTable columns={columns} rows={properties} emptyLabel={t.empty} getKey={(p) => p.id} />
       )}
     </div>
   );

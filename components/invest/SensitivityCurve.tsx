@@ -16,7 +16,7 @@ const PAD = 8; // = --ct-space-xs
 export function SensitivityCurve({ chart }: { chart: SensChart }) {
   const pts = chart.points.filter((p) => p.irr != null) as Array<{ x: number; irr: number }>;
   if (pts.length < 2) {
-    return <p className="ct-chart-empty">Données de sensibilité indisponibles.</p>;
+    return <p className="text-sm text-slate-500">Données de sensibilité indisponibles.</p>;
   }
 
   const xs = pts.map((p) => p.x);
@@ -37,22 +37,30 @@ export function SensitivityCurve({ chart }: { chart: SensChart }) {
   const pointMort = "point_mort_x" in chart ? chart.point_mort_x : null;
 
   return (
-    <div className="inv-sensitivity">
+    <div className="flex flex-col gap-2">
       <svg
-        className="inv-sensitivity-svg"
+        className="h-auto w-full"
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
         role="img"
         aria-label={`${chart.titre}. ${chart.x_label}.`}
       >
-        <path className="inv-sens-area" d={area} />
-        <line className="inv-sens-zero" x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY} />
+        <path className="fill-indigo-400/15" d={area} />
+        <line className="stroke-white/15" x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY} strokeWidth={1} />
         {pointMort != null ? (
-          <line className="inv-sens-breakeven" x1={sx(pointMort)} y1={PAD} x2={sx(pointMort)} y2={H - PAD} />
+          <line
+            className="stroke-amber-400/60"
+            x1={sx(pointMort)}
+            y1={PAD}
+            x2={sx(pointMort)}
+            y2={H - PAD}
+            strokeWidth={1}
+            strokeDasharray="4 3"
+          />
         ) : null}
-        <path className="inv-sens-line" d={line} />
+        <path className="fill-none stroke-indigo-400" d={line} strokeWidth={2} />
       </svg>
-      <div className="inv-sensitivity-axis">
+      <div className="flex items-center justify-between text-xs text-slate-500">
         <span>{chart.x_label}</span>
         {pointMort != null ? <span>Point mort : {pct(pointMort)}</span> : <span>Ligne zéro = seuil de perte</span>}
       </div>

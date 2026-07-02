@@ -136,14 +136,22 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
     }
   }
 
+  const fieldsetClass = "flex flex-col gap-4 rounded-xl border border-white/10 p-4";
+  const legendClass = "px-1 text-xs font-semibold uppercase tracking-widest text-indigo-300";
+  const row2Class = "grid grid-cols-1 gap-4 sm:grid-cols-2";
+  const checkboxLabelClass =
+    "flex items-center gap-2 text-sm text-slate-300";
+  const checkboxInputClass =
+    "size-4 rounded border-white/20 bg-white/[0.04] text-indigo-500 focus:ring-indigo-400/50 focus:ring-offset-0";
+
   return (
     <CockpitForm onSubmit={handleSubmit}>
-      <div className="ct-card-title">{t.form.title}</div>
+      <div className="text-sm font-semibold text-slate-100">{t.form.title}</div>
 
       {/* Section : informations principales */}
-      <fieldset className="ct-form-fieldset">
-        <legend>{t.form.sectionMain}</legend>
-        <div className="ct-form-row-2col">
+      <fieldset className={fieldsetClass}>
+        <legend className={legendClass}>{t.form.sectionMain}</legend>
+        <div className={row2Class}>
           <Field label={t.form.name} htmlFor="property-title" required>
             <TextInput id="property-title" name="title" required defaultValue={defaultValues.title ?? ""} />
           </Field>
@@ -154,12 +162,12 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
       </fieldset>
 
       {/* Section : localisation */}
-      <fieldset className="ct-form-fieldset">
-        <legend>{t.form.sectionLocation}</legend>
+      <fieldset className={fieldsetClass}>
+        <legend className={legendClass}>{t.form.sectionLocation}</legend>
         <Field label={t.form.address} htmlFor="property-address" required>
           <TextInput id="property-address" name="address" required defaultValue={defaultValues.address ?? ""} />
         </Field>
-        <div className="ct-form-row-2col">
+        <div className={row2Class}>
           <Field label={t.form.city} htmlFor="property-city" required>
             <TextInput id="property-city" name="city" required defaultValue={defaultValues.city ?? ""} />
           </Field>
@@ -170,9 +178,9 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
       </fieldset>
 
       {/* Section : caractéristiques */}
-      <fieldset className="ct-form-fieldset">
-        <legend>{t.form.sectionFeatures}</legend>
-        <div className="ct-form-row-2col">
+      <fieldset className={fieldsetClass}>
+        <legend className={legendClass}>{t.form.sectionFeatures}</legend>
+        <div className={row2Class}>
           <Field label={t.form.surface} htmlFor="property-surface">
             <TextInput id="property-surface" name="surface" type="number" min={0} defaultValue={defaultValues.surface ?? ""} />
           </Field>
@@ -180,7 +188,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
             <TextInput id="property-rooms" name="rooms" type="number" min={0} defaultValue={defaultValues.rooms ?? ""} />
           </Field>
         </div>
-        <div className="ct-form-row-2col">
+        <div className={row2Class}>
           <Field label={t.form.bedrooms} htmlFor="property-bedrooms">
             <TextInput id="property-bedrooms" name="bedrooms" type="number" min={0} defaultValue={defaultValues.bedrooms ?? ""} />
           </Field>
@@ -188,8 +196,8 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
       </fieldset>
 
       {/* Section : prix / mandat */}
-      <fieldset className="ct-form-fieldset">
-        <legend>{t.form.sectionPrice}</legend>
+      <fieldset className={fieldsetClass}>
+        <legend className={legendClass}>{t.form.sectionPrice}</legend>
         <Field label={t.form.askingPrice} htmlFor="property-asking-price">
           <MoneyInput id="property-asking-price" name="asking_price" min={0} defaultValue={defaultValues.asking_price ?? ""} />
         </Field>
@@ -199,10 +207,10 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
       </fieldset>
 
       {/* Informations complémentaires */}
-      <fieldset className="ct-form-fieldset">
-        <legend>{t.enrichissement.title}</legend>
+      <fieldset className={fieldsetClass}>
+        <legend className={legendClass}>{t.enrichissement.title}</legend>
 
-        <div className="ct-form-row-2col">
+        <div className={row2Class}>
           <Field label={t.form.dpeLabel} htmlFor="property-dpe-letter">
             <Select
               id="property-dpe-letter"
@@ -221,7 +229,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
           </Field>
         </div>
 
-        <div className="ct-form-row-2col">
+        <div className={row2Class}>
           <Field label={t.form.yearBuilt} htmlFor="property-year-built">
             <TextInput id="property-year-built" name="year_built" type="number" min={1800} max={2030} defaultValue={defaultValues.year_built ?? ""} />
           </Field>
@@ -235,7 +243,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
           </Field>
         </div>
 
-        <div className="ct-form-row-2col">
+        <div className={row2Class}>
           <Field label={t.form.floor} htmlFor="property-floor">
             <TextInput id="property-floor" name="floor" type="number" min={0} defaultValue={defaultValues.floor ?? ""} />
           </Field>
@@ -244,7 +252,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
           </Field>
         </div>
 
-        <div className="ct-form-row-2col">
+        <div className={row2Class}>
           <Field label={t.form.chargesMonthly} htmlFor="property-charges-monthly">
             <MoneyInput id="property-charges-monthly" name="charges_monthly" min={0} defaultValue={defaultValues.charges_monthly ?? ""} />
           </Field>
@@ -253,7 +261,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
           </Field>
         </div>
 
-        <div className="ct-form-checkboxes">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
           {([
             ["has_elevator", t.form.hasElevator, defaultValues.has_elevator],
             ["has_parking", t.form.hasParking, defaultValues.has_parking],
@@ -262,8 +270,14 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
             ["has_pool", t.form.hasPool, defaultValues.has_pool],
             ["cellar", t.form.hasCellar, defaultValues.cellar],
           ] as [string, string, boolean | undefined][]).map(([name, label, checked]) => (
-            <label key={name} className="ct-form-checkbox">
-              <input type="checkbox" name={name} defaultChecked={checked ?? false} value="true" />
+            <label key={name} className={checkboxLabelClass}>
+              <input
+                type="checkbox"
+                name={name}
+                defaultChecked={checked ?? false}
+                value="true"
+                className={checkboxInputClass}
+              />
               <span>{label}</span>
             </label>
           ))}
@@ -274,14 +288,23 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
         </Field>
       </fieldset>
 
-      {error && <p className="ct-error">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
-      <div className="ct-seg-track">
-        <button type="submit" className="ct-seg-btn primary" disabled={loading} aria-busy={loading}>
+      <div className="flex items-center gap-2">
+        <button
+          type="submit"
+          className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:opacity-50"
+          disabled={loading}
+          aria-busy={loading}
+        >
           {loading ? UI.common.saving : t.form.save}
         </button>
         {onClose && (
-          <button type="button" className="ct-seg-btn" onClick={onClose}>
+          <button
+            type="button"
+            className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+            onClick={onClose}
+          >
             {t.form.cancel}
           </button>
         )}
@@ -305,7 +328,10 @@ export default function PropertyFormModal({ id, defaultValues, triggerLabel }: P
 
   if (!open) {
     return (
-      <button className="ct-seg-btn primary" onClick={() => setOpen(true)}>
+      <button
+        className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
+        onClick={() => setOpen(true)}
+      >
         {triggerLabel ?? t.newCta}
       </button>
     );

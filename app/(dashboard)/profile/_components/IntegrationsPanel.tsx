@@ -71,58 +71,72 @@ export function IntegrationsPanel() {
   }
 
   if (phase === "loading") {
-    return <p className="ct-placeholder">{UI.common.loading}</p>;
+    return <p className="text-sm text-slate-400">{UI.common.loading}</p>;
   }
   if (phase === "error") {
-    return <p className="ct-error">{t.loadError}</p>;
+    return <p className="text-sm text-red-400">{t.loadError}</p>;
   }
   // Clé API Composio absente → tout est indisponible (état honnête).
   if (!status?.configured) {
-    return <p className="ct-placeholder">{t.notConfigured}</p>;
+    return <p className="text-sm text-slate-400">{t.notConfigured}</p>;
   }
 
   return (
-    <div className="integrations-grid">
+    <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
       {PROVIDERS.map(({ toolkit, icon, key }) => {
         const provider = t.providers[key];
         const connected = key === "gmail" ? status.gmail : status.calendar;
         return (
-          <div key={toolkit} className="integration-card">
-            <div className="integration-card-head">
-              <span className="integration-card-icon" aria-hidden="true">
-                <Icon name={icon} />
+          <div
+            key={toolkit}
+            className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-indigo-300" aria-hidden="true">
+                <Icon name={icon} className="size-4" />
               </span>
-              <span className="integration-card-title">{provider.name}</span>
-              <span className={`integration-badge ${connected ? "is-on" : "is-off"}`}>
+              <span className="text-sm font-semibold text-slate-100">{provider.name}</span>
+              <span
+                className={`ml-auto inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                  connected
+                    ? "bg-emerald-400/10 text-emerald-300"
+                    : "bg-white/[0.06] text-slate-400"
+                }`}
+              >
                 {connected ? t.connected : t.disconnected}
               </span>
             </div>
 
-            <p className="integration-card-desc">{provider.description}</p>
+            <p className="text-sm text-slate-400">{provider.description}</p>
 
-            <div className="integration-caps">
-              <span className="integration-caps-label">{t.capabilitiesLabel}</span>
-              <ul className="integration-caps-list">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                {t.capabilitiesLabel}
+              </span>
+              <ul className="flex flex-col gap-1 text-sm text-slate-300">
                 {provider.capabilities.map((cap) => (
-                  <li key={cap}>{cap}</li>
+                  <li key={cap} className="flex gap-1.5">
+                    <span className="text-slate-600" aria-hidden="true">•</span>
+                    {cap}
+                  </li>
                 ))}
               </ul>
             </div>
 
-            <div className="integration-card-foot">
+            <div className="mt-1 flex flex-col gap-2">
               {connected ? (
-                <span className="ct-subtext">{t.testInChat}</span>
+                <span className="text-xs text-slate-500">{t.testInChat}</span>
               ) : (
                 <button
                   type="button"
-                  className="ct-seg-btn primary"
+                  className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={connecting === toolkit}
                   onClick={() => connect(toolkit)}
                 >
                   {connecting === toolkit ? t.connecting : `${t.connect} ${provider.name}`}
                 </button>
               )}
-              {note?.toolkit === toolkit ? <p className="ct-error">{note.msg}</p> : null}
+              {note?.toolkit === toolkit ? <p className="text-sm text-red-400">{note.msg}</p> : null}
             </div>
           </div>
         );

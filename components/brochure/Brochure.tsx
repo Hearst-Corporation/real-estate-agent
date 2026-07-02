@@ -14,7 +14,6 @@ import type {
   ListingComparable,
   PropertyData,
 } from '@/lib/estimation/types';
-import { buildStaticMap } from '@/lib/estimation/staticmap';
 
 // ── Formatage ────────────────────────────────────────────────────────────────
 
@@ -174,11 +173,11 @@ function Eyebrow({ n, tx }: { n: string; tx: string }): React.JSX.Element {
   );
 }
 
-function Foot({ ref_, date, page, total = 3 }: { ref_: string; date: string; page: number; total?: number }): React.JSX.Element {
+function Foot({ ref_, date, page }: { ref_: string; date: string; page: number }): React.JSX.Element {
   return (
     <footer className="foot">
       <span>Azigo — Avis de valeur · {ref_} · Établi le {date}</span>
-      <span className="fp">Page <b>{page}</b> / {total}</span>
+      <span className="fp">Page <b>{page}</b> / 2</span>
     </footer>
   );
 }
@@ -471,7 +470,7 @@ function PageTwo({ estimation }: { estimation: Estimation }): React.JSX.Element 
         <div className="res-title">Mentions & réserves</div>
         <p className="disc"><b>Avis de valeur indicatif.</b> Ce document constitue une estimation fondée sur des données de marché et ne saurait être assimilé à une expertise immobilière au sens réglementaire. Il n&apos;engage pas son émetteur, ne préjuge pas du prix de transaction effectif et exclut les frais d&apos;acquisition. Établi le {date} — valable 6 mois.</p>
         {toConfirm.length > 0 && (
-          <div className="reserve-item" style={{ marginTop: 'var(--ct-space-2xs)' }}>
+          <div className="reserve-item" style={{ marginTop: '4px' }}>
             <span className="reserve-field">Données à confirmer :</span>
             <span className="reserve-note">{toConfirm.join(' · ')}.</span>
           </div>
@@ -479,97 +478,6 @@ function PageTwo({ estimation }: { estimation: Estimation }): React.JSX.Element 
       </div>
 
       <Foot ref_={ref_} date={date} page={2} />
-    </section>
-  );
-}
-
-// ── Page 3 — Biens à vendre autour (carte secteur + photos) ───────────────────
-
-function PageThree({ estimation }: { estimation: Estimation }): React.JSX.Element {
-  const { property, market, branding } = estimation;
-  const mono = (branding?.monogram as string | undefined) ?? 'A';
-  const brand = (branding?.name as string | undefined) ?? 'Azigo';
-  const ref_ = refCode(estimation);
-  const date = frenchDate(estimation.updatedAt);
-
-  const all: ListingComparable[] = market?.listing_comparables ?? [];
-  const cards = all.filter((l) => l.photo_url).slice(0, 6);
-  const sourceLabel = market?.listing_source?.source === 'apify' ? 'LeBonCoin'
-    : market?.listing_source?.source === 'myswarms' ? 'Bienici' : 'marché actif';
-
-  const subject =
-    market?.subject_lat != null && market?.subject_lon != null
-      ? { lat: market.subject_lat, lon: market.subject_lon }
-      : null;
-  const geoListings = all
-    .filter((l) => l.lat != null && l.lon != null)
-    .map((l) => ({ lat: l.lat as number, lon: l.lon as number }));
-
-  const map = buildStaticMap({ subject, listings: geoListings, width: 758, height: 318 });
-
-  return (
-    <section className="page">
-      <RunningHead brand={brand} mono={mono} right={
-        <>
-          <span>{property.adresse ?? property.ville ?? '—'}</span><span className="sep">·</span>
-          <span>Réf. {ref_}</span><span className="sep">·</span>
-          <span className="conf">Confidentiel</span>
-        </>
-      } />
-
-      <Eyebrow n="05" tx="Biens à vendre autour" />
-
-      {map ? (
-        <div className="sectormap" style={{ width: map.width, height: map.height }}>
-          <div className="smtiles">
-            {map.tiles.map((t, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={i} src={t.url} alt="" width={256} height={256}
-                style={{ position: 'absolute', left: t.left, top: t.top }} />
-            ))}
-          </div>
-          <div className="smfade" />
-          {map.listings.map((m, i) => (
-            <span key={i} className="smpin" style={{ left: m.left, top: m.top }}>{i + 1}</span>
-          ))}
-          {map.subject && (
-            <span className="smpin me" style={{ left: map.subject.left, top: map.subject.top }} />
-          )}
-          <span className="smattr">{map.attribution}</span>
-          <span className="smleg">Le bien · biens à vendre alentour</span>
-        </div>
-      ) : (
-        <div className="lst"><div className="lst-meta">Localisation des annonces indisponible pour la cartographie du secteur.</div></div>
-      )}
-
-      {cards.length > 0 ? (
-        <>
-          <div className="lstgrid">
-            {cards.map((l, i) => (
-              <a className="lcard" key={l.id} href={l.url ?? undefined}>
-                <div className="lcard-img">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={l.photo_url as string} alt={l.titre} />
-                  <span className="lcard-no">{i + 1}</span>
-                </div>
-                <div className="lcard-b">
-                  <div className="lcard-px num">{formatEUR(l.prix)}</div>
-                  <div className="lcard-t">{l.titre}</div>
-                  <div className="lcard-m num">
-                    {formatM2(l.surface_m2)} · {formatPpm2(l.prix_m2)}
-                    {l.quartier ? <span className="lcard-q"> · {l.quartier}</span> : null}
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-          <p className="tnote"><b>{all.length} biens</b> à vendre détectés autour ({sourceLabel}) · rayon ≈ 8 km · carte © OpenStreetMap</p>
-        </>
-      ) : (
-        <div className="lst"><div className="lst-meta">Aucune annonce concurrente avec visuel détectée à proximité au moment de l&apos;analyse.</div></div>
-      )}
-
-      <Foot ref_={ref_} date={date} page={3} />
     </section>
   );
 }
@@ -589,7 +497,6 @@ export function Brochure({ estimation }: { estimation: Estimation }): React.JSX.
     <>
       <PageOne estimation={estimation} />
       <PageTwo estimation={estimation} />
-      <PageThree estimation={estimation} />
     </>
   );
 }

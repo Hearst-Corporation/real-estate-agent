@@ -33,9 +33,14 @@ export interface DealCardData {
 
 function Skyline() {
   return (
-    <svg className="inv-deal-thumb-skyline" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden>
+    <svg
+      className="absolute inset-x-0 bottom-0 h-full w-full text-slate-950/60"
+      viewBox="0 0 300 70"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
       <path
-        fill="var(--ct-bg-deep)"
+        fill="currentColor"
         d="M0 70 V40 h20 V52 h14 V30 h22 V46 h16 V22 h24 V44 h18 V34 h20 V50 h16 V26 h26 V48 h18 V38 h22 V52 h16 V44 h32 V70 Z"
       />
     </svg>
@@ -48,43 +53,56 @@ export function DealCard({ deal }: { deal: DealCardData }): ReactNode {
 
   return (
     <article>
-      <Link className="inv-deal-card" href={`/invest/${deal.slug}`} aria-label={`Voir le deal ${deal.nom}`}>
-        <div className="inv-deal-thumb">
+      <Link
+        className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm transition hover:border-white/20 hover:bg-white/[0.05]"
+        href={`/invest/${deal.slug}`}
+        aria-label={`Voir le deal ${deal.nom}`}
+      >
+        <div className="relative h-[150px] overflow-hidden bg-gradient-to-br from-indigo-500/20 via-slate-900 to-slate-900">
           <Skyline />
-          <div className="inv-deal-thumb-top">
+          <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
             <StatusPill tone={deal.statusTone}>{deal.statusLabel}</StatusPill>
             {deal.joursRestants != null ? (
-              <span className="inv-deal-jdays">J-{deal.joursRestants}</span>
+              <span className="rounded-full border border-white/10 bg-slate-950/60 px-2 py-1 text-xs font-medium text-slate-200 backdrop-blur-sm">
+                J-{deal.joursRestants}
+              </span>
             ) : null}
           </div>
         </div>
-        <div className="inv-deal-body">
-          <div className="inv-deal-loc">
+        <div className="flex flex-col gap-2 p-4">
+          <div className="flex items-center gap-1 text-xs text-slate-400">
             <IconPin width={12} height={12} />
             {deal.localisation}
           </div>
-          <h3 className="inv-deal-name">{deal.nom}</h3>
+          <h3 className="text-base font-semibold text-white">{deal.nom}</h3>
           <ProductBadges badges={deal.badges.slice(0, DEAL_BADGES_MAX)} />
-          <div className="inv-deal-metrics">
-            <div className="inv-deal-metric">
-              <span className="inv-m-val accent">{pct(deal.triCible)}</span>
-              <span className="inv-m-lab">TRI cible · non gar.</span>
+          <div className="mt-1 grid grid-cols-3 gap-2">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-semibold text-indigo-300">{pct(deal.triCible)}</span>
+              <span className="text-[11px] text-slate-500">TRI cible · non gar.</span>
             </div>
-            <div className="inv-deal-metric">
-              <span className="inv-m-val">{pct(deal.ltv)}</span>
-              <span className="inv-m-lab">LTV</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-semibold text-slate-100">{pct(deal.ltv)}</span>
+              <span className="text-[11px] text-slate-500">LTV</span>
             </div>
-            <div className="inv-deal-metric">
-              <span className="inv-m-val">{deal.dureeMois} mois</span>
-              <span className="inv-m-lab">Durée</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-semibold text-slate-100">{deal.dureeMois} mois</span>
+              <span className="text-[11px] text-slate-500">Durée</span>
             </div>
           </div>
-          <div className="inv-deal-progress">
-            <div className="inv-progress-track" role="progressbar" aria-valuenow={taux} aria-valuemin={0} aria-valuemax={100} aria-label="Avancement de la levée">
-              <div className="inv-progress-fill" style={{ width: `${fillW}%` }} />
+          <div className="mt-2">
+            <div
+              className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]"
+              role="progressbar"
+              aria-valuenow={taux}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Avancement de la levée"
+            >
+              <div className="h-full rounded-full bg-indigo-400" style={{ width: `${fillW}%` }} />
             </div>
-            <div className="inv-progress-meta">
-              <b>{taux}%</b>
+            <div className="mt-1.5 flex items-center justify-between text-xs text-slate-400">
+              <b className="text-slate-200">{taux}%</b>
               <span>
                 {compact(deal.collecteEur)} / {compact(deal.objectifEur)} €
               </span>

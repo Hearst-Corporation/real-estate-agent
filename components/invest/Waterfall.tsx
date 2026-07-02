@@ -3,7 +3,7 @@
  * Consomme le data contract `ChartWaterfall` du moteur financier (lib/invest/
  * finance). Le rang obligataire (VOUS) est surligné. CSS/markup pur, zéro lib.
  *
- * Une table alternative `.inv-sr-only` est fournie (WCAG 1.1.1).
+ * Une table alternative `.sr-only` est fournie (WCAG 1.1.1).
  */
 import type { ChartWaterfall } from "@/lib/invest/finance";
 import { UI } from "@/lib/ui-strings";
@@ -28,7 +28,7 @@ export function Waterfall({ chart }: { chart: ChartWaterfall }) {
   });
 
   return (
-    <div className="inv-waterfall">
+    <div className="flex flex-col gap-3">
       {chart.steps.map((step, index) => {
         const isTotal = step.is_total;
         const you = OBLIGATAIRE_KEYS.has(step.key);
@@ -37,29 +37,46 @@ export function Waterfall({ chart }: { chart: ChartWaterfall }) {
         const cumulW = Math.max(0, Math.min(100, (Math.abs(step.cumul_eur) / maxCumul) * 100));
         const payW = isTotal ? 0 : Math.max(0, Math.min(100, (Math.abs(step.delta_eur) / maxCumul) * 100));
 
+        // Segment "cumul" = trace neutre jusqu'au montant déjà distribué en amont.
+        const cumClass = "bg-white/[0.06]";
+        // Segment "pay" = tranche versée à cette étape ; vous (indigo) > senior (slate) > autre (emerald).
+        const payClass = you
+          ? "bg-indigo-400"
+          : senior
+            ? "bg-slate-400"
+            : "bg-emerald-400";
+
         return (
-          <div className="inv-wf-row" key={step.key}>
-            <span className={`inv-wf-rank${you ? " you" : ""}`} aria-hidden>
+          <div className="flex items-center gap-3" key={step.key}>
+            <span
+              className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                you ? "bg-indigo-500/20 text-indigo-300" : "bg-white/[0.06] text-slate-400"
+              }`}
+              aria-hidden
+            >
               {isTotal ? "Σ" : rank}
             </span>
-            <div className="inv-wf-bar-wrap">
-              <div className="inv-wf-bar-head">
-                <span className="inv-wf-bar-lab">
-                  {you ? <b>{step.label} (vous)</b> : step.label}
+            <div className="flex-1">
+              <div className="mb-1 flex items-baseline justify-between text-sm">
+                <span className="text-slate-300">
+                  {you ? <b className="text-slate-100">{step.label} (vous)</b> : step.label}
                 </span>
-                <span className="inv-wf-bar-amt">{eur(Math.abs(step.delta_eur))}</span>
+                <span className="font-medium text-slate-100">{eur(Math.abs(step.delta_eur))}</span>
               </div>
-              <div className="inv-wf-bar-track">
+              <div className="relative h-2 overflow-hidden rounded-full bg-white/[0.03]">
                 {isTotal ? (
                   <span
-                    className={`inv-wf-seg pay${you ? " you" : ""}`}
+                    className={`absolute inset-y-0 rounded-full ${payClass}`}
                     style={{ left: 0, width: `${cumulW}%` }}
                   />
                 ) : (
                   <>
-                    <span className="inv-wf-seg cum" style={{ left: 0, width: `${cumulW}%` }} />
                     <span
-                      className={`inv-wf-seg pay${you ? " you" : senior ? " senior" : ""}`}
+                      className={`absolute inset-y-0 rounded-full ${cumClass}`}
+                      style={{ left: 0, width: `${cumulW}%` }}
+                    />
+                    <span
+                      className={`absolute inset-y-0 rounded-full ${payClass}`}
                       style={{ left: `${cumulW}%`, width: `${payW}%` }}
                     />
                   </>
@@ -70,7 +87,7 @@ export function Waterfall({ chart }: { chart: ChartWaterfall }) {
         );
       })}
 
-      <table className="inv-sr-only">
+      <table className="sr-only">
         <caption>{chart.titre}</caption>
         <thead>
           <tr>

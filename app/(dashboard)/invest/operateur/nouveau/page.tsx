@@ -17,7 +17,7 @@ export default async function NouveauDealPage() {
 
   return (
     <PageStack>
-      <Link href="/invest/operateur" className="inv-deal-loc inv-mb-md">
+      <Link href="/invest/operateur" className="mb-2 inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-200">
         {n.backLink}
       </Link>
       <PageHeader kicker={n.eyebrow} title={n.title} meta={<Sub>{n.sub}</Sub>} />

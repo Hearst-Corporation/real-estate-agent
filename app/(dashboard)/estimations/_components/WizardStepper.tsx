@@ -18,25 +18,31 @@ export function WizardStepper({ coverage, nextLabel, canGenerate }: Props) {
       : UI.estimations.allKeyInfo;
 
   return (
-    <div className="est-wizard-stepper">
-      <div className="est-stepper-dots">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-1.5">
         {Array.from({ length: total }, (_, i) => {
           const filled = i < collected;
           const current = i === collected && !canGenerate;
           return (
             <span
               key={i}
-              className={`est-stepper-dot${filled ? " confirmed" : ""}${current ? " current" : ""}`}
+              className={`size-2 rounded-full transition-colors ${
+                filled
+                  ? "bg-indigo-400"
+                  : current
+                    ? "bg-white/20 ring-2 ring-indigo-400/50"
+                    : "bg-white/15"
+              }`}
               aria-label={`Info clé ${i + 1}`}
             />
           );
         })}
       </div>
-      <div className="est-stepper-meta">
-        <span className="est-stepper-count">
+      <div className="flex items-center gap-2 text-xs">
+        <span className="font-semibold text-slate-200">
           {UI.estimations.keyInfoProgress(Math.min(collected, total), total)}
         </span>
-        <span className="est-stepper-label">{focus}</span>
+        <span className="text-slate-500">{focus}</span>
       </div>
     </div>
   );

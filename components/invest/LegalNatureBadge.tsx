@@ -10,8 +10,11 @@ import { IconScale } from "./icons";
 
 export function LegalNatureBadge({ sasName }: { sasName: string }) {
   return (
-    <div className="inv-callout legal" role="note">
-      <IconScale className="inv-callout-ic" />
+    <div
+      className="flex items-start gap-3 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+      role="note"
+    >
+      <IconScale className="size-5 shrink-0 text-amber-300" />
       <div>
         Vous souscrivez des <b>obligations</b> émises par la SAS « {sasName} ». Vous êtes{" "}
         <b>créancier</b>, vous prêtez à la société — vous n’êtes pas propriétaire du bien. Titre de

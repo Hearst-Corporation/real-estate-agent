@@ -53,17 +53,7 @@ type PropertyRow = {
 
 /** Skeleton léger pour les sections en cours de chargement. */
 function SectionSkeleton() {
-  return (
-    <div
-      className="crm-skeleton-card"
-      style={{
-        height: "6rem",
-        borderRadius: "var(--ct-radius-md, 8px)",
-        background: "var(--ct-surface-2, rgba(255,255,255,0.04))",
-        animation: "ct-pulse 1.4s ease-in-out infinite",
-      }}
-    />
-  );
+  return <div className="h-24 animate-pulse rounded-lg bg-white/[0.04]" />;
 }
 
 export default async function PropertyDetailPage({
@@ -140,7 +130,7 @@ export default async function PropertyDetailPage({
         kicker={t.eyebrow}
         title={property.title ?? t.fallbackTitle}
         action={
-          <>
+          <div className="flex items-center gap-2">
             <PropertyStatusControl
               id={id}
               currentStatus={property.status}
@@ -178,64 +168,62 @@ export default async function PropertyDetailPage({
               }}
               triggerLabel={t.editBtn}
             />
-          </>
+          </div>
         }
       />
 
       {/* ── Hero prix ─────────────────────────────────────────────────────── */}
-      <div className="crm-detail-hero">
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6">
         {displayPrice != null && (
-          <div className="crm-detail-hero-price-row">
-            <span className="crm-detail-hero-price">{eur(displayPrice)}</span>
+          <div className="flex flex-wrap items-baseline gap-3">
+            <span className="text-4xl font-black tracking-tight text-white">{eur(displayPrice)}</span>
             {pricePerSqm != null && (
-              <span className="crm-detail-hero-sqm">
-                {td.pricePerSqm(eur(pricePerSqm))}
-              </span>
+              <span className="text-sm text-slate-400">{td.pricePerSqm(eur(pricePerSqm))}</span>
             )}
           </div>
         )}
 
         {/* Chips résumé — type · surface · pièces · chambres · étage · DPE */}
-        <div className="crm-detail-hero-chips">
+        <div className="mt-4 flex flex-wrap gap-2">
           {property.property_type && (
-            <span className="crm-detail-hero-chip">
-              <span className="crm-detail-hero-chip-icon">🏠</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+              <span aria-hidden="true">🏠</span>
               {t.typeLabels[property.property_type] ?? property.property_type}
             </span>
           )}
           {property.surface != null && (
-            <span className="crm-detail-hero-chip">
-              <span className="crm-detail-hero-chip-icon">📐</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+              <span aria-hidden="true">📐</span>
               {sqm(property.surface)}
             </span>
           )}
           {property.rooms != null && (
-            <span className="crm-detail-hero-chip">
-              <span className="crm-detail-hero-chip-icon">🚪</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+              <span aria-hidden="true">🚪</span>
               {td.chipRooms(property.rooms)}
             </span>
           )}
           {property.bedrooms != null && (
-            <span className="crm-detail-hero-chip">
-              <span className="crm-detail-hero-chip-icon">🛏</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+              <span aria-hidden="true">🛏</span>
               {td.chipBedrooms(property.bedrooms)}
             </span>
           )}
           {property.floor != null && (
-            <span className="crm-detail-hero-chip">
-              <span className="crm-detail-hero-chip-icon">🏢</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+              <span aria-hidden="true">🏢</span>
               {td.chipFloor(property.floor, property.floor_total)}
             </span>
           )}
           {property.dpe_letter && (
-            <span className="crm-detail-hero-chip">
-              <span className="crm-detail-hero-chip-icon">⚡</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+              <span aria-hidden="true">⚡</span>
               {"DPE "}{property.dpe_letter}
             </span>
           )}
           {property.city && (
-            <span className="crm-detail-hero-chip">
-              <span className="crm-detail-hero-chip-icon">📍</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+              <span aria-hidden="true">📍</span>
               {property.city}
               {property.postal_code ? ` ${property.postal_code}` : ""}
             </span>
@@ -243,7 +231,7 @@ export default async function PropertyDetailPage({
         </div>
 
         {daysOnMarket !== null && (
-          <span className="crm-detail-hero-days">{t.daysOnMarket(daysOnMarket)}</span>
+          <span className="mt-3 block text-xs text-slate-500">{t.daysOnMarket(daysOnMarket)}</span>
         )}
       </div>
 
@@ -258,92 +246,92 @@ export default async function PropertyDetailPage({
 
       {/* ── Caractéristiques ─────────────────────────────────────────────── */}
       <Card title={td.cardCaracteristiques}>
-        <div className="crm-detail-grid">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3 @lg:grid-cols-3">
           {property.surface != null && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{t.fields.surface}</span>
-              <span className="crm-detail-grid-value-accent">{sqm(property.surface)}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{t.fields.surface}</span>
+              <span className="text-sm font-semibold text-indigo-300">{sqm(property.surface)}</span>
             </div>
           )}
           {displayPrice != null && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">
                 {property.asking_price != null
                   ? td.priceType.asking
                   : td.priceType.estimated}
               </span>
-              <span className="crm-detail-grid-value-accent">{eur(displayPrice)}</span>
+              <span className="text-sm font-semibold text-indigo-300">{eur(displayPrice)}</span>
             </div>
           )}
           {pricePerSqm != null && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{"Prix / m²"}</span>
-              <span className="crm-detail-grid-value">{eur(pricePerSqm)}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{"Prix / m²"}</span>
+              <span className="text-sm text-slate-100">{eur(pricePerSqm)}</span>
             </div>
           )}
           {property.rooms != null && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{t.fields.rooms}</span>
-              <span className="crm-detail-grid-value">{property.rooms}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{t.fields.rooms}</span>
+              <span className="text-sm text-slate-100">{property.rooms}</span>
             </div>
           )}
           {property.bedrooms != null && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{t.fields.bedrooms}</span>
-              <span className="crm-detail-grid-value">{property.bedrooms}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{t.fields.bedrooms}</span>
+              <span className="text-sm text-slate-100">{property.bedrooms}</span>
             </div>
           )}
           {property.floor != null && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{t.enrichissement.floor}</span>
-              <span className="crm-detail-grid-value">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{t.enrichissement.floor}</span>
+              <span className="text-sm text-slate-100">
                 {property.floor}
                 {property.floor_total != null ? ` / ${property.floor_total}` : ""}
               </span>
             </div>
           )}
           {property.year_built != null && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{td.gridYearBuilt}</span>
-              <span className="crm-detail-grid-value">{property.year_built}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{td.gridYearBuilt}</span>
+              <span className="text-sm text-slate-100">{property.year_built}</span>
             </div>
           )}
           {property.orientation && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{td.gridOrientation}</span>
-              <span className="crm-detail-grid-value">{property.orientation}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{td.gridOrientation}</span>
+              <span className="text-sm text-slate-100">{property.orientation}</span>
             </div>
           )}
           {property.charges_monthly != null && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{td.gridCharges}</span>
-              <span className="crm-detail-grid-value">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{td.gridCharges}</span>
+              <span className="text-sm text-slate-100">
                 {eur(property.charges_monthly)}{" "}{td.gridChargesSuffix}
               </span>
             </div>
           )}
           {property.taxe_fonciere != null && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{td.gridTaxe}</span>
-              <span className="crm-detail-grid-value">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{td.gridTaxe}</span>
+              <span className="text-sm text-slate-100">
                 {eur(property.taxe_fonciere)}{" "}{td.gridTaxeSuffix}
               </span>
             </div>
           )}
           {property.estimation_id && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{t.fields.estimation}</span>
-              <span className="crm-detail-grid-value">
-                <Link href={`/estimations/${property.estimation_id}`} className="crm-link">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{t.fields.estimation}</span>
+              <span className="text-sm">
+                <Link href={`/estimations/${property.estimation_id}`} className="font-semibold text-indigo-300 hover:text-indigo-200">
                   {t.seeEstimation}
                 </Link>
               </span>
             </div>
           )}
           {property.updated_at && (
-            <div className="crm-detail-grid-item">
-              <span className="crm-detail-grid-label">{td.gridUpdated}</span>
-              <span className="crm-detail-grid-value">{dateFr(property.updated_at)}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-slate-500">{td.gridUpdated}</span>
+              <span className="text-sm text-slate-100">{dateFr(property.updated_at)}</span>
             </div>
           )}
         </div>
@@ -352,10 +340,13 @@ export default async function PropertyDetailPage({
       {/* ── Équipements ──────────────────────────────────────────────────── */}
       {equipItems.length > 0 && (
         <Card title={td.cardEquipements}>
-          <div className="crm-detail-equip-grid">
+          <div className="flex flex-wrap gap-2">
             {equipItems.map((eq) => (
-              <span key={eq.key} className="crm-detail-equip-pill">
-                <span className="crm-detail-equip-pill-icon">{eq.icon}</span>
+              <span
+                key={eq.key}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-sm text-slate-200"
+              >
+                <span aria-hidden="true">{eq.icon}</span>
                 {eq.label}
               </span>
             ))}
@@ -366,12 +357,12 @@ export default async function PropertyDetailPage({
       {/* ── Localisation ─────────────────────────────────────────────────── */}
       {(property.address || property.city) && (
         <Card title={td.cardLocalisation}>
-          <div className="crm-detail-location">
+          <div className="flex flex-col gap-1.5">
             {property.address && (
-              <span className="crm-detail-location-address">{property.address}</span>
+              <span className="text-sm text-slate-200">{property.address}</span>
             )}
             {property.city && (
-              <span className="crm-detail-location-city">
+              <span className="text-sm text-slate-400">
                 {[property.postal_code, property.city].filter(Boolean).join(" ")}
               </span>
             )}
@@ -380,9 +371,9 @@ export default async function PropertyDetailPage({
                 href={`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="crm-detail-location-link"
+                className="mt-1 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-indigo-300 hover:text-indigo-200"
               >
-                <span>{"📍"}</span>
+                <span aria-hidden="true">{"📍"}</span>
                 {td.locMapsLink}
               </a>
             )}
@@ -393,22 +384,22 @@ export default async function PropertyDetailPage({
       {/* ── DPE / GES ────────────────────────────────────────────────────── */}
       {(property.dpe_letter || property.ges_letter) && (
         <Card title={td.cardDpe}>
-          <div className="crm-dpe-premium">
+          <div className="flex flex-wrap gap-6">
             {property.dpe_letter && (
-              <div className="crm-dpe-premium-item">
+              <div className="flex items-center gap-3">
                 <DpeBadge letter={property.dpe_letter} label={t.dpe.label} />
-                <div className="crm-dpe-premium-info">
-                  <span className="crm-dpe-premium-label">{t.dpe.label}</span>
-                  <span className="crm-dpe-premium-desc">{td.dpeNote(property.dpe_letter)}</span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold text-slate-100">{t.dpe.label}</span>
+                  <span className="text-xs text-slate-500">{td.dpeNote(property.dpe_letter)}</span>
                 </div>
               </div>
             )}
             {property.ges_letter && (
-              <div className="crm-dpe-premium-item">
+              <div className="flex items-center gap-3">
                 <DpeBadge letter={property.ges_letter} label={t.dpe.gesLabel} />
-                <div className="crm-dpe-premium-info">
-                  <span className="crm-dpe-premium-label">{t.dpe.gesLabel}</span>
-                  <span className="crm-dpe-premium-desc">{td.gesNote(property.ges_letter)}</span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold text-slate-100">{t.dpe.gesLabel}</span>
+                  <span className="text-xs text-slate-500">{td.gesNote(property.ges_letter)}</span>
                 </div>
               </div>
             )}
@@ -419,20 +410,20 @@ export default async function PropertyDetailPage({
       {/* ── Notes internes ───────────────────────────────────────────────── */}
       <Card title={td.cardNotes}>
         {property.notes ? (
-          <p className="crm-detail-notes">{property.notes}</p>
+          <p className="whitespace-pre-wrap text-sm text-slate-300">{property.notes}</p>
         ) : (
-          <p className="ct-placeholder">{td.notesEmpty}</p>
+          <p className="text-sm text-slate-500">{td.notesEmpty}</p>
         )}
       </Card>
 
       {/* ── Leads + Visites + Mandats (secondaires — streamés) ───────────── */}
       <Suspense
         fallback={
-          <>
+          <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-3">
             <SectionSkeleton />
             <SectionSkeleton />
             <SectionSkeleton />
-          </>
+          </div>
         }
       >
         <PropertyRelatedSection

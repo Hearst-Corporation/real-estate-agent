@@ -35,28 +35,30 @@ export default async function ProfilePage() {
         title={t.title}
       />
 
-      <div className="ct-viz-row">
-        <div>
+      <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-3">
+        <div className="@4xl:col-span-2">
           <Card title={t.identityTitle} variant="chart">
-            <p className="ct-placeholder">Informations de session en cours.</p>
+            <p className="text-sm text-slate-400">Informations de session en cours.</p>
           </Card>
         </div>
-        <div className="ct-stack-sm">
+        <div className="flex flex-col gap-4">
           <Card title={t.scopesTitle} variant="dense">
-            {(claims.scope ?? []).map((s) => (
-              <Badge key={s}>{s}</Badge>
-            ))}
+            <div className="flex flex-wrap gap-1.5">
+              {(claims.scope ?? []).map((s) => (
+                <Badge key={s}>{s}</Badge>
+              ))}
+            </div>
           </Card>
 
           <Card title={t.sessionTitle} variant="dense">
-            <p className="ct-mb-sm">{t.sessionHint}</p>
+            <p className="mb-3 text-sm text-slate-400">{t.sessionHint}</p>
             <LogoutButton variant="full" />
           </Card>
 
           {claims.role === "admin" && (
             <Card title={UI.nav.admin} variant="dense">
-              <p className="ct-mb-sm">Console d&apos;administration : fournisseurs, observabilité, données tenant.</p>
-              <Link href="/admin" className="ct-link-accent">
+              <p className="mb-3 text-sm text-slate-400">Console d&apos;administration : fournisseurs, observabilité, données tenant.</p>
+              <Link href="/admin" className="text-sm font-semibold text-indigo-300 hover:text-indigo-200">
                 {UI.nav.admin}
               </Link>
             </Card>
@@ -67,7 +69,7 @@ export default async function ProfilePage() {
       <MfaPanel />
 
       <Card title={t.integrationsTitle} titleAs="section">
-        <p className="ct-mb-sm">{t.integrationsHint}</p>
+        <p className="mb-3 text-sm text-slate-400">{t.integrationsHint}</p>
         <IntegrationsPanel />
       </Card>
 

@@ -1,4 +1,4 @@
-import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { getSession } from "@/lib/server/session";
@@ -67,7 +67,7 @@ export default async function ScrapersPage() {
     {
       key: "source",
       header: t.cols.source,
-      render: (r) => <span className="ct-badge is-muted">{r.source_platform}</span>,
+      render: (r) => <Badge>{r.source_platform}</Badge>,
     },
     { key: "date", header: t.cols.date, align: "right", render: (r) => dateFr(r.date_collecte) },
   ];
@@ -88,13 +88,11 @@ export default async function ScrapersPage() {
 
       <Card title={t.zonesTitle} variant="dense">
         {zones.length === 0 ? (
-          <p className="ct-placeholder">{t.zonesEmpty}</p>
+          <p className="py-8 text-center text-sm text-slate-500">{t.zonesEmpty}</p>
         ) : (
-          <div className="ct-chip-row">
+          <div className="flex flex-wrap gap-2">
             {zones.map((z) => (
-              <span key={z} className="ct-badge">
-                {z}
-              </span>
+              <Badge key={z}>{z}</Badge>
             ))}
           </div>
         )}

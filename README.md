@@ -6,29 +6,31 @@ Application de gestion immobilière de nouvelle génération, intégrant un CRM 
 
 - **Framework** : Next.js 16 (App Router)
 - **Base de données & Auth** : Supabase (PostgreSQL)
-- **Design System** : Cockpit — **copie locale indépendante** (CSS natif, Glassmorphism, Thème sombre), éditable directement dans ce repo
+- **Design System** : Cockpit — **copie locale indépendante** en utilities Tailwind v4 (glassmorphism, thème sombre slate/indigo), éditable directement dans ce repo. Voir [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md).
 - **Desktop** : Electron (build signé/notarisé)
 - **IA** : Intégration Kimi K2.6 (Hypercli) pour le chat et l'assistance
 
 ## 📁 Architecture Principale
 
-- `/app/(dashboard)` : Vues principales (CRM, Estimations, Prospection, Swarms, Agenda).
-- `/components/cockpit` : composants du Design System (RailLeft, DataTable, Kanban, etc.).
+- `/app/(dashboard)` : Vues principales (CRM, Estimations, Prospection, Swarms, Agenda, Invest).
+- `/components/cockpit` : primitives et composants riches du Design System (`primitives.tsx`, `RailLeft`, `DataTable`, Kanban, etc.).
 - Navigation Cockpit : manifeste unique `config/nav.ts` pour le rail gauche, les onglets de page et la bottom bar mobile.
-- Typographie Cockpit : échelle `--ct-fs-*` dans `app/cockpit/00-tokens.css` ; primitives `Title` (H1), `SectionTitle` (H2), `SubsectionTitle` (H3), `Caption` (meta), `PageHeader` + `PageStack` ; `PageSegmentTabs` pour onglets locaux ; `Card` avec `titleAs="section"` pour titres de fiche lisibles.
 - `/docs` : Documentation technique et produit (voir `docs/produit/PROPOSITION_REFONTE_ECOLE.md` pour le plan de refonte actuel).
 - `/lib` : Utilitaires, clients Supabase, et logique métier.
 
-## 🎨 Design System — copie locale indépendante
+## 🎨 Design System — copie locale, Tailwind utilities
 
-Le design system **Cockpit vit entièrement dans ce repo** et lui appartient : il n'y a **aucune source centrale, aucune dépendance externe (pas de package `@hearst/cockpit-shell`, pas de tarball), aucune resync** à faire.
+Le design system **Cockpit vit entièrement dans ce repo** et lui appartient : aucune source centrale, aucune dépendance externe, aucune resync à faire. Référence complète : **[`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md)** (tokens, thème, primitives, mapping écran → blocs).
 
-- **Composants** : `components/cockpit/*.tsx` — éditables directement.
-- **Tokens & CSS** : `app/cockpit/*.css` (9 sections cascadées via `app/cockpit.css`), tokens `--ct-*` dans `app/cockpit/00-tokens.css` — éditables directement.
-- **Catalog `<hearst-asset>`** : `public/cockpit-catalog/catalog/` (servi en local via `app/layout.tsx`) — enrichissable sur place.
-- **Vocabulaire** : `components/cockpit/manifest.json` (auto-généré) → régénère après une modif CSS avec `npm run cockpit:manifest`.
+- **Composants** : `components/cockpit/*.tsx` — éditables directement, composés en utilities Tailwind natives (pas de classes `ct-*` custom).
+- **Thème** : `app/globals.css` (`@theme` Tailwind v4) — palette dark slate-950/indigo-400, glassmorphism.
+- **Blocs UI** : bâtis à partir de la banque [Tailwind Plus UI Blocks](https://tailwindcss.com/plus) (`~/.claude/tailwind-blocks/`, 657 blocs React) restylés au thème du repo.
 
-Modifier le DS (composant, token, couleur, classe) se fait **ici, librement**. Un changement de token se reflète à chaud (HMR), sans rebuild de package. Seule règle : garder la cohérence visuelle interne du repo. Guide agent : [`components/cockpit/AGENTS.md`](components/cockpit/AGENTS.md).
+## Règles UI
+
+**Interdit de coder de l'UI sans utiliser les composants.** Toute nouvelle page/écran/section se construit à partir des primitives du design system (`components/cockpit/primitives.tsx` — `PageStack`, `PageHeader`, `Card`, `KpiGrid`, etc.) et des blocs Tailwind Plus — jamais de markup ad-hoc qui réinvente un composant existant. Consulte `DESIGN-SYSTEM.md` avant d'ajouter un écran.
+
+Le DS reste **libre** : composants, tokens et CSS s'éditent directement dans ce repo, sans verrou ni lint bloquant sur le design — c'est une référence de cohérence, pas une prison.
 
 ## 🛠 Commandes Utiles
 

@@ -1,8 +1,7 @@
 /**
  * Donut — anneau de progression premium (SVG pur, server component).
- * Convention catalog Cockpit : <circle> tourné -90deg, stroke-dasharray = 2πr,
- * stroke-dashoffset = 2πr·(1 - value/100). Tokens --ct-* uniquement (le gradient
- * et le glow réfèrent les tokens via currentColor / variables CSS).
+ * Convention : <circle> tourné -90deg, stroke-dasharray = 2πr,
+ * stroke-dashoffset = 2πr·(1 - value/100).
  */
 
 type DonutProps = {
@@ -35,13 +34,13 @@ export function Donut({
   const c = 2 * Math.PI * r;
   const offset = c * (1 - safe / 100);
   const center = size / 2;
-  const gid = accent ? "ct-donut-grad-accent" : "ct-donut-grad";
-  const fid = "ct-donut-glow";
+  const gid = accent ? "donut-grad-accent" : "donut-grad";
+  const fid = "donut-glow";
 
   return (
-    <div className="ct-chart-donut">
+    <div className="relative inline-flex items-center justify-center">
       <svg
-        className="ct-chart-donut-ring"
+        className="-rotate-90"
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}
@@ -50,14 +49,8 @@ export function Donut({
       >
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-            <stop
-              offset="0%"
-              stopColor={accent ? "var(--ct-accent-maroon)" : "var(--ct-text-body)"}
-            />
-            <stop
-              offset="100%"
-              stopColor={accent ? "var(--ct-accent-strong)" : "var(--ct-text-strong)"}
-            />
+            <stop offset="0%" stopColor={accent ? "#818cf8" : "rgba(226,232,240,0.7)"} />
+            <stop offset="100%" stopColor={accent ? "#a5b4fc" : "#f8fafc"} />
           </linearGradient>
           <filter id={fid} x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation={GLOW_BLUR} result="blur" />
@@ -68,27 +61,28 @@ export function Donut({
           </filter>
         </defs>
         <circle
-          className="ct-chart-donut-track"
+          className="fill-none stroke-white/10"
           cx={center}
           cy={center}
           r={r}
           strokeWidth={stroke}
         />
         <circle
-          className="ct-chart-donut-fill"
+          className="fill-none"
           cx={center}
           cy={center}
           r={r}
           strokeWidth={stroke}
+          strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={offset}
           stroke={`url(#${gid})`}
           filter={`url(#${fid})`}
         />
       </svg>
-      <div className="ct-chart-donut-center">
-        <span className="ct-chart-donut-value">{centerLabel ?? `${safe}%`}</span>
-        {sublabel && <span className="ct-chart-donut-label">{sublabel}</span>}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-xl font-bold text-white">{centerLabel ?? `${safe}%`}</span>
+        {sublabel && <span className="text-xs text-slate-400">{sublabel}</span>}
       </div>
     </div>
   );

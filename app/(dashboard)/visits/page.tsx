@@ -101,22 +101,18 @@ export default async function VisitsPage() {
         ]}
       />
 
-      <div className="ct-viz-row">
-        <div>
-          <Card title={t.charts.pipeline} variant="chart">
-            <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
-          </Card>
-        </div>
-        <div>
-          <Card title={t.charts.doneRate} variant="chart">
-            <Donut value={doneRate} sublabel={t.charts.doneRateSub} accent />
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
+        <Card title={t.charts.pipeline} variant="chart">
+          <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
+        </Card>
+        <Card title={t.charts.doneRate} variant="chart">
+          <Donut value={doneRate} sublabel={t.charts.doneRateSub} accent />
+        </Card>
       </div>
 
       <Card variant="dense">
         {visits.length === 0 ? (
-          <p className="ct-placeholder">{t.empty}</p>
+          <p className="text-sm text-slate-500">{t.empty}</p>
         ) : (
           <DataTable columns={columns} rows={visits} emptyLabel={t.empty} getKey={(v) => v.id} />
         )}

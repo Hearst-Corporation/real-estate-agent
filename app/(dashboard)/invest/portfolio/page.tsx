@@ -2,7 +2,7 @@
  * PORTEFEUILLE — suivi des positions (étude P12, écran 12). RSC, branché DB.
  */
 import Link from "next/link";
-import { PageStack, PageHeader, KpiGrid, KpiCard, Sub } from "@/components/cockpit/primitives";
+import { PageStack, PageHeader, KpiGrid, KpiCard, Sub, Card } from "@/components/cockpit/primitives";
 import { ProductBadges, StatusPill, Banner, Timeline, eur, pct } from "@/components/invest";
 import type { StatusTone } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
@@ -52,36 +52,30 @@ export default async function PortfolioPage() {
     <PageStack>
       <PageHeader kicker={p.eyebrow} title={p.title} meta={<Sub>{p.sub}</Sub>} />
 
-      {isDemo && (
-        <div className="inv-mb-md">
-          <Banner tone="info">{p.demoBanner}</Banner>
-        </div>
-      )}
+      {isDemo && <Banner tone="info">{p.demoBanner}</Banner>}
 
-      <KpiGrid className="cols-3">
+      <KpiGrid>
         <KpiCard label={p.kpis.capitalLent} value={eur(capitalCumule)} />
         <KpiCard label={p.kpis.activePositions} value={String(actives)} />
         <KpiCard label={p.kpis.distributions} value={eur(distributionsCumulees)} />
       </KpiGrid>
 
-      <div className="inv-mb-lg">
-        <Banner tone="warn">
-          {p.antiConsolidatedBefore}
-          <b>pas</b>
-          {p.antiConsolidatedAfter}
-        </Banner>
-      </div>
+      <Banner tone="warn">
+        {p.antiConsolidatedBefore}
+        <b>pas</b>
+        {p.antiConsolidatedAfter}
+      </Banner>
 
       {positions.map((pos) => (
-        <div className="ct-card" key={pos.dealId}>
-          <div className="inv-row-between">
-            <div className="inv-portfolio-main">
-              <div className="inv-row-center">
-                <span className="inv-pf-deal-name">{pos.dealName}</span>
+        <Card key={pos.dealId}>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-base font-semibold text-slate-100">{pos.dealName}</span>
                 <StatusPill tone={pos.statutTone}>{pos.statutLabel}</StatusPill>
               </div>
               <ProductBadges badges={pos.badges} />
-              <div className="inv-fineprint">
+              <div className="text-xs text-slate-500">
                 {p.positionSummary(
                   eur(pos.capitalPreteEur),
                   pos.units,
@@ -90,34 +84,36 @@ export default async function PortfolioPage() {
                 )}
               </div>
             </div>
-            <div className="inv-portfolio-aside">
-              <div className="inv-progress-meta">
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-baseline gap-1.5 text-xs text-slate-400">
                 <span>{p.ltvCurrent}</span>
-                <b>{pos.ltv != null ? pct(pos.ltv) : UI.common.empty}</b>
+                <b className="text-sm text-slate-100">{pos.ltv != null ? pct(pos.ltv) : UI.common.empty}</b>
               </div>
-              <Link href={`/invest/${pos.dealSlug}`} className="inv-doc-row inv-link-detail">
+              <Link href={`/invest/${pos.dealSlug}`} className="text-sm text-indigo-300 hover:text-indigo-200">
                 {p.viewDetail}
               </Link>
             </div>
           </div>
-        </div>
+        </Card>
       ))}
 
       {payouts.length > 0 && (
-        <div className="ct-card">
-          <div className="ct-card-title">{p.payoutsTitle}</div>
-          <div className="inv-stack-xs">
+        <Card title={p.payoutsTitle} titleAs="section">
+          <div className="flex flex-col gap-2">
             {payouts.map((po) => (
-              <div key={po.id} className="inv-doc-row inv-row-doc">
-                <div className="inv-row-doc-meta">
-                  <span className="inv-name-semibold">{po.dealName ?? p.payoutDefaultDeal}</span>
-                  <span className="inv-fineprint">
+              <div
+                key={po.id}
+                className="flex items-center justify-between gap-4 border-b border-white/5 py-2 last:border-b-0"
+              >
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold text-slate-100">{po.dealName ?? p.payoutDefaultDeal}</span>
+                  <span className="text-xs text-slate-500">
                     {p.distribTypes[po.distributionType ?? ""] ?? p.payoutDefaultType} ·{" "}
                     {p.payoutUnits(po.unitsHeld)}
                   </span>
                 </div>
-                <div className="inv-row-doc-end">
-                  <b>{eur(po.netAmountEur)}</b>
+                <div className="flex items-center gap-3">
+                  <b className="text-sm text-slate-100">{eur(po.netAmountEur)}</b>
                   <StatusPill tone={po.status === "paid" ? "funded" : po.status === "pending" ? "soon" : "late"}>
                     {p.payoutStatus[po.status] ?? po.status}
                   </StatusPill>
@@ -125,15 +121,14 @@ export default async function PortfolioPage() {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
-      <div className="ct-card">
-        <div className="ct-card-title">{p.exitsTitle}</div>
+      <Card title={p.exitsTitle} titleAs="section">
         <Timeline items={exits} />
-      </div>
+      </Card>
 
-      <p className="inv-fineprint inv-mt-md">{p.fineprint}</p>
+      <p className="text-xs text-slate-500">{p.fineprint}</p>
     </PageStack>
   );
 }

@@ -74,7 +74,7 @@ export default async function LeadsPage() {
         ]}
       />
 
-      <div className="ct-viz-row">
+      <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
         <div>
           <Card title={t.charts.pipeline} variant="chart">
             <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />

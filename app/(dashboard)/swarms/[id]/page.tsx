@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
-import { Caption, PageHeader, PageStack, SubsectionTitle } from "@/components/cockpit/primitives";
+import { Badge, Caption, Card, PageHeader, PageStack, SubsectionTitle } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import { dateFr, dateTimeFr } from "@/lib/crm/format";
 import RunStatusBadge from "@/components/swarms/RunStatusBadge";
@@ -104,14 +104,17 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   if (loading) {
-    return <p className="ct-pad-lg ct-muted-text">{UI.common.loading}</p>;
+    return <p className="p-8 text-sm text-slate-500">{UI.common.loading}</p>;
   }
 
   if (error || !swarm) {
     return (
-      <div className="ct-pad-lg">
-        <p className="ct-error-danger ct-mb-sm">{error ?? UI.swarms.notFound}</p>
-        <Link href="/swarms" className="ct-btn ct-btn-secondary">
+      <div className="p-8">
+        <p className="mb-3 text-sm text-red-400">{error ?? UI.swarms.notFound}</p>
+        <Link
+          href="/swarms"
+          className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+        >
           {UI.swarms.backToSwarms}
         </Link>
       </div>
@@ -125,18 +128,14 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
       <PageHeader
         kicker={
           <>
-            <Link href="/swarms" className="swarm-crumb">
+            <Link href="/swarms" className="text-indigo-300 hover:text-indigo-200">
               {UI.nav.swarms}
             </Link>{" "}
             /
           </>
         }
         title={swarm.name}
-        meta={
-          <span className={`swarm-status-badge ${swarm.is_active ? "swarm-status-done" : "swarm-status-failed"}`}>
-            {swarm.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}
-          </span>
-        }
+        meta={<Badge>{swarm.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}</Badge>}
         nav={
           <PageSegmentTabs
             tabs={[
@@ -149,32 +148,45 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
           />
         }
         action={
-          <div className="ct-quick-actions">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              className="ct-btn ct-btn-primary"
+              className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
               onClick={() => setShowKickoff((v) => !v)}
             >
               {showKickoff ? UI.swarms.hideBtn : UI.swarms.launchBtn}
             </button>
             <button
               type="button"
-              className="ct-btn ct-btn-secondary"
+              className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
               onClick={() => { setEditing((v) => !v); setEditError(null); }}
             >
               {UI.swarms.editBtn}
             </button>
             {!deleteConfirm ? (
-              <button type="button" className="ct-btn ct-btn-danger" onClick={() => setDeleteConfirm(true)}>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-lg border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm font-medium text-red-300 transition-colors hover:bg-red-400/20"
+                onClick={() => setDeleteConfirm(true)}
+              >
                 {UI.swarms.deleteBtn}
               </button>
             ) : (
-              <div className="ct-quick-actions">
+              <div className="flex items-center gap-2">
                 <Caption as="span">{UI.swarms.confirmDelete}</Caption>
-                <button type="button" className="ct-btn ct-btn-danger" onClick={handleDelete} disabled={deleteLoading}>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-1.5 text-sm font-medium text-red-300 transition-colors hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={handleDelete}
+                  disabled={deleteLoading}
+                >
                   {deleteLoading ? UI.common.busy : UI.swarms.confirmYes}
                 </button>
-                <button type="button" className="ct-btn ct-btn-secondary" onClick={() => setDeleteConfirm(false)}>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+                  onClick={() => setDeleteConfirm(false)}
+                >
                   {UI.swarms.confirmNo}
                 </button>
               </div>
@@ -185,128 +197,139 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
 
       {/* Inline edit form */}
       {editing && (
-        <div className="ct-card ct-mb-md">
-          <div className="ct-card-body">
-            <div className="ct-card-title">{UI.swarms.editTitle}</div>
+        <Card title={UI.swarms.editTitle}>
+          <div className="flex flex-col gap-3">
             <input
-              className="crm-input ct-mb-sm"
+              className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none"
               type="text"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               placeholder={UI.swarms.manualSectionGeneral}
             />
             <input
-              className="crm-input ct-mb-sm"
+              className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none"
               type="text"
               value={editDesc}
               onChange={(e) => setEditDesc(e.target.value)}
               placeholder={UI.swarms.manualDescPlaceholder}
             />
-            {editError && <p className="ct-error-danger ct-mb-sm">{editError}</p>}
-            <div className="ct-inline-actions">
-              <button type="button" className="ct-btn ct-btn-primary" onClick={handleEdit} disabled={editLoading}>
+            {editError && <p className="text-sm text-red-400">{editError}</p>}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={handleEdit}
+                disabled={editLoading}
+              >
                 {editLoading ? UI.swarms.editSaving : UI.swarms.editSave}
               </button>
-              <button type="button" className="ct-btn ct-btn-secondary" onClick={() => setEditing(false)}>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+                onClick={() => setEditing(false)}
+              >
                 {UI.swarms.editCancel}
               </button>
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Kickoff panel */}
       {showKickoff && (
-        <div className="ct-card ct-mb-md">
-          <div className="ct-card-body">
-            <div className="ct-card-title">{UI.swarms.launchPanelTitle}</div>
-            <SwarmKickoffPanel
-              swarmId={swarm.id}
-              swarmName={swarm.name}
-              onDone={() => { if (id) void loadSwarm(id); }}
-            />
-          </div>
-        </div>
+        <Card title={UI.swarms.launchPanelTitle}>
+          <SwarmKickoffPanel
+            swarmId={swarm.id}
+            swarmName={swarm.name}
+            onDone={() => { if (id) void loadSwarm(id); }}
+          />
+        </Card>
       )}
 
       {/* Tab: Configuration */}
       {tab === "config" && (
-        <div className="ct-card">
-          <div className="ct-card-body">
-            <SubsectionTitle as="div">{UI.swarms.manualSectionGeneral}</SubsectionTitle>
-            <div className="ct-col-stack-sm">
-              <div>
-                <span className="swarm-meta-label">{UI.swarms.metaName}</span>
-                <p className="swarm-meta-value-lg">{swarm.name}</p>
-              </div>
-              {swarm.description && (
-                <div>
-                  <span className="swarm-meta-label">{UI.swarms.metaDescription}</span>
-                  <p className="swarm-meta-value">{swarm.description}</p>
-                </div>
-              )}
-              <div>
-                <span className="swarm-meta-label">{UI.swarms.metaCreatedAt}</span>
-                <p className="swarm-meta-value">{createdAt}</p>
-              </div>
+        <Card>
+          <SubsectionTitle as="div">{UI.swarms.manualSectionGeneral}</SubsectionTitle>
+          <div className="mt-3 flex flex-col gap-3">
+            <div>
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                {UI.swarms.metaName}
+              </span>
+              <p className="mt-0.5 text-base font-semibold text-slate-100">{swarm.name}</p>
             </div>
-
-            {swarm.tool_bindings && swarm.tool_bindings.length > 0 && (
-              <div className="ct-mt-sm">
-                <div className="ct-card-title">{UI.swarms.toolsTitle}</div>
-                <div className="ct-quick-actions">
-                  {swarm.tool_bindings.map((tb, i) => (
-                    <span key={i} className="swarm-tool-badge">{tb.tool_id}</span>
-                  ))}
-                </div>
+            {swarm.description && (
+              <div>
+                <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  {UI.swarms.metaDescription}
+                </span>
+                <p className="mt-0.5 text-sm text-slate-300">{swarm.description}</p>
               </div>
             )}
+            <div>
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                {UI.swarms.metaCreatedAt}
+              </span>
+              <p className="mt-0.5 text-sm text-slate-300">{createdAt}</p>
+            </div>
           </div>
-        </div>
+
+          {swarm.tool_bindings && swarm.tool_bindings.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {UI.swarms.toolsTitle}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {swarm.tool_bindings.map((tb, i) => (
+                  <Badge key={i}>{tb.tool_id}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
       )}
 
       {/* Tab: Agents & Tasks */}
       {tab === "agents" && (
-        <div className="swarm-agents-grid">
+        <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-2">
           <div>
             <SubsectionTitle as="div">{UI.swarms.agentsCount(swarm.agents?.length ?? 0)}</SubsectionTitle>
-            <div className="ct-col-stack-sm">
+            <div className="mt-3 flex flex-col gap-2">
               {(swarm.agents ?? []).map((agent, i) => (
-                <div key={agent.id ?? i} className="swarm-agent-card">
-                  <p className="swarm-agent-name">{agent.name}</p>
-                  <p className="swarm-agent-role">{agent.role}</p>
-                  {agent.goal && <p className="swarm-agent-goal">{agent.goal}</p>}
+                <div key={agent.id ?? i} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                  <p className="text-sm font-medium text-slate-100">{agent.name}</p>
+                  <p className="mt-0.5 text-xs text-indigo-300">{agent.role}</p>
+                  {agent.goal && <p className="mt-1 text-xs text-slate-400">{agent.goal}</p>}
                   {agent.backstory && (
-                    <p className="swarm-meta-backstory">{agent.backstory}</p>
+                    <p className="mt-1 text-xs text-slate-500">{agent.backstory}</p>
                   )}
                 </div>
               ))}
               {(swarm.agents ?? []).length === 0 && (
-                <p className="ct-placeholder">{UI.swarms.agentsEmpty}</p>
+                <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.agentsEmpty}</p>
               )}
             </div>
           </div>
           <div>
             <SubsectionTitle as="div">{UI.swarms.tasksCount(swarm.tasks?.length ?? 0)}</SubsectionTitle>
-            <div className="ct-col-stack-sm">
+            <div className="mt-3 flex flex-col gap-2">
               {(swarm.tasks ?? []).map((task, i) => (
-                <div key={task.id ?? i} className="swarm-agent-card">
-                  <p className="swarm-agent-name">{task.name}</p>
-                  {task.description && <p className="swarm-agent-goal">{task.description}</p>}
+                <div key={task.id ?? i} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                  <p className="text-sm font-medium text-slate-100">{task.name}</p>
+                  {task.description && <p className="mt-0.5 text-xs text-slate-400">{task.description}</p>}
                   {task.expected_output && (
-                    <p className="swarm-meta-backstory">
+                    <p className="mt-1 text-xs text-slate-500">
                       {UI.swarms.expectedOutputPrefix}{task.expected_output}
                     </p>
                   )}
                   {task.agent_name && (
-                    <span className="swarm-tool-badge swarm-task-agent-badge">
+                    <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
                       {task.agent_name}
                     </span>
                   )}
                 </div>
               ))}
               {(swarm.tasks ?? []).length === 0 && (
-                <p className="ct-placeholder">{UI.swarms.tasksEmpty}</p>
+                <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.tasksEmpty}</p>
               )}
             </div>
           </div>
@@ -346,42 +369,42 @@ function RunsTab({
   }
 
   return (
-    <div className="ct-card">
-      <div className="ct-card-body">
-        <div className="ct-row-between ct-mb-md">
-          <div className="ct-card-title">{UI.swarms.runsHistory}</div>
-          <button
-            type="button"
-            className="ct-btn ct-btn-primary"
-            onClick={handleRelaunch}
-            disabled={launching}
-          >
-            {launching ? UI.swarms.runsRelaunching : UI.swarms.runsRelaunch}
-          </button>
+    <Card>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          {UI.swarms.runsHistory}
         </div>
-        {runs.length === 0 ? (
-          <p className="ct-placeholder">{UI.swarms.runsEmpty}</p>
-        ) : (
-          <div>
-            {runs.map((run) => {
-              const date = dateTimeFr(run.created_at);
-              return (
-                <div key={run.run_id} className="swarm-run-row">
-                  <span className="swarm-run-id">{run.run_id}</span>
-                  <RunStatusBadge status={run.status} size="sm" />
-                  <Caption as="span">{date}</Caption>
-                  <Link
-                    href={`/swarms/${swarmId}/run/${run.run_id}`}
-                    className="ct-link-btn-sm ct-btn ct-btn-secondary"
-                  >
-                    {UI.swarms.runsView}
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <button
+          type="button"
+          className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={handleRelaunch}
+          disabled={launching}
+        >
+          {launching ? UI.swarms.runsRelaunching : UI.swarms.runsRelaunch}
+        </button>
       </div>
-    </div>
+      {runs.length === 0 ? (
+        <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.runsEmpty}</p>
+      ) : (
+        <div className="flex flex-col divide-y divide-white/5">
+          {runs.map((run) => {
+            const date = dateTimeFr(run.created_at);
+            return (
+              <div key={run.run_id} className="flex flex-wrap items-center gap-3 py-3">
+                <span className="font-mono text-xs text-slate-500">{run.run_id}</span>
+                <RunStatusBadge status={run.status} size="sm" />
+                <Caption as="span">{date}</Caption>
+                <Link
+                  href={`/swarms/${swarmId}/run/${run.run_id}`}
+                  className="ml-auto inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+                >
+                  {UI.swarms.runsView}
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
   );
 }

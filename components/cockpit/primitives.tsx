@@ -2,30 +2,34 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/cockpit/Icon";
 
 export function Eyebrow({ children }: { children: ReactNode }) {
-  return <div className="ct-eyebrow">{children}</div>;
+  return (
+    <div className="text-xs font-semibold uppercase tracking-widest text-indigo-300">
+      {children}
+    </div>
+  );
 }
 
 export function Title({ children }: { children: ReactNode }) {
-  return <h1 className="ct-title">{children}</h1>;
+  return <h1 className="text-2xl font-bold tracking-tight text-white">{children}</h1>;
 }
 
 export function Sub({ children }: { children: ReactNode }) {
-  return <p className="ct-sub">{children}</p>;
+  return <p className="text-sm text-slate-400">{children}</p>;
 }
 
 /** H2 de section — titre lisible sous le H1 de page. */
 export function SectionTitle({ children, as: Tag = "h2" }: { children: ReactNode; as?: "h2" | "div" }) {
-  return <Tag className="ct-h2">{children}</Tag>;
+  return <Tag className="text-lg font-semibold text-slate-100">{children}</Tag>;
 }
 
 /** H3 de sous-section. */
 export function SubsectionTitle({ children, as: Tag = "h3" }: { children: ReactNode; as?: "h3" | "div" }) {
-  return <Tag className="ct-h3">{children}</Tag>;
+  return <Tag className="text-sm font-semibold text-slate-200">{children}</Tag>;
 }
 
 /** Meta secondaire (dates, heures, compteurs discrets). */
 export function Caption({ children, as: Tag = "p" }: { children: ReactNode; as?: "p" | "span" | "div" }) {
-  return <Tag className="ct-subtext">{children}</Tag>;
+  return <Tag className="text-xs text-slate-500">{children}</Tag>;
 }
 
 export function PageHeader({
@@ -46,47 +50,44 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={`ct-page-header${className ? ` ${className}` : ""}`}>
-      <div className="ct-page-header-topbar">
+    <div className={`flex flex-col gap-4 pb-6 ${className ?? ""}`}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="ct-page-header-kicker-track">
-            {kicker && <p className="ct-page-header-kicker">{kicker}</p>}
-          </div>
-          <h1 className="ct-title ct-page-header-title">{title}</h1>
-          {meta ? <div className="ct-page-header-meta">{meta}</div> : null}
+          {kicker ? (
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+              {kicker}
+            </p>
+          ) : null}
+          <h1 className="text-2xl font-bold tracking-tight text-white">{title}</h1>
+          {meta ? <div className="mt-1 text-sm text-slate-400">{meta}</div> : null}
         </div>
-        {action ? (
-          <div className="ct-page-header-action-track">
-            <div>{action}</div>
-          </div>
-        ) : null}
+        {action ? <div className="shrink-0">{action}</div> : null}
       </div>
 
       {nav ? (
-        <div className="ct-page-header-nav-track">
-          <nav className="ct-page-header-nav">
-            {nav}
-          </nav>
-        </div>
+        <nav className="flex flex-wrap items-center gap-1 border-b border-white/10 pb-2">
+          {nav}
+        </nav>
       ) : null}
 
       {kpis && kpis.length > 0 ? (
-        <div className="ct-page-header-kpis-track">
-          <div className="ct-page-header-kpis">
-            {kpis.map((kpi, i) => (
-              <div key={i} className="ct-page-header-kpi">
-                {kpi.icon ? (
-                  <span className="ct-page-header-kpi-icon" aria-hidden="true">
-                    <Icon name={kpi.icon} />
-                  </span>
-                ) : null}
-                <span className="ct-page-header-kpi-text">
-                  <span>{kpi.label}</span>
-                  <strong>{kpi.value}</strong>
+        <div className="flex flex-wrap gap-3">
+          {kpis.map((kpi, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
+            >
+              {kpi.icon ? (
+                <span className="text-indigo-300" aria-hidden="true">
+                  <Icon name={kpi.icon} className="size-4" />
                 </span>
-              </div>
-            ))}
-          </div>
+              ) : null}
+              <span className="flex items-baseline gap-1.5 text-xs text-slate-400">
+                <span>{kpi.label}</span>
+                <strong className="text-sm font-semibold text-slate-100">{kpi.value}</strong>
+              </span>
+            </div>
+          ))}
         </div>
       ) : null}
     </div>
@@ -94,16 +95,22 @@ export function PageHeader({
 }
 
 export function PageStack({ children }: { children: ReactNode }) {
-  return <div className="ct-page-stack">{children}</div>;
+  return <div className="flex flex-col gap-6 pb-12">{children}</div>;
 }
 
 export function DashboardGrid({ children }: { children: ReactNode }) {
-  return <div className="ct-dashboard-grid">{children}</div>;
+  return <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-3">{children}</div>;
 }
 
 export function InsightRail({ children }: { children: ReactNode }) {
-  return <aside className="ct-insight-rail">{children}</aside>;
+  return <aside className="flex flex-col gap-4">{children}</aside>;
 }
+
+const CARD_VARIANT: Record<"hero" | "chart" | "dense", string> = {
+  hero: "bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03]",
+  chart: "p-4",
+  dense: "p-3",
+};
 
 export function Card({
   title,
@@ -119,25 +126,32 @@ export function Card({
   variant?: "hero" | "chart" | "dense";
   className?: string;
 }) {
-  const classes = ["ct-card", variant ? `ct-card-${variant}` : "", className ?? ""]
-    .filter(Boolean)
-    .join(" ");
   return (
-    <section className={classes}>
+    <section
+      className={`rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm ${
+        variant ? CARD_VARIANT[variant] : ""
+      } ${className ?? ""}`}
+    >
       {title ? (
         titleAs === "section" ? (
-          <SectionTitle as="div">{title}</SectionTitle>
+          <div className="mb-3">
+            <SectionTitle as="div">{title}</SectionTitle>
+          </div>
         ) : (
-          <div className="ct-card-title">{title}</div>
+          <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+            {title}
+          </div>
         )
       ) : null}
-      <div className="ct-card-body">{children}</div>
+      <div>{children}</div>
     </section>
   );
 }
 
 export function KpiGrid({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={`ct-kpi-grid${className ? ` ${className}` : ""}`}>{children}</div>;
+  return (
+    <div className={`grid grid-cols-2 gap-3 @2xl:grid-cols-4 ${className ?? ""}`}>{children}</div>
+  );
 }
 
 export function KpiCard({
@@ -154,11 +168,15 @@ export function KpiCard({
   children?: ReactNode;
 }) {
   return (
-    <div className={`ct-kpi-card${accent ? " accent" : ""}${className ? ` ${className}` : ""}`}>
+    <div
+      className={`rounded-xl border p-4 ${
+        accent ? "border-indigo-400/40 bg-indigo-500/10" : "border-white/10 bg-white/[0.03]"
+      } ${className ?? ""}`}
+    >
       {children ?? (
         <>
-          <div className="ct-kpi-label">{label}</div>
-          <div className="ct-kpi-value">{value}</div>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</div>
+          <div className="mt-1 text-2xl font-bold text-white">{value}</div>
         </>
       )}
     </div>
@@ -166,7 +184,11 @@ export function KpiCard({
 }
 
 export function Badge({ children }: { children: ReactNode }) {
-  return <span className="ct-badge">{children}</span>;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
+      {children}
+    </span>
+  );
 }
 
 export function HeroMetric({
@@ -181,13 +203,15 @@ export function HeroMetric({
   children?: ReactNode;
 }) {
   return (
-    <section className="ct-hero-metric">
+    <section className="flex flex-wrap items-end justify-between gap-6 rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6">
       <div>
-        <div className="ct-hero-eyebrow">{eyebrow}</div>
-        <div className="ct-hero-value">{value}</div>
-        <div className="ct-hero-label">{label}</div>
+        <div className="text-xs font-semibold uppercase tracking-widest text-indigo-300">
+          {eyebrow}
+        </div>
+        <div className="mt-1 text-5xl font-black tracking-tight text-white">{value}</div>
+        <div className="mt-1 text-sm text-slate-400">{label}</div>
       </div>
-      {children ? <div className="ct-hero-extra">{children}</div> : null}
+      {children ? <div>{children}</div> : null}
     </section>
   );
 }

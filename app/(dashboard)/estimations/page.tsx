@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
@@ -6,7 +7,7 @@ import { BarList } from "@/components/cockpit/BarList";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
 import { eur, dateFr } from "@/lib/crm/format";
-import { statusTone } from "@/lib/crm/statusTone";
+import { statusTone, type StatusTone } from "@/lib/crm/statusTone";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -16,6 +17,30 @@ import { tenantOf } from "@/lib/tenant";
 /** Ordre canonique du cycle d'une estimation. */
 const ESTIMATION_STATUSES = ["draft", "interviewing", "recap", "valuating", "ready", "archived"];
 const IN_PROGRESS = ["draft", "interviewing", "recap", "valuating"];
+
+const STATUS_TONE_CLASSES: Record<StatusTone, string> = {
+  "is-positive": "border-emerald-400/30 bg-emerald-500/10 text-emerald-300",
+  "is-negative": "border-red-400/30 bg-red-500/10 text-red-300",
+  "is-pending": "border-white/10 bg-white/[0.06] text-slate-300",
+};
+
+const STATUS_DOT_CLASSES: Record<StatusTone, string> = {
+  "is-positive": "bg-emerald-400",
+  "is-negative": "bg-red-400",
+  "is-pending": "bg-slate-400",
+};
+
+/** Badge de statut pill — dot coloré + libellé, tonalité pilotée par `statusTone`. */
+function StatusPill({ tone, children }: { tone: StatusTone; children: ReactNode }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${STATUS_TONE_CLASSES[tone]}`}
+    >
+      <span className={`size-1.5 rounded-full ${STATUS_DOT_CLASSES[tone]}`} aria-hidden="true" />
+      {children}
+    </span>
+  );
+}
 
 type EstRow = {
   id: string;
@@ -64,9 +89,7 @@ export default async function EstimationsPage() {
       key: "status",
       header: t.table.status,
       render: (e) => (
-        <span className={`crm-status ${statusTone("estimation", e.status)}`}>
-          {t.status[e.status] ?? e.status}
-        </span>
+        <StatusPill tone={statusTone("estimation", e.status)}>{t.status[e.status] ?? e.status}</StatusPill>
       ),
     },
     { key: "updated", header: t.table.updated, align: "right", render: (e) => dateFr(e.updated_at) },
@@ -75,7 +98,10 @@ export default async function EstimationsPage() {
       header: t.table.action,
       align: "right",
       render: (e) => (
-        <Link href={`/estimations/${e.id}`} className="ct-seg-btn">
+        <Link
+          href={`/estimations/${e.id}`}
+          className="inline-flex items-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+        >
           {e.status === "draft" || e.status === "interviewing" ? t.resume : t.open}
         </Link>
       ),
@@ -89,7 +115,10 @@ export default async function EstimationsPage() {
         title={t.title}
         nav={<PageNavTabs tabs={TAB_GROUPS.portefeuille} />}
         action={
-          <Link href="/estimations/new" className="ct-seg-btn primary">
+          <Link
+            href="/estimations/new"
+            className="inline-flex items-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-3 py-1.5 text-xs font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/25"
+          >
             {t.newCta}
           </Link>
         }
@@ -101,7 +130,7 @@ export default async function EstimationsPage() {
         ]}
       />
 
-      <div className="ct-viz-row">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div>
           <Card title={t.charts.pipeline} variant="chart">
             <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />

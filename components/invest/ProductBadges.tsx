@@ -14,14 +14,31 @@ export interface ProductBadge {
   detail?: string;
 }
 
+/** Code couleur : nature (or) · finance (neutre) · risk (warn) · secured (success) · conf (muted). */
+const FAMILY_CLASS: Record<BadgeFamily, string> = {
+  nat: "border-amber-400/30 bg-amber-500/10 text-amber-200",
+  fin: "border-white/10 bg-white/[0.06] text-slate-300",
+  risk: "border-red-400/30 bg-red-500/10 text-red-200",
+  secured: "border-emerald-400/30 bg-emerald-500/10 text-emerald-200",
+  conf: "border-white/10 bg-white/[0.04] text-slate-400",
+};
+
+const FAMILY_DOT_CLASS: Record<BadgeFamily, string> = {
+  nat: "bg-amber-400",
+  fin: "bg-slate-400",
+  risk: "bg-red-400",
+  secured: "bg-emerald-400",
+  conf: "bg-slate-500",
+};
+
 export function LegalBadge({ family, label, detail }: ProductBadge) {
   return (
     <span
-      className={`inv-badge ${family}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${FAMILY_CLASS[family]}`}
       title={detail}
       aria-label={detail ? `${label} : ${detail}` : label}
     >
-      <span className="inv-badge-dot" aria-hidden />
+      <span className={`size-1.5 rounded-full ${FAMILY_DOT_CLASS[family]}`} aria-hidden />
       {label}
     </span>
   );
@@ -29,7 +46,7 @@ export function LegalBadge({ family, label, detail }: ProductBadge) {
 
 export function ProductBadges({ badges }: { badges: ProductBadge[] }) {
   return (
-    <div className="inv-badge-row" role="list">
+    <div className="flex flex-wrap gap-1.5" role="list">
       {badges.map((b) => (
         <span role="listitem" key={`${b.family}-${b.label}`}>
           <LegalBadge {...b} />

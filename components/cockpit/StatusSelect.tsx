@@ -13,7 +13,7 @@ type StatusSelectProps = {
   ariaLabel: string;
 };
 
-/** Sélecteur de statut inline (PATCH { status } + refresh). Compact via .crm-status-select. */
+/** Sélecteur de statut inline (PATCH { status } + refresh). */
 export function StatusSelect({ endpoint, value, options, labels, ariaLabel }: StatusSelectProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -45,7 +45,7 @@ export function StatusSelect({ endpoint, value, options, labels, ariaLabel }: St
   return (
     <>
       <select
-        className="ct-input crm-status-select"
+        className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs font-medium text-slate-100 focus:border-indigo-400/50 focus:outline-none disabled:opacity-50"
         value={value}
         onChange={handleChange}
         disabled={busy}
@@ -57,7 +57,7 @@ export function StatusSelect({ endpoint, value, options, labels, ariaLabel }: St
           </option>
         ))}
       </select>
-      {error ? <span className="ct-error">{error}</span> : null}
+      {error ? <span className="ml-2 text-xs text-red-400">{error}</span> : null}
     </>
   );
 }

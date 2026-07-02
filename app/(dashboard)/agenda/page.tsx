@@ -66,7 +66,7 @@ export default async function AgendaPage() {
       render: (r) => (
         <div>
           <div>{dateFr(r.scheduled_at)}</div>
-          <div className="ct-subtext">{timeFr(r.scheduled_at)}</div>
+          <div className="text-xs text-slate-500">{timeFr(r.scheduled_at)}</div>
         </div>
       ),
     },
@@ -101,13 +101,15 @@ export default async function AgendaPage() {
 
       <Card variant="dense">
         {visits.length === 0 ? (
-          <>
-            <p className="ct-placeholder">{tv.empty}</p>
-            <div className="ct-mb-sm" />
-            <Link href="/visits" className="ct-seg-btn">
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
+            <p className="text-sm text-slate-500">{tv.empty}</p>
+            <Link
+              href="/visits"
+              className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-white/[0.08]"
+            >
               {tv.newCta}
             </Link>
-          </>
+          </div>
         ) : (
           <DataTable
             columns={columns}

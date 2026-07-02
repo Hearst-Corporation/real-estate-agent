@@ -30,7 +30,11 @@ export function ScrapeCustomModal({
 
   if (!open) {
     return (
-      <button type="button" className="ct-seg-btn primary" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
+        onClick={() => setOpen(true)}
+      >
         {t.scrapeBtn}
       </button>
     );
@@ -109,22 +113,26 @@ function ScrapeCustomForm({
   if (result) {
     const empty = result.scraped === 0 || result.retained === 0;
     return (
-      <div className="ct-col-stack-sm">
-        <div className="ct-card-title">{t.scrapeResultTitle}</div>
-        <p className="ct-sub">
+      <div className="flex flex-col gap-3">
+        <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          {t.scrapeResultTitle}
+        </div>
+        <p className="text-sm text-slate-300">
           {t.scrapeResultSummary(result.scraped, result.retained, result.inserted)}
         </p>
         {empty ? (
-          <p className="ct-placeholder">{t.scrapeResultEmpty}</p>
+          <p className="py-4 text-center text-sm text-slate-500">{t.scrapeResultEmpty}</p>
         ) : (
           <>
-            <p className="ct-subtext">{t.scrapeResultMatched(result.matched)}</p>
+            <p className="text-sm text-slate-400">{t.scrapeResultMatched(result.matched)}</p>
             {result.topMatchs.length > 0 ? (
               <>
-                <div className="ct-card-title">{t.scrapeTopMatchsTitle}</div>
-                <ul className="ct-col-stack-xs">
+                <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                  {t.scrapeTopMatchsTitle}
+                </div>
+                <ul className="flex flex-col gap-1">
                   {result.topMatchs.map((m) => (
-                    <li key={`${m.critereId}:${m.annonceId}`} className="ct-subtext">
+                    <li key={`${m.critereId}:${m.annonceId}`} className="text-sm text-slate-400">
                       {t.scrapeMatchLine(m.critereNom, m.score)}
                     </li>
                   ))}
@@ -133,8 +141,12 @@ function ScrapeCustomForm({
             ) : null}
           </>
         )}
-        <div className="crm-form-actions">
-          <button type="button" className="ct-seg-btn primary" onClick={onClose}>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
+            onClick={onClose}
+          >
             {t.scrapeCancel}
           </button>
         </div>
@@ -144,8 +156,10 @@ function ScrapeCustomForm({
 
   return (
     <CockpitForm onSubmit={handleSubmit}>
-      <div className="ct-card-title">{t.scrapeModalTitle}</div>
-      <p className="ct-subtext">{t.scrapeIntro}</p>
+      <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+        {t.scrapeModalTitle}
+      </div>
+      <p className="text-sm text-slate-400">{t.scrapeIntro}</p>
 
       <Field label={t.scrapeVille} htmlFor="scrape-zone" required>
         <TextInput
@@ -196,13 +210,21 @@ function ScrapeCustomForm({
         />
       </Field>
 
-      {error && <p className="ct-error">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
-      <div className="crm-form-actions">
-        <button type="submit" className="ct-seg-btn primary" disabled={loading}>
+      <div className="flex justify-end gap-2">
+        <button
+          type="submit"
+          className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={loading}
+        >
           {loading ? t.scrapeSubmitting : t.scrapeSubmit}
         </button>
-        <button type="button" className="ct-seg-btn" onClick={onClose}>
+        <button
+          type="button"
+          className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+          onClick={onClose}
+        >
           {t.scrapeCancel}
         </button>
       </div>

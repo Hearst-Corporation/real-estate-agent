@@ -69,19 +69,33 @@ export function LeadRowActions({ id, fullName, defaultValues }: LeadRowActionsPr
   }
 
   return (
-    <div className="ct-table-actions">
+    <div className="flex flex-wrap items-center justify-end gap-1.5">
       {canEnrich ? (
-        <button className="ct-seg-btn" onClick={handleEnrich} disabled={enriching}>
+        <button
+          type="button"
+          className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
+          onClick={handleEnrich}
+          disabled={enriching}
+        >
           {enriching ? UI.leads.enriching : UI.leads.enrich}
         </button>
       ) : null}
-      <button className="ct-seg-btn" onClick={() => setEditing(true)}>
+      <button
+        type="button"
+        className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+        onClick={() => setEditing(true)}
+      >
         {UI.viz.edit}
       </button>
-      <button className="ct-seg-btn danger" onClick={handleDelete} disabled={deleting}>
+      <button
+        type="button"
+        className="rounded-lg border border-red-400/20 bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+        onClick={handleDelete}
+        disabled={deleting}
+      >
         {deleting ? UI.common.busy : UI.viz.delete}
       </button>
-      {message ? <span className="ct-placeholder">{message}</span> : null}
+      {message ? <span className="text-xs text-slate-500">{message}</span> : null}
 
       {editing && (
         <AccessibleModal title="Modifier le lead" onClose={() => setEditing(false)}>

@@ -93,10 +93,12 @@ export default function RunReport({
   }, [run?.status, fetchRun]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
-    return <div className="swarm-report-loading">{UI.common.loading}</div>;
+    return <div className="py-8 text-center text-sm text-slate-500">{UI.common.loading}</div>;
   }
   if (error || !run) {
-    return <div className="swarm-report-loading">{error ?? UI.swarms.runNotFound}</div>;
+    return (
+      <div className="py-8 text-center text-sm text-slate-500">{error ?? UI.swarms.runNotFound}</div>
+    );
   }
 
   const isActive = ACTIVE.includes(run.status);
@@ -109,34 +111,36 @@ export default function RunReport({
   const tokens = (run.tokens_in ?? 0) + (run.tokens_out ?? 0);
 
   return (
-    <div className="swarm-report">
-      <div className="swarm-report-head">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
         <RunStatusBadge status={run.status} size="sm" />
-        <span className="swarm-report-meta">{UI.swarms.runLaunchedAt(launched)}</span>
+        <span>{UI.swarms.runLaunchedAt(launched)}</span>
         {durS != null && (
-          <span className="swarm-report-meta">· {durS}{UI.swarms.reportDurationUnit}</span>
+          <span>· {durS}{UI.swarms.reportDurationUnit}</span>
         )}
         {tokens > 0 && (
-          <span className="swarm-report-meta">
+          <span>
             · {tokens.toLocaleString("fr-FR")} {UI.swarms.reportTokens}
           </span>
         )}
         {run.cost_usd != null && run.cost_usd > 0 && (
-          <span className="swarm-report-meta">· ${run.cost_usd.toFixed(3)}</span>
+          <span>· ${run.cost_usd.toFixed(3)}</span>
         )}
       </div>
 
       {run.status === "paused_hitl" && run.decision && (
-        <div className="mv-dock">
-          <span className="mv-pill mv-pill-ask">{UI.missions.decisionPill}</span>
-          <div className="mv-q">{run.decision.question}</div>
-          {run.decision.hint && <div className="mv-hint">{run.decision.hint}</div>}
-          <div className="mv-choices">
+        <div className="flex flex-col gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
+          <span className="inline-flex w-fit items-center rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-xs font-medium text-amber-300">
+            {UI.missions.decisionPill}
+          </span>
+          <div className="text-sm font-medium text-slate-100">{run.decision.question}</div>
+          {run.decision.hint && <div className="text-xs text-slate-400">{run.decision.hint}</div>}
+          <div className="flex flex-wrap gap-2">
             {run.decision.options.map((o) => (
               <button
                 key={o.value}
                 type="button"
-                className="mv-choice"
+                className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
                 disabled={sending !== null}
                 aria-busy={sending === o.value}
                 onClick={() => void choose(o.value)}
@@ -146,14 +150,14 @@ export default function RunReport({
             ))}
           </div>
           {decisionErr && (
-            <div className="mv-hint mv-dock-err">{UI.missions.decisionError}</div>
+            <div className="text-xs text-red-400">{UI.missions.decisionError}</div>
           )}
         </div>
       )}
 
       {isActive && run.status !== "paused_hitl" && (
-        <div className="swarm-report-active">
-          <span className="swarm-spinner" />
+        <div className="flex items-center gap-2 text-sm text-slate-300">
+          <span className="size-3.5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" aria-hidden="true" />
           {UI.swarms.runActive}
         </div>
       )}
@@ -161,22 +165,24 @@ export default function RunReport({
       {run.output ? (
         <ReportMarkdown text={run.output} />
       ) : !isActive ? (
-        <p className="ct-placeholder">{UI.swarms.reportEmpty}</p>
+        <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.reportEmpty}</p>
       ) : null}
 
       {steps.length > 0 && (
-        <details className="swarm-report-tech">
-          <summary>{UI.swarms.reportTechnicalDetails}</summary>
-          <ol className="swarm-steps-timeline">
+        <details className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+          <summary className="cursor-pointer text-sm font-medium text-slate-300 select-none">
+            {UI.swarms.reportTechnicalDetails}
+          </summary>
+          <ol className="mt-3 flex flex-col gap-3">
             {steps.map((s, i) => (
-              <li key={s.id ?? i} className="swarm-step-item">
-                <div className="swarm-step-header">
-                  {s.agent && <span>{s.agent}</span>}
+              <li key={s.id ?? i} className="flex flex-col gap-1">
+                <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
+                  {s.agent && <span className="font-medium text-slate-200">{s.agent}</span>}
                   {s.agent && s.task && <span>·</span>}
                   {s.task && <span>{s.task}</span>}
                 </div>
                 {s.output && (
-                  <div className="swarm-step-output">
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5 font-mono text-xs whitespace-pre-wrap text-slate-300">
                     {s.output.length > STEP_MAX_CHARS
                       ? s.output.slice(0, STEP_MAX_CHARS) + "…"
                       : s.output}

@@ -113,7 +113,7 @@ export function LeadForm({
 
   return (
     <CockpitForm onSubmit={handleSubmit}>
-      <div className="ct-card-title">{t.title}</div>
+      <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">{t.title}</div>
 
       <Field label={t.fullName} htmlFor="lead-full-name" required>
         <TextInput
@@ -191,14 +191,22 @@ export function LeadForm({
         />
       </Field>
 
-      {error && <p className="ct-error">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
-      <div className="crm-form-actions">
-        <button className="ct-seg-btn primary" type="submit" disabled={loading}>
+      <div className="flex items-center gap-2 pt-2">
+        <button
+          className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:opacity-50"
+          type="submit"
+          disabled={loading}
+        >
           {t.save}
         </button>
         {onClose && (
-          <button className="ct-seg-btn" type="button" onClick={onClose}>
+          <button
+            className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+            type="button"
+            onClick={onClose}
+          >
             {t.cancel}
           </button>
         )}
@@ -207,14 +215,18 @@ export function LeadForm({
   );
 }
 
-/** Bouton "Nouveau lead" + modale de création (pattern .crm-form-overlay). */
+/** Bouton "Nouveau lead" + modale de création. */
 export default function LeadFormModal({ cta }: { cta: string }) {
   const [open, setOpen] = useState(false);
   useOpenFromQuery("new", useCallback(() => setOpen(true), []));
 
   if (!open) {
     return (
-      <button className="ct-seg-btn primary" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
+        onClick={() => setOpen(true)}
+      >
         {cta}
       </button>
     );

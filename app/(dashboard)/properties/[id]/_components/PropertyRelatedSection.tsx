@@ -48,16 +48,16 @@ export async function PropertyRelatedSection({ propertyId, userId, tenantId }: P
       {/* ── Leads ────────────────────────────────────────────────────────── */}
       <Card title={td.cardLeads}>
         {leads && leads.length > 0 ? (
-          <ul className="crm-related-list">
+          <ul className="flex flex-col divide-y divide-white/5">
             {leads.map((lead) => (
-              <li key={lead.id} className="crm-related-row">
-                <span className="crm-related-primary">{lead.full_name}</span>
-                <div className="crm-related-badges">
+              <li key={lead.id} className="flex flex-col gap-1 py-2.5">
+                <span className="text-sm font-medium text-slate-100">{lead.full_name}</span>
+                <div className="flex flex-wrap gap-1.5">
                   <Badge>{tLeads.kindLabels[lead.kind] ?? lead.kind}</Badge>
                   <Badge>{tLeads.statusLabels[lead.status] ?? lead.status}</Badge>
                 </div>
                 {(lead.budget_min != null || lead.budget_max != null) && (
-                  <span className="crm-related-secondary">
+                  <span className="text-xs text-slate-500">
                     {lead.budget_min != null ? eur(lead.budget_min) : ""}
                     {lead.budget_min != null && lead.budget_max != null ? " – " : ""}
                     {lead.budget_max != null ? eur(lead.budget_max) : ""}
@@ -67,55 +67,57 @@ export async function PropertyRelatedSection({ propertyId, userId, tenantId }: P
             ))}
           </ul>
         ) : (
-          <p className="ct-placeholder">{td.leadsEmpty}</p>
+          <p className="py-4 text-sm text-slate-500">{td.leadsEmpty}</p>
         )}
-        <div className="crm-card-footer">
-          <Link href="/leads" className="crm-link">{td.seeAllLeads}</Link>
+        <div className="mt-3 border-t border-white/10 pt-3">
+          <Link href="/leads" className="text-sm font-semibold text-indigo-300 hover:text-indigo-200">
+            {td.seeAllLeads}
+          </Link>
         </div>
       </Card>
 
       {/* ── Visites ──────────────────────────────────────────────────────── */}
       <Card title={td.cardVisites}>
         {visits && visits.length > 0 ? (
-          <ul className="crm-related-list">
+          <ul className="flex flex-col divide-y divide-white/5">
             {visits.map((visit) => (
-              <li key={visit.id} className="crm-related-row">
-                <span className="crm-related-primary">{dateTimeFr(visit.scheduled_at)}</span>
-                <div className="crm-related-badges">
+              <li key={visit.id} className="flex flex-col gap-1 py-2.5">
+                <span className="text-sm font-medium text-slate-100">{dateTimeFr(visit.scheduled_at)}</span>
+                <div className="flex flex-wrap gap-1.5">
                   <Badge>{tVisits.statusLabels[visit.status] ?? visit.status}</Badge>
                 </div>
                 {visit.duration_min > 0 && (
-                  <span className="crm-related-secondary">{td.visitDuration(visit.duration_min)}</span>
+                  <span className="text-xs text-slate-500">{td.visitDuration(visit.duration_min)}</span>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="ct-placeholder">{td.visitsEmpty}</p>
+          <p className="py-4 text-sm text-slate-500">{td.visitsEmpty}</p>
         )}
       </Card>
 
       {/* ── Mandats ──────────────────────────────────────────────────────── */}
       <Card title={td.cardMandats}>
         {mandates && mandates.length > 0 ? (
-          <ul className="crm-related-list">
+          <ul className="flex flex-col divide-y divide-white/5">
             {mandates.map((mandate) => (
-              <li key={mandate.id} className="crm-related-row">
-                <span className="crm-related-primary">
+              <li key={mandate.id} className="flex flex-col gap-1 py-2.5">
+                <span className="text-sm font-medium text-slate-100">
                   {mandate.reference ?? td.mandateRef}
                 </span>
-                <div className="crm-related-badges">
+                <div className="flex flex-wrap gap-1.5">
                   <Badge>{tMandates.statusLabels[mandate.status] ?? mandate.status}</Badge>
                   <Badge>{tMandates.kindLabels[mandate.kind] ?? mandate.kind}</Badge>
                 </div>
                 {mandate.commission_pct != null && (
-                  <span className="crm-related-secondary">{td.commission(mandate.commission_pct)}</span>
+                  <span className="text-xs text-slate-500">{td.commission(mandate.commission_pct)}</span>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="ct-placeholder">{td.mandatesEmpty}</p>
+          <p className="py-4 text-sm text-slate-500">{td.mandatesEmpty}</p>
         )}
       </Card>
     </>

@@ -11,7 +11,7 @@ export default function DashboardLoading() {
     <PageStack>
       <PageHeader kicker="Cockpit" title={UI.common.loading} />
       <Card>
-        <div className="ct-skeleton-stack" aria-busy="true">
+        <div className="flex flex-col gap-3" aria-busy="true">
           <Skeleton width="40%" height={20} />
           <Skeleton width="100%" height={14} />
           <Skeleton width="90%" height={14} />

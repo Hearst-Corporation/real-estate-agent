@@ -46,7 +46,7 @@ export function PropertyStatusControl({
   return (
     <>
       <select
-        className="ct-input crm-status-select"
+        className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 focus:border-indigo-400/50 focus:outline-none disabled:opacity-50"
         value={currentStatus}
         onChange={handleChange}
         disabled={busy}
@@ -58,7 +58,7 @@ export function PropertyStatusControl({
           </option>
         ))}
       </select>
-      {error ? <span className="ct-error">{error}</span> : null}
+      {error ? <span className="ml-2 text-xs text-red-400">{error}</span> : null}
     </>
   );
 }

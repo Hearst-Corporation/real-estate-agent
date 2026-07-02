@@ -60,7 +60,7 @@ function renderBlocks(text: string): React.ReactNode {
   const flushPara = () => {
     if (para.length === 0) return;
     blocks.push(
-      <p key={key++} className="est-msg-p">
+      <p key={key++} className="leading-relaxed">
         {renderInline(para.join(" "))}
       </p>
     );
@@ -69,7 +69,7 @@ function renderBlocks(text: string): React.ReactNode {
   const flushBullets = () => {
     if (bullets.length === 0) return;
     blocks.push(
-      <ul key={key++} className="est-msg-ul">
+      <ul key={key++} className="list-disc space-y-1 pl-5 leading-relaxed">
         {bullets.map((b, i) => (
           <li key={i}>{renderInline(b)}</li>
         ))}
@@ -80,7 +80,7 @@ function renderBlocks(text: string): React.ReactNode {
   const flushOrdered = () => {
     if (ordered.length === 0) return;
     blocks.push(
-      <ol key={key++} className="est-msg-ol">
+      <ol key={key++} className="list-decimal space-y-1 pl-5 leading-relaxed">
         {ordered.map((b, i) => (
           <li key={i}>{renderInline(b)}</li>
         ))}
@@ -350,31 +350,33 @@ export function EstimationWizard({
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="est-wizard">
+    <div className="flex h-full flex-col">
       {/* ── Header sticky : stepper + barre ── */}
-      <div className="est-wizard-head">
+      <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-white/10 bg-slate-950/80 px-4 py-3 backdrop-blur-xl sm:px-6">
         <WizardStepper
           coverage={coverage}
           nextLabel={nextLabel}
           canGenerate={canGenerate}
         />
-        <div className="est-wizard-progress-track">
+        <div className="h-1 overflow-hidden rounded-full bg-white/10">
           <div
-            className="est-wizard-progress-fill"
+            className="h-full rounded-full bg-indigo-400 transition-all duration-300"
             style={{ width: `${progressPct}%` }}
           />
         </div>
       </div>
 
       {/* ── Messages ── */}
-      <div className="est-wizard-messages" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6" ref={scrollRef}>
         {isEmpty ? (
-          <div className="est-wizard-empty">
-            <div className="est-wizard-empty-icon">€</div>
-            <p className="est-wizard-empty-title">{UI.estimations.interviewTitle}</p>
-            <p className="est-wizard-empty-sub">{UI.estimations.interviewSub}</p>
+          <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+            <div className="flex size-14 items-center justify-center rounded-full bg-indigo-500/15 text-2xl font-bold text-indigo-300">
+              €
+            </div>
+            <p className="text-lg font-semibold text-white">{UI.estimations.interviewTitle}</p>
+            <p className="max-w-sm text-sm text-slate-400">{UI.estimations.interviewSub}</p>
             <button
-              className="ct-seg-btn primary est-wizard-start"
+              className="mt-2 inline-flex items-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2 text-sm font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/25 disabled:opacity-50"
               disabled={busy}
               onClick={() => send("Bonjour, commençons l'entretien.")}
             >
@@ -382,60 +384,70 @@ export function EstimationWizard({
             </button>
           </div>
         ) : (
-          messages.map((m, idx) => {
+          <div className="flex flex-col gap-4">
+          {messages.map((m, idx) => {
             const isLast = idx === messages.length - 1;
             const act = m.activity;
             const hasActivity = Boolean(act && (act.reasoning || act.events.length));
+            const isUser = m.role === "user";
             return (
-            <div key={idx} className={`est-wizard-msg ${m.role}`}>
+            <div key={idx} className={`flex items-start gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
               {m.role === "assistant" && (
-                <div className="est-wizard-msg-avatar">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-sm text-indigo-300">
                   {UI.chat.assistantAvatar}
                 </div>
               )}
-              <div className="est-wizard-msg-col">
-                <div className="est-wizard-msg-bubble">
+              <div className={`flex max-w-[80%] flex-col gap-1.5 ${isUser ? "items-end" : "items-start"}`}>
+                <div
+                  className={`rounded-2xl px-4 py-2.5 text-sm ${
+                    isUser
+                      ? "bg-indigo-500/20 text-indigo-100"
+                      : "border border-white/10 bg-white/[0.04] text-slate-200"
+                  }`}
+                >
                   {m.content ? (
                     renderBlocks(m.content)
                   ) : thinking && isLast ? (
                     liveReasoning ? (
-                      <span className="est-wizard-reasoning-live">
-                        <span className="est-wizard-thinking-dot" />
+                      <span className="flex items-center gap-2 text-slate-400">
+                        <span className="size-1.5 animate-pulse rounded-full bg-indigo-400" />
                         {liveReasoning}
                       </span>
                     ) : (
-                      <span className="est-wizard-thinking">
-                        <span className="est-wizard-thinking-dot" />
+                      <span className="flex items-center gap-2 text-slate-400">
+                        <span className="size-1.5 animate-pulse rounded-full bg-indigo-400" />
                         Réflexion…
                       </span>
                     )
                   ) : (
-                    <span className="est-wizard-typing">
-                      <span /><span /><span />
+                    <span className="flex items-center gap-1">
+                      <span className="size-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-slate-400" />
                     </span>
                   )}
                 </div>
 
                 {m.role === "assistant" && hasActivity && (
-                  <details className="est-agent-activity">
-                    <summary>
-                      <span className="est-agent-activity-icon">⚡</span>
+                  <details className="group w-full max-w-full text-xs text-slate-500">
+                    <summary className="flex cursor-pointer list-none items-center gap-1.5 select-none hover:text-slate-300">
+                      <span aria-hidden="true">⚡</span>
                       Activité de l&apos;agent
                       {act!.events.length > 0 && (
-                        <span className="est-agent-activity-count">
+                        <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">
                           {act!.events.length}
                         </span>
                       )}
                     </summary>
-                    <div className="est-agent-activity-body">
+                    <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] p-3">
                       {act!.events.map((e, i) => (
-                        <div key={i} className="est-agent-event">
-                          <span className="est-agent-event-check">✓</span> {e}
+                        <div key={i} className="flex items-start gap-1.5 text-slate-400">
+                          <span className="text-emerald-400" aria-hidden="true">✓</span> {e}
                         </div>
                       ))}
                       {act!.reasoning && (
-                        <div className="est-agent-reasoning">
-                          <div className="est-agent-reasoning-title">Réflexion</div>
+                        <div className="mt-1 border-t border-white/10 pt-2 text-slate-500">
+                          <div className="mb-1 font-semibold text-slate-400">Réflexion</div>
                           {act!.reasoning}
                         </div>
                       )}
@@ -445,10 +457,11 @@ export function EstimationWizard({
               </div>
             </div>
             );
-          })
+          })}
+          </div>
         )}
         {error ? (
-          <p className="ct-error est-wizard-error">
+          <p className="mt-3 text-sm text-red-400">
             {UI.chat.errorPrefix} : {error}
           </p>
         ) : null}
@@ -456,13 +469,13 @@ export function EstimationWizard({
 
       {/* ── Footer : suggestions + input ── */}
       {!isEmpty && (
-        <div className="est-wizard-footer">
+        <div className="flex flex-col gap-3 border-t border-white/10 bg-slate-950/80 px-4 py-3 backdrop-blur-xl sm:px-6">
           {suggestions.length > 0 && !busy && (
-            <div className="est-wizard-suggestions">
+            <div className="flex flex-wrap gap-2">
               {suggestions.map((s, i) => (
                 <button
                   key={i}
-                  className="est-wizard-chip"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/[0.08]"
                   onClick={() => send(s)}
                 >
                   {s}
@@ -471,10 +484,10 @@ export function EstimationWizard({
             </div>
           )}
 
-          <div className="est-wizard-input-row">
+          <div className="flex items-center gap-2">
             <input
               ref={inputRef}
-              className="est-wizard-input"
+              className="flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none disabled:opacity-50"
               placeholder={UI.chat.placeholder}
               value={input}
               disabled={busy}
@@ -487,7 +500,7 @@ export function EstimationWizard({
               }}
             />
             <button
-              className="est-wizard-send"
+              className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-indigo-500 text-white transition-colors hover:bg-indigo-400 disabled:opacity-40"
               disabled={busy || !input.trim()}
               onClick={() => send()}
               aria-label="Envoyer"
@@ -497,12 +510,12 @@ export function EstimationWizard({
           </div>
 
           {generateError && (
-            <p className="ct-error est-wizard-error">{generateError}</p>
+            <p className="text-sm text-red-400">{generateError}</p>
           )}
 
           {canGenerate && (
             <button
-              className="est-wizard-generate ct-seg-btn primary"
+              className="inline-flex items-center justify-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2.5 text-sm font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/25"
               onClick={onGenerate}
             >
               {UI.estimations.generate}

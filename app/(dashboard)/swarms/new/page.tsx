@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
-import { PageHeader, PageStack } from "@/components/cockpit/primitives";
+import { Card, PageHeader, PageStack } from "@/components/cockpit/primitives";
+import { TextInput, Textarea } from "@/components/cockpit/form";
 import { UI } from "@/lib/ui-strings";
 import type { SwarmAgent, SwarmTask, ArchitectSpec } from "@/lib/swarms/types";
 
@@ -148,13 +149,11 @@ export default function NewSwarmPage() {
       />
 
       {tab === "architect" && (
-        <div className="swarm-create-arch">
+        <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-2">
           {/* Colonne gauche : prompt */}
-          <div className="ct-card swarm-arch-prompt">
-            <div className="ct-card-body">
-              <div className="ct-card-title">{UI.swarms.architectTitle}</div>
-              <textarea
-                className="crm-input swarm-form-textarea"
+          <Card title={UI.swarms.architectTitle}>
+            <div className="flex flex-col gap-3">
+              <Textarea
                 rows={ARCHITECT_TEXTAREA_ROWS}
                 placeholder={UI.swarms.architectPlaceholder}
                 value={description}
@@ -162,50 +161,51 @@ export default function NewSwarmPage() {
               />
               <button
                 type="button"
-                className="ct-btn ct-btn-primary"
+                className="inline-flex w-fit items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={handleGenerateSpec}
                 disabled={specLoading || !description.trim()}
               >
                 {specLoading ? UI.swarms.architectGenerating : UI.swarms.architectGenerateCta}
               </button>
-              {specError && <p className="swarm-form-error">{specError}</p>}
+              {specError && <p className="text-sm text-red-400">{specError}</p>}
             </div>
-          </div>
+          </Card>
 
           {/* Colonne droite : spec générée (structurée) ou indice */}
           {spec ? (
-            <div className="ct-card swarm-arch-spec">
-              <div className="ct-card-body">
-                <div className="ct-card-title">{UI.swarms.architectSpecTitle(spec.name)}</div>
-                <p className="swarm-spec-name">{spec.name}</p>
-                {spec.description && <p className="swarm-spec-desc">{spec.description}</p>}
+            <Card title={UI.swarms.architectSpecTitle(spec.name)}>
+              <div className="flex flex-col gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-100">{spec.name}</p>
+                  {spec.description && <p className="mt-0.5 text-sm text-slate-400">{spec.description}</p>}
+                </div>
 
-                <div className="swarm-spec-cols">
+                <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
                   <div>
-                    <h4 className="swarm-form-section-title">
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       {UI.swarms.agentsCount(spec.agents?.length ?? 0)}
                     </h4>
-                    <div className="swarm-spec-list">
+                    <div className="flex flex-col gap-2">
                       {(spec.agents ?? []).map((a, i) => (
-                        <div key={a.id ?? i} className="swarm-agent-card">
-                          <p className="swarm-agent-name">{a.name}</p>
-                          {a.role && <p className="swarm-agent-role">{a.role}</p>}
-                          {a.goal && <p className="swarm-agent-goal">{a.goal}</p>}
+                        <div key={a.id ?? i} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                          <p className="text-sm font-medium text-slate-100">{a.name}</p>
+                          {a.role && <p className="mt-0.5 text-xs text-indigo-300">{a.role}</p>}
+                          {a.goal && <p className="mt-1 text-xs text-slate-400">{a.goal}</p>}
                         </div>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <h4 className="swarm-form-section-title">
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                       {UI.swarms.tasksCount(spec.tasks?.length ?? 0)}
                     </h4>
-                    <div className="swarm-spec-list">
+                    <div className="flex flex-col gap-2">
                       {(spec.tasks ?? []).map((t, i) => (
-                        <div key={t.id ?? i} className="swarm-agent-card">
-                          <p className="swarm-agent-name">{t.name}</p>
-                          {t.description && <p className="swarm-agent-goal">{t.description}</p>}
+                        <div key={t.id ?? i} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                          <p className="text-sm font-medium text-slate-100">{t.name}</p>
+                          {t.description && <p className="mt-0.5 text-xs text-slate-400">{t.description}</p>}
                           {t.expected_output && (
-                            <p className="swarm-agent-note">
+                            <p className="mt-1 text-xs text-slate-500">
                               {UI.swarms.expectedOutputPrefix}{t.expected_output}
                             </p>
                           )}
@@ -215,15 +215,19 @@ export default function NewSwarmPage() {
                   </div>
                 </div>
 
-                <details className="swarm-spec-json">
-                  <summary>{UI.swarms.architectJsonDetails}</summary>
-                  <pre className="swarm-spec-preview">{JSON.stringify(spec, null, 2)}</pre>
+                <details className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                  <summary className="cursor-pointer text-xs font-medium text-slate-400 select-none">
+                    {UI.swarms.architectJsonDetails}
+                  </summary>
+                  <pre className="mt-2 overflow-x-auto font-mono text-xs text-slate-300">
+                    {JSON.stringify(spec, null, 2)}
+                  </pre>
                 </details>
 
-                <div className="swarm-spec-actions">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    className="ct-btn ct-btn-primary"
+                    className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={handleCreateFromSpec}
                     disabled={createLoading}
                   >
@@ -231,39 +235,39 @@ export default function NewSwarmPage() {
                   </button>
                   <button
                     type="button"
-                    className="ct-btn ct-btn-secondary"
+                    className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={() => setSpec(null)}
                     disabled={createLoading}
                   >
                     {UI.swarms.architectRegenCta}
                   </button>
                 </div>
-                {createError && <p className="swarm-form-error">{createError}</p>}
+                {createError && <p className="text-sm text-red-400">{createError}</p>}
               </div>
-            </div>
+            </Card>
           ) : (
-            <div className="swarm-arch-hint">
-              <span className="swarm-arch-hint-icon">✨</span>
-              <p>{UI.swarms.architectHint}</p>
+            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 p-8 text-center">
+              <span className="text-2xl" aria-hidden="true">✨</span>
+              <p className="text-sm text-slate-400">{UI.swarms.architectHint}</p>
             </div>
           )}
         </div>
       )}
 
       {tab === "manual" && (
-        <div className="ct-card swarm-form-card">
-          <div className="ct-card-body">
-            <div className="swarm-form-section">
-              <h4 className="swarm-form-section-title">{UI.swarms.manualSectionGeneral}</h4>
-              <input
-                className="crm-input swarm-field"
+        <Card>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {UI.swarms.manualSectionGeneral}
+              </h4>
+              <TextInput
                 type="text"
                 placeholder={UI.swarms.manualNamePlaceholder}
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
               />
-              <input
-                className="crm-input"
+              <TextInput
                 type="text"
                 placeholder={UI.swarms.manualDescPlaceholder}
                 value={manualDesc}
@@ -271,96 +275,114 @@ export default function NewSwarmPage() {
               />
             </div>
 
-            <div className="swarm-manual-cols">
-            <div className="swarm-form-section">
-              <h4 className="swarm-form-section-title">{UI.swarms.manualSectionAgents}</h4>
-              <div className="swarm-dynamic-list">
-                {agents.map((agent, i) => (
-                  <div key={i} className="swarm-dynamic-item">
-                    {agents.length > 1 && (
-                      <button type="button" className="swarm-dynamic-remove" aria-label={UI.swarms.removeAgent} onClick={() => removeAgent(i)}>
-                        ×
-                      </button>
-                    )}
-                    <input
-                      className="crm-input"
-                      type="text"
-                      placeholder={UI.swarms.manualAgentNamePlaceholder}
-                      value={agent.name}
-                      onChange={(e) => updateAgent(i, "name", e.target.value)}                    />
-                    <input
-                      className="crm-input"
-                      type="text"
-                      placeholder={UI.swarms.manualAgentRolePlaceholder}
-                      value={agent.role}
-                      onChange={(e) => updateAgent(i, "role", e.target.value)}                    />
-                    <input
-                      className="crm-input"
-                      type="text"
-                      placeholder={UI.swarms.manualAgentGoalPlaceholder}
-                      value={agent.goal}
-                      onChange={(e) => updateAgent(i, "goal", e.target.value)}
-                    />
-                  </div>
-                ))}
+            <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
+              <div className="flex flex-col gap-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {UI.swarms.manualSectionAgents}
+                </h4>
+                <div className="flex flex-col gap-3">
+                  {agents.map((agent, i) => (
+                    <div key={i} className="relative flex flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                      {agents.length > 1 && (
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 text-slate-500 hover:text-slate-300"
+                          aria-label={UI.swarms.removeAgent}
+                          onClick={() => removeAgent(i)}
+                        >
+                          ×
+                        </button>
+                      )}
+                      <TextInput
+                        type="text"
+                        placeholder={UI.swarms.manualAgentNamePlaceholder}
+                        value={agent.name}
+                        onChange={(e) => updateAgent(i, "name", e.target.value)}
+                      />
+                      <TextInput
+                        type="text"
+                        placeholder={UI.swarms.manualAgentRolePlaceholder}
+                        value={agent.role}
+                        onChange={(e) => updateAgent(i, "role", e.target.value)}
+                      />
+                      <TextInput
+                        type="text"
+                        placeholder={UI.swarms.manualAgentGoalPlaceholder}
+                        value={agent.goal}
+                        onChange={(e) => updateAgent(i, "goal", e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="w-fit text-xs font-medium text-indigo-300 hover:text-indigo-200"
+                  onClick={addAgent}
+                >
+                  {UI.swarms.manualAddAgent}
+                </button>
               </div>
-              <button type="button" className="swarm-add-btn" onClick={addAgent}>
-                {UI.swarms.manualAddAgent}
-              </button>
+
+              <div className="flex flex-col gap-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {UI.swarms.manualSectionTasks}
+                </h4>
+                <div className="flex flex-col gap-3">
+                  {tasks.map((task, i) => (
+                    <div key={i} className="relative flex flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                      {tasks.length > 1 && (
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 text-slate-500 hover:text-slate-300"
+                          aria-label={UI.swarms.removeTask}
+                          onClick={() => removeTask(i)}
+                        >
+                          ×
+                        </button>
+                      )}
+                      <TextInput
+                        type="text"
+                        placeholder={UI.swarms.manualTaskNamePlaceholder}
+                        value={task.name}
+                        onChange={(e) => updateTask(i, "name", e.target.value)}
+                      />
+                      <TextInput
+                        type="text"
+                        placeholder={UI.swarms.manualTaskDescPlaceholder}
+                        value={task.description}
+                        onChange={(e) => updateTask(i, "description", e.target.value)}
+                      />
+                      <TextInput
+                        type="text"
+                        placeholder={UI.swarms.manualTaskOutputPlaceholder}
+                        value={task.expected_output}
+                        onChange={(e) => updateTask(i, "expected_output", e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="w-fit text-xs font-medium text-indigo-300 hover:text-indigo-200"
+                  onClick={addTask}
+                >
+                  {UI.swarms.manualAddTask}
+                </button>
+              </div>
             </div>
 
-            <div className="swarm-form-section">
-              <h4 className="swarm-form-section-title">{UI.swarms.manualSectionTasks}</h4>
-              <div className="swarm-dynamic-list">
-                {tasks.map((task, i) => (
-                  <div key={i} className="swarm-dynamic-item">
-                    {tasks.length > 1 && (
-                      <button type="button" className="swarm-dynamic-remove" aria-label={UI.swarms.removeTask} onClick={() => removeTask(i)}>
-                        ×
-                      </button>
-                    )}
-                    <input
-                      className="crm-input"
-                      type="text"
-                      placeholder={UI.swarms.manualTaskNamePlaceholder}
-                      value={task.name}
-                      onChange={(e) => updateTask(i, "name", e.target.value)}                    />
-                    <input
-                      className="crm-input"
-                      type="text"
-                      placeholder={UI.swarms.manualTaskDescPlaceholder}
-                      value={task.description}
-                      onChange={(e) => updateTask(i, "description", e.target.value)}                    />
-                    <input
-                      className="crm-input"
-                      type="text"
-                      placeholder={UI.swarms.manualTaskOutputPlaceholder}
-                      value={task.expected_output}
-                      onChange={(e) => updateTask(i, "expected_output", e.target.value)}
-                    />
-                  </div>
-                ))}
-              </div>
-              <button type="button" className="swarm-add-btn" onClick={addTask}>
-                {UI.swarms.manualAddTask}
-              </button>
-            </div>
-            </div>
-
-            {manualError && (
-              <p className="swarm-form-error">{manualError}</p>
-            )}
+            {manualError && <p className="text-sm text-red-400">{manualError}</p>}
 
             <button
               type="button"
-              className="ct-btn ct-btn-primary"
+              className="inline-flex w-fit items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={handleManualCreate}
               disabled={manualLoading}
             >
               {manualLoading ? UI.swarms.manualCreating : UI.swarms.manualCreateCta}
             </button>
           </div>
-        </div>
+        </Card>
       )}
     </PageStack>
   );

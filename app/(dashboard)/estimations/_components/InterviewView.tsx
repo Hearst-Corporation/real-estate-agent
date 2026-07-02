@@ -145,7 +145,7 @@ export function InterviewView({
   // ── Phase 1 : Wizard ──────────────────────────────────────────────────────
   if (phase === "wizard") {
     return (
-      <div className="est-phase fill">
+      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
         <EstimationWizard
           id={id}
           initialMessages={initialMessages}
@@ -166,7 +166,7 @@ export function InterviewView({
   // ── Phase 2 : Generating ──────────────────────────────────────────────────
   if (phase === "generating") {
     return (
-      <div className="est-phase fill">
+      <div className="flex h-full flex-col">
         <GeneratingScreen currentStep={progressStep} />
       </div>
     );
@@ -174,12 +174,12 @@ export function InterviewView({
 
   // ── Phase 3 : Ready ───────────────────────────────────────────────────────
   return (
-    <div className="est-phase">
-      <div className="est-ready">
+    <div className="pb-12">
+      <div className="flex flex-col gap-6">
         {valuation ? (
           <ValuationHero id={id} valuation={valuation} />
         ) : (
-          <p className="ct-placeholder">{UI.common.error}</p>
+          <p className="text-sm text-slate-500">{UI.common.error}</p>
         )}
         {valuation ? (
           <SidePanel

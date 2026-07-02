@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { eur, dateFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
+import { Card } from "@/components/cockpit/primitives";
 
 export type CockpitLead = {
   id: string;
@@ -41,26 +42,33 @@ function Zone({
 }) {
   const t = UI.leads;
   return (
-    <div className="lead-cockpit-zone">
-      <div className="lead-cockpit-zone-head">
-        <span className="ct-card-title">{label}</span>
-        <span className="ct-badge is-muted">{count}</span>
+    <Card>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          {label}
+        </span>
+        <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-400">
+          {count}
+        </span>
       </div>
       {leads.length === 0 ? (
-        <p className="ct-placeholder lead-cockpit-empty">{t.cockpit.zoneEmpty}</p>
+        <p className="mt-3 text-sm text-slate-500">{t.cockpit.zoneEmpty}</p>
       ) : (
-        <ul className="lead-cockpit-list">
+        <ul className="mt-3 flex flex-col gap-2.5">
           {leads.slice(0, 3).map((l) => (
-            <li key={l.id} className="lead-cockpit-item">
-              <Link href={`/leads/${l.id}`} className="lead-cockpit-item-name">
+            <li key={l.id} className="flex items-center justify-between gap-2">
+              <Link
+                href={`/leads/${l.id}`}
+                className="truncate text-sm font-medium text-slate-100 hover:text-indigo-300"
+              >
                 {l.full_name}
               </Link>
-              <span className="lead-cockpit-item-meta">{meta(l)}</span>
+              <span className="shrink-0 text-xs text-slate-500">{meta(l)}</span>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -82,8 +90,8 @@ export function LeadsCockpit({ leads }: { leads: CockpitLead[] }) {
   const activeBuyers = byRecent.filter((l) => l.kind === "acheteur" && ADVANCED.has(l.status));
 
   return (
-    <div className="lead-cockpit">
-      <div className="lead-cockpit-grid">
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-4 @xl:grid-cols-2 @4xl:grid-cols-4">
         <Zone
           label={t.toFollow}
           count={toFollow.length}
@@ -110,25 +118,33 @@ export function LeadsCockpit({ leads }: { leads: CockpitLead[] }) {
         />
       </div>
 
-      <div className="lead-cockpit-activity">
-        <div className="ct-card-title">{t.recentActivity}</div>
+      <Card>
+        <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          {t.recentActivity}
+        </div>
         {byRecent.length === 0 ? (
-          <p className="ct-placeholder">{t.zoneEmpty}</p>
+          <p className="mt-3 text-sm text-slate-500">{t.zoneEmpty}</p>
         ) : (
-          <ul className="lead-cockpit-activity-list">
+          <ul className="mt-3 divide-y divide-white/5">
             {byRecent.slice(0, 5).map((l) => (
-              <li key={l.id} className="lead-cockpit-activity-item">
-                <Link href={`/leads/${l.id}`} className="lead-cockpit-item-name">
+              <li
+                key={l.id}
+                className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+              >
+                <Link
+                  href={`/leads/${l.id}`}
+                  className="truncate text-sm font-medium text-slate-100 hover:text-indigo-300"
+                >
                   {l.full_name}
                 </Link>
-                <span className="lead-cockpit-item-meta">
+                <span className="shrink-0 text-xs text-slate-500">
                   {(UI.leads.statusLabels[l.status] ?? l.status)} · {dateFr(l.updated_at)}
                 </span>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

@@ -30,6 +30,12 @@ import { TICKET_STEP } from "@/lib/invest/constants";
 
 const t = UI.invest.subscribe;
 
+/** Styles partagés des CTA du panneau (bouton plein indigo / bouton ghost). */
+const BTN_PRIMARY =
+  "inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50";
+const BTN_GHOST =
+  "inline-flex items-center justify-center rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50";
+
 /** Statuts de souscription exposés à l'UI (miroir machine serveur). */
 type SubStatus =
   | "reserved"
@@ -242,46 +248,53 @@ export function SubscribePanel(props: SubscribePanelProps) {
   // ── GATE : identité non vérifiée → CTA onboarding ──
   if (!kycApproved) {
     return (
-      <div className="inv-raise-box">
+      <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
         <Gate
           locked
           message={t.kycGateMessage}
           cta={
-            <Link
-              href="/invest/onboarding"
-              className="inv-btn-reserve inv-link-inline"
-            >
+            <Link href="/invest/onboarding" className={BTN_PRIMARY}>
               {t.kycCta}
             </Link>
           }
         >
-          <div className="inv-sub-spacer" />
+          <div className="h-24" />
         </Gate>
-        <p className="inv-reserve-note">{t.creditorNote}</p>
+        <p className="text-xs text-slate-500">{t.creditorNote}</p>
       </div>
     );
   }
 
   const flux = (
-    <div className="inv-flow" aria-label={t.flowAria}>
-      <span className="inv-flow-node">{t.flowYou}</span>
-      <span className="inv-flow-arrow" aria-hidden>→</span>
-      <span className="inv-flow-node inv-flow-node-accent">{t.flowEscrow}</span>
-      <span className="inv-flow-arrow" aria-hidden>→</span>
-      <span className="inv-flow-node">{spvLabel || t.flowSpvFallback}</span>
+    <div className="flex flex-wrap items-center gap-2 text-sm" aria-label={t.flowAria}>
+      <span className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-slate-200">
+        {t.flowYou}
+      </span>
+      <span className="text-slate-500" aria-hidden>
+        →
+      </span>
+      <span className="rounded-lg border border-indigo-400/40 bg-indigo-500/10 px-3 py-1.5 font-semibold text-indigo-200">
+        {t.flowEscrow}
+      </span>
+      <span className="text-slate-500" aria-hidden>
+        →
+      </span>
+      <span className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-slate-200">
+        {spvLabel || t.flowSpvFallback}
+      </span>
     </div>
   );
 
   return (
-    <div className="inv-raise-box" id="subscribe">
+    <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm" id="subscribe">
       <Stepper steps={STEPS} current={step} />
 
       {sub ? (
-        <div className="inv-row-between is-center">
+        <div className="flex items-center justify-between">
           <StatusPill tone={STATUS_TONE[sub.status]}>{t.status[sub.status]}</StatusPill>
-          <span className="inv-raise-stat inv-raise-stat-row">
-            <span className="inv-v">{eur(sub.amountEur)}</span>
-            <span className="inv-l">{sub.settlementCurrency}</span>
+          <span className="flex items-baseline gap-1.5 text-sm">
+            <span className="font-semibold text-slate-100">{eur(sub.amountEur)}</span>
+            <span className="text-slate-500">{sub.settlementCurrency}</span>
           </span>
         </div>
       ) : null}
@@ -292,13 +305,13 @@ export function SubscribePanel(props: SubscribePanelProps) {
       {/* ── Étape 1 — Montant (avant toute réservation) ── */}
       {step === 0 ? (
         <>
-          <label className="inv-sub-label" htmlFor="sub-amount">
+          <label className="text-sm font-medium text-slate-300" htmlFor="sub-amount">
             {t.amountLabel}
           </label>
-          <div className="inv-sub-amount-row">
+          <div className="flex items-center gap-2">
             <input
               id="sub-amount"
-              className="ct-input"
+              className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400/60"
               type="number"
               inputMode="numeric"
               min={ticketMinEur}
@@ -308,9 +321,9 @@ export function SubscribePanel(props: SubscribePanelProps) {
               onChange={(e) => setAmount(e.target.value)}
               aria-describedby="sub-amount-hint"
             />
-            <span className="inv-sub-currency">{settlementCurrency}</span>
+            <span className="text-sm text-slate-400">{settlementCurrency}</span>
           </div>
-          <p id="sub-amount-hint" className="inv-reserve-note inv-reserve-left">
+          <p id="sub-amount-hint" className="text-xs text-slate-500">
             {t.amountHint(eur(ticketMinEur), eur(ticketMaxEur), settlementCurrency)}
           </p>
           {!amountValid && amount !== "" ? (
@@ -319,25 +332,25 @@ export function SubscribePanel(props: SubscribePanelProps) {
             </Banner>
           ) : null}
           <button
-            className="inv-btn-reserve"
+            className={BTN_PRIMARY}
             type="button"
             disabled={!amountValid || busy || !props.dealOpen}
             onClick={reserve}
           >
             {busy ? t.reserveBusy : t.reserveBtn}
           </button>
-          <p className="inv-reserve-note">{t.reserveNote}</p>
+          <p className="text-xs text-slate-500">{t.reserveNote}</p>
         </>
       ) : null}
 
       {/* ── Étape 2 (réservé) — Signature eIDAS ── */}
       {step === 2 && sub?.status === "reserved" ? (
         <>
-          <p className="inv-reserve-note inv-reserve-left">{t.reservedNote}</p>
-          <button className="inv-btn-reserve" type="button" disabled={busy} onClick={sign}>
+          <p className="text-xs text-slate-500">{t.reservedNote}</p>
+          <button className={BTN_PRIMARY} type="button" disabled={busy} onClick={sign}>
             {busy ? t.signBusy : t.signBtn}
           </button>
-          <button className="inv-ghost-btn" type="button" disabled={busy} onClick={cancel}>
+          <button className={BTN_GHOST} type="button" disabled={busy} onClick={cancel}>
             {t.cancelReservation}
           </button>
         </>
@@ -347,12 +360,12 @@ export function SubscribePanel(props: SubscribePanelProps) {
       {step === 3 && sub ? (
         <>
           {flux}
-          <p className="inv-reserve-note inv-reserve-left">
+          <p className="text-xs text-slate-500">
             {t.fundNote(sequestreLabel, settlementCurrency)}
           </p>
 
           {sub.status === "signed" ? (
-            <button className="inv-btn-reserve" type="button" disabled={busy} onClick={fund}>
+            <button className={BTN_PRIMARY} type="button" disabled={busy} onClick={fund}>
               {busy ? t.fundBusy : t.fundBtn}
             </button>
           ) : null}
@@ -365,7 +378,7 @@ export function SubscribePanel(props: SubscribePanelProps) {
           ) : null}
 
           {(sub.status === "signed" || (sub.status === "funded" && sub.withinCoolingOff)) ? (
-            <button className="inv-ghost-btn" type="button" disabled={busy} onClick={cancel}>
+            <button className={BTN_GHOST} type="button" disabled={busy} onClick={cancel}>
               {sub.status === "funded" ? t.withdrawBtn : t.cancelSubBtn}
             </button>
           ) : null}
@@ -374,13 +387,15 @@ export function SubscribePanel(props: SubscribePanelProps) {
 
       {/* ── État sortie (annulé / rétracté / remboursé) ── */}
       {sub && ["cancelled", "withdrawn", "refunded"].includes(sub.status) ? (
-        <p className="inv-reserve-note">
+        <p className="text-xs text-slate-500">
           {t.terminalNote(t.status[sub.status].toLowerCase())}
         </p>
       ) : null}
 
-      <p className="inv-reserve-note">
-        <Link href="/invest/subscriptions">{t.mySubscriptions}</Link>
+      <p className="text-xs text-slate-500">
+        <Link href="/invest/subscriptions" className="underline hover:text-slate-300">
+          {t.mySubscriptions}
+        </Link>
       </p>
     </div>
   );

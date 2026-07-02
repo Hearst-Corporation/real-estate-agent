@@ -143,33 +143,35 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone, onLaunch
   const isRunning = state.phase === 'running' && (state.status === 'pending' || state.status === 'running')
 
   return (
-    <div className="swarm-kickoff-panel">
+    <div className="flex flex-col gap-3">
       {(state.phase === 'idle' || state.phase === 'error') && (
         <>
           <button
-            className="ct-btn ct-btn-primary"
+            className="inline-flex w-fit items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
             onClick={handleLaunch}
             type="button"
           >
             {UI.swarms.kickoffLaunch(swarmName)}
           </button>
           {state.phase === 'error' && (
-            <p className="swarm-form-error">{state.message}</p>
+            <p className="text-sm text-red-400">{state.message}</p>
           )}
         </>
       )}
 
       {state.phase === 'launching' && (
-        <div className="swarm-inline-row">
-          <span className="swarm-spinner" />
-          <span className="swarm-inline-label">{UI.swarms.kickoffLaunching}</span>
+        <div className="flex items-center gap-2 text-sm text-slate-300">
+          <span className="size-3.5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" aria-hidden="true" />
+          <span>{UI.swarms.kickoffLaunching}</span>
         </div>
       )}
 
       {state.phase === 'running' && (
-        <div className="swarm-stack">
-          <div className="swarm-inline-row">
-            {isRunning && <span className="swarm-spinner" />}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            {isRunning && (
+              <span className="size-3.5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" aria-hidden="true" />
+            )}
             <RunStatusBadge status={state.status} />
           </div>
           {state.steps.length > 0 && <StepsTimeline steps={state.steps} />}
@@ -177,22 +179,24 @@ export default function SwarmKickoffPanel({ swarmId, swarmName, onDone, onLaunch
       )}
 
       {state.phase === 'done' && (
-        <div className="swarm-stack">
+        <div className="flex flex-col gap-3">
           <RunStatusBadge status="done" />
           {state.output && (
-            <div className="swarm-kickoff-output">{state.output}</div>
+            <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3 text-sm whitespace-pre-wrap text-slate-300">
+              {state.output}
+            </div>
           )}
           {state.steps.length > 0 && <StepsTimeline steps={state.steps} />}
         </div>
       )}
 
       {state.phase === 'failed' && (
-        <div className="swarm-stack">
+        <div className="flex flex-col gap-3">
           <RunStatusBadge status="failed" />
-          <p className="swarm-msg-error">{state.message}</p>
+          <p className="text-sm text-red-400">{state.message}</p>
           {state.steps.length > 0 && <StepsTimeline steps={state.steps} />}
           <button
-            className="ct-btn ct-btn-secondary"
+            className="inline-flex w-fit items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
             onClick={() => setState({ phase: 'idle' })}
             type="button"
           >

@@ -7,11 +7,20 @@ import { UI } from "@/lib/ui-strings";
 
 const t = UI.missions;
 const STORY_ICON: Record<PhaseStatus, string> = { done: "✓", now: "◐", ask: "⏳", todo: "○" };
-const PHASE_PILL: Record<PhaseStatus, string> = {
-  done: "mv-pill-done",
-  now: "mv-pill-now",
-  ask: "mv-pill-ask",
-  todo: "mv-pill-wait",
+
+/** Classes de pill par statut — fond/texte/bordure teintés, cohérents avec le thème indigo/emerald/amber. */
+const PILL_TONE: Record<string, string> = {
+  done: "border-emerald-400/30 bg-emerald-500/10 text-emerald-300",
+  now: "border-indigo-400/30 bg-indigo-500/10 text-indigo-300",
+  ask: "border-amber-400/30 bg-amber-500/10 text-amber-300",
+  wait: "border-white/10 bg-white/[0.06] text-slate-400",
+  todo: "border-white/10 bg-white/[0.06] text-slate-400",
+};
+const PHASE_PILL_TONE: Record<PhaseStatus, string> = {
+  done: PILL_TONE.done,
+  now: PILL_TONE.now,
+  ask: PILL_TONE.ask,
+  todo: PILL_TONE.wait,
 };
 const ACTIVE = new Set(["planning", "running", "awaiting_decision"]);
 const POLL_MS = 3000;
@@ -68,70 +77,98 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
     return () => clearInterval(iv);
   }, [refresh, v.status]);
 
-  const headPill =
+  const headPillTone =
     v.status === "done"
-      ? "mv-pill-done"
+      ? PILL_TONE.done
       : v.status === "failed" || v.status === "awaiting_decision"
-        ? "mv-pill-ask"
+        ? PILL_TONE.ask
         : v.status === "paused"
-          ? "mv-pill-wait"
-          : "mv-pill-now";
+          ? PILL_TONE.wait
+          : PILL_TONE.now;
 
   return (
     <PageStack>
       {/* Header de mission */}
-      <div className="mv-head">
-        <div className="mv-head-row">
-          <h1 className="mv-title">{v.title}</h1>
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6">
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold tracking-tight text-white">{v.title}</h1>
         </div>
-        <div className="mv-statusline">
-          <span className={`mv-pill ${headPill}`}>{v.humanStatus}</span>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${headPillTone}`}
+          >
+            {v.humanStatus}
+          </span>
           <span>{v.stepLabel}</span>
-          <div className="mv-prog">
-            <i style={{ width: `${v.progress}%` }} />
+          <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/[0.08]">
+            <i
+              className="block h-full rounded-full bg-indigo-400 transition-[width]"
+              style={{ width: `${v.progress}%` }}
+            />
           </div>
         </div>
       </div>
 
       {/* Progression | Espace vivant */}
-      <div className="mv-cols">
+      <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <Card title={t.progression}>
-          {v.phases.map((p) => (
-            <div key={p.key} className={`mv-story-line${p.status === "todo" ? " is-todo" : ""}`}>
-              <span className="mv-story-ic">{STORY_ICON[p.status]}</span>
-              <span className="mv-story-tx">{p.story}</span>
-            </div>
-          ))}
+          <div className="flex flex-col gap-2">
+            {v.phases.map((p) => (
+              <div
+                key={p.key}
+                className={`flex items-start gap-2 text-sm ${
+                  p.status === "todo" ? "text-slate-500" : "text-slate-200"
+                }`}
+              >
+                <span className="shrink-0" aria-hidden="true">
+                  {STORY_ICON[p.status]}
+                </span>
+                <span>{p.story}</span>
+              </div>
+            ))}
+          </div>
         </Card>
 
         <Card title={t.canvas}>
-          <div className="mv-canvas">
+          <div className="flex flex-col">
               {v.phases.map((p, i) => {
                 const open = p.status === "now" || p.status === "ask";
                 return (
                   <div key={p.key}>
-                    <div className={`mv-ccard${open ? " is-open" : ""}`}>
-                      <div className="mv-ch">
-                        <span className="mv-emo">{p.emo}</span>
-                        <div>
-                          <div className="mv-nm">{p.nm}</div>
-                          <div className="mv-one">{p.story}</div>
+                    <div
+                      className={`rounded-xl border p-4 transition-colors ${
+                        open ? "border-indigo-400/30 bg-indigo-500/[0.06]" : "border-white/10 bg-white/[0.03]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl leading-none" aria-hidden="true">
+                          {p.emo}
+                        </span>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-slate-100">{p.nm}</div>
+                          <div className="text-xs text-slate-400">{p.story}</div>
                         </div>
-                        <span className={`mv-pill mv-ch-pill ${PHASE_PILL[p.status]}`}>
+                        <span
+                          className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${PHASE_PILL_TONE[p.status]}`}
+                        >
                           {t.phase[p.status]}
                         </span>
                       </div>
                       {open && (
-                        <div className="mv-detail">
+                        <div className="mt-3 flex flex-col gap-3 border-t border-white/10 pt-3">
                           <div>
-                            <div className="mv-det-h">{t.doing}</div>
-                            <div className="mv-det-b">{p.doing}</div>
+                            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                              {t.doing}
+                            </div>
+                            <div className="mt-1 text-sm text-slate-200">{p.doing}</div>
                           </div>
                           {p.found.length > 0 && (
                             <div>
-                              <div className="mv-det-h">{t.found}</div>
-                              <div className="mv-det-b">
-                                <ul>
+                              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                {t.found}
+                              </div>
+                              <div className="mt-1 text-sm text-slate-200">
+                                <ul className="list-inside list-disc space-y-1">
                                   {p.found.map((f, j) => (
                                     <li key={j}>{f}</li>
                                   ))}
@@ -142,7 +179,11 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
                         </div>
                       )}
                     </div>
-                    {i < v.phases.length - 1 && <div className="mv-arrow">↓</div>}
+                    {i < v.phases.length - 1 && (
+                      <div className="py-1 text-center text-slate-600" aria-hidden="true">
+                        ↓
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -152,24 +193,28 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
 
       {/* État d'erreur humain */}
       {v.error && (
-        <div className="mv-err">
-          <div className="mv-err-h">{t.errorTitle}</div>
-          <div className="mv-err-b">{v.error}</div>
+        <div className="rounded-2xl border border-red-400/30 bg-red-500/[0.06] p-4">
+          <div className="text-sm font-semibold text-red-300">{t.errorTitle}</div>
+          <div className="mt-1 text-sm text-red-200/90">{v.error}</div>
         </div>
       )}
 
       {/* Moment de décision — émis par le moteur (status paused_hitl) */}
       {v.decision && (
-        <div className="mv-dock">
-          <span className="mv-pill mv-pill-ask">{t.decisionPill}</span>
-          <div className="mv-q">{v.decision.question}</div>
-          {v.decision.hint && <div className="mv-hint">{v.decision.hint}</div>}
-          <div className="mv-choices">
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-400/30 bg-amber-500/[0.06] p-5">
+          <span
+            className={`inline-flex w-fit items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${PILL_TONE.ask}`}
+          >
+            {t.decisionPill}
+          </span>
+          <div className="text-sm font-semibold text-slate-100">{v.decision.question}</div>
+          {v.decision.hint && <div className="text-xs text-slate-400">{v.decision.hint}</div>}
+          <div className="flex flex-wrap gap-2">
             {v.decision.options.map((o) => (
               <button
                 key={o.value}
                 type="button"
-                className="mv-choice"
+                className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-100 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={sending !== null}
                 aria-busy={sending === o.value}
                 onClick={() => choose(o.value)}
@@ -178,7 +223,7 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
               </button>
             ))}
           </div>
-          {decisionErr && <div className="mv-hint mv-dock-err">{t.decisionError}</div>}
+          {decisionErr && <div className="text-xs text-red-400">{t.decisionError}</div>}
         </div>
       )}
 
@@ -186,15 +231,15 @@ export function MissionLive({ initial, id }: { initial: MissionView; id: string 
       {v.output && (
         <Card title={t.output}>
           {v.output.hook && (
-            <div className="mv-field">
-              <div className="mv-fl">{t.hook}</div>
-              <div className="mv-fv mv-fv-big">{v.output.hook}</div>
+            <div className="mb-3">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t.hook}</div>
+              <div className="mt-1 text-lg font-semibold text-white">{v.output.hook}</div>
             </div>
           )}
           {v.output.body && (
-            <div className="mv-field">
-              <div className="mv-fl">{t.detail}</div>
-              <div className="mv-fv">{v.output.body}</div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t.detail}</div>
+              <div className="mt-1 text-sm text-slate-200">{v.output.body}</div>
             </div>
           )}
         </Card>

@@ -36,10 +36,10 @@ export async function PropertyPhotosSection({ propertyId, userId, tenantId }: Pr
 
   return (
     <Card title={td.cardPhotos}>
-      <div className="crm-gallery-hero">
+      <div>
         <PhotoGallery photos={photos} propertyId={propertyId} />
       </div>
-      <div className="ct-mt-sm">
+      <div className="mt-3">
         <PhotoUploader propertyId={propertyId} />
       </div>
     </Card>

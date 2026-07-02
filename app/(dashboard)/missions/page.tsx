@@ -39,16 +39,22 @@ export default async function MissionsPage() {
       </Card>
       <Card title={UI.missions.listTitle}>
         {rows.length === 0 ? (
-          <p className="ct-placeholder">{UI.missions.empty}</p>
+          <p className="py-8 text-center text-sm text-slate-500">{UI.missions.empty}</p>
         ) : (
-          rows.map((m) => (
-            <Link key={m.id} href={`/missions/${m.id}`} className="mv-mission-row">
-              <span className="mv-mission-title">{m.title}</span>
-              <span className="mv-mission-meta">
-                {UI.missions.status[m.status] ?? m.status} · {m.created_at.slice(0, 10)}
-              </span>
-            </Link>
-          ))
+          <div className="flex flex-col divide-y divide-white/5">
+            {rows.map((m) => (
+              <Link
+                key={m.id}
+                href={`/missions/${m.id}`}
+                className="flex items-center justify-between gap-4 py-3 text-sm transition-colors hover:bg-white/[0.03]"
+              >
+                <span className="font-medium text-slate-100">{m.title}</span>
+                <span className="shrink-0 text-xs text-slate-500">
+                  {UI.missions.status[m.status] ?? m.status} · {m.created_at.slice(0, 10)}
+                </span>
+              </Link>
+            ))}
+          </div>
         )}
       </Card>
     </PageStack>

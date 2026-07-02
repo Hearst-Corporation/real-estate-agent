@@ -11,7 +11,12 @@ import type { ChartScenarios, ScenarioKey } from "@/lib/invest/finance";
 import { UI } from "@/lib/ui-strings";
 import { pct } from "./format";
 
-const CLASS: Record<ScenarioKey, string> = { pessimiste: "pess", central: "cent", optimiste: "opt" };
+/** pessimiste = amber, central = indigo, optimiste = emerald. */
+const CLASS: Record<ScenarioKey, string> = {
+  pessimiste: "bg-amber-400",
+  central: "bg-indigo-400",
+  optimiste: "bg-emerald-400",
+};
 
 export function ScenarioBars({ chart }: { chart: ChartScenarios }) {
   // Échelle commune sur la valeur absolue max des TRI (min 1 % pour éviter /0).
@@ -19,20 +24,23 @@ export function ScenarioBars({ chart }: { chart: ChartScenarios }) {
 
   return (
     <div>
-      <div className="inv-scenario-grid">
+      <div className="flex h-40 items-end justify-around gap-4">
         {chart.barres.map((bar) => {
           const irr = bar.irr ?? 0;
           const h = Math.max(4, (Math.abs(irr) / maxAbs) * 100);
           return (
-            <div className="inv-scenario-bar-wrap" key={bar.key}>
-              <span className="inv-scenario-val">{pct(bar.irr)}</span>
-              <div className={`inv-scenario-bar ${CLASS[bar.key]}`} style={{ height: `${h}%` }} />
-              <span className="inv-scenario-lab">{bar.label}</span>
+            <div className="flex h-full flex-1 flex-col items-center justify-end gap-1.5" key={bar.key}>
+              <span className="text-sm font-semibold text-slate-100">{pct(bar.irr)}</span>
+              <div
+                className={`w-full max-w-10 rounded-t-md ${CLASS[bar.key]}`}
+                style={{ height: `${h}%` }}
+              />
+              <span className="text-xs text-slate-500">{bar.label}</span>
             </div>
           );
         })}
       </div>
-      <table className="inv-sr-only">
+      <table className="sr-only">
         <caption>{chart.titre}</caption>
         <thead>
           <tr>

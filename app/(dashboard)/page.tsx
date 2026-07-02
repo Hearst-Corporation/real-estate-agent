@@ -82,24 +82,25 @@ function TodayBlock({
   href: string;
 }) {
   return (
-    <div className="ct-today-block">
-      <div className="ct-today-block-head">
-        <span className="ct-today-block-label">{label}</span>
-        <Link href={href} className="ct-today-block-all">
+    <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
+        <Link href={href} className="text-xs font-medium text-indigo-300 hover:text-indigo-200">
           {UI.dashboard.today.seeAll}
         </Link>
       </div>
       {items.length === 0 ? (
-        <p className="ct-placeholder">{empty}</p>
+        <p className="py-4 text-center text-sm text-slate-500">{empty}</p>
       ) : (
-        <ul className="ct-today-list">
+        <ul className="flex flex-col divide-y divide-white/5">
           {items.map((item) => (
             <li key={item.id}>
-              <Link href={item.href} className="ct-today-item-link">
-                <span className="ct-today-item-line1">{item.line1}</span>
-                {item.line2 ? (
-                  <span className="ct-subtext">{item.line2}</span>
-                ) : null}
+              <Link
+                href={item.href}
+                className="flex flex-col gap-0.5 py-2 text-sm transition-colors hover:text-indigo-200"
+              >
+                <span className="font-medium text-slate-100">{item.line1}</span>
+                {item.line2 ? <span className="text-xs text-slate-500">{item.line2}</span> : null}
               </Link>
             </li>
           ))}
@@ -118,19 +119,30 @@ function QuickActions({
   secondary: { href: string; label: string; icon: IconName }[];
 }) {
   return (
-    <div className="ct-home-actions">
-      <Link href={primary.href} className="ct-home-action-primary">
-        <span className="ct-home-action-icon"><Icon name={primary.icon} /></span>
-        <span className="ct-home-action-text">
-          <span className="ct-home-action-label">{primary.label}</span>
-          <span className="ct-home-action-desc">{primary.desc}</span>
+    <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)]">
+      <Link
+        href={primary.href}
+        className="flex items-center gap-4 rounded-xl border border-indigo-400/30 bg-indigo-500/10 p-4 transition-colors hover:bg-indigo-500/15"
+      >
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-300">
+          <Icon name={primary.icon} />
+        </span>
+        <span className="flex flex-col gap-0.5">
+          <span className="text-sm font-semibold text-white">{primary.label}</span>
+          <span className="text-xs text-slate-400">{primary.desc}</span>
         </span>
       </Link>
-      <div className="ct-home-action-secondary-grid">
+      <div className="grid grid-cols-2 gap-3 @lg:grid-cols-4">
         {secondary.map((item) => (
-          <Link key={item.href} href={item.href} className="ct-home-action-secondary">
-            <span className="ct-home-action-icon"><Icon name={item.icon} /></span>
-            <span className="ct-home-action-label">{item.label}</span>
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center transition-colors hover:bg-white/[0.06]"
+          >
+            <span className="flex size-9 items-center justify-center rounded-lg bg-white/[0.06] text-slate-300">
+              <Icon name={item.icon} />
+            </span>
+            <span className="text-xs font-medium text-slate-200">{item.label}</span>
           </Link>
         ))}
       </div>
@@ -281,7 +293,7 @@ export default async function DashboardPage() {
       key: "property",
       header: "Bien",
       render: (r) => (
-        <Link href={`/properties/${r.id}`} className="crm-link">
+        <Link href={`/properties/${r.id}`} className="font-medium text-indigo-300 hover:text-indigo-200">
           {r.title ?? r.city ?? "Bien sans titre"}
         </Link>
       ),
@@ -358,7 +370,10 @@ export default async function DashboardPage() {
         title={t.title}
         meta={t.sub}
         action={
-          <Link href="/properties/new" className="ct-seg-btn primary">
+          <Link
+            href="/properties/new"
+            className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
+          >
             {t.newCta}
           </Link>
         }
@@ -376,7 +391,7 @@ export default async function DashboardPage() {
       </Card>
 
       <Card title={t.today.title} titleAs="section">
-        <div className="ct-today-grid">
+        <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @6xl:grid-cols-4">
           <TodayBlock
             label={t.today.leadsLabel}
             items={leadItems}
@@ -404,15 +419,17 @@ export default async function DashboardPage() {
         </div>
       </Card>
 
-      <Card title={t.recentPortfolio} variant="dense" className="ct-card-fill">
+      <Card title={t.recentPortfolio} variant="dense" className="flex flex-col gap-4">
         {properties.length === 0 ? (
-          <>
-            <p className="ct-placeholder">{t.propertiesEmpty}</p>
-            <div className="ct-mb-sm" />
-            <Link href="/properties" className="ct-seg-btn primary">
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
+            <p className="text-sm text-slate-500">{t.propertiesEmpty}</p>
+            <Link
+              href="/properties"
+              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
+            >
               {t.addProperty}
             </Link>
-          </>
+          </div>
         ) : (
           <>
             <DataTable
@@ -421,7 +438,10 @@ export default async function DashboardPage() {
               emptyLabel={t.propertiesEmpty}
               getKey={(r) => r.id}
             />
-            <Link href="/properties" className="ct-seg-btn">
+            <Link
+              href="/properties"
+              className="self-start rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-white/[0.08]"
+            >
               {t.seeAllProperties}
             </Link>
           </>

@@ -70,15 +70,20 @@ export default function VisitForm({ cta }: { cta: string }) {
 
   if (!open) {
     return (
-      <button className="ct-seg-btn primary" onClick={() => setOpen(true)}>
+      <button
+        className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400"
+        onClick={() => setOpen(true)}
+      >
         {cta}
       </button>
     );
   }
 
   return (
-    <div className="ct-card">
-      <div className="ct-card-title">{t.title}</div>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+        {t.title}
+      </div>
       <CockpitForm onSubmit={handleSubmit}>
         <Field label={t.property} htmlFor="visit-property" required>
           <Select
@@ -127,14 +132,18 @@ export default function VisitForm({ cta }: { cta: string }) {
           />
         </Field>
 
-        {error && <p className="ct-error">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
-        <div className="crm-form-actions">
-          <button className="ct-seg-btn primary" type="submit" disabled={loading}>
+        <div className="flex items-center gap-2 pt-2">
+          <button
+            className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+            type="submit"
+            disabled={loading}
+          >
             {t.save}
           </button>
           <button
-            className="ct-seg-btn"
+            className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08]"
             type="button"
             onClick={() => setOpen(false)}
           >

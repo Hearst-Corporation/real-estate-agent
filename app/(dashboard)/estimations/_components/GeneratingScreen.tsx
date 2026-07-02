@@ -16,36 +16,57 @@ export function GeneratingScreen({ currentStep }: Props) {
     : -1;
 
   return (
-    <div className="est-generating">
-      <div className="est-generating-inner">
-        <div className="est-generating-icon">
-          <span className="est-generating-pulse" />
+    <div className="flex h-full min-h-[60vh] items-center justify-center p-6">
+      <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
+        <div className="relative flex size-16 items-center justify-center">
+          <span className="absolute inset-0 animate-ping rounded-full bg-indigo-400/30" />
+          <span className="relative size-4 rounded-full bg-indigo-400" />
         </div>
 
-        <h2 className="est-generating-title">{UI.estimations.generatingTitle}</h2>
-        <p className="est-generating-sub">{UI.estimations.generatingSub}</p>
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-xl font-bold tracking-tight text-white">
+            {UI.estimations.generatingTitle}
+          </h2>
+          <p className="text-sm text-slate-400">{UI.estimations.generatingSub}</p>
+        </div>
 
-        <div className="est-generating-steps">
+        <div className="flex w-full flex-col gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left">
           {steps.map((step, i) => {
             const done = i < currentIdx;
             const active = i === currentIdx;
             return (
               <div
                 key={step}
-                className={`est-gen-step${done ? " done" : ""}${active ? " active" : ""}`}
+                className={`flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm ${
+                  active ? "bg-indigo-500/10 text-indigo-200" : done ? "text-slate-300" : "text-slate-500"
+                }`}
               >
-                <span className="est-gen-step-icon" aria-hidden="true">
+                <span
+                  className={`flex size-5 shrink-0 items-center justify-center rounded-full text-xs ${
+                    done
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : active
+                        ? "bg-indigo-500/20 text-indigo-300"
+                        : "bg-white/[0.06] text-slate-500"
+                  }`}
+                  aria-hidden="true"
+                >
                   {done ? "✓" : active ? "▶" : "·"}
                 </span>
-                <span className="est-gen-step-label">{step}</span>
-                {active && <span className="est-gen-step-spinner" aria-hidden="true" />}
+                <span className="flex-1">{step}</span>
+                {active && (
+                  <span
+                    className="size-3 shrink-0 animate-spin rounded-full border-2 border-indigo-400/30 border-t-indigo-400"
+                    aria-hidden="true"
+                  />
+                )}
               </div>
             );
           })}
         </div>
 
         {currentStep && (
-          <p className="est-generating-current" aria-live="polite">{currentStep}</p>
+          <p className="text-xs text-slate-500" aria-live="polite">{currentStep}</p>
         )}
       </div>
     </div>

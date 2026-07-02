@@ -1,7 +1,6 @@
 /**
  * BarList — liste de barres horizontales (label + valeur + piste remplie).
- * Server component. Style cockpit dédié, sans dépendance aux vues estimation.
- * Seul `width` passe en style inline (piloté par la donnée) ; le reste vient du CSS.
+ * Server component. Seul `width` passe en style inline (piloté par la donnée).
  */
 
 import type { BarItem } from "@/lib/crm/aggregate";
@@ -13,21 +12,21 @@ type BarListProps = {
 
 export function BarList({ items, emptyLabel }: BarListProps) {
   if (items.length === 0) {
-    return <p className="ct-chart-empty">{emptyLabel}</p>;
+    return <p className="py-6 text-center text-sm text-slate-500">{emptyLabel}</p>;
   }
 
   return (
-    <div className="ct-chart-barlist">
+    <div className="flex flex-col gap-3">
       {items.map((item) => (
-        <div className="ct-chart-barlist-item" key={item.label}>
-          <div className="ct-chart-barlist-head">
-            <span className="ct-chart-barlist-label">{item.label}</span>
-            <span className="ct-chart-barlist-value">{item.value}</span>
+        <div className="flex flex-col gap-1.5" key={item.label}>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-slate-300">{item.label}</span>
+            <span className="font-semibold text-slate-100 tabular-nums">{item.value}</span>
           </div>
-          <div className="ct-chart-bar-track">
-            {/* largeur pilotée par la donnée → style inline (tout le reste vient du CSS) */}
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+            {/* largeur pilotée par la donnée → style inline (tout le reste vient des utilities) */}
             <div
-              className="ct-chart-bar-fill"
+              className="h-full rounded-full bg-indigo-400 transition-all"
               style={{ width: `${Math.max(0, Math.min(100, item.percent))}%` }}
             />
           </div>

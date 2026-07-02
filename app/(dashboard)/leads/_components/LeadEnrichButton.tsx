@@ -47,10 +47,15 @@ export function LeadEnrichButton({ leadId, hasData = false }: Props) {
 
   return (
     <div>
-      <button className="ct-seg-btn" onClick={handleEnrich} disabled={busy}>
+      <button
+        type="button"
+        className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
+        onClick={handleEnrich}
+        disabled={busy}
+      >
         {busy ? te.busy : hasData ? te.reenrich : te.button}
       </button>
-      {error && <p className="ct-placeholder">{error}</p>}
+      {error && <p className="mt-2 text-sm text-slate-500">{error}</p>}
     </div>
   );
 }

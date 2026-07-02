@@ -7,13 +7,13 @@ export default function MissionsLoading() {
     <PageStack>
       <PageHeader kicker={UI.missions.kicker} title={UI.nav.missions} />
       <Card title={UI.missions.launchTitle}>
-        <div className="ct-skeleton-stack" aria-busy="true">
-          <Skeleton width="100%" height={80} radius="var(--ct-radius-lg)" />
-          <Skeleton width="40%" height={36} radius="var(--ct-radius-md)" />
+        <div className="flex flex-col gap-3" aria-busy="true">
+          <Skeleton width="100%" height={80} radius={16} />
+          <Skeleton width="40%" height={36} radius={12} />
         </div>
       </Card>
       <Card title={UI.missions.listTitle}>
-        <div className="ct-skeleton-stack" aria-busy="true">
+        <div className="flex flex-col gap-3" aria-busy="true">
           <Skeleton width="100%" height={16} />
           <Skeleton width="90%" height={16} />
           <Skeleton width="70%" height={16} />

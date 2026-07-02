@@ -128,8 +128,11 @@ export default async function MandateDetailPage({
         kicker={td.kicker + (mandate.reference ? ` · ${mandate.reference}` : "")}
         title={pageTitle}
         action={
-          <div className="crm-detail-header-actions">
-            <Link href="/mandates" className="ct-btn ct-btn-secondary">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/mandates"
+              className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08]"
+            >
               {td.backLink}
             </Link>
             <Badge>{t.statusLabels[mandate.status] ?? mandate.status}</Badge>
@@ -153,88 +156,89 @@ export default async function MandateDetailPage({
           },
         ]}
       />
-      {metaSub && (
-        <p className="ct-sub crm-header-tighten">
-          {metaSub}
-        </p>
-      )}
+      {metaSub && <p className="-mt-4 text-sm text-slate-400">{metaSub}</p>}
 
       {/* ── Détail du mandat ────────────────────────────────────────────── */}
       <Card title={td.cardMandat}>
-        <dl className="crm-detail-dl">
-          <dt>{td.fields.kind}</dt>
-          <dd>{t.kindLabels[mandate.kind] ?? mandate.kind}</dd>
+        <dl className="divide-y divide-white/5">
+          <div className="grid grid-cols-1 gap-1 py-3 first:pt-0 @sm:grid-cols-3 @sm:gap-4">
+            <dt className="text-sm font-medium text-slate-400">{td.fields.kind}</dt>
+            <dd className="text-sm text-slate-200 @sm:col-span-2">
+              {t.kindLabels[mandate.kind] ?? mandate.kind}
+            </dd>
+          </div>
 
           {mandate.reference && (
-            <>
-              <dt>{td.fields.reference}</dt>
-              <dd>{mandate.reference}</dd>
-            </>
+            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
+              <dt className="text-sm font-medium text-slate-400">{td.fields.reference}</dt>
+              <dd className="text-sm text-slate-200 @sm:col-span-2">{mandate.reference}</dd>
+            </div>
           )}
 
           {mandate.asking_price != null && (
-            <>
-              <dt>{td.fields.askingPrice}</dt>
-              <dd>{eur(mandate.asking_price)}</dd>
-            </>
+            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
+              <dt className="text-sm font-medium text-slate-400">{td.fields.askingPrice}</dt>
+              <dd className="text-sm text-slate-200 @sm:col-span-2">{eur(mandate.asking_price)}</dd>
+            </div>
           )}
 
           {mandate.commission_pct != null && (
-            <>
-              <dt>{td.fields.commissionPct}</dt>
-              <dd>{mandate.commission_pct}{t.commissionUnit}</dd>
-            </>
+            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
+              <dt className="text-sm font-medium text-slate-400">{td.fields.commissionPct}</dt>
+              <dd className="text-sm text-slate-200 @sm:col-span-2">
+                {mandate.commission_pct}
+                {t.commissionUnit}
+              </dd>
+            </div>
           )}
 
           {commissionAmount != null && (
-            <>
-              <dt>{td.fields.commissionAmount}</dt>
-              <dd>{eur(commissionAmount)}</dd>
-            </>
+            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
+              <dt className="text-sm font-medium text-slate-400">{td.fields.commissionAmount}</dt>
+              <dd className="text-sm text-slate-200 @sm:col-span-2">{eur(commissionAmount)}</dd>
+            </div>
           )}
 
           {mandate.signed_at && (
-            <>
-              <dt>{td.fields.signedAt}</dt>
-              <dd>{dateFr(mandate.signed_at)}</dd>
-            </>
+            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
+              <dt className="text-sm font-medium text-slate-400">{td.fields.signedAt}</dt>
+              <dd className="text-sm text-slate-200 @sm:col-span-2">{dateFr(mandate.signed_at)}</dd>
+            </div>
           )}
 
           {mandate.expires_at && (
-            <>
-              <dt>{td.fields.expiresAt}</dt>
-              <dd>
+            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
+              <dt className="text-sm font-medium text-slate-400">{td.fields.expiresAt}</dt>
+              <dd className="flex flex-wrap items-center gap-2 text-sm text-slate-200 @sm:col-span-2">
                 {dateFr(mandate.expires_at)}
                 {isExpiringSoon && daysLeft !== null && (
-                  <span className="ct-badge crm-badge-spaced">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-300">
                     {td.expiringWarning} — {td.fields.daysLeft(daysLeft)}
                   </span>
                 )}
                 {isExpired && (
-                  <span className="ct-badge crm-badge-spaced">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-red-400/30 bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-300">
                     {td.fields.daysExpired}
                   </span>
                 )}
               </dd>
-            </>
+            </div>
           )}
 
           {mandate.updated_at && (
-            <>
-              <dt>{td.fields.updatedAt}</dt>
-              <dd>{dateFr(mandate.updated_at)}</dd>
-            </>
+            <div className="grid grid-cols-1 gap-1 py-3 last:pb-0 @sm:grid-cols-3 @sm:gap-4">
+              <dt className="text-sm font-medium text-slate-400">{td.fields.updatedAt}</dt>
+              <dd className="text-sm text-slate-200 @sm:col-span-2">{dateFr(mandate.updated_at)}</dd>
+            </div>
           )}
         </dl>
 
         {mandate.notes && (
-          <div className="crm-notes-block">
-            <p className="crm-notes-label">
+          <div className="mt-4 border-t border-white/5 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
               {td.fields.notes}
             </p>
-            <p className="crm-notes-body">
-              {mandate.notes}
-            </p>
+            <p className="mt-2 text-sm whitespace-pre-wrap text-slate-300">{mandate.notes}</p>
           </div>
         )}
       </Card>
@@ -242,87 +246,78 @@ export default async function MandateDetailPage({
       {/* ── Bien lié ────────────────────────────────────────────────────── */}
       <Card title={td.cardBien}>
         {property ? (
-          <div className="crm-detail-dl">
-            <dl className="crm-detail-dl">
-              {property.title && (
-                <>
-                  <dt>{td.fields.notes /* reuse label slot */}</dt>
-                  <dd>
-                    <Link
-                      href={`/properties/${property.id}` as import("@/config/nav").AppRoute}
-                      className="crm-link"
-                    >
-                      {td.wellLinked}
-                    </Link>
-                  </dd>
-                </>
-              )}
+          <div>
+            <dl className="divide-y divide-white/5">
               {property.property_type && (
-                <>
-                  <dt>{td.wellType}</dt>
-                  <dd>
+                <div className="grid grid-cols-1 gap-1 py-3 first:pt-0 @sm:grid-cols-3 @sm:gap-4">
+                  <dt className="text-sm font-medium text-slate-400">{td.wellType}</dt>
+                  <dd className="text-sm text-slate-200 @sm:col-span-2">
                     {UI.properties.typeLabels[property.property_type] ??
                       property.property_type}
                   </dd>
-                </>
+                </div>
               )}
               {property.city && (
-                <>
-                  <dt>{td.wellCity}</dt>
-                  <dd>{property.city}</dd>
-                </>
+                <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
+                  <dt className="text-sm font-medium text-slate-400">{td.wellCity}</dt>
+                  <dd className="text-sm text-slate-200 @sm:col-span-2">{property.city}</dd>
+                </div>
               )}
               {property.surface != null && (
-                <>
-                  <dt>{td.wellSurface}</dt>
-                  <dd>{sqm(property.surface)}</dd>
-                </>
+                <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
+                  <dt className="text-sm font-medium text-slate-400">{td.wellSurface}</dt>
+                  <dd className="text-sm text-slate-200 @sm:col-span-2">{sqm(property.surface)}</dd>
+                </div>
               )}
               {property.asking_price != null && (
-                <>
-                  <dt>{td.wellPrice}</dt>
-                  <dd>{eur(property.asking_price)}</dd>
-                </>
+                <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
+                  <dt className="text-sm font-medium text-slate-400">{td.wellPrice}</dt>
+                  <dd className="text-sm text-slate-200 @sm:col-span-2">{eur(property.asking_price)}</dd>
+                </div>
               )}
-              <dt>{td.wellStatus}</dt>
-              <dd>
-                <Badge>
-                  {UI.properties.statusLabels[property.status] ?? property.status}
-                </Badge>
-              </dd>
+              <div className="grid grid-cols-1 gap-1 py-3 last:pb-0 @sm:grid-cols-3 @sm:gap-4">
+                <dt className="text-sm font-medium text-slate-400">{td.wellStatus}</dt>
+                <dd className="text-sm text-slate-200 @sm:col-span-2">
+                  <Badge>
+                    {UI.properties.statusLabels[property.status] ?? property.status}
+                  </Badge>
+                </dd>
+              </div>
             </dl>
-            <div className="crm-card-footer">
+            <div className="mt-4 border-t border-white/5 pt-4">
               <Link
                 href={`/properties/${property.id}` as import("@/config/nav").AppRoute}
-                className="crm-link"
+                className="text-sm font-medium text-indigo-300 hover:text-indigo-200"
               >
                 {td.wellLinked}
               </Link>
             </div>
           </div>
         ) : (
-          <p className="ct-placeholder">{td.emptyWell}</p>
+          <p className="text-sm text-slate-500">{td.emptyWell}</p>
         )}
       </Card>
 
       {/* ── Visites du bien ─────────────────────────────────────────────── */}
       <Card title={td.cardVisites}>
         {visits.length > 0 ? (
-          <ul className="crm-list">
+          <ul className="divide-y divide-white/5">
             {visits.map((visit) => (
-              <li key={visit.id} className="crm-list-row">
-                <span className="crm-list-name">{dateTimeFr(visit.scheduled_at)}</span>
-                {visit.leads?.full_name && (
-                  <span className="crm-list-meta">{visit.leads.full_name}</span>
-                )}
-                <Badge>
-                  {UI.visits.statusLabels[visit.status] ?? visit.status}
-                </Badge>
+              <li key={visit.id} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="text-sm font-medium text-slate-100">
+                    {dateTimeFr(visit.scheduled_at)}
+                  </span>
+                  {visit.leads?.full_name && (
+                    <span className="text-sm text-slate-400">{visit.leads.full_name}</span>
+                  )}
+                </div>
+                <Badge>{UI.visits.statusLabels[visit.status] ?? visit.status}</Badge>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="ct-placeholder">{td.emptyVisits}</p>
+          <p className="text-sm text-slate-500">{td.emptyVisits}</p>
         )}
       </Card>
     </PageStack>

@@ -1,13 +1,14 @@
 import { UI } from "@/lib/ui-strings";
 
+/** Couleurs officielles de l'étiquette énergie DPE (A→G, vert→rouge). */
 const DPE_COLORS: Record<string, string> = {
-  A: "var(--dpe-a)",
-  B: "var(--dpe-b)",
-  C: "var(--dpe-c)",
-  D: "var(--dpe-d)",
-  E: "var(--dpe-e)",
-  F: "var(--dpe-f)",
-  G: "var(--dpe-g)",
+  A: "#00a651",
+  B: "#4cb848",
+  C: "#bfd730",
+  D: "#fff200",
+  E: "#fdb913",
+  F: "#f47b20",
+  G: "#ed1c24",
 };
 
 interface DpeBadgeProps {
@@ -17,11 +18,15 @@ interface DpeBadgeProps {
 
 export function DpeBadge({ letter, label }: DpeBadgeProps) {
   const t = UI.properties.dpe;
-  if (!letter) return <span className="ct-placeholder">{t.none}</span>;
-  const bg = DPE_COLORS[letter] ?? "var(--ct-surface-3)";
+  if (!letter) return <span className="text-sm text-slate-500">{t.none}</span>;
+  const bg = DPE_COLORS[letter] ?? "#475569";
+  // Lettres D à G sur fond clair (jaune/orange) → texte sombre pour contraste ; A-C sur fond vert → texte blanc.
+  const dark = letter === "D" || letter === "E" || letter === "F" || letter === "G";
   return (
     <span
-      className="property-dpe-badge"
+      className={`inline-flex size-8 items-center justify-center rounded-lg text-sm font-bold ${
+        dark ? "text-slate-900" : "text-white"
+      }`}
       style={{ backgroundColor: bg }}
       aria-label={`${label ?? t.label} : ${letter}`}
     >

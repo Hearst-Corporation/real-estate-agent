@@ -22,16 +22,20 @@ export default function EstimationsError({
     <PageStack>
       <PageHeader kicker={UI.estimations.eyebrow} title={title} />
       <Card>
-        <div className="ct-skeleton-stack">
-          <p className="ct-sub">
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-slate-400">
             Impossible de charger {UI.estimations.title.toLowerCase()}. Réessayez ;
             si le problème persiste, rechargez la page.
           </p>
           {process.env.NODE_ENV === "development" && error.message ? (
-            <p className="ct-subtext">{error.message}</p>
+            <p className="text-xs text-slate-500">{error.message}</p>
           ) : null}
           <div>
-            <button type="button" className="ct-btn ct-btn-primary" onClick={reset}>
+            <button
+              type="button"
+              className="inline-flex items-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-3 py-1.5 text-xs font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/25"
+              onClick={reset}
+            >
               Réessayer
             </button>
           </div>

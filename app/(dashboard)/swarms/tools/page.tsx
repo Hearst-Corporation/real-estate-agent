@@ -1,4 +1,4 @@
-import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
+import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { getSession } from "@/lib/server/session";
@@ -35,9 +35,7 @@ export default async function SwarmsToolsPage() {
     {
       key: "category",
       header: t.cols.category,
-      render: (r) => (
-        <span className="ct-badge is-muted">{r.category ?? t.uncategorized}</span>
-      ),
+      render: (r) => <Badge>{r.category ?? t.uncategorized}</Badge>,
     },
     {
       key: "description",
@@ -60,7 +58,7 @@ export default async function SwarmsToolsPage() {
 
       <Card variant="dense">
         {loadError ? (
-          <p className="ct-error">{loadError}</p>
+          <p className="text-sm text-red-400">{loadError}</p>
         ) : (
           <DataTable
             columns={columns}

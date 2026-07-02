@@ -18,7 +18,7 @@ export default function RunDetailPage({
   }, [params]);
 
   if (!ids) {
-    return <div className="swarm-report-loading">{UI.common.loading}</div>;
+    return <div className="py-8 text-center text-sm text-slate-500">{UI.common.loading}</div>;
   }
 
   return (
@@ -26,11 +26,11 @@ export default function RunDetailPage({
       <PageHeader
         kicker={
           <>
-            <Link href="/swarms" className="swarm-crumb">
+            <Link href="/swarms" className="text-indigo-300 hover:text-indigo-200">
               {UI.nav.swarms}
             </Link>
             {" / "}
-            <Link href={`/swarms/${ids.id}`} className="swarm-crumb">
+            <Link href={`/swarms/${ids.id}`} className="text-indigo-300 hover:text-indigo-200">
               {UI.swarms.backToSwarm}
             </Link>
             {" / "}

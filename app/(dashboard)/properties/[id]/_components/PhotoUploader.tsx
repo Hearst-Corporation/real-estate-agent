@@ -58,7 +58,11 @@ export function PhotoUploader({ propertyId }: PhotoUploaderProps) {
 
   return (
     <div
-      className={`property-uploader${dragOver ? " drag-over" : ""}`}
+      className={`flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed px-4 py-6 text-center transition-colors ${
+        dragOver
+          ? "border-indigo-400/60 bg-indigo-500/10"
+          : "border-white/15 bg-white/[0.02] hover:border-white/25 hover:bg-white/[0.04]"
+      }`}
       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={(e) => { e.preventDefault(); setDragOver(false); void handleFiles(e.dataTransfer.files); }}
@@ -76,10 +80,14 @@ export function PhotoUploader({ propertyId }: PhotoUploaderProps) {
         style={{ display: "none" }}
         onChange={(e) => void handleFiles(e.target.files)}
       />
-      <span className="ct-placeholder">
+      <span className="text-sm text-slate-400">
         {uploading ? t.uploading : t.upload}
       </span>
-      {error && <p className="ct-error" onClick={(e) => e.stopPropagation()}>{error}</p>}
+      {error && (
+        <p className="text-xs text-red-400" onClick={(e) => e.stopPropagation()}>
+          {error}
+        </p>
+      )}
     </div>
   );
 }

@@ -36,16 +36,16 @@ export function ScrapeButton({ disabled = false }: { disabled?: boolean }) {
   }
 
   return (
-    <div className="ct-inline-actions">
+    <div className="flex items-center gap-3">
       <button
         type="button"
-        className="ct-seg-btn primary"
+        className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
         onClick={handleScrape}
         disabled={busy || disabled}
       >
         {busy ? t.launching : t.launch}
       </button>
-      {msg && <span className="ct-placeholder">{msg}</span>}
+      {msg && <span className="text-sm text-slate-500">{msg}</span>}
     </div>
   );
 }

@@ -16,10 +16,9 @@ export function Skeleton({
 }) {
   return (
     <span
-      className="inv-skeleton"
+      className="block animate-pulse rounded-md bg-white/[0.06]"
       aria-hidden
       style={{
-        display: "block",
         width: typeof width === "number" ? `${width}px` : (width ?? "100%"),
         height: typeof height === "number" ? `${height}px` : height,
         ...(radius != null ? { borderRadius: `${radius}px` } : null),
@@ -31,9 +30,9 @@ export function Skeleton({
 /** Bloc carte en skeleton (mime une DealCard). */
 export function SkeletonCard() {
   return (
-    <div className="inv-deal-card" aria-busy="true">
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]" aria-busy="true">
       <Skeleton height={150} radius={0} />
-      <div className="inv-deal-body">
+      <div className="flex flex-col gap-2 p-4">
         <Skeleton width="40%" height={11} />
         <Skeleton width="70%" height={18} />
         <Skeleton width="100%" height={40} />

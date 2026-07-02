@@ -61,23 +61,23 @@ export function ClosingLauncher({ dealId, ready }: { dealId: string; ready: bool
   }
 
   return (
-    <div className="inv-stack-2xs">
+    <div className="flex flex-col items-start gap-1.5">
       <button
         type="button"
         onClick={launch}
         disabled={!ready || busy}
-        className={`inv-btn-reserve inv-btn-self-start${!ready || busy ? " is-disabled" : ""}`}
+        className="self-start rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:bg-white/[0.06] disabled:text-slate-500 disabled:shadow-none"
       >
         {busy ? "Closing en cours…" : "Lancer le closing"}
       </button>
       {!ready ? (
-        <span className="inv-chart-foot">
+        <span className="text-xs text-slate-500">
           La double validation 4-eyes et toutes les conditions suspensives doivent être réunies.
         </span>
       ) : null}
       {msg ? (
         <span
-          className={`inv-chart-foot${tone === "err" ? " inv-msg-err" : tone === "warn" ? " inv-msg-warn" : ""}`}
+          className={`text-xs ${tone === "err" ? "text-red-300" : tone === "warn" ? "text-amber-300" : "text-slate-500"}`}
         >
           {msg}
         </span>
