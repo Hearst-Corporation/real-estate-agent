@@ -1,6 +1,5 @@
 import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
-import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { getSession } from "@/lib/server/session";
 import { uuidOwnerOf } from "@/lib/tenant";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
@@ -45,35 +44,6 @@ export default async function SwarmsPage() {
   const active = swarms.filter((s) => s.is_active).length;
   const inactive = total - active;
 
-  const columns: Column<Swarm>[] = [
-    {
-      key: "name",
-      header: "Nom",
-      render: (r) => (
-        <Link href={`/swarms/${r.id}`} className="font-medium text-indigo-300 hover:text-indigo-200">
-          {r.name}
-        </Link>
-      ),
-    },
-    {
-      key: "status",
-      header: "Statut",
-      render: (r) => (
-        <Badge>{r.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}</Badge>
-      ),
-    },
-    {
-      key: "agents",
-      header: "Agents",
-      render: (r) => `${r.agents?.length ?? 0} agent(s)`,
-    },
-    {
-      key: "tasks",
-      header: "Tâches",
-      render: (r) => `${r.tasks?.length ?? 0} tâche(s)`,
-    },
-  ];
-
   return (
     <PageStack>
       <PageHeader
@@ -105,18 +75,55 @@ export default async function SwarmsPage() {
         </Card>
       </div>
 
-      <Card variant="dense">
+      {/* TW+ lists__tables/02-simple-in-card — adapté thème sombre */}
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20">
         {loadError ? (
-          <p className="text-sm text-red-400">{loadError}</p>
+          <p className="p-5 text-sm text-red-400">{loadError}</p>
+        ) : swarms.length === 0 ? (
+          <p className="p-8 text-center text-sm text-slate-500">{UI.swarms.empty}</p>
         ) : (
-          <DataTable
-            columns={columns}
-            rows={swarms}
-            emptyLabel={UI.swarms.empty}
-            getKey={(s) => s.id}
-          />
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-white/10">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Nom
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Statut
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Agents
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Tâches
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {swarms.map((r) => (
+                  <tr key={r.id} className="transition-colors hover:bg-white/[0.02]">
+                    <td className="px-5 py-4 text-sm whitespace-nowrap">
+                      <Link href={`/swarms/${r.id}`} className="font-medium text-indigo-300 hover:text-indigo-200">
+                        {r.name}
+                      </Link>
+                    </td>
+                    <td className="px-5 py-4 text-sm whitespace-nowrap">
+                      <Badge>{r.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}</Badge>
+                    </td>
+                    <td className="px-5 py-4 text-sm whitespace-nowrap text-slate-400">
+                      {`${r.agents?.length ?? 0} agent(s)`}
+                    </td>
+                    <td className="px-5 py-4 text-sm whitespace-nowrap text-slate-400">
+                      {`${r.tasks?.length ?? 0} tâche(s)`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </Card>
+      </div>
     </PageStack>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { PlayCircleIcon } from "@heroicons/react/24/outline";
 import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
 import { Badge, Caption, Card, PageHeader, PageStack, SubsectionTitle } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
@@ -288,51 +289,51 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
         </Card>
       )}
 
-      {/* Tab: Agents & Tasks */}
+      {/* Tab: Agents & Tasks — TW+ lists__stacked-lists/06-in-card, adapté thème sombre */}
       {tab === "agents" && (
         <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-2">
-          <div>
-            <SubsectionTitle as="div">{UI.swarms.agentsCount(swarm.agents?.length ?? 0)}</SubsectionTitle>
-            <div className="mt-3 flex flex-col gap-2">
-              {(swarm.agents ?? []).map((agent, i) => (
-                <div key={agent.id ?? i} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
-                  <p className="text-sm font-medium text-slate-100">{agent.name}</p>
-                  <p className="mt-0.5 text-xs text-indigo-300">{agent.role}</p>
-                  {agent.goal && <p className="mt-1 text-xs text-slate-400">{agent.goal}</p>}
-                  {agent.backstory && (
-                    <p className="mt-1 text-xs text-slate-500">{agent.backstory}</p>
-                  )}
-                </div>
-              ))}
-              {(swarm.agents ?? []).length === 0 && (
-                <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.agentsEmpty}</p>
-              )}
-            </div>
-          </div>
-          <div>
-            <SubsectionTitle as="div">{UI.swarms.tasksCount(swarm.tasks?.length ?? 0)}</SubsectionTitle>
-            <div className="mt-3 flex flex-col gap-2">
-              {(swarm.tasks ?? []).map((task, i) => (
-                <div key={task.id ?? i} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
-                  <p className="text-sm font-medium text-slate-100">{task.name}</p>
-                  {task.description && <p className="mt-0.5 text-xs text-slate-400">{task.description}</p>}
-                  {task.expected_output && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      {UI.swarms.expectedOutputPrefix}{task.expected_output}
-                    </p>
-                  )}
-                  {task.agent_name && (
-                    <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
-                      {task.agent_name}
-                    </span>
-                  )}
-                </div>
-              ))}
-              {(swarm.tasks ?? []).length === 0 && (
-                <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.tasksEmpty}</p>
-              )}
-            </div>
-          </div>
+          <Card title={UI.swarms.agentsCount(swarm.agents?.length ?? 0)}>
+            {(swarm.agents ?? []).length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.agentsEmpty}</p>
+            ) : (
+              <ul role="list" className="divide-y divide-white/5">
+                {(swarm.agents ?? []).map((agent, i) => (
+                  <li key={agent.id ?? i} className="py-4 first:pt-0 last:pb-0">
+                    <p className="text-sm font-medium text-slate-100">{agent.name}</p>
+                    <p className="mt-0.5 text-xs text-indigo-300">{agent.role}</p>
+                    {agent.goal && <p className="mt-1 text-xs text-slate-400">{agent.goal}</p>}
+                    {agent.backstory && (
+                      <p className="mt-1 text-xs text-slate-500">{agent.backstory}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+          <Card title={UI.swarms.tasksCount(swarm.tasks?.length ?? 0)}>
+            {(swarm.tasks ?? []).length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.tasksEmpty}</p>
+            ) : (
+              <ul role="list" className="divide-y divide-white/5">
+                {(swarm.tasks ?? []).map((task, i) => (
+                  <li key={task.id ?? i} className="py-4 first:pt-0 last:pb-0">
+                    <p className="text-sm font-medium text-slate-100">{task.name}</p>
+                    {task.description && <p className="mt-0.5 text-xs text-slate-400">{task.description}</p>}
+                    {task.expected_output && (
+                      <p className="mt-1 text-xs text-slate-500">
+                        {UI.swarms.expectedOutputPrefix}{task.expected_output}
+                      </p>
+                    )}
+                    {task.agent_name && (
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
+                        {task.agent_name}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         </div>
       )}
 
@@ -386,23 +387,38 @@ function RunsTab({
       {runs.length === 0 ? (
         <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.runsEmpty}</p>
       ) : (
-        <div className="flex flex-col divide-y divide-white/5">
-          {runs.map((run) => {
-            const date = dateTimeFr(run.created_at);
-            return (
-              <div key={run.run_id} className="flex flex-wrap items-center gap-3 py-3">
-                <span className="font-mono text-xs text-slate-500">{run.run_id}</span>
-                <RunStatusBadge status={run.status} size="sm" />
-                <Caption as="span">{date}</Caption>
-                <Link
-                  href={`/swarms/${swarmId}/run/${run.run_id}`}
-                  className="ml-auto inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-                >
-                  {UI.swarms.runsView}
-                </Link>
-              </div>
-            );
-          })}
+        // TW+ lists__feeds/01-simple-with-icons — adapté thème sombre
+        <div className="flow-root">
+          <ul role="list" className="-mb-8">
+            {runs.map((run, runIdx) => {
+              const date = dateTimeFr(run.created_at);
+              return (
+                <li key={run.run_id}>
+                  <div className="relative pb-8">
+                    {runIdx !== runs.length - 1 ? (
+                      <span aria-hidden="true" className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-white/10" />
+                    ) : null}
+                    <div className="relative flex items-start gap-3">
+                      <span className="flex size-8 items-center justify-center rounded-full bg-indigo-500/15 ring-8 ring-slate-950">
+                        <PlayCircleIcon aria-hidden="true" className="size-5 text-indigo-300" />
+                      </span>
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 pt-1.5">
+                        <span className="font-mono text-xs text-slate-500">{run.run_id}</span>
+                        <RunStatusBadge status={run.status} size="sm" />
+                        <Caption as="span">{date}</Caption>
+                        <Link
+                          href={`/swarms/${swarmId}/run/${run.run_id}`}
+                          className="ml-auto inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+                        >
+                          {UI.swarms.runsView}
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
     </Card>

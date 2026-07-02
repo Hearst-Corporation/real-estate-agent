@@ -1,10 +1,15 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import {
+  UsersIcon,
+  MagnifyingGlassIcon,
+  SparklesIcon,
+  BuildingOffice2Icon,
+  ArrowTopRightOnSquareIcon,
+} from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
-import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
 import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
 import { ScrapeCustomModal } from "./_components/ScrapeCustomModal";
-import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
 
 // ─── Interfaces API ────────────────────────────────────────────────────────────
@@ -123,6 +128,16 @@ const SCORE_TONE: Record<"is-good" | "is-ok" | "is-low", string> = {
   "is-low": "stroke-slate-500 text-slate-400",
 };
 
+// ─── Badge (inline, ex-primitive) ─────────────────────────────────────────────
+
+function Badge({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
+      {children}
+    </span>
+  );
+}
+
 // ─── Composant score ring ─────────────────────────────────────────────────────
 
 function ScoreRing({ score }: { score: number }) {
@@ -152,16 +167,16 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-// ─── Empty state premium ──────────────────────────────────────────────────────
+// ─── Empty state (TW+ feedback__empty-states/03-with-starting-points adapté) ───
 
 function EmptyState({
-  icon,
+  icon: IconCmp,
   title,
   text,
   steps,
   action,
 }: {
-  icon: string;
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
   title: string;
   text: string;
   steps?: string[];
@@ -169,7 +184,7 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-white/10 px-6 py-12 text-center">
-      <div className="text-3xl" aria-hidden="true">{icon}</div>
+      <IconCmp aria-hidden="true" className="size-10 text-slate-500" />
       <p className="text-base font-semibold text-slate-100">{title}</p>
       <p className="max-w-md text-sm text-slate-400">{text}</p>
       {steps && steps.length > 0 && (
@@ -192,7 +207,64 @@ function EmptyState({
   );
 }
 
-// ─── Carte annonce visuelle ───────────────────────────────────────────────────
+// ─── Table (TW+ lists__tables/02-simple-in-card adapté, remplace DataTable) ────
+
+type SimpleColumn<T> = {
+  key: string;
+  header: string;
+  render: (row: T) => ReactNode;
+  align?: "left" | "right";
+};
+
+function SimpleTable<T>({
+  columns,
+  rows,
+  emptyLabel,
+  getKey,
+}: {
+  columns: SimpleColumn<T>[];
+  rows: T[];
+  emptyLabel: string;
+  getKey: (row: T) => string;
+}) {
+  if (rows.length === 0) {
+    return <p className="py-8 text-center text-sm text-slate-500">{emptyLabel}</p>;
+  }
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-500">
+            {columns.map((col) => (
+              <th
+                key={col.key}
+                className={`px-3 py-2 font-medium ${col.align === "right" ? "text-right tabular-nums" : ""}`}
+              >
+                {col.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/5">
+          {rows.map((row) => (
+            <tr key={getKey(row)} className="transition-colors hover:bg-white/[0.03]">
+              {columns.map((col) => (
+                <td
+                  key={col.key}
+                  className={`px-3 py-2.5 text-slate-200 ${col.align === "right" ? "text-right tabular-nums" : ""}`}
+                >
+                  {col.render(row)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ─── Carte annonce (TW+ lists__grid-lists/06-images-with-details adapté) ──────
 
 function AnnonceCard({ annonce }: { annonce: Annonce }) {
   const photos = annoncePhotos(annonce);
@@ -215,8 +287,8 @@ function AnnonceCard({ annonce }: { annonce: Annonce }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photos[0]} alt={annonceTitle(annonce)} loading="lazy" className="size-full object-cover" />
         ) : (
-          <div className="flex size-full items-center justify-center text-3xl" aria-hidden="true">
-            🏠
+          <div className="flex size-full items-center justify-center text-slate-600" aria-hidden="true">
+            <BuildingOffice2Icon className="size-12" />
           </div>
         )}
         <div className="absolute inset-x-2 top-2 flex flex-wrap gap-1.5">
@@ -272,9 +344,10 @@ function AnnonceCard({ annonce }: { annonce: Annonce }) {
               href={annonce.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 text-xs font-medium text-indigo-300 hover:text-indigo-200"
+              className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-indigo-300 hover:text-indigo-200"
             >
-              {UI.prospection.annonceVoir} →
+              {UI.prospection.annonceVoir}
+              <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-3.5" />
             </a>
           )}
         </div>
@@ -403,7 +476,7 @@ export default function ProspectionPage() {
   }
 
   // ── Colonnes acquéreurs ──────────────────────────────────────────────────
-  const acquereurColumns: Column<Critere>[] = [
+  const acquereurColumns: SimpleColumn<Critere>[] = [
     { key: "nom", header: UI.prospection.colNom, render: (c) => <strong>{c.nom}</strong> },
     { key: "budget", header: UI.prospection.colBudget, render: (c) => budgetLabel(c) },
     { key: "zones", header: UI.prospection.colZones, render: (c) => zonesLabel(c.zones) },
@@ -425,13 +498,28 @@ export default function ProspectionPage() {
     },
   ];
 
+  const stats = [
+    { name: UI.prospection.kpiAcquereurs, value: String(criteres.length) },
+    { name: UI.prospection.kpiMatchs, value: String(matchs.length) },
+    { name: UI.prospection.kpiAnnonces, value: String(annonces.length) },
+    {
+      name: UI.prospection.kpiAlertes,
+      value: String(criteres.filter((c) => c.alerte_email || c.alerte_whatsapp).length),
+    },
+  ];
+
   return (
-    <PageStack>
-      <PageHeader
-        kicker={UI.prospection.kicker}
-        title={UI.prospection.title}
-        action={
-          <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-6 pb-12 @container">
+      {/* ── Header (TW+ page-headings/08-with-filters-and-action adapté sombre) ── */}
+      <div className="flex flex-col gap-4 pb-2">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+              {UI.prospection.kicker}
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-white">{UI.prospection.title}</h1>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
             <ScrapeCustomModal
               onDone={() => {
                 setTab("matching");
@@ -447,8 +535,9 @@ export default function ProspectionPage() {
               {UI.prospection.newAcquereurBtn}
             </button>
           </div>
-        }
-        nav={
+        </div>
+
+        <nav className="flex flex-wrap items-center gap-1 border-b border-white/10 pb-2">
           <PageSegmentTabs
             tabs={TABS.map((t) => ({
               id: t,
@@ -464,19 +553,23 @@ export default function ProspectionPage() {
             active={tab}
             onSelect={selectTab}
           />
-        }
-        kpis={[
-          { label: UI.prospection.kpiAcquereurs, value: String(criteres.length) },
-          { label: UI.prospection.kpiMatchs, value: String(matchs.length) },
-          { label: UI.prospection.kpiAnnonces, value: String(annonces.length) },
-          {
-            label: UI.prospection.kpiAlertes,
-            value: String(criteres.filter((c) => c.alerte_email || c.alerte_whatsapp).length),
-          },
-        ]}
-      />
+        </nav>
+      </div>
 
-      <Card variant="dense">
+      {/* ── Stats (TW+ data-display__stats/03-simple-in-cards adapté sombre) ── */}
+      <dl className="grid grid-cols-2 gap-4 @2xl:grid-cols-4">
+        {stats.map((item) => (
+          <div
+            key={item.name}
+            className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 shadow-lg shadow-black/20"
+          >
+            <dt className="truncate text-sm font-medium text-slate-400">{item.name}</dt>
+            <dd className="mt-1 text-2xl font-semibold tracking-tight text-white">{item.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
         {/* ── Onglet acquéreurs ── */}
         {tab === "acquereurs" && (
           <div>
@@ -487,7 +580,7 @@ export default function ProspectionPage() {
               <Spinner />
             ) : criteres.length === 0 ? (
               <EmptyState
-                icon="👤"
+                icon={UsersIcon}
                 title={UI.prospection.emptyCriteresTitle}
                 text={UI.prospection.emptyCriteresText}
                 steps={[
@@ -506,7 +599,7 @@ export default function ProspectionPage() {
                 }
               />
             ) : (
-              <DataTable
+              <SimpleTable
                 columns={acquereurColumns}
                 rows={criteres}
                 emptyLabel={error ?? UI.prospection.emptyCriteres}
@@ -553,7 +646,7 @@ export default function ProspectionPage() {
               <Spinner />
             ) : annonces.length === 0 ? (
               <EmptyState
-                icon="🔍"
+                icon={MagnifyingGlassIcon}
                 title={UI.prospection.emptyAnnoncesTitle}
                 text={UI.prospection.emptyAnnoncesText}
                 steps={[
@@ -563,11 +656,16 @@ export default function ProspectionPage() {
                 ]}
               />
             ) : (
-              <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
+              <ul
+                role="list"
+                className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3"
+              >
                 {annonces.map((a) => (
-                  <AnnonceCard key={a.id} annonce={a} />
+                  <li key={a.id}>
+                    <AnnonceCard annonce={a} />
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
         )}
@@ -594,7 +692,7 @@ export default function ProspectionPage() {
               <Spinner />
             ) : matchs.length === 0 ? (
               <EmptyState
-                icon="✨"
+                icon={SparklesIcon}
                 title={UI.prospection.emptyMatchsTitle}
                 text={UI.prospection.emptyMatchsText}
                 steps={[
@@ -624,12 +722,12 @@ export default function ProspectionPage() {
 
         {/* ── Onglet critères ── */}
         {tab === "criteres" && <CriteresPanel onChanged={loadCriteres} />}
-      </Card>
-    </PageStack>
+      </section>
+    </div>
   );
 }
 
-// ─── Match list ───────────────────────────────────────────────────────────────
+// ─── Match list (TW+ lists__stacked-lists/01-simple adapté sombre) ────────────
 
 function MatchList({
   matchs,
@@ -644,7 +742,7 @@ function MatchList({
   const sorted = [...matchs].sort((a, b) => b.score_match - a.score_match);
 
   return (
-    <div className="flex flex-col divide-y divide-white/5">
+    <ul role="list" className="divide-y divide-white/5">
       {sorted.map((m) => {
         const a = m.annonce;
         const isGood = m.score_match >= MATCH_SCORE_ALERT;
@@ -659,7 +757,7 @@ function MatchList({
         if (a.prix) metaParts.push(UI.prospection.annoncePrix(a.prix));
 
         return (
-          <div
+          <li
             key={m.id}
             className={`flex flex-wrap items-center gap-4 py-4 ${isGood ? "bg-emerald-400/[0.03]" : ""}`}
           >
@@ -678,7 +776,7 @@ function MatchList({
             <div className="flex shrink-0 items-center gap-1.5">
               <button
                 type="button"
-                className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] transition-colors hover:bg-white/[0.08]"
+                className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-sm transition-colors hover:bg-white/[0.08]"
                 aria-label={UI.prospection.feedbackLikeAria}
                 onClick={() => onFeedback(m.id, "up")}
               >
@@ -686,7 +784,7 @@ function MatchList({
               </button>
               <button
                 type="button"
-                className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] transition-colors hover:bg-white/[0.08]"
+                className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-sm transition-colors hover:bg-white/[0.08]"
                 aria-label={UI.prospection.feedbackDislikeAria}
                 onClick={() => onFeedback(m.id, "down")}
               >
@@ -701,10 +799,10 @@ function MatchList({
                 {UI.prospection.matchContactBtn}
               </button>
             </div>
-          </div>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }
 
@@ -819,7 +917,7 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
     }
   }
 
-  const critereColumns: Column<Critere>[] = [
+  const critereColumns: SimpleColumn<Critere>[] = [
     { key: "nom", header: UI.prospection.colNom, render: (c) => <strong>{c.nom}</strong> },
     { key: "zones", header: UI.prospection.colZones, render: (c) => zonesLabel(c.zones) },
     {
@@ -913,7 +1011,7 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
           <Spinner />
         ) : criteres.length === 0 ? (
           <EmptyState
-            icon="🎯"
+            icon={UsersIcon}
             title={UI.prospection.emptyCriteresTitle}
             text={UI.prospection.emptyCriteresText}
             steps={[
@@ -923,7 +1021,7 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
             ]}
           />
         ) : (
-          <DataTable
+          <SimpleTable
             columns={critereColumns}
             rows={criteres}
             emptyLabel={UI.prospection.emptyCriteres}

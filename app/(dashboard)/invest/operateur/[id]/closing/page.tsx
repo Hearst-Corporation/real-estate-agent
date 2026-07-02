@@ -14,14 +14,17 @@
  * Réservé aux opérateurs/admin/compliance (garde serveur via `fetchClosingState`).
  */
 
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { PageStack, PageHeader, KpiGrid, KpiCard, Card, Sub } from "@/components/cockpit/primitives";
+import { PageStack } from "@/components/cockpit/primitives";
 import { Banner, StatusPill, type StatusTone } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
 import { fetchClosingState } from "../../../_data/server";
 import { ClosingLauncher } from "./ClosingLauncher";
 
 export const dynamic = "force-dynamic";
+
+const c = UI.invest.operator.closing;
 
 /** Mappe le résultat de réconciliation → ton de pastille. */
 function reconTone(result: string, paused: boolean): StatusTone {
@@ -31,6 +34,29 @@ function reconTone(result: string, paused: boolean): StatusTone {
   return "neutral";
 }
 
+/** Page heading — TW+ headings__page-headings/03-with-meta-and-actions (adapté sombre). */
+function ClosingHeading({ kicker, title, meta }: { kicker: ReactNode; title: ReactNode; meta?: ReactNode }) {
+  return (
+    <div className="min-w-0 flex-1">
+      <p className="text-xs font-semibold uppercase tracking-widest text-indigo-300">{kicker}</p>
+      <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">{title}</h1>
+      {meta ? <p className="mt-2 max-w-2xl text-sm text-slate-400">{meta}</p> : null}
+    </div>
+  );
+}
+
+/** Card conteneur — TW+ layout__cards / description-lists (adapté sombre). */
+function SectionCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
+      <div className="border-b border-white/10 px-5 py-4">
+        <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+      </div>
+      <div className="px-5 py-4">{children}</div>
+    </section>
+  );
+}
+
 export default async function ClosingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const state = await fetchClosingState(id);
@@ -38,27 +64,27 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
   if (!state.configured) {
     return (
       <PageStack>
-        <PageHeader kicker={UI.invest.operator.closing.kicker} title={UI.invest.operator.closing.title} />
-        <Banner tone="warn">{UI.invest.operator.closing.dbUnavailable}</Banner>
+        <ClosingHeading kicker={c.kicker} title={c.title} />
+        <Banner tone="warn">{c.dbUnavailable}</Banner>
       </PageStack>
     );
   }
   if (!state.authorized) {
     return (
       <PageStack>
-        <PageHeader kicker={UI.invest.operator.closing.kicker} title={UI.invest.operator.closing.title} />
-        <Banner tone="warn">{UI.invest.operator.closing.unauthorized}</Banner>
+        <ClosingHeading kicker={c.kicker} title={c.title} />
+        <Banner tone="warn">{c.unauthorized}</Banner>
       </PageStack>
     );
   }
   if (!state.found) {
     return (
       <PageStack>
-        <PageHeader kicker={UI.invest.operator.closing.kicker} title={UI.invest.operator.closing.title} />
-        <Banner tone="warn">{UI.invest.operator.closing.notFound}</Banner>
+        <ClosingHeading kicker={c.kicker} title={c.title} />
+        <Banner tone="warn">{c.notFound}</Banner>
         <p className="text-sm text-slate-500">
           <Link href="/invest/operateur" className="text-indigo-300 hover:text-indigo-200">
-            {UI.invest.operator.closing.backToOperations}
+            {c.backToOperations}
           </Link>
         </p>
       </PageStack>
@@ -68,69 +94,74 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
   const ready = state.conditionsSnapshot.allMet && state.fourEyesApproved;
   const totalUnits = state.holdings.reduce((s, h) => s + h.units, 0);
 
+  const stats = [
+    {
+      name: c.kpiConditions,
+      value: `${state.conditionsSnapshot.total - state.conditionsSnapshot.unmet.length}/${state.conditionsSnapshot.total}`,
+      accent: false,
+    },
+    {
+      name: c.kpiFourEyes,
+      value: state.fourEyesApproved ? c.kpiFourEyesOk : c.kpiFourEyesRequired,
+      accent: state.fourEyesApproved,
+    },
+    { name: c.kpiFundedSubscriptions, value: String(state.fundedCount), accent: false },
+    { name: c.kpiDeepUnits, value: String(totalUnits), accent: false },
+  ];
+
   return (
     <PageStack>
-      <PageHeader
-        kicker={UI.invest.operator.closing.kickerDvp}
-        title={state.dealName}
-        meta={<Sub>{UI.invest.operator.closing.headerSub}</Sub>}
-      />
+      <ClosingHeading kicker={c.kickerDvp} title={state.dealName} meta={c.headerSub} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="flex items-center gap-2 text-sm text-slate-400">
-          {UI.invest.operator.closing.dealStatusPrefix}
+          {c.dealStatusPrefix}
           <StatusPill tone="neutral">{state.dealStatus}</StatusPill>
         </span>
         <Link href={`/invest/${state.dealSlug}`} className="text-sm text-indigo-300 hover:text-indigo-200">
-          {UI.invest.operator.closing.viewPublicSheet}
+          {c.viewPublicSheet}
         </Link>
       </div>
 
       {/* ── Bandeau source de vérité ───────────────────────────────────────── */}
-      <Banner tone="info">{UI.invest.operator.closing.sourceOfTruthBanner}</Banner>
+      <Banner tone="info">{c.sourceOfTruthBanner}</Banner>
 
-      {/* ── KPIs ───────────────────────────────────────────────────────────── */}
-      <KpiGrid>
-        <KpiCard
-          label={UI.invest.operator.closing.kpiConditions}
-          value={`${state.conditionsSnapshot.total - state.conditionsSnapshot.unmet.length}/${state.conditionsSnapshot.total}`}
-        />
-        <KpiCard
-          label={UI.invest.operator.closing.kpiFourEyes}
-          value={state.fourEyesApproved ? UI.invest.operator.closing.kpiFourEyesOk : UI.invest.operator.closing.kpiFourEyesRequired}
-          accent={state.fourEyesApproved}
-        />
-        <KpiCard
-          label={UI.invest.operator.closing.kpiFundedSubscriptions}
-          value={String(state.fundedCount)}
-        />
-        <KpiCard
-          label={UI.invest.operator.closing.kpiDeepUnits}
-          value={String(totalUnits)}
-        />
-      </KpiGrid>
+      {/* ── KPIs — TW+ data-display__stats/01-with-trending (adapté sombre) ─── */}
+      <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <div
+            key={stat.name}
+            className={`flex flex-col gap-2 px-4 py-6 sm:px-6 ${stat.accent ? "bg-indigo-500/10" : "bg-white/[0.03]"}`}
+          >
+            <dt className="text-sm font-medium text-slate-400">{stat.name}</dt>
+            <dd className="text-2xl font-medium tracking-tight text-white">{stat.value}</dd>
+          </div>
+        ))}
+      </dl>
 
-      {/* ── Conditions suspensives ─────────────────────────────────────────── */}
-      <Card title={UI.invest.operator.closing.conditionsTitle} titleAs="section">
+      {/* ── Conditions suspensives — TW+ lists__tables/02-simple-in-card ────── */}
+      <SectionCard title={c.conditionsTitle}>
         {state.conditions.length === 0 ? (
-          <p className="text-sm text-slate-500">{UI.invest.operator.closing.conditionsEmpty}</p>
+          <p className="text-sm text-slate-500">{c.conditionsEmpty}</p>
         ) : (
           <div className="-mx-5 overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-full divide-y divide-white/10 text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-5 py-2 font-medium">{UI.invest.operator.closing.conditionsColCode}</th>
-                  <th className="px-5 py-2 font-medium">{UI.invest.operator.closing.conditionsColLabel}</th>
-                  <th className="px-5 py-2 text-right font-medium">{UI.invest.operator.closing.conditionsColState}</th>
+                <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th scope="col" className="px-5 py-2 font-medium">{c.conditionsColCode}</th>
+                  <th scope="col" className="px-5 py-2 font-medium">{c.conditionsColLabel}</th>
+                  <th scope="col" className="px-5 py-2 text-right font-medium">{c.conditionsColState}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {state.conditions.map((c) => (
-                  <tr key={c.code} className="text-slate-300">
-                    <td className="px-5 py-2.5 font-mono text-xs text-slate-400">{c.code}</td>
-                    <td className="px-5 py-2.5">{c.label}</td>
+                {state.conditions.map((cond) => (
+                  <tr key={cond.code} className="text-slate-300">
+                    <td className="px-5 py-2.5 font-mono text-xs text-slate-400">{cond.code}</td>
+                    <td className="px-5 py-2.5">{cond.label}</td>
                     <td className="px-5 py-2.5 text-right">
-                      <StatusPill tone={c.isMet ? "open" : "soon"}>{c.isMet ? UI.invest.operator.closing.conditionMet : UI.invest.operator.closing.conditionPending}</StatusPill>
+                      <StatusPill tone={cond.isMet ? "open" : "soon"}>
+                        {cond.isMet ? c.conditionMet : c.conditionPending}
+                      </StatusPill>
                     </td>
                   </tr>
                 ))}
@@ -138,44 +169,42 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
             </table>
           </div>
         )}
-      </Card>
+      </SectionCard>
 
       {/* ── Lancement de la saga ───────────────────────────────────────────── */}
-      <Card title={UI.invest.operator.closing.launchTitle} titleAs="section">
-        <p className="mb-3 text-sm text-slate-400">{UI.invest.operator.closing.launchIntro}</p>
+      <SectionCard title={c.launchTitle}>
+        <p className="mb-3 text-sm text-slate-400">{c.launchIntro}</p>
         <ClosingLauncher dealId={state.dealId} ready={ready} />
-      </Card>
+      </SectionCard>
 
       {/* ── Réconciliation DEEP↔chaîne ─────────────────────────────────────── */}
-      <Card title={UI.invest.operator.closing.reconTitle} titleAs="section">
+      <SectionCard title={c.reconTitle}>
         {state.lastReconciliation ? (
           <p className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
-            {UI.invest.operator.closing.reconLastPass}
-            <StatusPill
-              tone={reconTone(state.lastReconciliation.result, state.lastReconciliation.triggeredPause)}
-            >
-              {state.lastReconciliation.triggeredPause ? UI.invest.operator.closing.reconPaused : state.lastReconciliation.result}
+            {c.reconLastPass}
+            <StatusPill tone={reconTone(state.lastReconciliation.result, state.lastReconciliation.triggeredPause)}>
+              {state.lastReconciliation.triggeredPause ? c.reconPaused : state.lastReconciliation.result}
             </StatusPill>
             {state.lastReconciliation.finishedAt
               ? `· ${new Date(state.lastReconciliation.finishedAt).toLocaleString("fr-FR")}`
               : ""}
           </p>
         ) : (
-          <p className="text-sm text-slate-500">{UI.invest.operator.closing.reconEmpty}</p>
+          <p className="text-sm text-slate-500">{c.reconEmpty}</p>
         )}
-      </Card>
+      </SectionCard>
 
-      {/* ── Registre DEEP (holdings) ───────────────────────────────────────── */}
-      <Card title={UI.invest.operator.closing.deepTitle} titleAs="section">
+      {/* ── Registre DEEP (holdings) — TW+ lists__tables/02-simple-in-card ──── */}
+      <SectionCard title={c.deepTitle}>
         {state.holdings.length === 0 ? (
-          <p className="text-sm text-slate-500">{UI.invest.operator.closing.deepEmpty}</p>
+          <p className="text-sm text-slate-500">{c.deepEmpty}</p>
         ) : (
           <div className="-mx-5 overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-full divide-y divide-white/10 text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-5 py-2 font-medium">{UI.invest.operator.closing.deepColHolder}</th>
-                  <th className="px-5 py-2 text-right font-medium">{UI.invest.operator.closing.deepColUnits}</th>
+                <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th scope="col" className="px-5 py-2 font-medium">{c.deepColHolder}</th>
+                  <th scope="col" className="px-5 py-2 text-right font-medium">{c.deepColUnits}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -189,7 +218,7 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
             </table>
           </div>
         )}
-      </Card>
+      </SectionCard>
     </PageStack>
   );
 }

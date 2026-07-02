@@ -1,11 +1,6 @@
 import Link from "next/link";
-import {
-  Card,
-  PageHeader,
-  PageStack,
-} from "@/components/cockpit/primitives";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
-import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { Icon, type IconName } from "@/components/cockpit/Icon";
 import { dateFr } from "@/lib/crm/format";
 import { filterSeed } from "@/lib/crm/demo-filter";
@@ -288,31 +283,6 @@ export default async function DashboardPage() {
     ).slice(0, TODAY_PREVIEW);
   }
 
-  const recentColumns: Column<PropertyRow>[] = [
-    {
-      key: "property",
-      header: "Bien",
-      render: (r) => (
-        <Link href={`/properties/${r.id}`} className="font-medium text-indigo-300 hover:text-indigo-200">
-          {r.title ?? r.city ?? "Bien sans titre"}
-        </Link>
-      ),
-    },
-    {
-      key: "status",
-      header: "Statut",
-      render: (r) => r.status,
-    },
-    { key: "type", header: "Type", render: (r) => r.property_type ?? "—" },
-    { key: "city", header: "Ville", render: (r) => r.city ?? "—" },
-    {
-      key: "updated",
-      header: "Maj",
-      align: "right",
-      render: (r) => dateFr(r.updated_at),
-    },
-  ];
-
   const t = UI.dashboard;
 
   const primaryAction = {
@@ -364,34 +334,66 @@ export default async function DashboardPage() {
     href: `/estimations/${e.id}`,
   }));
 
+  const kpis = [
+    { label: t.kpis.properties, value: String(nbProperties), icon: "properties" as IconName },
+    { label: t.kpis.activeLeads, value: String(nbLeadsActifs), icon: "leads" as IconName },
+    { label: t.kpis.upcomingVisits, value: String(nbVisitesAVenir), icon: "visits" as IconName },
+    { label: t.kpis.activeMandates, value: String(nbMandatsActifs), icon: "mandates" as IconName },
+  ];
+
   return (
-    <PageStack>
-      <PageHeader
-        title={t.title}
-        meta={t.sub}
-        action={
+    <div className="flex flex-col gap-8">
+      {/* Header de page — bloc headings__page-headings/01-with-actions (adapté sombre) */}
+      <div className="md:flex md:items-center md:justify-between">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-300">
+            {t.eyebrow}
+          </p>
+          <h2 className="mt-1 text-2xl/7 font-bold text-white sm:truncate sm:text-3xl sm:tracking-tight">
+            {t.title}
+          </h2>
+          <p className="mt-1 text-sm text-slate-400">{t.sub}</p>
+        </div>
+        <div className="mt-4 flex md:mt-0 md:ml-4">
           <Link
             href="/properties/new"
-            className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
+            className="inline-flex items-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
           >
             {t.newCta}
           </Link>
-        }
-        kpis={[
-          { label: t.kpis.properties, value: String(nbProperties), icon: "properties" },
-          { label: t.kpis.activeLeads, value: String(nbLeadsActifs), icon: "leads" },
-          { label: t.kpis.upcomingVisits, value: String(nbVisitesAVenir), icon: "visits" },
-          { label: t.kpis.activeMandates, value: String(nbMandatsActifs), icon: "mandates" },
-        ]}
-      />
+        </div>
+      </div>
 
-      {/* Actions juste sous les KPIs : l'agent peut agir sans scroller. */}
-      <Card title={t.actions.title} titleAs="section">
-        <QuickActions primary={primaryAction} secondary={secondaryActions} />
-      </Card>
+      {/* KPI tiles — bloc data-display__stats/03-simple-in-cards (adapté sombre) */}
+      <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {kpis.map((item) => (
+          <div
+            key={item.label}
+            className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-6"
+          >
+            <div className="flex items-center justify-between">
+              <dt className="truncate text-sm font-medium text-slate-400">{item.label}</dt>
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300">
+                <Icon name={item.icon} />
+              </span>
+            </div>
+            <dd className="mt-3 text-3xl font-semibold tracking-tight text-white">{item.value}</dd>
+          </div>
+        ))}
+      </dl>
 
-      <Card title={t.today.title} titleAs="section">
-        <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @6xl:grid-cols-4">
+      {/* Actions — card conteneur (layout__cards) + grille d'actions cockpit */}
+      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <h2 className="text-base font-semibold text-white">{t.actions.title}</h2>
+        <div className="mt-4">
+          <QuickActions primary={primaryAction} secondary={secondaryActions} />
+        </div>
+      </section>
+
+      {/* À faire aujourd'hui — grille de listes empilées (lists__stacked-lists) */}
+      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <h2 className="text-base font-semibold text-white">{t.today.title}</h2>
+        <div className="mt-4 grid grid-cols-1 gap-4 @2xl:grid-cols-2 @6xl:grid-cols-4">
           <TodayBlock
             label={t.today.leadsLabel}
             items={leadItems}
@@ -417,36 +419,109 @@ export default async function DashboardPage() {
             href="/estimations"
           />
         </div>
-      </Card>
+      </section>
 
-      <Card title={t.recentPortfolio} variant="dense" className="flex flex-col gap-4">
-        {properties.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <p className="text-sm text-slate-500">{t.propertiesEmpty}</p>
+      {/* Portefeuille récent — bloc lists__tables/02-simple-in-card + empty-state (adaptés sombre) */}
+      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-base font-semibold text-white">{t.recentPortfolio}</h2>
+          {properties.length > 0 ? (
             <Link
               href="/properties"
-              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
-            >
-              {t.addProperty}
-            </Link>
-          </div>
-        ) : (
-          <>
-            <DataTable
-              columns={recentColumns}
-              rows={properties}
-              emptyLabel={t.propertiesEmpty}
-              getKey={(r) => r.id}
-            />
-            <Link
-              href="/properties"
-              className="self-start rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-white/[0.08]"
+              className="text-sm font-medium text-indigo-300 hover:text-indigo-200"
             >
               {t.seeAllProperties}
             </Link>
-          </>
+          ) : null}
+        </div>
+
+        {properties.length === 0 ? (
+          <div className="py-10 text-center">
+            <PlusIcon aria-hidden="true" className="mx-auto size-10 text-slate-500" />
+            <p className="mt-2 text-sm text-slate-400">{t.propertiesEmpty}</p>
+            <div className="mt-6">
+              <Link
+                href="/properties"
+                className="inline-flex items-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
+              >
+                <PlusIcon aria-hidden="true" className="mr-1.5 -ml-0.5 size-5" />
+                {t.addProperty}
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 flow-root">
+            <div className="-mx-5 overflow-x-auto">
+              <div className="inline-block min-w-full px-5 align-middle">
+                <div className="overflow-hidden rounded-xl border border-white/10">
+                  <table className="min-w-full divide-y divide-white/10">
+                    <thead className="bg-white/[0.03]">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="py-3 pr-3 pl-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
+                        >
+                          Bien
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
+                        >
+                          Statut
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
+                        >
+                          Type
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
+                        >
+                          Ville
+                        </th>
+                        <th
+                          scope="col"
+                          className="py-3 pr-4 pl-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400"
+                        >
+                          Maj
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {properties.map((r) => (
+                        <tr key={r.id} className="transition-colors hover:bg-white/[0.02]">
+                          <td className="py-3 pr-3 pl-4 text-sm whitespace-nowrap">
+                            <Link
+                              href={`/properties/${r.id}`}
+                              className="font-medium text-indigo-300 hover:text-indigo-200"
+                            >
+                              {r.title ?? r.city ?? "Bien sans titre"}
+                            </Link>
+                          </td>
+                          <td className="px-3 py-3 text-sm whitespace-nowrap text-slate-300">
+                            {r.status}
+                          </td>
+                          <td className="px-3 py-3 text-sm whitespace-nowrap text-slate-400">
+                            {r.property_type ?? "—"}
+                          </td>
+                          <td className="px-3 py-3 text-sm whitespace-nowrap text-slate-400">
+                            {r.city ?? "—"}
+                          </td>
+                          <td className="py-3 pr-4 pl-3 text-right text-sm whitespace-nowrap text-slate-500">
+                            {dateFr(r.updated_at)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
-      </Card>
-    </PageStack>
+      </section>
+    </div>
   );
 }

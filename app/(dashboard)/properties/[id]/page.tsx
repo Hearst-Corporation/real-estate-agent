@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PageHeader, Card } from "@/components/cockpit/primitives";
@@ -94,6 +94,80 @@ export default async function PropertyDetailPage({
       : null;
 
   const daysOnMarket = daysSince(property.created_at);
+
+  // Lignes de la description-list « Caractéristiques » (bloc TW+
+  // data-display__description-lists/02-left-aligned-in-card, adapté sombre).
+  // On construit un tableau { label, value } filtré sur les champs présents,
+  // puis on le rend via <dl> divisée — plus de grille label/valeur maison.
+  const caracteristiques = ([
+    property.surface != null
+      ? { key: "surface", label: t.fields.surface, value: sqm(property.surface) }
+      : null,
+    displayPrice != null
+      ? {
+          key: "price",
+          label: property.asking_price != null ? td.priceType.asking : td.priceType.estimated,
+          value: eur(displayPrice),
+        }
+      : null,
+    pricePerSqm != null
+      ? { key: "pricePerSqm", label: "Prix / m²", value: eur(pricePerSqm) }
+      : null,
+    property.rooms != null
+      ? { key: "rooms", label: t.fields.rooms, value: property.rooms }
+      : null,
+    property.bedrooms != null
+      ? { key: "bedrooms", label: t.fields.bedrooms, value: property.bedrooms }
+      : null,
+    property.floor != null
+      ? {
+          key: "floor",
+          label: t.enrichissement.floor,
+          value: `${property.floor}${property.floor_total != null ? ` / ${property.floor_total}` : ""}`,
+        }
+      : null,
+    property.year_built != null
+      ? { key: "yearBuilt", label: td.gridYearBuilt, value: property.year_built }
+      : null,
+    property.orientation
+      ? { key: "orientation", label: td.gridOrientation, value: property.orientation }
+      : null,
+    property.charges_monthly != null
+      ? {
+          key: "charges",
+          label: td.gridCharges,
+          value: `${eur(property.charges_monthly)} ${td.gridChargesSuffix}`,
+        }
+      : null,
+    property.taxe_fonciere != null
+      ? {
+          key: "taxe",
+          label: td.gridTaxe,
+          value: `${eur(property.taxe_fonciere)} ${td.gridTaxeSuffix}`,
+        }
+      : null,
+    property.estimation_id
+      ? {
+          key: "estimation",
+          label: t.fields.estimation,
+          value: (
+            <Link
+              href={`/estimations/${property.estimation_id}`}
+              className="font-semibold text-indigo-300 hover:text-indigo-200"
+            >
+              {t.seeEstimation}
+            </Link>
+          ),
+        }
+      : null,
+    property.updated_at
+      ? { key: "updated", label: td.gridUpdated, value: dateFr(property.updated_at) }
+      : null,
+  ] as { key: string; label: string; value: ReactNode }[]).filter(Boolean) as {
+    key: string;
+    label: string;
+    value: ReactNode;
+  }[];
 
   // Équipements présents
   type EquipItem = { key: string; icon: string; label: string };
@@ -245,97 +319,25 @@ export default async function PropertyDetailPage({
       </Suspense>
 
       {/* ── Caractéristiques ─────────────────────────────────────────────── */}
-      <Card title={td.cardCaracteristiques}>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3 @lg:grid-cols-3">
-          {property.surface != null && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{t.fields.surface}</span>
-              <span className="text-sm font-semibold text-indigo-300">{sqm(property.surface)}</span>
-            </div>
-          )}
-          {displayPrice != null && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">
-                {property.asking_price != null
-                  ? td.priceType.asking
-                  : td.priceType.estimated}
-              </span>
-              <span className="text-sm font-semibold text-indigo-300">{eur(displayPrice)}</span>
-            </div>
-          )}
-          {pricePerSqm != null && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{"Prix / m²"}</span>
-              <span className="text-sm text-slate-100">{eur(pricePerSqm)}</span>
-            </div>
-          )}
-          {property.rooms != null && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{t.fields.rooms}</span>
-              <span className="text-sm text-slate-100">{property.rooms}</span>
-            </div>
-          )}
-          {property.bedrooms != null && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{t.fields.bedrooms}</span>
-              <span className="text-sm text-slate-100">{property.bedrooms}</span>
-            </div>
-          )}
-          {property.floor != null && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{t.enrichissement.floor}</span>
-              <span className="text-sm text-slate-100">
-                {property.floor}
-                {property.floor_total != null ? ` / ${property.floor_total}` : ""}
-              </span>
-            </div>
-          )}
-          {property.year_built != null && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{td.gridYearBuilt}</span>
-              <span className="text-sm text-slate-100">{property.year_built}</span>
-            </div>
-          )}
-          {property.orientation && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{td.gridOrientation}</span>
-              <span className="text-sm text-slate-100">{property.orientation}</span>
-            </div>
-          )}
-          {property.charges_monthly != null && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{td.gridCharges}</span>
-              <span className="text-sm text-slate-100">
-                {eur(property.charges_monthly)}{" "}{td.gridChargesSuffix}
-              </span>
-            </div>
-          )}
-          {property.taxe_fonciere != null && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{td.gridTaxe}</span>
-              <span className="text-sm text-slate-100">
-                {eur(property.taxe_fonciere)}{" "}{td.gridTaxeSuffix}
-              </span>
-            </div>
-          )}
-          {property.estimation_id && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{t.fields.estimation}</span>
-              <span className="text-sm">
-                <Link href={`/estimations/${property.estimation_id}`} className="font-semibold text-indigo-300 hover:text-indigo-200">
-                  {t.seeEstimation}
-                </Link>
-              </span>
-            </div>
-          )}
-          {property.updated_at && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-slate-500">{td.gridUpdated}</span>
-              <span className="text-sm text-slate-100">{dateFr(property.updated_at)}</span>
-            </div>
-          )}
+      {/* Bloc TW+ data-display__description-lists/02-left-aligned-in-card,
+          adapté au thème sombre : <dl> divisée, label (dt) / valeur (dd). */}
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
+        <div className="px-5 py-4">
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            {td.cardCaracteristiques}
+          </h3>
         </div>
-      </Card>
+        <div className="border-t border-white/10">
+          <dl className="divide-y divide-white/10">
+            {caracteristiques.map((c) => (
+              <div key={c.key} className="px-5 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt className="text-sm font-medium text-slate-400">{c.label}</dt>
+                <dd className="mt-1 text-sm text-slate-100 sm:col-span-2 sm:mt-0">{c.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
 
       {/* ── Équipements ──────────────────────────────────────────────────── */}
       {equipItems.length > 0 && (

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
-import { DataTable, type Column } from "@/components/cockpit/DataTable";
+import { CalendarIcon, MapPinIcon, UserIcon } from "@heroicons/react/24/outline";
 import { dateFr, timeFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -59,66 +58,85 @@ export default async function AgendaPage() {
   const today = countToday(visits);
   const toConfirm = visits.filter((v) => v.status === "planifiee").length;
 
-  const columns: Column<VisitRow>[] = [
-    {
-      key: "date",
-      header: "Date",
-      render: (r) => (
-        <div>
-          <div>{dateFr(r.scheduled_at)}</div>
-          <div className="text-xs text-slate-500">{timeFr(r.scheduled_at)}</div>
-        </div>
-      ),
-    },
-    {
-      key: "status",
-      header: "Statut",
-      render: (r) => r.status,
-    },
-    {
-      key: "property",
-      header: "Bien",
-      render: (r) => r.properties?.title ?? r.properties?.city ?? "—",
-    },
-    {
-      key: "lead",
-      header: "Contact",
-      render: (r) => r.leads?.full_name ?? "—",
-    },
+  const stats = [
+    { name: t.kpis.thisWeek, value: String(thisWeek) },
+    { name: t.kpis.today, value: String(today) },
+    { name: t.kpis.toConfirm, value: String(toConfirm) },
   ];
 
   return (
-    <PageStack>
-      <PageHeader
-        kicker={t.eyebrow}
-        title={t.title}
-        kpis={[
-          { label: t.kpis.thisWeek, value: String(thisWeek) },
-          { label: t.kpis.today, value: String(today) },
-          { label: t.kpis.toConfirm, value: String(toConfirm) },
-        ]}
-      />
+    <div className="flex flex-col gap-6 pb-12 @container">
+      {/* ── Header de page (TW+ page-headings/01-with-actions, thème sombre) ── */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+            {t.eyebrow}
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-white">{t.title}</h1>
+        </div>
+      </div>
 
-      <Card variant="dense">
+      {/* ── Stats (TW+ data-display__stats/03-simple-in-cards, thème sombre) ── */}
+      <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {stats.map((item) => (
+          <div
+            key={item.name}
+            className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-5 shadow-lg shadow-black/20 sm:p-6"
+          >
+            <dt className="truncate text-sm font-medium text-slate-400">{item.name}</dt>
+            <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">{item.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {/* ── Liste des visites (TW+ lists__stacked-lists/01-simple, thème sombre) ── */}
+      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
         {visits.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <p className="text-sm text-slate-500">{tv.empty}</p>
+          /* TW+ feedback__empty-states/02-with-dashed-border, thème sombre */
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-white/10 px-6 py-12 text-center">
+            <CalendarIcon aria-hidden="true" className="size-10 text-slate-500" />
+            <p className="text-sm text-slate-400">{tv.empty}</p>
             <Link
               href="/visits"
-              className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-white/[0.08]"
+              className="mt-2 inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
             >
               {tv.newCta}
             </Link>
           </div>
         ) : (
-          <DataTable
-            columns={columns}
-            rows={visits}
-            emptyLabel={tv.empty}
-            getKey={(v) => v.id}
-          />
+          <ul role="list" className="divide-y divide-white/5">
+            {visits.map((v) => (
+              <li key={v.id} className="flex flex-wrap justify-between gap-x-6 gap-y-2 py-5">
+                <div className="flex min-w-0 gap-x-4">
+                  <div className="flex size-12 flex-none items-center justify-center rounded-xl border border-white/10 bg-indigo-500/15 text-indigo-300">
+                    <CalendarIcon aria-hidden="true" className="size-6" />
+                  </div>
+                  <div className="min-w-0 flex-auto">
+                    <p className="text-sm font-semibold text-slate-100">
+                      {v.properties?.title ?? v.properties?.city ?? "—"}
+                    </p>
+                    <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-slate-400">
+                      <UserIcon aria-hidden="true" className="size-4 text-slate-500" />
+                      {v.leads?.full_name ?? "—"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex shrink-0 flex-col items-end justify-center">
+                  <p className="flex items-center gap-1.5 text-sm text-slate-100">
+                    <MapPinIcon aria-hidden="true" className="size-4 text-slate-500" />
+                    <time dateTime={v.scheduled_at}>
+                      {dateFr(v.scheduled_at)} · {timeFr(v.scheduled_at)}
+                    </time>
+                  </p>
+                  <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 text-xs font-medium text-slate-200">
+                    {v.status}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
-      </Card>
-    </PageStack>
+      </section>
+    </div>
   );
 }

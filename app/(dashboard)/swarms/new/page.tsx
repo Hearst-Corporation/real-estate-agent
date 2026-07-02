@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { SparklesIcon } from "@heroicons/react/24/outline";
 import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
 import { Card, PageHeader, PageStack } from "@/components/cockpit/primitives";
 import { TextInput, Textarea } from "@/components/cockpit/form";
@@ -246,8 +247,9 @@ export default function NewSwarmPage() {
               </div>
             </Card>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 p-8 text-center">
-              <span className="text-2xl" aria-hidden="true">✨</span>
+            // TW+ feedback__empty-states/02-with-dashed-border — adapté thème sombre
+            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/15 p-8 text-center">
+              <SparklesIcon aria-hidden="true" className="size-10 text-indigo-300" />
               <p className="text-sm text-slate-400">{UI.swarms.architectHint}</p>
             </div>
           )}

@@ -19,6 +19,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { Donut } from "@/components/cockpit/Donut";
 import { BarList } from "@/components/cockpit/BarList";
 import {
@@ -44,7 +45,7 @@ import type { DealSheet } from "@/lib/invest/finance";
 import { getDemoDeal, DEMO_DEALS } from "../_data/demo";
 import { fetchDealBySlug } from "../_data/server";
 import { SubscribePanel } from "./_components/SubscribePanel";
-import { PageStack, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
+import { PageStack } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 
 const di = UI.invest.dealDetail;
@@ -203,17 +204,25 @@ export default async function DealDetailPage({
 
   return (
     <PageStack>
-      <Link href="/invest" className="text-sm text-slate-400 hover:text-slate-200">
+      <Link
+        href="/invest"
+        className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-200"
+      >
+        <ChevronLeftIcon aria-hidden="true" className="size-4" />
         {di.backLink}
       </Link>
 
-      {/* HERO + bloc souscription */}
+      {/* HERO + bloc souscription — heading TW+ headings__page-headings/03-with-meta-and-actions (adapté sombre) */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
         <div className="flex items-end rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6 min-h-56">
-          <div className="flex flex-col gap-3">
-            <div className="text-sm text-slate-400">{view.localisation}</div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">{view.nom}</h1>
-            <ProductBadges badges={view.badges} />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-slate-400">{view.localisation}</p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl sm:truncate">
+              {view.nom}
+            </h1>
+            <div className="mt-3">
+              <ProductBadges badges={view.badges} />
+            </div>
           </div>
         </div>
 
@@ -336,13 +345,23 @@ export default async function DealDetailPage({
         </Banner>
       ) : null}
 
-      {/* KPI économie de l'opération (structure — toujours visible) */}
-      <KpiGrid>
-        <KpiCard label={di.kpis.totalCost} value={eur(metrics.cout_total_eur)} />
-        <KpiCard label={di.kpis.seniorDebt} value={eur(sheet.input.funding.dette_senior_eur)} />
-        <KpiCard label={di.kpis.bonds} value={eur(sheet.input.funding.obligations_cible_eur)} accent />
-        <KpiCard label={di.kpis.sponsorEquity} value={eur(sheet.input.funding.equity_sponsor_eur)} />
-      </KpiGrid>
+      {/* KPI économie de l'opération — TW+ data-display__stats/01-with-trending (adapté sombre) */}
+      <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { name: di.kpis.totalCost, value: eur(metrics.cout_total_eur), accent: false },
+          { name: di.kpis.seniorDebt, value: eur(sheet.input.funding.dette_senior_eur), accent: false },
+          { name: di.kpis.bonds, value: eur(sheet.input.funding.obligations_cible_eur), accent: true },
+          { name: di.kpis.sponsorEquity, value: eur(sheet.input.funding.equity_sponsor_eur), accent: false },
+        ].map((stat) => (
+          <div
+            key={stat.name}
+            className={`flex flex-col gap-2 px-4 py-6 sm:px-6 ${stat.accent ? "bg-indigo-500/10" : "bg-white/[0.03]"}`}
+          >
+            <dt className="text-sm font-medium text-slate-400">{stat.name}</dt>
+            <dd className="text-2xl font-medium tracking-tight text-white">{stat.value}</dd>
+          </div>
+        ))}
+      </dl>
 
       {/* Les 11 graphiques (P8). Structure publique non gatée ; détails sous <Gate>. */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
@@ -478,72 +497,70 @@ export default async function DealDetailPage({
 
       {/* Sûretés + Token */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-              {di.securitiesTitle}
-            </span>
+        {/* Sûretés — TW+ layout__cards/03-card-with-header + stacked list */}
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
+          <div className="border-b border-white/10 px-5 py-4">
+            <h2 className="text-lg font-semibold text-slate-100">{di.securitiesTitle}</h2>
           </div>
-          <ul className="flex flex-col divide-y divide-white/5">
+          <ul className="divide-y divide-white/5 px-5">
             {di.suretes.map((s) => (
-              <li className="flex items-center justify-between py-2 text-sm" key={s}>
+              <li className="flex items-center justify-between py-3 text-sm" key={s}>
                 <span className="text-slate-200">{s}</span>
               </li>
             ))}
           </ul>
-        </div>
+        </section>
 
-        <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-              {di.tokenTitle}
-            </span>
+        {/* Token — TW+ data-display__description-lists/02-left-aligned-in-card (adapté sombre) */}
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
+          <div className="border-b border-white/10 px-5 py-4">
+            <h2 className="text-lg font-semibold text-slate-100">{di.tokenTitle}</h2>
           </div>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
-            <dt className="text-slate-500">{di.tokenDl.nature}</dt>
-            <dd className="text-slate-200">{di.tokenDl.natureVal}</dd>
-            <dt className="text-slate-500">{di.tokenDl.standard}</dt>
-            <dd className="text-slate-200">{di.tokenDl.standardVal}</dd>
-            <dt className="text-slate-500">{di.tokenDl.emission}</dt>
-            <dd className="text-slate-200">{di.tokenDl.emissionVal}</dd>
-            <dt className="text-slate-500">{di.tokenDl.settlement}</dt>
-            <dd className="text-slate-200">{di.tokenDl.settlementVal}</dd>
-            <dt className="text-slate-500">{di.tokenDl.framework}</dt>
-            <dd className="text-slate-200">{di.tokenDl.frameworkVal}</dd>
+          <dl className="divide-y divide-white/5">
+            {[
+              { dt: di.tokenDl.nature, dd: di.tokenDl.natureVal },
+              { dt: di.tokenDl.standard, dd: di.tokenDl.standardVal },
+              { dt: di.tokenDl.emission, dd: di.tokenDl.emissionVal },
+              { dt: di.tokenDl.settlement, dd: di.tokenDl.settlementVal },
+              { dt: di.tokenDl.framework, dd: di.tokenDl.frameworkVal },
+            ].map((row) => (
+              <div className="px-5 py-3 sm:grid sm:grid-cols-3 sm:gap-4" key={row.dt}>
+                <dt className="text-sm font-medium text-slate-400">{row.dt}</dt>
+                <dd className="mt-1 text-sm text-slate-200 sm:col-span-2 sm:mt-0">{row.dd}</dd>
+              </div>
+            ))}
           </dl>
-        </div>
+        </section>
       </div>
 
-      {/* Data room (inv_documents publics du deal) */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-            {di.dataRoomTitle}
-          </span>
+      {/* Data room (inv_documents publics du deal) — TW+ layout__cards/03 + lists__tables/02 */}
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
+        <div className="border-b border-white/10 px-5 py-4">
+          <h2 className="text-lg font-semibold text-slate-100">{di.dataRoomTitle}</h2>
         </div>
         {view.documents.length > 0 ? (
-          <ul className="flex flex-col divide-y divide-white/5">
+          <ul className="divide-y divide-white/5 px-5">
             {view.documents.map((d) => (
-              <li className="flex items-center justify-between py-2 text-sm" key={d.id}>
+              <li className="flex items-center justify-between py-3 text-sm" key={d.id}>
                 <span className="text-slate-200">{d.title}</span>
                 <span className="text-slate-500">{d.docType}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-xs text-slate-500">{di.dataRoomEmpty}</p>
+          <p className="px-5 py-4 text-xs text-slate-500">{di.dataRoomEmpty}</p>
         )}
-      </div>
+      </section>
 
-      {/* Closing timeline */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-            {di.closingTitle}
-          </span>
+      {/* Closing timeline — TW+ layout__cards/03-card-with-header */}
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
+        <div className="border-b border-white/10 px-5 py-4">
+          <h2 className="text-lg font-semibold text-slate-100">{di.closingTitle}</h2>
         </div>
-        <Timeline items={[...di.closing]} />
-      </div>
+        <div className="px-5 py-4">
+          <Timeline items={[...di.closing]} />
+        </div>
+      </section>
 
       <p className="text-xs text-slate-500">{di.fineprint(pct(view.couponCentral))}</p>
     </PageStack>

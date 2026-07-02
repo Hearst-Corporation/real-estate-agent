@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { PageHeader, Sub, Card, Badge } from "@/components/cockpit/primitives";
+import {
+  ArrowLeftIcon,
+  CalendarIcon,
+  TagIcon,
+} from "@heroicons/react/20/solid";
 import { UI } from "@/lib/ui-strings";
 import { eur, dateFr, dateTimeFr } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
@@ -69,6 +73,38 @@ type PropertyRow = {
   asking_price: number | null;
   property_type: string | null;
 };
+
+// ─── UI primitives (blocs Tailwind Plus, thème sombre) ──────────────────────────
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
+      {children}
+    </span>
+  );
+}
+
+/** Card conteneur — data-display__description-lists/02-left-aligned-in-card (dark). */
+function DetailCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+      <div className="px-6 py-5">
+        <h3 className="text-base/7 font-semibold text-white">{title}</h3>
+      </div>
+      <div className="border-t border-white/10 px-6 py-5">{children}</div>
+    </section>
+  );
+}
+
+/** Ligne dt/dd — description-list en grille (dark). */
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="py-3 first:pt-0 last:pb-0 sm:grid sm:grid-cols-3 sm:gap-4">
+      <dt className="text-sm font-medium text-slate-500">{label}</dt>
+      <dd className="mt-1 text-sm/6 text-slate-200 sm:col-span-2 sm:mt-0">{children}</dd>
+    </div>
+  );
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -170,113 +206,96 @@ export default async function LeadDetailPage({
       : td.eyebrowFallback;
 
   return (
-    <>
-      {/* ── Header ── */}
-      <PageHeader
-        kicker={eyebrow}
-        title={lead.full_name ?? td.fallbackName}
-        action={
-          <Link href="/leads" className="text-sm font-medium text-indigo-300 hover:text-indigo-200">
+    <div className="flex flex-col gap-6 pb-12">
+      {/* Header — headings__page-headings/03-with-meta-and-actions (dark) */}
+      <div className="flex flex-col gap-4 border-b border-white/10 pb-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+            {eyebrow}
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:truncate sm:text-3xl">
+            {lead.full_name ?? td.fallbackName}
+          </h1>
+          <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:gap-x-6">
+            <div className="mt-2 flex items-center text-sm text-slate-400">
+              <Badge>{t.statusLabels[lead.status] ?? lead.status}</Badge>
+            </div>
+            {lead.source && (
+              <div className="mt-2 flex items-center text-sm text-slate-400">
+                <TagIcon aria-hidden="true" className="mr-1.5 size-5 shrink-0 text-slate-500" />
+                {lead.source}
+              </div>
+            )}
+            {lead.created_at && (
+              <div className="mt-2 flex items-center text-sm text-slate-400">
+                <CalendarIcon aria-hidden="true" className="mr-1.5 size-5 shrink-0 text-slate-500" />
+                {td.fields.createdAt} {dateFr(lead.created_at)}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="mt-5 flex shrink-0 lg:mt-0 lg:ml-4">
+          <Link
+            href="/leads"
+            className="inline-flex items-center rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20"
+          >
+            <ArrowLeftIcon aria-hidden="true" className="mr-1.5 -ml-0.5 size-5 text-slate-400" />
             {td.backLink}
           </Link>
-        }
-      />
-
-      {/* Statut + date sous le header */}
-      <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
-        <Badge>{t.statusLabels[lead.status] ?? lead.status}</Badge>
-        {lead.source && (
-          <Sub>{lead.source}</Sub>
-        )}
-        {lead.created_at && (
-          <span className="text-sm text-slate-400">
-            {td.fields.createdAt} {dateFr(lead.created_at)}
-          </span>
-        )}
+        </div>
       </div>
 
       {/* ── Identité & contact ── */}
-      <Card title={td.cardIdentite}>
-        <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
+      <DetailCard title={td.cardIdentite}>
+        <dl className="divide-y divide-white/5">
           {lead.email && (
-            <>
-              <dt className="text-xs font-medium text-slate-500">{td.fields.email}</dt>
-              <dd className="text-sm text-slate-200">
-                <a href={`mailto:${lead.email}`} className="text-indigo-300 hover:text-indigo-200">
-                  {lead.email}
-                </a>
-              </dd>
-            </>
+            <Row label={td.fields.email}>
+              <a href={`mailto:${lead.email}`} className="text-indigo-300 hover:text-indigo-200">
+                {lead.email}
+              </a>
+            </Row>
           )}
           {lead.phone && (
-            <>
-              <dt className="text-xs font-medium text-slate-500">{td.fields.phone}</dt>
-              <dd className="text-sm text-slate-200">
-                <a href={`tel:${lead.phone}`} className="text-indigo-300 hover:text-indigo-200">
-                  {lead.phone}
-                </a>
-              </dd>
-            </>
+            <Row label={td.fields.phone}>
+              <a href={`tel:${lead.phone}`} className="text-indigo-300 hover:text-indigo-200">
+                {lead.phone}
+              </a>
+            </Row>
           )}
-          {lead.source && (
-            <>
-              <dt className="text-xs font-medium text-slate-500">{td.fields.source}</dt>
-              <dd className="text-sm text-slate-200">{lead.source}</dd>
-            </>
-          )}
+          {lead.source && <Row label={td.fields.source}>{lead.source}</Row>}
           {lead.type_personne && (
-            <>
-              <dt className="text-xs font-medium text-slate-500">{td.fields.typePersonne}</dt>
-              <dd className="text-sm text-slate-200">
-                {t.typePersonneLabels[lead.type_personne] ?? lead.type_personne}
-              </dd>
-            </>
+            <Row label={td.fields.typePersonne}>
+              {t.typePersonneLabels[lead.type_personne] ?? lead.type_personne}
+            </Row>
           )}
-          {lead.consent_at && (
-            <>
-              <dt className="text-xs font-medium text-slate-500">{td.fields.consentAt}</dt>
-              <dd className="text-sm text-slate-200">{dateFr(lead.consent_at)}</dd>
-            </>
-          )}
-          {lead.notes && (
-            <>
-              <dt className="text-xs font-medium text-slate-500">{td.fields.notes}</dt>
-              <dd className="text-sm text-slate-200">{lead.notes}</dd>
-            </>
-          )}
-          {lead.updated_at && (
-            <>
-              <dt className="text-xs font-medium text-slate-500">{td.fields.updatedAt}</dt>
-              <dd className="text-sm text-slate-200">{dateFr(lead.updated_at)}</dd>
-            </>
-          )}
+          {lead.consent_at && <Row label={td.fields.consentAt}>{dateFr(lead.consent_at)}</Row>}
+          {lead.notes && <Row label={td.fields.notes}>{lead.notes}</Row>}
+          {lead.updated_at && <Row label={td.fields.updatedAt}>{dateFr(lead.updated_at)}</Row>}
         </dl>
-      </Card>
+      </DetailCard>
 
       {/* ── Budget ── */}
-      <Card title={td.cardBudget}>
+      <DetailCard title={td.cardBudget}>
         {lead.budget_min != null || lead.budget_max != null ? (
-          <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
+          <dl className="divide-y divide-white/5">
             {lead.budget_min != null && (
-              <>
-                <dt className="text-xs font-medium text-slate-500">{td.budgetMin}</dt>
-                <dd className="text-sm font-semibold tabular-nums text-slate-100">{eur(lead.budget_min)}</dd>
-              </>
+              <Row label={td.budgetMin}>
+                <span className="font-semibold tabular-nums text-slate-100">{eur(lead.budget_min)}</span>
+              </Row>
             )}
             {lead.budget_max != null && (
-              <>
-                <dt className="text-xs font-medium text-slate-500">{td.budgetMax}</dt>
-                <dd className="text-sm font-semibold tabular-nums text-slate-100">{eur(lead.budget_max)}</dd>
-              </>
+              <Row label={td.budgetMax}>
+                <span className="font-semibold tabular-nums text-slate-100">{eur(lead.budget_max)}</span>
+              </Row>
             )}
           </dl>
         ) : (
           <p className="text-sm text-slate-500">{td.emptyBudget}</p>
         )}
-      </Card>
+      </DetailCard>
 
       {/* ── Critères de recherche ── */}
-      <Card title={td.cardCriteres}>
+      <DetailCard title={td.cardCriteres}>
         {criteres.length > 0 ? (
           <ul className="divide-y divide-white/5">
             {criteres.map((c) => (
@@ -359,10 +378,10 @@ export default async function LeadDetailPage({
         ) : (
           <p className="text-sm text-slate-500">{td.emptyCriteres}</p>
         )}
-      </Card>
+      </DetailCard>
 
       {/* ── Visites liées ── */}
-      <Card title={td.cardVisites}>
+      <DetailCard title={td.cardVisites}>
         {visits.length > 0 ? (
           <ul className="divide-y divide-white/5">
             {visits.map((v) => (
@@ -384,39 +403,27 @@ export default async function LeadDetailPage({
         ) : (
           <p className="text-sm text-slate-500">{td.emptyVisites}</p>
         )}
-      </Card>
+      </DetailCard>
 
       {/* ── Bien lié ── */}
-      <Card title={td.cardBienLie}>
+      <DetailCard title={td.cardBienLie}>
         {linkedProperty ? (
           <>
-            <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
+            <dl className="divide-y divide-white/5">
               {linkedProperty.title && (
-                <>
-                  <dt className="text-xs font-medium text-slate-500">{UI.leads.detail.fields.title}</dt>
-                  <dd className="text-sm text-slate-200">{linkedProperty.title}</dd>
-                </>
+                <Row label={UI.leads.detail.fields.title}>{linkedProperty.title}</Row>
               )}
-              {linkedProperty.city && (
-                <>
-                  <dt className="text-xs font-medium text-slate-500">{td.bienLie.city}</dt>
-                  <dd className="text-sm text-slate-200">{linkedProperty.city}</dd>
-                </>
-              )}
+              {linkedProperty.city && <Row label={td.bienLie.city}>{linkedProperty.city}</Row>}
               {linkedProperty.property_type && (
-                <>
-                  <dt className="text-xs font-medium text-slate-500">{td.bienLie.type}</dt>
-                  <dd className="text-sm text-slate-200">
-                    {UI.properties.typeLabels[linkedProperty.property_type] ??
-                      linkedProperty.property_type}
-                  </dd>
-                </>
+                <Row label={td.bienLie.type}>
+                  {UI.properties.typeLabels[linkedProperty.property_type] ??
+                    linkedProperty.property_type}
+                </Row>
               )}
               {linkedProperty.asking_price != null && (
-                <>
-                  <dt className="text-xs font-medium text-slate-500">{td.bienLie.price}</dt>
-                  <dd className="text-sm font-semibold tabular-nums text-slate-100">{eur(linkedProperty.asking_price)}</dd>
-                </>
+                <Row label={td.bienLie.price}>
+                  <span className="font-semibold tabular-nums text-slate-100">{eur(linkedProperty.asking_price)}</span>
+                </Row>
               )}
             </dl>
             <div className="mt-4 border-t border-white/10 pt-3">
@@ -431,14 +438,14 @@ export default async function LeadDetailPage({
         ) : (
           <p className="text-sm text-slate-500">{td.emptyBienLie}</p>
         )}
-      </Card>
+      </DetailCard>
 
       {/* ── Enrichissement ── */}
       {(() => {
         const canEnrich = isEnrichable(lead.type_personne) && !!lead.email;
         if (canEnrich) {
           return (
-            <Card title={td.enrich.cardTitle}>
+            <DetailCard title={td.enrich.cardTitle}>
               <p className="text-sm text-slate-400">{td.enrich.intro}</p>
               <LeadEnrichButton leadId={lead.id} hasData={lead.enriched_data != null} />
               {lead.enriched_data != null && (
@@ -463,12 +470,12 @@ export default async function LeadDetailPage({
                   </dl>
                 </>
               )}
-            </Card>
+            </DetailCard>
           );
         }
         if (lead.enriched_data != null) {
           return (
-            <Card title={td.cardEnrichissement}>
+            <DetailCard title={td.cardEnrichissement}>
               {lead.enriched_at && (
                 <p className="text-sm text-slate-400">
                   {td.fields.enrichedAt} {dateFr(lead.enriched_at)}
@@ -487,11 +494,11 @@ export default async function LeadDetailPage({
                   </span>
                 ))}
               </dl>
-            </Card>
+            </DetailCard>
           );
         }
         return null;
       })()}
-    </>
+    </div>
   );
 }

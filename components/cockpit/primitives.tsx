@@ -140,41 +140,6 @@ export function Card({
   );
 }
 
-export function KpiGrid({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <div className={`grid grid-cols-2 gap-3 @2xl:grid-cols-4 ${className ?? ""}`}>{children}</div>
-  );
-}
-
-export function KpiCard({
-  label,
-  value,
-  accent,
-  className,
-  children,
-}: {
-  label?: string;
-  value?: string;
-  accent?: boolean;
-  className?: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div
-      className={`rounded-xl border p-4 ${
-        accent ? "border-indigo-400/40 bg-indigo-500/10" : "border-white/10 bg-white/[0.03]"
-      } ${className ?? ""}`}
-    >
-      {children ?? (
-        <>
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</div>
-          <div className="mt-1 text-2xl font-bold text-white">{value}</div>
-        </>
-      )}
-    </div>
-  );
-}
-
 export function Badge({ children }: { children: ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">

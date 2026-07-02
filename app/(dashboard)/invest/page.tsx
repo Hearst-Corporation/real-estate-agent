@@ -1,7 +1,12 @@
 /**
  * MARKETPLACE — découverte des opportunités (étude P5, écran 5). RSC.
+ *
+ * UI reconstruite sur blocs Tailwind Plus (adaptés au thème sombre, accent indigo) :
+ *  - En-tête : application-ui/headings__page-headings/01-with-actions
+ *  - KPI : application-ui/data-display__stats/03-simple-in-cards
+ *  - Grille de deals : application-ui/lists__grid-lists/03-simple-cards (composée avec DealCard)
+ * La logique métier (fetch, mapping, agrégats) est inchangée.
  */
-import { PageStack, PageHeader, Sub, KpiGrid, KpiCard } from "@/components/cockpit/primitives";
 import { DealCard, Banner, type DealCardData } from "@/components/invest";
 import { eur } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
@@ -40,21 +45,49 @@ export default async function MarketplacePage() {
     : Math.min(...dbDeals.map((d) => d.minTicketEur), Infinity);
   const ticketMinAffiche = Number.isFinite(ticketMin) ? ticketMin : 1_000;
 
+  const stats = [
+    { name: m.kpis.openDeals, value: String(dealsOuverts), accent: false },
+    { name: m.kpis.collected, value: eur(collecteTotale), accent: false },
+    { name: m.kpis.medianTri, value: m.kpis.medianTriValue, accent: true },
+    { name: m.kpis.ticketFrom, value: eur(ticketMinAffiche), accent: false },
+  ];
+
   return (
-    <PageStack>
-      <PageHeader kicker={m.eyebrow} title={m.title} meta={<Sub>{m.sub}</Sub>} />
+    <div className="flex flex-col gap-8 pb-12">
+      {/* En-tête — page-headings/01-with-actions (adapté sombre) */}
+      <div className="flex flex-col gap-1 @lg:flex-row @lg:items-start @lg:justify-between @lg:gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+            {m.eyebrow}
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{m.title}</h1>
+          <p className="mt-1 text-sm text-slate-400">{m.sub}</p>
+        </div>
+      </div>
 
       {isDemo ? <Banner tone="warn">{m.demoBanner}</Banner> : null}
-
       <Banner tone="info">{m.infoBanner}</Banner>
 
-      <KpiGrid>
-        <KpiCard label={m.kpis.openDeals} value={String(dealsOuverts)} />
-        <KpiCard label={m.kpis.collected} value={eur(collecteTotale)} />
-        <KpiCard label={m.kpis.medianTri} value={m.kpis.medianTriValue} accent />
-        <KpiCard label={m.kpis.ticketFrom} value={eur(ticketMinAffiche)} />
-      </KpiGrid>
+      {/* KPI — stats/03-simple-in-cards (adapté sombre) */}
+      <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 @2xl:grid-cols-4">
+        {stats.map((item) => (
+          <div
+            key={item.name}
+            className={`overflow-hidden rounded-2xl border px-4 py-5 sm:p-6 ${
+              item.accent ? "border-indigo-400/40 bg-indigo-500/10" : "border-white/10 bg-white/[0.03]"
+            }`}
+          >
+            <dt className="truncate text-xs font-medium uppercase tracking-wide text-slate-500">
+              {item.name}
+            </dt>
+            <dd className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              {item.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
 
+      {/* Filtres / tris — conservés (chips), thème sombre */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2" aria-label={m.filtersAria}>
           {m.filters.map((f) => (
@@ -82,13 +115,19 @@ export default async function MarketplacePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {/* Grille de deals — grid-lists/03-simple-cards (structure ul/li, DealCard en contenu) */}
+      <ul
+        role="list"
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 @4xl:grid-cols-3"
+      >
         {cards.map((d) => (
-          <DealCard key={d.slug} deal={d} />
+          <li key={d.slug} className="col-span-1">
+            <DealCard deal={d} />
+          </li>
         ))}
-      </div>
+      </ul>
 
       <p className="text-xs text-slate-500">{m.fineprint}</p>
-    </PageStack>
+    </div>
   );
 }

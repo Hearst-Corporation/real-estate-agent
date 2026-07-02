@@ -62,7 +62,7 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
 
   return (
     <nav
-      className="relative z-20 flex w-[104px] shrink-0 flex-col items-center border-r border-white/10 bg-white/[0.03] py-6 backdrop-blur-xl"
+      className="fixed inset-y-0 left-0 z-20 flex w-[104px] flex-col items-center border-r border-white/10 bg-white/[0.03] py-6 backdrop-blur-xl"
       aria-label={UI.nav.home}
     >
       <Link

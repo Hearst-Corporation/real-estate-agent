@@ -1,6 +1,5 @@
 import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
-import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { DEFAULT_TENANT_ID } from "@/lib/invest/shared/types";
@@ -59,19 +58,6 @@ export default async function ScrapersPage() {
     total = count ?? 0;
   }
 
-  const columns: Column<AnnonceRow>[] = [
-    { key: "commune", header: t.cols.commune, render: (r) => r.commune ?? "—" },
-    { key: "type", header: t.cols.type, render: (r) => r.type_bien ?? "—" },
-    { key: "prix", header: t.cols.prix, align: "right", render: (r) => eur(r.prix) },
-    { key: "surface", header: t.cols.surface, align: "right", render: (r) => sqm(r.surface_m2) },
-    {
-      key: "source",
-      header: t.cols.source,
-      render: (r) => <Badge>{r.source_platform}</Badge>,
-    },
-    { key: "date", header: t.cols.date, align: "right", render: (r) => dateFr(r.date_collecte) },
-  ];
-
   return (
     <PageStack>
       <PageHeader
@@ -98,14 +84,56 @@ export default async function ScrapersPage() {
         )}
       </Card>
 
-      <Card title={t.recentTitle} variant="dense">
-        <DataTable
-          columns={columns}
-          rows={annonces}
-          emptyLabel={t.empty}
-          getKey={(r) => r.id}
-        />
-      </Card>
+      {/* TW+ lists__tables/02-simple-in-card — adapté thème sombre */}
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20">
+        <div className="border-b border-white/10 px-5 py-3.5 text-xs font-semibold uppercase tracking-widest text-slate-500">
+          {t.recentTitle}
+        </div>
+        {annonces.length === 0 ? (
+          <p className="p-8 text-center text-sm text-slate-500">{t.empty}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-white/10">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {t.cols.commune}
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {t.cols.type}
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {t.cols.prix}
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {t.cols.surface}
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {t.cols.source}
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {t.cols.date}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {annonces.map((r) => (
+                  <tr key={r.id} className="transition-colors hover:bg-white/[0.02]">
+                    <td className="px-5 py-4 text-sm whitespace-nowrap text-slate-100">{r.commune ?? "—"}</td>
+                    <td className="px-5 py-4 text-sm whitespace-nowrap text-slate-400">{r.type_bien ?? "—"}</td>
+                    <td className="px-5 py-4 text-right text-sm whitespace-nowrap text-slate-400">{eur(r.prix)}</td>
+                    <td className="px-5 py-4 text-right text-sm whitespace-nowrap text-slate-400">{sqm(r.surface_m2)}</td>
+                    <td className="px-5 py-4 text-sm whitespace-nowrap">
+                      <Badge>{r.source_platform}</Badge>
+                    </td>
+                    <td className="px-5 py-4 text-right text-sm whitespace-nowrap text-slate-400">{dateFr(r.date_collecte)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </PageStack>
   );
 }

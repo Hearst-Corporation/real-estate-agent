@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { PageHeader, PageStack, Card, Badge } from "@/components/cockpit/primitives";
+import { Badge } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateFr, dateTimeFr } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
@@ -46,6 +46,28 @@ function daysUntil(d: string | null | undefined): number | null {
   if (!d) return null;
   const MS_PER_DAY = 86_400_000;
   return Math.round((new Date(d).getTime() - Date.now()) / MS_PER_DAY);
+}
+
+/** Ligne de description-list — TW+ data-display/description-lists (thème sombre). */
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-1 gap-1 py-3 first:pt-0 last:pb-0 @sm:grid-cols-3 @sm:gap-4">
+      <dt className="text-sm font-medium text-slate-400">{label}</dt>
+      <dd className="text-sm text-slate-200 @sm:col-span-2">{children}</dd>
+    </div>
+  );
+}
+
+/** Card conteneur — TW+ layout__cards/03-card-with-header (thème sombre). */
+function DetailCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20">
+      <div className="border-b border-white/10 px-5 py-4">
+        <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
+      </div>
+      <div className="px-5 py-4">{children}</div>
+    </section>
+  );
 }
 
 export default async function MandateDetailPage({
@@ -115,101 +137,90 @@ export default async function MandateDetailPage({
 
   // ── Titre affiché ──────────────────────────────────────────────────────────
   const pageTitle = property?.title ?? mandate.reference ?? td.fallbackTitle;
-  const metaSub = [
-    t.kindLabels[mandate.kind] ?? mandate.kind,
-    property?.city,
-  ]
+  const metaSub = [t.kindLabels[mandate.kind] ?? mandate.kind, property?.city]
     .filter(Boolean)
     .join(" · ");
 
+  const headerKpis = [
+    { label: t.table.price, value: eur(mandate.asking_price) },
+    {
+      label: t.table.commission,
+      value:
+        mandate.commission_pct != null
+          ? `${mandate.commission_pct}${t.commissionUnit}`
+          : "—",
+    },
+    { label: t.table.expires, value: dateFr(mandate.expires_at) },
+  ];
+
   return (
-    <PageStack>
-      <PageHeader
-        kicker={td.kicker + (mandate.reference ? ` · ${mandate.reference}` : "")}
-        title={pageTitle}
-        action={
-          <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-6 pb-12">
+      {/* Page heading — TW+ headings/03-with-meta-and-actions (thème sombre) */}
+      <div className="flex flex-col gap-4 pb-2">
+        <div className="@lg:flex @lg:items-center @lg:justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+              {td.kicker + (mandate.reference ? ` · ${mandate.reference}` : "")}
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-white @sm:truncate @sm:text-3xl">
+              {pageTitle}
+            </h1>
+            {metaSub && <p className="mt-1 text-sm text-slate-400">{metaSub}</p>}
+          </div>
+          <div className="mt-4 flex items-center gap-3 @lg:mt-0 @lg:ml-4">
             <Link
               href="/mandates"
-              className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08]"
+              className="inline-flex items-center rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08]"
             >
               {td.backLink}
             </Link>
             <Badge>{t.statusLabels[mandate.status] ?? mandate.status}</Badge>
           </div>
-        }
-        kpis={[
-          {
-            label: t.table.price,
-            value: eur(mandate.asking_price),
-          },
-          {
-            label: t.table.commission,
-            value:
-              mandate.commission_pct != null
-                ? `${mandate.commission_pct}${t.commissionUnit}`
-                : "—",
-          },
-          {
-            label: t.table.expires,
-            value: dateFr(mandate.expires_at),
-          },
-        ]}
-      />
-      {metaSub && <p className="-mt-4 text-sm text-slate-400">{metaSub}</p>}
+        </div>
 
-      {/* ── Détail du mandat ────────────────────────────────────────────── */}
-      <Card title={td.cardMandat}>
-        <dl className="divide-y divide-white/5">
-          <div className="grid grid-cols-1 gap-1 py-3 first:pt-0 @sm:grid-cols-3 @sm:gap-4">
-            <dt className="text-sm font-medium text-slate-400">{td.fields.kind}</dt>
-            <dd className="text-sm text-slate-200 @sm:col-span-2">
-              {t.kindLabels[mandate.kind] ?? mandate.kind}
-            </dd>
-          </div>
-
-          {mandate.reference && (
-            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
-              <dt className="text-sm font-medium text-slate-400">{td.fields.reference}</dt>
-              <dd className="text-sm text-slate-200 @sm:col-span-2">{mandate.reference}</dd>
+        {/* KPI stats — TW+ data-display/stats (thème sombre) */}
+        <dl className="grid grid-cols-1 gap-3 @sm:grid-cols-3">
+          {headerKpis.map((kpi) => (
+            <div
+              key={kpi.label}
+              className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
+            >
+              <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                {kpi.label}
+              </dt>
+              <dd className="mt-1 text-lg font-semibold text-white">{kpi.value}</dd>
             </div>
-          )}
+          ))}
+        </dl>
+      </div>
+
+      {/* ── Détail du mandat — description-list ──────────────────────────── */}
+      <DetailCard title={td.cardMandat}>
+        <dl className="divide-y divide-white/5">
+          <Row label={td.fields.kind}>{t.kindLabels[mandate.kind] ?? mandate.kind}</Row>
+
+          {mandate.reference && <Row label={td.fields.reference}>{mandate.reference}</Row>}
 
           {mandate.asking_price != null && (
-            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
-              <dt className="text-sm font-medium text-slate-400">{td.fields.askingPrice}</dt>
-              <dd className="text-sm text-slate-200 @sm:col-span-2">{eur(mandate.asking_price)}</dd>
-            </div>
+            <Row label={td.fields.askingPrice}>{eur(mandate.asking_price)}</Row>
           )}
 
           {mandate.commission_pct != null && (
-            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
-              <dt className="text-sm font-medium text-slate-400">{td.fields.commissionPct}</dt>
-              <dd className="text-sm text-slate-200 @sm:col-span-2">
-                {mandate.commission_pct}
-                {t.commissionUnit}
-              </dd>
-            </div>
+            <Row label={td.fields.commissionPct}>
+              {mandate.commission_pct}
+              {t.commissionUnit}
+            </Row>
           )}
 
           {commissionAmount != null && (
-            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
-              <dt className="text-sm font-medium text-slate-400">{td.fields.commissionAmount}</dt>
-              <dd className="text-sm text-slate-200 @sm:col-span-2">{eur(commissionAmount)}</dd>
-            </div>
+            <Row label={td.fields.commissionAmount}>{eur(commissionAmount)}</Row>
           )}
 
-          {mandate.signed_at && (
-            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
-              <dt className="text-sm font-medium text-slate-400">{td.fields.signedAt}</dt>
-              <dd className="text-sm text-slate-200 @sm:col-span-2">{dateFr(mandate.signed_at)}</dd>
-            </div>
-          )}
+          {mandate.signed_at && <Row label={td.fields.signedAt}>{dateFr(mandate.signed_at)}</Row>}
 
           {mandate.expires_at && (
-            <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
-              <dt className="text-sm font-medium text-slate-400">{td.fields.expiresAt}</dt>
-              <dd className="flex flex-wrap items-center gap-2 text-sm text-slate-200 @sm:col-span-2">
+            <Row label={td.fields.expiresAt}>
+              <span className="flex flex-wrap items-center gap-2">
                 {dateFr(mandate.expires_at)}
                 {isExpiringSoon && daysLeft !== null && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-300">
@@ -221,16 +232,11 @@ export default async function MandateDetailPage({
                     {td.fields.daysExpired}
                   </span>
                 )}
-              </dd>
-            </div>
+              </span>
+            </Row>
           )}
 
-          {mandate.updated_at && (
-            <div className="grid grid-cols-1 gap-1 py-3 last:pb-0 @sm:grid-cols-3 @sm:gap-4">
-              <dt className="text-sm font-medium text-slate-400">{td.fields.updatedAt}</dt>
-              <dd className="text-sm text-slate-200 @sm:col-span-2">{dateFr(mandate.updated_at)}</dd>
-            </div>
-          )}
+          {mandate.updated_at && <Row label={td.fields.updatedAt}>{dateFr(mandate.updated_at)}</Row>}
         </dl>
 
         {mandate.notes && (
@@ -241,48 +247,26 @@ export default async function MandateDetailPage({
             <p className="mt-2 text-sm whitespace-pre-wrap text-slate-300">{mandate.notes}</p>
           </div>
         )}
-      </Card>
+      </DetailCard>
 
-      {/* ── Bien lié ────────────────────────────────────────────────────── */}
-      <Card title={td.cardBien}>
+      {/* ── Bien lié — description-list + empty-state ────────────────────── */}
+      <DetailCard title={td.cardBien}>
         {property ? (
           <div>
             <dl className="divide-y divide-white/5">
               {property.property_type && (
-                <div className="grid grid-cols-1 gap-1 py-3 first:pt-0 @sm:grid-cols-3 @sm:gap-4">
-                  <dt className="text-sm font-medium text-slate-400">{td.wellType}</dt>
-                  <dd className="text-sm text-slate-200 @sm:col-span-2">
-                    {UI.properties.typeLabels[property.property_type] ??
-                      property.property_type}
-                  </dd>
-                </div>
+                <Row label={td.wellType}>
+                  {UI.properties.typeLabels[property.property_type] ?? property.property_type}
+                </Row>
               )}
-              {property.city && (
-                <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
-                  <dt className="text-sm font-medium text-slate-400">{td.wellCity}</dt>
-                  <dd className="text-sm text-slate-200 @sm:col-span-2">{property.city}</dd>
-                </div>
-              )}
-              {property.surface != null && (
-                <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
-                  <dt className="text-sm font-medium text-slate-400">{td.wellSurface}</dt>
-                  <dd className="text-sm text-slate-200 @sm:col-span-2">{sqm(property.surface)}</dd>
-                </div>
-              )}
+              {property.city && <Row label={td.wellCity}>{property.city}</Row>}
+              {property.surface != null && <Row label={td.wellSurface}>{sqm(property.surface)}</Row>}
               {property.asking_price != null && (
-                <div className="grid grid-cols-1 gap-1 py-3 @sm:grid-cols-3 @sm:gap-4">
-                  <dt className="text-sm font-medium text-slate-400">{td.wellPrice}</dt>
-                  <dd className="text-sm text-slate-200 @sm:col-span-2">{eur(property.asking_price)}</dd>
-                </div>
+                <Row label={td.wellPrice}>{eur(property.asking_price)}</Row>
               )}
-              <div className="grid grid-cols-1 gap-1 py-3 last:pb-0 @sm:grid-cols-3 @sm:gap-4">
-                <dt className="text-sm font-medium text-slate-400">{td.wellStatus}</dt>
-                <dd className="text-sm text-slate-200 @sm:col-span-2">
-                  <Badge>
-                    {UI.properties.statusLabels[property.status] ?? property.status}
-                  </Badge>
-                </dd>
-              </div>
+              <Row label={td.wellStatus}>
+                <Badge>{UI.properties.statusLabels[property.status] ?? property.status}</Badge>
+              </Row>
             </dl>
             <div className="mt-4 border-t border-white/5 pt-4">
               <Link
@@ -294,16 +278,19 @@ export default async function MandateDetailPage({
             </div>
           </div>
         ) : (
-          <p className="text-sm text-slate-500">{td.emptyWell}</p>
+          <p className="py-6 text-center text-sm text-slate-500">{td.emptyWell}</p>
         )}
-      </Card>
+      </DetailCard>
 
-      {/* ── Visites du bien ─────────────────────────────────────────────── */}
-      <Card title={td.cardVisites}>
+      {/* ── Visites du bien — TW+ lists__stacked-lists (thème sombre) ────── */}
+      <DetailCard title={td.cardVisites}>
         {visits.length > 0 ? (
-          <ul className="divide-y divide-white/5">
+          <ul role="list" className="divide-y divide-white/5">
             {visits.map((visit) => (
-              <li key={visit.id} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
+              <li
+                key={visit.id}
+                className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0"
+              >
                 <div className="flex flex-wrap items-baseline gap-2">
                   <span className="text-sm font-medium text-slate-100">
                     {dateTimeFr(visit.scheduled_at)}
@@ -317,9 +304,9 @@ export default async function MandateDetailPage({
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-500">{td.emptyVisits}</p>
+          <p className="py-6 text-center text-sm text-slate-500">{td.emptyVisits}</p>
         )}
-      </Card>
-    </PageStack>
+      </DetailCard>
+    </div>
   );
 }
