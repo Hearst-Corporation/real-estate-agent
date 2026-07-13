@@ -15,7 +15,10 @@
 | **Stockage photos/docs** | **Cloudflare R2** | `lib/storage/r2.ts` (S3-compatible, aws4fetch). Pas Supabase Storage. |
 | **Cache / Queue** | **Redis** | Railway (`REDIS_URL`) ou Upstash REST (`UPSTASH_REDIS_REST_*`, préféré sur Vercel serverless). |
 | **Jobs asynchrones** | **Inngest** | Route `app/api/inngest/route.ts` (`serve()`), fonctions dans `lib/jobs/inngest/functions.ts`. Auth par signature HMAC (`INNGEST_SIGNING_KEY`). Fail-soft : sans clé → chemin synchrone. |
+| **LLM / Chat Cockpit** | Claude (Anthropic) · OpenAI | Estimation/interview via Claude (`ANTHROPIC_API_KEY`). Chat Cockpit sur OpenAI (`OPENAI_API_KEY`, modèles `OPENAI_CHAT_MODEL`/`_FALLBACK_MODEL`) — **optionnel**, le chat dégrade proprement si absent, le boot ne throw jamais. |
 | **Observabilité** | Sentry · Langfuse · PostHog | Tous **optionnels**, mode dégradé si clé absente (le boot ne throw jamais). |
+
+**Modules produit** : Estimation (avis de valeur IA), Prospection (annonces/matching), CRM (leads, biens, mandats, visites, agenda). Les modules Invest (tokenisation) et Swarms (multi-agents) ont été **retirés**.
 
 **Frontière** : l'app tourne sur Vercel, la DB sur gpu1. Aucun `Dockerfile`/`compose` dans le repo — l'app n'est pas conteneurisée (build Vercel natif).
 

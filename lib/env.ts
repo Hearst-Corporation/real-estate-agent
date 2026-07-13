@@ -50,6 +50,12 @@ const ServerSchema = z.object({
   REDIS_URL: z.string().optional(),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+  // LLM chat Cockpit — OpenAI. OPTIONNEL : le chat dégrade proprement si absent,
+  // ne bloque jamais le boot. Les modèles ont un défaut applicatif si non fournis.
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_CHAT_MODEL: z.string().optional(),
+  OPENAI_CHAT_FALLBACK_MODEL: z.string().optional(),
+  OPENAI_CHAT_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
 });
 
 type PublicEnv = z.infer<typeof PublicSchema>;
@@ -103,6 +109,10 @@ export function serverEnv(): ServerEnv & {
       REDIS_URL: process.env.REDIS_URL,
       UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
       UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+      OPENAI_CHAT_MODEL: process.env.OPENAI_CHAT_MODEL,
+      OPENAI_CHAT_FALLBACK_MODEL: process.env.OPENAI_CHAT_FALLBACK_MODEL,
+      OPENAI_CHAT_TIMEOUT_MS: process.env.OPENAI_CHAT_TIMEOUT_MS,
     });
     if (!parsed.success) fail("serveur", parsed.error);
     _server = parsed.data;
