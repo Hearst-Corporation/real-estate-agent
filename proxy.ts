@@ -1,6 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { verifyJwt } from "@/lib/server/auth";
-import { TOKEN_COOKIE, setTokenCookie, MFA_PENDING_SCOPE } from "@/lib/server/auth-cookie";
+import { verifyJwt, signJwt } from "@/lib/server/auth";
+import { TOKEN_COOKIE, TOKEN_TTL_SECONDS, setTokenCookie, MFA_PENDING_SCOPE } from "@/lib/server/auth-cookie";
+import { DEFAULT_TENANT } from "@/lib/tenant";
+
+// ── Bypass auth DEV ONLY ─────────────────────────────────────────────────────
+// NODE_ENV !== "production" (jamais vrai en prod/preview Vercel) ET flag
+// explicite requis → aucune activation accidentelle. Pose un JWT admin valide
+// à la place de rediriger vers /auth/login, pour zéro friction en local.
+const DEV_BYPASS_ENABLED =
+  process.env.NODE_ENV !== "production" && process.env.AUTH_DEV_BYPASS === "true";
+const DEV_BYPASS_USER_ID = process.env.AUTH_DEV_BYPASS_USER_ID || "9717aa27-d844-4221-ab2e-c277b93d77ca";
+const DEV_BYPASS_EMAIL = process.env.AUTH_DEV_BYPASS_EMAIL || "admin@real-estate-agent.app";
 
 // Routes publiques (aucune session requise).
 const OPEN_ROUTES = [
@@ -42,6 +52,20 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isOpen(pathname)) return NextResponse.next();
+
+  // Bypass DEV ONLY : non connecté + AUTH_DEV_BYPASS=true en local → pose un
+  // JWT admin directement au lieu de rediriger vers /auth/login.
+  if (!authed && DEV_BYPASS_ENABLED) {
+    const devToken = await signJwt(
+      { sub: DEV_BYPASS_USER_ID, email: DEV_BYPASS_EMAIL, tenant_id: DEFAULT_TENANT, role: "admin", scope: [] },
+      TOKEN_TTL_SECONDS,
+    );
+    if (devToken) {
+      const res = NextResponse.next();
+      setTokenCookie(res, devToken, request.headers.get("host"));
+      return res;
+    }
+  }
 
   // Non connecté + route API → 401 JSON (jamais une redirection HTML).
   if (!authed) {
