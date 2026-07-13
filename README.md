@@ -1,56 +1,63 @@
-# Azigo (Cockpit)
+# Azigo
 
-Application de gestion immobilière de nouvelle génération, intégrant un CRM complet, un système d'estimations, de la prospection et des agents IA (Swarms).
+Logiciel de gestion pour agent immobilier : CRM, estimation d'un bien (avis de
+valeur IA), prospection d'annonces, et un assistant conversationnel (Cockpit).
 
-## 🚀 Stack Technique
+## Modules livrés
 
-- **Framework** : Next.js 16 (App Router)
-- **Base de données & Auth** : Supabase (PostgreSQL)
-- **Design System** : Cockpit — **copie locale indépendante** en utilities Tailwind v4 (glassmorphism, thème sombre slate/indigo), éditable directement dans ce repo. Voir [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md).
-- **Desktop** : Electron (build signé/notarisé)
-- **IA** : Intégration Kimi K2.6 (Hypercli) pour le chat et l'assistance
+- **CRM** — leads, mandats, biens, visites, agenda.
+- **Estimation** — avis de valeur déterministe (BAN, DVF, cadastre IGN, ADEME),
+  comparables, PDF, partage sécurisé, liaison CRM.
+- **Prospection** — ingestion d'annonces (Apify), déduplication, matching,
+  liaison CRM/estimation, contact avec validation humaine, opt-out.
+- **Cockpit** — assistant IA transversal (OpenAI) : lecture des données, actions
+  préparées avec confirmation humaine.
+- **Auth/Admin** — email + mot de passe, JWT jose, MFA TOTP, audit.
+- **Desktop** — application Electron (build signé/notarisé).
 
-## 📁 Architecture Principale
+## Stack
 
-- `/app/(dashboard)` : Vues principales (CRM, Estimations, Prospection, Swarms, Agenda, Invest).
-- `/components/cockpit` : primitives et composants riches du Design System (`primitives.tsx`, `RailLeft`, `DataTable`, Kanban, etc.).
-- Navigation Cockpit : manifeste unique `config/nav.ts` pour le rail gauche, les onglets de page et la bottom bar mobile.
-- `/docs` : Documentation technique et produit (voir `docs/produit/PROPOSITION_REFONTE_ECOLE.md` pour le plan de refonte actuel).
-- `/lib` : Utilitaires, clients Supabase, et logique métier.
+- **Web** : Next.js 16.2 (App Router), port `3002`.
+- **DB** : Postgres + PostgREST self-host gpu1 (`real-estate-agent-db.hearst.app`).
+- **Stockage** : Cloudflare R2. **Cache/Queue** : Redis. **Jobs** : Inngest.
+- **LLM** : OpenAI (chat Cockpit) · Claude (entretien d'estimation).
+- **Design System** : Cockpit — copie locale éditable, utilities Tailwind v4.
+  Voir [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md).
 
-## 🎨 Design System — copie locale, Tailwind utilities
-
-Le design system **Cockpit vit entièrement dans ce repo** et lui appartient : aucune source centrale, aucune dépendance externe, aucune resync à faire. Référence complète : **[`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md)** (tokens, thème, primitives, mapping écran → blocs).
-
-- **Composants** : `components/cockpit/*.tsx` — éditables directement, composés en utilities Tailwind natives (pas de classes `ct-*` custom).
-- **Thème** : `app/globals.css` (`@theme` Tailwind v4) — palette dark slate-950/indigo-400, glassmorphism.
-- **Blocs UI** : bâtis à partir de la banque [Tailwind Plus UI Blocks](https://tailwindcss.com/plus) (`~/.claude/tailwind-blocks/`, 657 blocs React) restylés au thème du repo.
-
-## Règles UI
-
-**Interdit de coder de l'UI sans utiliser les composants.** Toute nouvelle page/écran/section se construit à partir des primitives du design system (`components/cockpit/primitives.tsx` — `PageStack`, `PageHeader`, `Card`, `KpiGrid`, etc.) et des blocs Tailwind Plus — jamais de markup ad-hoc qui réinvente un composant existant. Consulte `DESIGN-SYSTEM.md` avant d'ajouter un écran.
-
-Le DS reste **libre** : composants, tokens et CSS s'éditent directement dans ce repo, sans verrou ni lint bloquant sur le design — c'est une référence de cohérence, pas une prison.
-
-## 🛠 Commandes Utiles
+## Démarrage
 
 ```bash
-# Lancer le serveur de développement web (Port 3002)
-npm run dev
-
-# Lancer l'application Desktop (Electron + Next.js)
-npm run electron:dev
-
-# Build de production web
-npm run build
-
-# Build de l'application Desktop (.dmg)
-npm run electron:build
-
-# Linter le projet
-npm run lint
+cp .env.example .env.local     # renseigner les variables (voir ci-dessous)
+npm install
+npm run dev                     # web sur http://localhost:3002
+npm run electron:dev            # application desktop
 ```
 
-## 📚 Documentation
+## Variables d'environnement
 
-Consultez le dossier `/docs` pour plus de détails sur l'orchestration du CRM, les smart contracts, et les audits UI/UX.
+Copier [`.env.example`](.env.example). Requises au boot :
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `ANTHROPIC_API_KEY`. Le Cockpit OpenAI
+(`OPENAI_API_KEY`) est optionnel — le chat dégrade proprement si absent. Les clés
+vivent uniquement en `.env.local` (gitignored), jamais committées.
+
+## Commandes
+
+```bash
+npm run dev            # serveur de dev (port 3002)
+npm run check          # gate complète (typecheck, lint, biome, strings, secrets, nav, catalyst)
+npm test               # tests unitaires (vitest)
+npm run build          # build production
+npm run electron:build # .dmg signé/notarisé
+```
+
+## Documentation
+
+- [`CLAUDE.md`](CLAUDE.md) — architecture, conventions, règles.
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — déploiement (Vercel + gpu1).
+- [`docs/RELEASE.md`](docs/RELEASE.md) — version livrée et limites.
+- [`docs/gpu1-selfhost.md`](docs/gpu1-selfhost.md) — DB self-host.
+- [`docs/ESTIMATION.md`](docs/ESTIMATION.md) · [`docs/PROSPECTION.md`](docs/PROSPECTION.md) · [`docs/CRM_ORCHESTRATION.md`](docs/CRM_ORCHESTRATION.md) — modules.
+
+> Les modules Invest (tokenisation) et Swarms (multi-agents) ont été retirés du
+> produit. Les tables `inv_*`/`swarm_*` restent dormantes en DB.

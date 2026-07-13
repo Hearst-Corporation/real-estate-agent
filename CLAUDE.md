@@ -78,8 +78,7 @@ Tunnel SSH si besoin GPU : `ssh -L 8188:localhost:8188 gpu2-remote -N &`. Doc : 
 - `/dev-adrien` · `/audit-adrien` · `/ship-adrien` · `/brief-adrien` · `/ready-adrien` (stubs locaux)
 
 ## Design system — copie locale éditable
-Le DS Cockpit vit dans ce repo (`components/cockpit/` + `app/globals.css`, Tailwind v4 utilities — voir [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)). C'est LA copie de ce repo, éditable librement ici : composants, tokens, classes se modifient directement. Pas de source centrale à mettre à jour, pas de resync, pas de lint bloquant sur le design. Seule règle : garder la cohérence visuelle interne du repo.
-- Recette de page, primitives et vocabulaire : **[components/cockpit/AGENTS.md](components/cockpit/AGENTS.md)**. Compose les primitives quand elles existent ; sinon, libre de les faire évoluer ou d'en créer ici.
+Le DS Cockpit vit dans ce repo (`components/cockpit/` + `components/ui/` + `app/globals.css`, utilities Tailwind v4 natives — voir [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md), **source de vérité unique du DS**). C'est LA copie de ce repo, éditable librement : composants, tokens, classes se modifient directement. Pas de source centrale, pas de resync, pas de lint bloquant sur le design. Seule règle : garder la cohérence visuelle interne. Compose les primitives existantes (`components/cockpit/primitives.tsx`, `components/ui/*`) avant d'en créer.
 - `data-product` = attribut de scope CSS (accent dédié par section), pas un verrou global — le thème par défaut vit directement dans `app/globals.css`.
 
 ## Conventions
@@ -90,5 +89,4 @@ Le DS Cockpit vit dans ce repo (`components/cockpit/` + `app/globals.css`, Tailw
 ## Référentiels
 - Services & API keys : [docs/api-config/SERVICES.md](docs/api-config/SERVICES.md) *(gitignored)*
 - Variables locales : [.env.local](.env.local) *(gitignored)*
-- Guide UI agent : [components/cockpit/AGENTS.md](components/cockpit/AGENTS.md)
-- Design system (copie locale, source de vérité de CE repo) : [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · `components/cockpit/` + `app/globals.css`
+- Design system (source de vérité DS de CE repo) : [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · `components/cockpit/` + `components/ui/` + `app/globals.css`
