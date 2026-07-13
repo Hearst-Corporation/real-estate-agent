@@ -1,6 +1,7 @@
 import { Fragment, Suspense, type ReactNode } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { PageHeader, Card } from "@/components/cockpit/primitives";
 import { DescriptionList, DescriptionTerm, DescriptionDetails } from "@/components/ui/description-list";
 import { UI } from "@/lib/ui-strings";
@@ -206,6 +207,9 @@ export default async function PropertyDetailPage({
         title={property.title ?? t.fallbackTitle}
         action={
           <div className="flex items-center gap-2">
+            <Button href={`/estimations/new?property=${id}`}>
+              {t.estimateThisProperty}
+            </Button>
             <PropertyStatusControl
               id={id}
               currentStatus={property.status}

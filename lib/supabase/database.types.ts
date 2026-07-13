@@ -137,6 +137,7 @@ export type Database = {
           pdf_url: string | null
           postal_code: string | null
           property: Json
+          property_id: string | null
           property_photo_key: string | null
           property_type: string | null
           quality_alerts: Json | null
@@ -172,6 +173,7 @@ export type Database = {
           pdf_url?: string | null
           postal_code?: string | null
           property?: Json
+          property_id?: string | null
           property_photo_key?: string | null
           property_type?: string | null
           quality_alerts?: Json | null
@@ -207,6 +209,7 @@ export type Database = {
           pdf_url?: string | null
           postal_code?: string | null
           property?: Json
+          property_id?: string | null
           property_photo_key?: string | null
           property_type?: string | null
           quality_alerts?: Json | null

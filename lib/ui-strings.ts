@@ -839,9 +839,12 @@ export const UI = {
       action: "",
     },
     back: "Retour aux estimations",
+    backToProperty: "Retour au bien",
     interviewTitle: "Entretien",
     interviewSub: "Décrivez votre bien en quelques mots — l'assistant ne demande que l'essentiel, dans l'ordre.",
     soon: "Bientôt — le moteur d'entretien arrive.",
+    interviewUnavailable:
+      "Assistant momentanément indisponible. Réessayez, ou continuez : les informations déjà collectées suffisent à lancer l'estimation dès que l'essentiel est réuni.",
     generate: "Générer l'estimation",
     generating: "Calcul de l'estimation…",
     creating: "Création…",
@@ -959,6 +962,7 @@ export const UI = {
     statusUpdateError: "Le statut n'a pas pu être mis à jour. Réessayez.",
     cardCaracteristiques: "Caractéristiques",
     seeEstimation: "Voir l'estimation",
+    estimateThisProperty: "Estimer ce bien",
     fields: {
       type: "Type",
       surface: "Surface",

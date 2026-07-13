@@ -83,6 +83,11 @@ export default async function EstimationDetailPage({
   const initialValuation = (estimation.valuation ?? null) as Valuation | null;
   const initialMarket = (estimation.market ?? null) as MarketAnalysis | null;
 
+  // Lien retour vers le bien CRM source (parcours « Estimer ce bien »).
+  const backToPropertyHref = estimation.property_id
+    ? `/properties/${estimation.property_id}`
+    : null;
+
   return (
     <InterviewView
       id={id}
@@ -96,6 +101,7 @@ export default async function EstimationDetailPage({
       initialStatus={estimation.status}
       initialValuation={initialValuation}
       initialMarket={initialMarket}
+      backToPropertyHref={backToPropertyHref}
     />
   );
 }

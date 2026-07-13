@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +9,11 @@ import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { UI } from "@/lib/ui-strings";
 
-export default function NewEstimationPage() {
+function NewEstimationInner() {
   const t = UI.estimations;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const propertyId = searchParams.get("property");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -19,9 +21,17 @@ export default function NewEstimationPage() {
 
     (async () => {
       try {
+        // ?property=<id> → estimation préremplie depuis un bien CRM ; sinon
+        // brouillon vide (corps absent).
         const res = await fetch("/api/estimations", {
           method: "POST",
           signal: ctrl.signal,
+          ...(propertyId
+            ? {
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ property_id: propertyId }),
+              }
+            : {}),
         });
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
@@ -40,7 +50,7 @@ export default function NewEstimationPage() {
     return () => {
       ctrl.abort();
     };
-  }, [router]);
+  }, [router, propertyId]);
 
   return (
     <div className="flex flex-col gap-6 pb-12">
@@ -77,5 +87,13 @@ export default function NewEstimationPage() {
         )}
       </section>
     </div>
+  );
+}
+
+export default function NewEstimationPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewEstimationInner />
+    </Suspense>
   );
 }

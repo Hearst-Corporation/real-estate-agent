@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { EstimationWizard } from "./EstimationWizard";
 import { GeneratingScreen } from "./GeneratingScreen";
 import { ValuationHero } from "./ValuationHero";
@@ -35,6 +36,8 @@ type Props = {
   initialStatus: string;
   initialValuation?: Valuation | null;
   initialMarket?: MarketAnalysis | null;
+  /** Lien retour vers le bien CRM source, si l'estimation en provient. */
+  backToPropertyHref?: string | null;
 };
 
 export function InterviewView({
@@ -49,6 +52,7 @@ export function InterviewView({
   initialStatus,
   initialValuation,
   initialMarket,
+  backToPropertyHref,
 }: Props) {
   const [phase, setPhase] = useState<Phase>(resolvePhase(initialStatus));
   const [property, setProperty] = useState<PropertyData>(initialProperty);
@@ -176,6 +180,15 @@ export function InterviewView({
   return (
     <div className="pb-12">
       <div className="flex flex-col gap-6">
+        {backToPropertyHref && (
+          <Link
+            href={backToPropertyHref}
+            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-indigo-300 hover:text-indigo-200"
+          >
+            <span aria-hidden="true">←</span>
+            {UI.estimations.backToProperty}
+          </Link>
+        )}
         {valuation ? (
           <ValuationHero id={id} valuation={valuation} />
         ) : (

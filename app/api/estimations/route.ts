@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { propertyRowToPropertyData } from "@/lib/estimation/from-property";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Body optionnel : { property_id } pour préremplir depuis un bien CRM.
+const CreateBodySchema = z
+  .object({
+    property_id: z.string().uuid().optional(),
+  })
+  .strict();
+
 // ─── POST /api/estimations — créer une estimation draft ───────────────────────
 
-export async function POST() {
+export async function POST(req: Request) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
@@ -17,6 +26,71 @@ export async function POST() {
 
   const userId = claims.sub;
   const tenant = tenantOf(claims);
+
+  // Body optionnel : requête sans corps (JSON vide/invalide) → brouillon vide.
+  const raw = await req.json().catch(() => ({}));
+  const parsed = CreateBodySchema.safeParse(raw ?? {});
+  if (!parsed.success) {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+  }
+  const propertyId = parsed.data.property_id;
+
+  // ── Branche PRÉREMPLIE : estimation lancée depuis un bien CRM ───────────────
+  if (propertyId) {
+    // Owner-check strict : le bien doit appartenir à user+tenant, sinon 404
+    // (pas de fuite d'existence).
+    const { data: property, error: propErr } = await sb
+      .from("properties")
+      .select("*")
+      .eq("id", propertyId)
+      .eq("user_id", userId)
+      .eq("tenant_id", tenant)
+      .maybeSingle();
+
+    if (propErr) {
+      console.error("[estimations POST] property_load_failed:", propErr);
+      return NextResponse.json({ error: "create_failed" }, { status: 500 });
+    }
+    if (!property) {
+      return NextResponse.json({ error: "not_found" }, { status: 404 });
+    }
+
+    const propertyData = propertyRowToPropertyData(property);
+
+    const { data: created, error: insErr } = await sb
+      .from("estimations")
+      .insert({
+        user_id: userId,
+        tenant_id: tenant,
+        status: "draft",
+        property_id: propertyId,
+        property: propertyData,
+      })
+      .select("id")
+      .single();
+
+    if (insErr || !created) {
+      console.error("[estimations POST] prefilled_create_failed:", insErr);
+      return NextResponse.json({ error: "create_failed" }, { status: 500 });
+    }
+
+    // Rattachement bidirectionnel : le bien pointe vers sa nouvelle estimation.
+    // Owner-check maintenu. Best-effort : si l'update échoue, l'estimation
+    // existe déjà — on log sans casser le parcours.
+    const { error: linkErr } = await sb
+      .from("properties")
+      .update({ estimation_id: created.id })
+      .eq("id", propertyId)
+      .eq("user_id", userId)
+      .eq("tenant_id", tenant);
+    if (linkErr) {
+      console.error("[estimations POST] property_link_failed:", linkErr);
+    }
+
+    return NextResponse.json({ id: created.id }, { status: 201 });
+  }
+
+  // ── Branche BROUILLON VIDE (comportement historique inchangé) ───────────────
 
   // Un draft vierge (property/field_status vides) est réutilisable : on n'en
   // empile jamais deux. Protège contre le double-montage Strict Mode, le
