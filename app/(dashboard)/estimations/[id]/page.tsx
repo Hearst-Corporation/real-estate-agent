@@ -8,9 +8,9 @@ import {
   canGenerate as canGenerateFromFields,
   nextSuggestions,
   nextFocusLabel,
+  SUGGESTIONS_MAX,
 } from "@/lib/estimation/spec";
 import { InterviewView } from "@/app/(dashboard)/estimations/_components/InterviewView";
-import { SUGGESTIONS_MAX } from "@/lib/invest/constants";
 import type {
   PropertyData,
   FieldStatusMap,

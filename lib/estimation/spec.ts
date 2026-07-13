@@ -437,6 +437,9 @@ export function nextFocusLabel(
  * on renvoie [] — pas de chips pour une question ouverte. L'agent posant les
  * questions dans le MÊME ordre de priorité, les chips collent à ce qu'il demande.
  */
+/** Nombre max de suggestions affichées dans l'interview d'estimation. */
+export const SUGGESTIONS_MAX = 12;
+
 export function nextSuggestions(
   property: PropertyData,
   fieldStatus: FieldStatusMap

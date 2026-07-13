@@ -161,6 +161,15 @@ function main() {
     });
   }
 
+  // Module Invest RETIRÉ du produit : le périmètre scanné n'existe plus. Aucun
+  // contenu invest → aucune obligation juridique anti-FIA à vérifier. Exit 0.
+  if (scanned === 0) {
+    console.log(
+      "\n  Lint juridique (anti-FIA) — périmètre Invest absent (module retiré). Rien à vérifier.\n",
+    );
+    process.exit(0);
+  }
+
   const missing = REQUIRED.filter((r) => !requiredSeen.has(r.id));
 
   // Rapport.

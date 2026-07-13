@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
-import { DEFAULT_TENANT_ID } from "@/lib/invest/shared/types";
+import { DEFAULT_TENANT } from "@/lib/tenant";
 import { searchListings, moteurImmoIsConfigured } from "@/lib/providers/moteurimmo";
 import {
   searchListingsApify,
@@ -30,7 +30,7 @@ const MAX_ZONES = 5;
  * POST /api/prospection/ingest — déclenche une passe d'ingestion d'annonces À LA
  * DEMANDE (le cron `prosp-ingestion` fait la même chose toutes les heures).
  * Exécution INLINE pour un retour immédiat, indépendamment d'Inngest.
- * Écrit sous DEFAULT_TENANT_ID (même bucket que le cron → visible par le matching).
+ * Écrit sous DEFAULT_TENANT (même bucket que le cron → visible par le matching).
  *
  * Chaque passe :
  *   - crée une ligne `prosp_ingestion_runs` (status=running) au démarrage,
@@ -67,13 +67,13 @@ export async function POST(req: Request) {
     (typeof body?.idempotency_key === "string" ? body.idempotency_key : null);
 
   if (idemKey) {
-    const cached = await lookupIdempotent(DEFAULT_TENANT_ID, idemKey);
+    const cached = await lookupIdempotent(DEFAULT_TENANT, idemKey);
     if (cached !== null) {
       return NextResponse.json(cached, { headers: { "Idempotent-Replay": "true" } });
     }
     // Pose le verrou. false ⇒ clé déjà réservée (course / rejeu concurrent).
     const reserved = await reserveIdempotent(
-      DEFAULT_TENANT_ID,
+      DEFAULT_TENANT,
       idemKey,
       bodyHash({ zones: body?.zones ?? null, provider }),
     );
@@ -94,13 +94,13 @@ export async function POST(req: Request) {
     const { data: cfg } = await db
       .from("prosp_config")
       .select("zones_prioritaires")
-      .eq("tenant_id", DEFAULT_TENANT_ID)
+      .eq("tenant_id", DEFAULT_TENANT)
       .maybeSingle();
     zones = (cfg?.zones_prioritaires as string[] | null) ?? DEFAULT_ZONES;
   }
   zones = zones.slice(0, MAX_ZONES);
 
-  const run = await startIngestionRun(DEFAULT_TENANT_ID, provider, zones);
+  const run = await startIngestionRun(DEFAULT_TENANT, provider, zones);
   const totals: IngestStats = { inserted: 0, updated: 0, duplicates: 0, errors: 0 };
   const errorDetails: string[] = [];
 
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
       const listings = useMoteurImmo
         ? await searchListings({ codePostal: zone, perPage: 50 })
         : await searchListingsApify(zone);
-      const stats = await upsertAnnonces(DEFAULT_TENANT_ID, listings, provider);
+      const stats = await upsertAnnonces(DEFAULT_TENANT, listings, provider);
       totals.inserted += stats.inserted;
       totals.updated += stats.updated;
       totals.duplicates += stats.duplicates;
@@ -142,7 +142,7 @@ export async function POST(req: Request) {
   };
 
   if (idemKey) {
-    await completeIdempotent(DEFAULT_TENANT_ID, idemKey, responseBody as unknown as Json);
+    await completeIdempotent(DEFAULT_TENANT, idemKey, responseBody as unknown as Json);
   }
 
   return NextResponse.json(responseBody);
