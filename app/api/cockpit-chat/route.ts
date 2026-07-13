@@ -199,9 +199,11 @@ export async function POST(req: Request) {
         });
         assistantText = res.assistantText;
         usage = res.usage;
+        // runAgent ne throw pas : il émet déjà une frame `error` avec le message
+        // FR adapté (quota, rate_limit, model_unavailable…) via openAiErrorMessage.
       } catch (err) {
         console.error("[cockpit-chat] runAgent error:", err instanceof Error ? err.message : String(err));
-        write({ type: "error", message: "La génération a échoué." });
+        write({ type: "error", message: "L'assistant est momentanément indisponible. Réessaie dans un instant." });
       } finally {
         if (assistantText.trim()) {
           await sb.from("cockpit_messages").insert({ chat_id: finalChatId, tenant_id: tenant, role: "assistant", content: assistantText });

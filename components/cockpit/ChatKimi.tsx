@@ -156,7 +156,6 @@ function ChatKimiSession({ pathname }: { pathname: string }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-zinc-950/10 px-4 py-2 text-xs text-zinc-500">{UI.chat.status}</div>
       <div className="scrollbar-thin flex-1 space-y-4 overflow-y-auto px-4 py-4" ref={scrollRef}>
         {messages.length === 0 ? <p className="text-sm text-zinc-500">{UI.chat.empty}</p> : null}
         {messages.map((m, idx) => (

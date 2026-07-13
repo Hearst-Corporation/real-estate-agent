@@ -19,6 +19,7 @@ import type OpenAI from "openai";
 import {
   getOpenAiClient,
   normalizeOpenAiError,
+  openAiErrorMessage,
   OPENAI_CHAT_FALLBACK_MODEL,
   shouldFallback,
   type OpenAiErrorCode,
@@ -150,7 +151,8 @@ async function streamTurn(
         model: m,
         stream: true,
         stream_options: { include_usage: true },
-        max_tokens: AGENT_MAX_TOKENS,
+        // gpt-5.x n'accepte plus `max_tokens` → `max_completion_tokens`.
+        max_completion_tokens: AGENT_MAX_TOKENS,
         messages,
         ...(toolChoice === "none"
           ? { tool_choice: "none" as const }
@@ -310,8 +312,10 @@ export async function runAgent(params: RunAgentParams): Promise<RunAgentResult> 
       return { assistantText: "", errorCode: "aborted" };
     }
     console.error("[cockpit-agent] échec de génération:", norm.code);
-    const note = "\n[Erreur de génération]";
-    params.ctx.emit({ type: "text", delta: note });
-    return { assistantText: note, errorCode: norm.code };
+    // Message clair selon la cause (quota épuisé, rate-limit, modèle indispo…),
+    // émis en frame `error` (pas `text`) pour ne pas le persister comme réponse
+    // de l'assistant. L'utilisateur sait pourquoi ça n'a pas répondu.
+    params.ctx.emit({ type: "error", message: openAiErrorMessage(norm.code) });
+    return { assistantText: "", errorCode: norm.code };
   }
 }

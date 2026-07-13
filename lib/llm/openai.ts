@@ -127,18 +127,38 @@ export function normalizeOpenAiError(err: unknown): OpenAiError {
     }
   }
 
-  // Erreurs SDK OpenAI : porteuses d'un `status` HTTP.
-  const status = (err as { status?: number } | undefined)?.status;
-  if (typeof status === "number") {
-    if (status === 401 || status === 403) return new OpenAiError("invalid_key");
-    if (status === 429) {
-      // Distingue quota épuisé (insufficient_quota) d'un simple rate-limit.
-      const type = (err as { code?: string; error?: { type?: string } }).code
-        ?? (err as { error?: { type?: string } }).error?.type;
-      return new OpenAiError(type === "insufficient_quota" ? "quota" : "rate_limit");
-    }
-    if (status === 404) return new OpenAiError("model_unavailable");
+  // Erreurs SDK OpenAI : `status` HTTP + code/type. En mode stream, l'objet
+  // peut être enveloppé — on lit plusieurs emplacements et on retombe sur le
+  // message texte en dernier recours (jamais loggé, juste inspecté).
+  const e = err as {
+    status?: number;
+    code?: string;
+    type?: string;
+    message?: string;
+    error?: { type?: string; code?: string };
+    constructor?: { name?: string };
+  } | undefined;
+  const status = e?.status;
+  const code = e?.code ?? e?.error?.code;
+  const type = e?.type ?? e?.error?.type;
+  const ctorName = e?.constructor?.name;
+  const msg = typeof e?.message === "string" ? e.message.toLowerCase() : "";
+
+  const isQuota =
+    code === "insufficient_quota" ||
+    type === "insufficient_quota" ||
+    msg.includes("quota") ||
+    msg.includes("exceeded your current quota");
+  const isRateLimit = status === 429 || ctorName === "RateLimitError" || msg.includes("rate limit");
+
+  if (isQuota) return new OpenAiError("quota");
+  if (status === 401 || status === 403 || ctorName === "AuthenticationError") {
+    return new OpenAiError("invalid_key");
   }
+  if (status === 404 || msg.includes("does not exist") || msg.includes("model_not_found")) {
+    return new OpenAiError("model_unavailable");
+  }
+  if (isRateLimit) return new OpenAiError("rate_limit");
 
   return new OpenAiError("unknown");
 }
