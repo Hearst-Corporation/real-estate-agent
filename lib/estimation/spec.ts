@@ -499,6 +499,118 @@ export const RECAP_FIELDS: { field: keyof PropertyData; label: string }[] = [
   { field: 'commentaires', label: 'Commentaires' },
 ];
 
+// ─── Fiche « déjà remplie » (état lisible injecté à chaque tour) ──────────────
+//
+// Le modèle ne reposait pas ses questions parce que le stateHeader ne lui donnait
+// que des compteurs abstraits. On lui fournit désormais une FICHE explicite
+// listant chaque champ connu = valeur (libellé FR, enum démappé). Ces helpers
+// produisent les données de cette fiche ; le formatage texte vit dans la route.
+
+/** Libellé FR d'une valeur enum stockée en brut (ex. `sud_est` → « Sud-est »). */
+const VALUE_LABELS: Partial<Record<keyof PropertyData, Record<string, string>>> = {
+  type_bien: {
+    appartement: 'Appartement',
+    maison: 'Maison',
+    immeuble: 'Immeuble',
+    local_commercial: 'Local commercial',
+    terrain: 'Terrain',
+    autre: 'Autre',
+  },
+  exposition: {
+    nord: 'Nord',
+    sud: 'Sud',
+    est: 'Est',
+    ouest: 'Ouest',
+    sud_est: 'Sud-est',
+    sud_ouest: 'Sud-ouest',
+    nord_est: 'Nord-est',
+    nord_ouest: 'Nord-ouest',
+    traversant: 'Traversant',
+  },
+  etat_general: {
+    a_renover: 'À rénover',
+    rafraichissement: 'Rafraîchissement',
+    bon: 'Bon état',
+    renove_recemment: 'Rénové récemment',
+    neuf: 'Neuf',
+  },
+  qualite_renovation: {
+    superficielle: 'Superficielle',
+    structurelle: 'Structurelle',
+  },
+  stationnement: {
+    aucun: 'Aucun',
+    place_exterieure: 'Place extérieure',
+    place_sous_sol: 'Place sous-sol',
+    box: 'Box',
+    garage: 'Garage',
+    plusieurs: 'Plusieurs',
+  },
+  occupation: {
+    libre: 'Libre',
+    loue: 'Loué',
+    residence_principale: 'Résidence principale',
+  },
+};
+
+/** Champs booléens : affichés « Oui » / « Non ». */
+const BOOLEAN_FIELDS = new Set<keyof PropertyData>([
+  'ascenseur',
+  'cave',
+  'meuble',
+  'meuble_inclus',
+  'travaux_votes',
+  'surface_carrez_confirmee',
+]);
+
+/** Valeur d'un champ → chaîne FR lisible pour la fiche (enum→libellé, bool→Oui/Non). */
+export function formatPropertyValue(
+  field: keyof PropertyData,
+  value: unknown
+): string {
+  if (value == null) return '';
+  if (BOOLEAN_FIELDS.has(field) || typeof value === 'boolean') {
+    return value ? 'Oui' : 'Non';
+  }
+  if (Array.isArray(value)) {
+    return value
+      .filter((v) => v != null && v !== '')
+      .map((v) => String(v))
+      .join(', ');
+  }
+  const map = VALUE_LABELS[field];
+  if (map && typeof value === 'string' && map[value]) return map[value];
+  return String(value);
+}
+
+/** Champs renseignés (ordre RECAP) sous forme { label, valeur FR } — pour la fiche. */
+export function answeredRecapFields(
+  property: PropertyData
+): { field: keyof PropertyData; label: string; value: string }[] {
+  return RECAP_FIELDS.filter(({ field }) => isFilled(property, field)).map(
+    ({ field, label }) => ({
+      field,
+      label,
+      value: formatPropertyValue(field, property[field]),
+    })
+  );
+}
+
+/** Libellés des champs marqués « à confirmer » et non renseignés (le vendeur ne sait pas). */
+export function toConfirmLabels(
+  property: PropertyData,
+  fieldStatus: FieldStatusMap
+): string[] {
+  const labelByField = new Map(RECAP_FIELDS.map((r) => [r.field, r.label]));
+  return Object.entries(fieldStatus)
+    .filter(
+      ([field, status]) =>
+        status === 'to_confirm' &&
+        !isFilled(property, field as keyof PropertyData)
+    )
+    .map(([field]) => labelByField.get(field as keyof PropertyData) ?? field);
+}
+
 // ─── Data gaps ────────────────────────────────────────────────────────────────
 
 export const DATA_GAPS: {

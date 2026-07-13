@@ -17,6 +17,7 @@
 
 import type OpenAI from "openai";
 import {
+  completionTokenParam,
   getOpenAiClient,
   normalizeOpenAiError,
   openAiErrorMessage,
@@ -151,8 +152,7 @@ async function streamTurn(
         model: m,
         stream: true,
         stream_options: { include_usage: true },
-        // gpt-5.x n'accepte plus `max_tokens` → `max_completion_tokens`.
-        max_completion_tokens: AGENT_MAX_TOKENS,
+        ...completionTokenParam(m, AGENT_MAX_TOKENS),
         messages,
         ...(toolChoice === "none"
           ? { tool_choice: "none" as const }

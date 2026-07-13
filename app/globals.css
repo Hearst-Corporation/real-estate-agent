@@ -37,9 +37,6 @@
   /* Couleurs nommées de la charte Remparts (usage éditorial ponctuel). */
   --color-lin-brut: #f7f5f0;       /* fond clair */
   --color-pierre-blonde: #c9b08a;  /* = accent-500 (or principal) */
-  --color-ombre-grimaldi: #2c2c2c; /* texte foncé */
-  --color-bleu-stael: #3b4c5a;     /* accent froid secondaire (ponctuel) */
-  --color-vert-olivier: #8b9685;   /* accent nature ponctuel */
 
   /* Satoshi Variable — fonte unique du produit (self-hostée, cf. layout.tsx). */
   --font-sans: var(--font-satoshi, ui-sans-serif, system-ui, sans-serif);
@@ -80,15 +77,6 @@
 .surface-hover:hover {
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-1px);
-}
-/* Alias conservé (déjà utilisé par l'accueil). */
-.card-flottante {
-  background-color: #ffffff;
-  box-shadow: var(--shadow-card);
-  transition: box-shadow 200ms ease, transform 200ms ease;
-}
-.card-flottante:hover {
-  box-shadow: var(--shadow-card-hover);
 }
 
 * {

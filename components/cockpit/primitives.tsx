@@ -79,7 +79,7 @@ export function PageHeader({
           {kpis.map((kpi, i) => (
             <div
               key={i}
-              className="flex items-center gap-2 rounded-xl border border-accent-500/10 bg-white px-3.5 py-2.5 shadow-[var(--shadow-card)]"
+              className="surface flex items-center gap-2 rounded-xl px-3.5 py-2.5"
             >
               {kpi.icon ? (
                 <span
@@ -127,7 +127,7 @@ export function Card({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-accent-500/10 bg-white p-6 shadow-[var(--shadow-card)] transition-shadow duration-200 ${
+      className={`surface p-6 transition-shadow duration-200 ${
         variant ? CARD_VARIANT[variant] : ""
       } ${className ?? ""}`}
     >

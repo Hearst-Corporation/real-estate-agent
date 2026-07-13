@@ -25,6 +25,8 @@ import {
   nextSuggestions,
   nextFocusLabel,
   inferCriticalFromText,
+  answeredRecapFields,
+  toConfirmLabels,
 } from "@/lib/estimation/spec";
 import { rateLimit } from "@/lib/ratelimit";
 import {
@@ -50,16 +52,44 @@ function buildStateHeader(
   fieldStatus: FieldStatusMap,
   property: PropertyData
 ): string {
-  const cov = coverageOf(property, fieldStatus);
+  const answered = answeredRecapFields(property);
+  const toConfirm = toConfirmLabels(property, fieldStatus);
   const focus = nextFocusLabel(property, fieldStatus);
-  const toConfirmCount = Object.values(fieldStatus).filter(
-    (s) => s === "to_confirm"
-  ).length;
   const ready = canGenerateFromFields(property);
 
-  // Donne au modèle l'état réel pour qu'il ne redemande pas et enchaîne sur le
-  // prochain champ prioritaire (ou conclue par le récap final).
-  return `[ÉTAT: infos clés ${cov.collected}/${cov.total}; prochaine priorité=${focus ?? "—"}; à confirmer=${toConfirmCount}; essentiels réunis=${ready ? "oui" : "non"}]`;
+  // FICHE explicite : le modèle « voit » chaque champ déjà connu = valeur → il ne
+  // redemande pas et enchaîne sur le prochain champ absent. Les compteurs abstraits
+  // ne suffisaient pas (il ne savait pas CE qu'il savait déjà). Cette fiche porte
+  // tout l'état, même quand l'historique de messages est tronqué (MAX_HISTORY).
+  const lines: string[] = [];
+
+  if (answered.length > 0) {
+    lines.push("[FICHE DÉJÀ REMPLIE — NE REDEMANDE AUCUN de ces champs]");
+    for (const { label, value } of answered) {
+      lines.push(`- ${label} : ${value}`);
+    }
+  } else {
+    lines.push(
+      "[FICHE DÉJÀ REMPLIE — aucune info collectée pour l'instant, commence la collecte]"
+    );
+  }
+
+  if (toConfirm.length > 0) {
+    lines.push(
+      `[À CONFIRMER — le vendeur ne connaît pas ces champs, ne les redemande pas : ${toConfirm.join(", ")}]`
+    );
+  }
+
+  lines.push(
+    focus
+      ? `[PROCHAINE PRIORITÉ : ${focus}]`
+      : "[PROCHAINE PRIORITÉ : toutes les infos clés sont réunies → fais le récap final]"
+  );
+  lines.push(
+    `[ESSENTIELS RÉUNIS (génération possible) : ${ready ? "oui" : "non"}]`
+  );
+
+  return lines.join("\n");
 }
 
 function extractPropertyRow(property: PropertyData) {

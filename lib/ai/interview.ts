@@ -10,7 +10,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { kimi } from "@/lib/llm/kimi";
-import { getOpenAiClient } from "@/lib/llm/openai";
+import { getOpenAiClient, isOpenAiModel, completionTokenParam } from "@/lib/llm/openai";
 import { BLOCKS, DATA_GAPS, PRIORITY_FIELDS } from "@/lib/estimation/spec";
 import { recordPropertyDataTool } from "@/lib/estimation/tool-schema";
 import { PropertyDataSchema } from "@/lib/estimation/schema";
@@ -24,11 +24,6 @@ import { scrubSecrets } from "@/lib/providers/scrub";
 // réponse visible (`message`) ET les champs de données → marge pour ne pas
 // tronquer le JSON (une troncature perdrait les données du tour).
 const INTERVIEW_MAX_TOKENS = 2048;
-
-/** True si le modèle est un GPT OpenAI (client OpenAI officiel). */
-export function isOpenAiModel(model: string): boolean {
-  return model.startsWith("gpt-") || model.startsWith("o1") || model.startsWith("o3") || model.startsWith("o4");
-}
 
 /** True si le modèle d'entretien passe par le client OpenAI-compatible
  *  (chemin `reply_and_record` : GPT OpenAI, Kimi/Moonshot/Hypercli). */
@@ -96,6 +91,8 @@ export function buildSystemPrompt(): string {
 Réunir le plus vite possible, et SANS jamais répéter une question déjà répondue, les informations qui comptent pour estimer le bien. Tu ne déroules PAS un questionnaire rigide : tu t'adaptes à ce que le vendeur dit.
 
 ## RÈGLES DURES
+
+⚠️ **FICHE FOURNIE À CHAQUE TOUR — RÈGLE ABSOLUE** : le message du vendeur est précédé d'un bloc \`[FICHE DÉJÀ REMPLIE …]\` qui liste, avec leurs valeurs, TOUS les champs déjà connus. **Tu ne reposes JAMAIS une question sur un champ présent dans la FICHE.** Tu poses UNIQUEMENT des champs ABSENTS de la fiche. Les champs listés sous \`[À CONFIRMER]\` sont déjà connus comme inconnus du vendeur → ne les redemande pas non plus. Utilise \`[PROCHAINE PRIORITÉ]\` pour savoir quoi demander ensuite ; si elle indique le récap final, fais-le.
 
 0. **TOUJOURS RÉPONDRE PAR DU TEXTE** : à chaque tour, un court accusé de réception de ce qui vient d'être dit, PUIS la/les question(s) suivante(s) — ou le récap final. Tu peux appeler \`record_property_data\` EN PLUS, jamais à la place du texte. Ne renvoie JAMAIS un tour vide.
 1. **PRIORITÉ DE COLLECTE** — pose d'abord ce qui manque parmi ces infos clés, dans cet ordre :
@@ -359,18 +356,13 @@ async function _streamKimiTurn(params: {
   let stopReason = "end_turn";
   const pumpMessage = makeMessageStreamer(onText);
 
-  // GPT OpenAI → client OpenAI officiel + max_completion_tokens (gpt-5.x refuse
-  // max_tokens). Kimi/Moonshot → client Hypercli + max_tokens.
-  const openai = isOpenAiModel(model);
-  const client = openai ? getOpenAiClient() : kimi;
-  const tokenParam = openai
-    ? { max_completion_tokens: INTERVIEW_MAX_TOKENS }
-    : { max_tokens: INTERVIEW_MAX_TOKENS };
+  // GPT OpenAI → client OpenAI officiel ; Kimi/Moonshot → client Hypercli.
+  const client = isOpenAiModel(model) ? getOpenAiClient() : kimi;
 
   const stream = await client.chat.completions.create({
     model,
     stream: true,
-    ...tokenParam,
+    ...completionTokenParam(model, INTERVIEW_MAX_TOKENS),
     messages,
     tools: [openAiReplyAndRecordTool],
     tool_choice: {

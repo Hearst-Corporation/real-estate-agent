@@ -64,6 +64,24 @@ export function getOpenAiClient(): OpenAI {
   return _client;
 }
 
+/** True si `model` est un modèle OpenAI (GPT / o-series) → client OpenAI officiel. */
+export function isOpenAiModel(model: string): boolean {
+  return /^(gpt-|o[1-4])/.test(model);
+}
+
+/**
+ * Paramètre de limite de tokens adapté au modèle : les modèles OpenAI gpt-5.x /
+ * o-series refusent `max_tokens` et exigent `max_completion_tokens` ; les modèles
+ * OpenAI-compatibles (Kimi/Moonshot) gardent `max_tokens`. Source unique de cette
+ * quirk API — à spreader dans le corps de `create()`.
+ */
+export function completionTokenParam(
+  model: string,
+  n: number,
+): { max_completion_tokens: number } | { max_tokens: number } {
+  return isOpenAiModel(model) ? { max_completion_tokens: n } : { max_tokens: n };
+}
+
 // ─── Normalisation des erreurs ───────────────────────────────────────────────
 
 /**

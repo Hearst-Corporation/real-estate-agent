@@ -7,6 +7,8 @@
 //   - §9 Réserves est volontairement exclu du firewall car "à confirmer" y est intentionnel.
 
 import React from 'react';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { Estimation } from '@/lib/estimation/types';
 import { Brochure } from '@/components/brochure/Brochure';
 import { BROCHURE_CSS } from '@/components/brochure/brochure-css';
@@ -14,6 +16,24 @@ import { BROCHURE_CSS } from '@/components/brochure/brochure-css';
 // Lazy require to prevent Turbopack from statically analyzing react-dom/server
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { renderToStaticMarkup } = require('react-dom/server') as typeof import('react-dom/server');
+
+// ── Police Satoshi (self-hostée, même fichier que le dashboard) ──────────────
+// Le PDF est un HTML autonome rendu par Playwright hors du build Next : pas de
+// <link> Google Fonts (dépendance réseau fragile à l'impression). On inline la
+// variable font en base64 → rendu identique au produit, zéro appel externe.
+let cachedFontFace: string | null = null;
+function satoshiFontFace(): string {
+  if (cachedFontFace !== null) return cachedFontFace;
+  try {
+    const woff2 = readFileSync(join(process.cwd(), 'public/fonts/Satoshi-Variable.woff2'));
+    const b64 = woff2.toString('base64');
+    cachedFontFace = `@font-face{font-family:"Satoshi";src:url(data:font/woff2;charset=utf-8;base64,${b64}) format("woff2");font-weight:300 900;font-style:normal;font-display:block;}`;
+  } catch {
+    // Fichier absent (env inattendu) → fallback silencieux sur les polices système.
+    cachedFontFace = '';
+  }
+  return cachedFontFace;
+}
 
 // ── Patterns interdits dans les sections 1–8 ─────────────────────────────────
 const FORBIDDEN_PATTERNS: Array<{ re: RegExp; label: string }> = [
@@ -96,10 +116,8 @@ export function renderBrochureHtml(estimation: Estimation): string {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Avis de Valeur — ${titleAddr}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
+${satoshiFontFace()}
 ${BROCHURE_CSS}
 </style>
 </head>

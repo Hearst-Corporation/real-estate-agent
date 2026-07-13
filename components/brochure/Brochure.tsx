@@ -14,6 +14,7 @@ import type {
   ListingComparable,
   PropertyData,
 } from '@/lib/estimation/types';
+import { buildStaticMap, type MapPoint } from '@/lib/estimation/staticmap';
 
 // ── Formatage ────────────────────────────────────────────────────────────────
 
@@ -173,6 +174,49 @@ function Eyebrow({ n, tx }: { n: string; tx: string }): React.JSX.Element {
   );
 }
 
+/**
+ * Carte de secteur — tuiles OpenStreetMap (100 % HTML/CSS, aucune clé API,
+ * aucune dépendance Google Maps). Centre = bien estimé (subject_lat/lon) ou
+ * centroïde des annonces si le bien n'est pas géolocalisé. Rendue en <img>
+ * classiques : Playwright (`waitUntil: "load"`) attend leur chargement avant
+ * d'imprimer le PDF, donc pas d'écran gris à l'export.
+ */
+function SectorMap({
+  subject,
+  listings,
+}: {
+  subject: MapPoint | null;
+  listings: MapPoint[];
+}): React.JSX.Element | null {
+  const map = buildStaticMap({ subject, listings, width: 560, height: 220 });
+  if (!map) return null;
+  return (
+    <div className="sectormap" style={{ width: map.width, height: map.height }}>
+      <div className="smtiles">
+        {map.tiles.map((t, i) => (
+          <img
+            key={i}
+            src={t.url}
+            alt=""
+            style={{ position: 'absolute', left: t.left, top: t.top, width: 256, height: 256 }}
+          />
+        ))}
+      </div>
+      <div className="smfade" />
+      {map.listings.map((m, i) => (
+        <span className="smpin" key={i} style={{ left: m.left, top: m.top }}>
+          {i + 1}
+        </span>
+      ))}
+      {map.subject && (
+        <span className="smpin me" style={{ left: map.subject.left, top: map.subject.top }} />
+      )}
+      <span className="smleg">Bien &amp; comparables du secteur</span>
+      <span className="smattr">{map.attribution}</span>
+    </div>
+  );
+}
+
 function Foot({ ref_, date, page }: { ref_: string; date: string; page: number }): React.JSX.Element {
   return (
     <footer className="foot">
@@ -245,11 +289,20 @@ function PageOne({ estimation }: { estimation: Estimation }): React.JSX.Element 
     expertParts.join(' ') ||
     `Le bien est positionné par rapport aux ventes réelles du secteur, ajusté selon ses caractéristiques propres (surface, étage, exposition et prestations).`;
 
-  // Distribution + positionnement (data-driven, remplace la carte)
+  // Distribution €/m² (data-driven, sur les ventes DVF du secteur)
   const prices = (market?.dvf_comparables ?? []).map((c) => c.prix_m2);
   const dist = computeDistribution(prices, v.adjustedPerM2);
   const pct = percentileOf(v.adjustedPerM2, prices);
   const posTier = pct >= 66 ? 'tiers supérieur' : pct >= 33 ? 'milieu de marché' : 'tiers inférieur';
+
+  // Carte de secteur — bien estimé + annonces comparables géolocalisées.
+  const subjectPoint: MapPoint | null =
+    market?.subject_lat != null && market?.subject_lon != null
+      ? { lat: market.subject_lat, lon: market.subject_lon }
+      : null;
+  const listingPoints: MapPoint[] = (market?.listing_comparables ?? [])
+    .filter((l): l is ListingComparable & { lat: number; lon: number } => l.lat != null && l.lon != null)
+    .map((l) => ({ lat: l.lat, lon: l.lon }));
 
   return (
     <section className="page">
@@ -320,12 +373,14 @@ function PageOne({ estimation }: { estimation: Estimation }): React.JSX.Element 
             )}
           </div>
 
-          <div className="panel">
-            <div className="pt">Positionnement du bien</div>
-            <div className="ps">vs marché local (€/m²)</div>
-            <div className="posbar"><i style={{ left: `${pct}%` }} /></div>
-            <div className="posax"><span>Bas</span><span>Médian</span><span>Haut</span></div>
-            <div className="psum">Positionné au <b>{pct}ᵉ</b> centile €/m² du secteur, soit le <b>{posTier}</b> du marché.</div>
+          <div className="panel panel-map">
+            <div className="pt">Carte du secteur</div>
+            <div className="ps">Bien estimé &amp; {listingPoints.length || 0} annonce{listingPoints.length > 1 ? 's' : ''} comparable{listingPoints.length > 1 ? 's' : ''}</div>
+            {subjectPoint || listingPoints.length > 0 ? (
+              <SectorMap subject={subjectPoint} listings={listingPoints} />
+            ) : (
+              <div className="psum">Géolocalisation indisponible pour ce secteur.</div>
+            )}
           </div>
         </div>
 
@@ -412,15 +467,21 @@ function PageTwo({ estimation }: { estimation: Estimation }): React.JSX.Element 
         <div className="lstblock">
           {listings.length > 0 ? (
             <>
-              {listings.map((l) => (
-                <div className="lst" key={l.id}>
-                  <div className="lst-top">
-                    <span className="lst-q">{l.titre}{l.nb_pieces != null ? <span className="ap"> · T{l.nb_pieces}</span> : null}</span>
-                    <span className="lst-px num">{formatEUR(l.prix)}</span>
+              <div className="lstgrid">
+                {listings.map((l, i) => (
+                  <div className="lcard" key={l.id}>
+                    <div className="lcard-img">
+                      {l.photo_url ? <img src={l.photo_url} alt="" /> : <div className="lcard-noimg" />}
+                      <span className="lcard-no">{i + 1}</span>
+                    </div>
+                    <div className="lcard-b">
+                      <div className="lcard-px num">{formatEUR(l.prix)}</div>
+                      <div className="lcard-t">{l.titre}</div>
+                      <div className="lcard-m"><b className="num">{formatM2(l.surface_m2)}</b> · <span className="num">{formatPpm2(l.prix_m2)}</span>{l.nb_pieces != null ? ` · ${l.nb_pieces} p.` : ''}</div>
+                    </div>
                   </div>
-                  <div className="lst-meta"><b className="num">{formatM2(l.surface_m2)}</b> · <span className="num">{formatPpm2(l.prix_m2)}</span>{l.nb_pieces != null ? ` · ${l.nb_pieces} pièces` : ''}</div>
-                </div>
-              ))}
+                ))}
+              </div>
               <p className="tnote"><b>{(market?.listing_comparables ?? []).length} annonces</b> détectées ({sourceLabel}) · ≈ quartier</p>
             </>
           ) : (
