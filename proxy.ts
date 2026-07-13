@@ -21,8 +21,6 @@ const OPEN_ROUTES = [
   "/api/auth/mfa/verify-login",
   "/api/health",
   "/api/inngest", // sécurisé par signature HMAC Inngest (INNGEST_SIGNING_KEY), pas par JWT
-  "/api/invest/webhooks", // sécurisé par HMAC, pas JWT
-  "/api/swarms/webhook", // sécurisé par HMAC MySwarms, pas JWT
 ];
 
 function isOpen(pathname: string): boolean {

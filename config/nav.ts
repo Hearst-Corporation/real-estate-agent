@@ -22,7 +22,7 @@ import { UI } from "@/lib/ui-strings";
 export type NavGroup = "main";
 
 /** Clé d'un groupe d'onglets de sous-nav. */
-export type TabGroupKey = "portefeuille" | "clients" | "swarms";
+export type TabGroupKey = "portefeuille" | "clients";
 
 export type NavItem = {
   href: string;
@@ -48,16 +48,14 @@ export const NAV = [
   { href: "/leads",       label: UI.nav.clients,      icon: "leads",      group: "main", tabs: "clients" },
   { href: "/visits",      label: UI.nav.visits,       icon: "visits",     group: "main", tabs: "clients" },
   { href: "/agenda",      label: UI.nav.agenda,       icon: "agenda",     group: "main" },
-  { href: "/swarms",      label: UI.nav.swarms,       icon: "network",    group: "main", tabs: "swarms" },
 ] as const satisfies readonly NavItem[];
 
 /** Alias complet du manifeste. */
 export const navMain = NAV;
 
-/** Les 6 items affichés dans le rail gauche (entry points des groupes). */
-// Nav principale AGENT immobilier. Swarms/Scrapers (outil IA avancé) sont
-// volontairement HORS rail — la route /swarms reste accessible par URL et via
-// NAV/AppRoute, mais ne pollue plus le parcours agent.
+/** Les items affichés dans le rail gauche (entry points des groupes). */
+// Nav principale AGENT immobilier : Dashboard, Prospection, Portefeuille
+// (biens/estimations/mandats), Clients (leads/visites), Agenda.
 const RAIL_HREFS = ["/", "/prospection", "/properties", "/leads", "/agenda"] as const;
 export const navRail = NAV.filter((i) =>
   (RAIL_HREFS as readonly string[]).includes(i.href)
@@ -76,15 +74,7 @@ export type AppRoute =
   | (typeof NAV)[number]["href"]
   | (typeof MOBILE_SHORTCUTS)[number]["href"]
   | "/profile"
-  | "/admin"
-  | "/missions"
-  | "/swarms"
-  | "/swarms/new"
-  | "/swarms/scrapers"
-  | "/swarms/tools"
-  | "/invest"
-  | "/invest/subscriptions"
-  | "/invest/onboarding";
+  | "/admin";
 
 export type TabItem = { href: AppRoute; label: string };
 
@@ -100,10 +90,5 @@ export const TAB_GROUPS: Record<TabGroupKey, readonly TabItem[]> = {
   clients: [
     { href: "/leads",  label: UI.nav.leads },
     { href: "/visits", label: UI.nav.visits },
-  ],
-  swarms: [
-    { href: "/swarms",          label: UI.nav.swarms },
-    { href: "/swarms/scrapers", label: UI.nav.scrapers },
-    { href: "/swarms/tools",    label: UI.nav.tools },
   ],
 };

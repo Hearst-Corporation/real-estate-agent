@@ -10,9 +10,7 @@ import { crmTools } from "./crm";
 import { navTools } from "./nav";
 import { composioTools } from "./composio";
 import { gmailEstimationTools } from "./gmail-estimation";
-import { missionTools } from "./missions";
 import { estimationTools } from "./estimation";
-import { swarmsTools } from "./swarms";
 import { prospectionTools } from "./prospection";
 import { searchTools } from "./search";
 import { mediaTools } from "./media";
@@ -22,9 +20,7 @@ export const ALL_TOOLS: AgentTool[] = [
   ...navTools,
   ...composioTools,
   ...gmailEstimationTools,
-  ...missionTools,
   ...estimationTools,
-  ...swarmsTools,
   ...prospectionTools,
   ...searchTools,
   ...mediaTools,

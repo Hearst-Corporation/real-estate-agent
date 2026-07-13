@@ -19,8 +19,6 @@ const EXACT_PATHS = new Set<string>([
   "/visits",
   "/mandates",
   "/agenda",
-  "/swarms",
-  "/invest",
   "/profile",
 ]);
 
@@ -44,7 +42,7 @@ export function isAllowedPath(path: string): boolean {
 const navigate: AgentTool = {
   name: "navigate",
   description:
-    "Ouvre une page de l'application pour l'utilisateur. Chemins valides : / (accueil), /prospection, /estimations, /estimations/new, /properties, /leads, /visits, /mandates, /agenda, /swarms, /invest, /profile, ou une fiche /estimations/<uuid> ou /properties/<uuid>.",
+    "Ouvre une page de l'application pour l'utilisateur. Chemins valides : / (accueil), /prospection, /estimations, /estimations/new, /properties, /leads, /visits, /mandates, /agenda, /profile, ou une fiche /estimations/<uuid> ou /properties/<uuid>.",
   inputSchema: {
     type: "object",
     properties: {
