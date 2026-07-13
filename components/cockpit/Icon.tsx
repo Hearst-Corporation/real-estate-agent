@@ -20,7 +20,6 @@ export type IconName =
   | "estimate"
   | "search"
   | "network"
-  | "crm"
   | "properties"
   | "leads"
   | "visits"
@@ -36,7 +35,6 @@ const ICONS: Record<IconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   estimate: BanknotesIcon,
   search: MagnifyingGlassIcon,
   network: ShareIcon,
-  crm: UserGroupIcon,
   properties: BuildingOffice2Icon,
   leads: UserGroupIcon,
   visits: MapPinIcon,
