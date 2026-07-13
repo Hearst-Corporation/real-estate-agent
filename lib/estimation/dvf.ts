@@ -10,6 +10,8 @@ export type DvfMutation = {
   latitude: number | null;
   longitude: number | null;
   id_parcelle: string;
+  id_mutation: string;
+  nature_mutation: string;
 };
 
 function isValidNumber(v: unknown): v is number {
@@ -48,6 +50,12 @@ function parseMutation(raw: any): DvfMutation | null {
   const latitude = coerceNullableNumber(raw?.latitude);
   const longitude = coerceNullableNumber(raw?.longitude);
   const id_parcelle: string = raw?.id_parcelle ?? '';
+  const id_mutation: string = raw?.id_mutation ?? '';
+  const nature_mutation: string = raw?.nature_mutation ?? '';
+
+  // Ne garder que les ventes de gré à gré : adjudications, échanges,
+  // expropriations et VEFA ne reflètent pas un prix de marché normal.
+  if (nature_mutation && nature_mutation !== 'Vente') return null;
 
   return {
     valeur_fonciere: coerceNumber(vf),
@@ -58,7 +66,38 @@ function parseMutation(raw: any): DvfMutation | null {
     latitude,
     longitude,
     id_parcelle,
+    id_mutation,
+    nature_mutation,
   };
+}
+
+/**
+ * Écarte les ventes groupées (« vente en bloc ») : une même transaction DVF
+ * (`id_mutation`) peut porter plusieurs lots bâtis, et CHAQUE ligne répète la
+ * valeur_fonciere TOTALE de l'ensemble. Sans ce filtre, `valeur_fonciere /
+ * surface_reelle_bati` par ligne gonfle le prix/m² d'un facteur = nb de lots
+ * (double comptage systématique). On ne conserve donc que les mutations qui
+ * portent un seul lot résidentiel (Appartement/Maison).
+ * Exportée pour être testable sans I/O.
+ */
+export function dropGroupedSales(mutations: DvfMutation[]): DvfMutation[] {
+  const RESIDENTIAL = new Set(['Appartement', 'Maison']);
+  const residentialCountByMutation = new Map<string, number>();
+
+  for (const m of mutations) {
+    if (!m.id_mutation) continue;
+    if (!RESIDENTIAL.has(m.type_local)) continue;
+    residentialCountByMutation.set(
+      m.id_mutation,
+      (residentialCountByMutation.get(m.id_mutation) ?? 0) + 1,
+    );
+  }
+
+  return mutations.filter((m) => {
+    // Lignes sans id_mutation ou non résidentielles : laissées au filtrage aval.
+    if (!m.id_mutation || !RESIDENTIAL.has(m.type_local)) return true;
+    return (residentialCountByMutation.get(m.id_mutation) ?? 0) <= 1;
+  });
 }
 
 export async function fetchMutations(
@@ -133,5 +172,6 @@ export async function fetchMutationsMultiSection(
     }
   }
 
-  return deduped;
+  // Écarte les ventes en bloc (prix total répété sur chaque lot → prix/m² faux).
+  return dropGroupedSales(deduped);
 }
