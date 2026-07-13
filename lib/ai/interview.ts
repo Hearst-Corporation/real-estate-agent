@@ -10,6 +10,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { kimi } from "@/lib/llm/kimi";
+import { getOpenAiClient } from "@/lib/llm/openai";
 import { BLOCKS, DATA_GAPS, PRIORITY_FIELDS } from "@/lib/estimation/spec";
 import { recordPropertyDataTool } from "@/lib/estimation/tool-schema";
 import { PropertyDataSchema } from "@/lib/estimation/schema";
@@ -24,9 +25,16 @@ import { scrubSecrets } from "@/lib/providers/scrub";
 // tronquer le JSON (une troncature perdrait les données du tour).
 const INTERVIEW_MAX_TOKENS = 2048;
 
-/** True si le modèle d'entretien passe par le client OpenAI-compatible (Moonshot/Hypercli). */
+/** True si le modèle est un GPT OpenAI (client OpenAI officiel). */
+export function isOpenAiModel(model: string): boolean {
+  return model.startsWith("gpt-") || model.startsWith("o1") || model.startsWith("o3") || model.startsWith("o4");
+}
+
+/** True si le modèle d'entretien passe par le client OpenAI-compatible
+ *  (chemin `reply_and_record` : GPT OpenAI, Kimi/Moonshot/Hypercli). */
 export function usesKimiPath(model: string): boolean {
   return (
+    isOpenAiModel(model) ||
     model.startsWith("kimi") ||
     model.startsWith("moonshot") ||
     !process.env.ANTHROPIC_API_KEY
@@ -35,8 +43,11 @@ export function usesKimiPath(model: string): boolean {
 
 export function interviewIsConfigured(): boolean {
   const model = process.env.INTERVIEW_MODEL ?? "";
+  if (isOpenAiModel(model)) {
+    return Boolean(process.env.OPENAI_API_KEY);
+  }
   if (usesKimiPath(model)) {
-    // Chemin Kimi/OpenAI — requiert MOONSHOT_API_KEY ou HYPERCLI_API_KEY
+    // Chemin Kimi — requiert MOONSHOT_API_KEY ou HYPERCLI_API_KEY
     return Boolean(
       process.env.MOONSHOT_API_KEY || process.env.HYPERCLI_API_KEY
     );
@@ -45,8 +56,9 @@ export function interviewIsConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
+// Entretien d'estimation sur OpenAI (gpt-5.4) par défaut.
 export const INTERVIEW_MODEL =
-  process.env.INTERVIEW_MODEL || "claude-opus-4-8";
+  process.env.INTERVIEW_MODEL || "gpt-5.4";
 
 /** Renvoie un client Anthropic (chemin Anthropic uniquement). */
 function getInterviewClient(): Anthropic {
@@ -347,10 +359,18 @@ async function _streamKimiTurn(params: {
   let stopReason = "end_turn";
   const pumpMessage = makeMessageStreamer(onText);
 
-  const stream = await kimi.chat.completions.create({
+  // GPT OpenAI → client OpenAI officiel + max_completion_tokens (gpt-5.x refuse
+  // max_tokens). Kimi/Moonshot → client Hypercli + max_tokens.
+  const openai = isOpenAiModel(model);
+  const client = openai ? getOpenAiClient() : kimi;
+  const tokenParam = openai
+    ? { max_completion_tokens: INTERVIEW_MAX_TOKENS }
+    : { max_tokens: INTERVIEW_MAX_TOKENS };
+
+  const stream = await client.chat.completions.create({
     model,
     stream: true,
-    max_tokens: INTERVIEW_MAX_TOKENS,
+    ...tokenParam,
     messages,
     tools: [openAiReplyAndRecordTool],
     tool_choice: {
