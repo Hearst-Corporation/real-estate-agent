@@ -37,21 +37,28 @@ Le MCP Supabase **ne s'applique plus** (Cloud supprimé). La DB est un Postgres 
 - Profil : `app/(dashboard)/profile/page.tsx` (déconnexion principale ici).
 - Tenant : `current_tenant_id()` + RLS `(select …)` + hook JWT `custom_access_token_hook`. Le client service-role bypass RLS → **toujours filtrer `user_id` + `tenant_id` explicitement** côté code.
 - Révocation session : `revoked_sessions` (migration 0028) — logout / kill admin insèrent le `jti` ; le proxy rejette les tokens révoqués quand `AUTH_CHECK_REVOCATION=true`. **Activée** → posée en `.env.local` + **Vercel** (Production + Preview) ; Railway = redis-only, non concerné. Prend effet au prochain déploiement (sans ça, le logout n'efface que le cookie navigateur). Fail-open (blip DB → laisse passer, jamais de lock massif) ; tokens legacy sans `jti` ignorés (rétro-compat).
-- Mémoire Kimi : table `tenant_memory` isolée par tenant + user. Capture `« mémorise: … »`, réinjection des 20 dernières dans le system prompt.
+- Mémoire Cockpit : table `tenant_memory` isolée par tenant + user. Capture `« mémorise: … »`, réinjection des 20 dernières dans le system prompt.
 - Admin : `admin@real-estate-agent.app` — identifiants dans `docs/credentials.local.txt` (gitignored).
 
 ## 🤖 Stack LLM
 
 | Provider | Var | Usage | SDK |
 |---|---|---|---|
-| **Claude** | `ANTHROPIC_API_KEY` | LLM principal | `@anthropic-ai/sdk` |
-| **OpenAI** | `OPENAI_API_KEY` | Embeddings, fallback | `openai` |
-| **Hypercli (Kimi K2.6)** | `HYPERCLI_API_KEY` + `HYPERCLI_BASE_URL` | Chat Cockpit, coding heavy, contexte 256k | `openai` drop-in |
+| **OpenAI** | `OPENAI_API_KEY` (+ `OPENAI_CHAT_MODEL`/`_FALLBACK_MODEL`/`_TIMEOUT_MS`) | **Chat Cockpit** (moteur principal) | `openai` |
+| **Claude** | `ANTHROPIC_API_KEY` | Entretien/estimation | `@anthropic-ai/sdk` |
 
-- Le chat Cockpit (`app/api/cockpit-chat/route.ts`) utilise Kimi K2.6 via `lib/llm/kimi.ts`. `HYPERCLI_API_KEY` jamais côté client.
-- Kimi émet son raisonnement dans `<think>…</think>` au milieu du flux `content` → **filtre serveur** (machine à états) déjà câblé dans la route. Ne pas le retirer.
+- Le chat Cockpit (`app/api/cockpit-chat/route.ts`) utilise **OpenAI** via `lib/llm/openai.ts` + `lib/agent/run.ts` (function-calling natif, streaming NDJSON). Modèle par défaut `gpt-5.4`, fallback `gpt-5.4-mini` — **vérifier la dispo réelle sur le compte** avant de figer un modèle, ne pas en supposer un.
+- **Mode dégradé** : `OPENAI_API_KEY` absente → la route chat renvoie 503 (assistant non configuré), le reste de l'app fonctionne. Jamais de fausse réponse.
+- **Tools** : lecture directe (owner-check user+tenant), mutation → **confirmation humaine obligatoire** (jamais d'exécution silencieuse). Aucun tool `execute_sql`/`call_any_route`/`run_code`. Le modèle ne reçoit jamais le service-role. Données métier (notes/annonces) = non fiables (protection prompt injection).
+- **Kimi** (`lib/llm/kimi.ts`) : conservé UNIQUEMENT pour l'entretien d'estimation (`lib/ai/interview.ts`), pas pour le Cockpit.
 - Runtime `nodejs` + `dynamic = "force-dynamic"` sur la route chat.
-- JAMAIS hardcoder une clé — toujours `process.env.X`. JAMAIS de client LLM hors `lib/llm/`.
+- JAMAIS hardcoder une clé — toujours `process.env.X`, **serveur uniquement** (jamais `NEXT_PUBLIC_*`, jamais dans le renderer Electron). JAMAIS de client LLM hors `lib/llm/`.
+
+## 🧩 Modules produit (état final — Mission 04)
+
+**Conservés** : CRM (leads/mandats/biens/visites/agenda), Estimation, Prospection, Auth/Admin, Cockpit OpenAI, Electron.
+
+**RETIRÉS** (décision produit — ne pas remettre sans décision explicite) : **Invest** (tokenisation/souscriptions/portefeuille/closing/KIIS) et **Swarms/CrewAI/Missions** (orchestration multi-agents interne). Pages/routes/libs/composants supprimés du runtime ; les tables `inv_*` et `swarm_*` restent **dormantes** en DB (aucun DROP). Les futurs agents seront développés séparément (LangSmith), pas dans un moteur Swarms interne.
 
 ## 🖥️ Infra GPU (gpu1 + gpu2)
 
@@ -73,7 +80,7 @@ Tunnel SSH si besoin GPU : `ssh -L 8188:localhost:8188 gpu2-remote -N &`. Doc : 
 ## Design system — copie locale éditable
 Le DS Cockpit vit dans ce repo (`components/cockpit/` + `app/globals.css`, Tailwind v4 utilities — voir [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)). C'est LA copie de ce repo, éditable librement ici : composants, tokens, classes se modifient directement. Pas de source centrale à mettre à jour, pas de resync, pas de lint bloquant sur le design. Seule règle : garder la cohérence visuelle interne du repo.
 - Recette de page, primitives et vocabulaire : **[components/cockpit/AGENTS.md](components/cockpit/AGENTS.md)**. Compose les primitives quand elles existent ; sinon, libre de les faire évoluer ou d'en créer ici.
-- `data-product` = attribut de scope CSS pour la section `/invest` (accent dédié), pas un verrou global — le thème par défaut vit directement dans `app/globals.css`.
+- `data-product` = attribut de scope CSS (accent dédié par section), pas un verrou global — le thème par défaut vit directement dans `app/globals.css`.
 
 ## Conventions
 - Pas de magic numbers. Tout via `.env.local` ou `config/`.
