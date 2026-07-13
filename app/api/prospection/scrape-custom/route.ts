@@ -46,7 +46,10 @@ export async function POST(req: Request) {
     const result = await scrapeCustomAndMatch(db, DEFAULT_TENANT_ID, params);
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
-    const detail = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: "scrape_failed", detail }, { status: 502 });
+    // Log serveur détaillé ; réponse générique (pas de fuite d'erreur interne/scraper).
+    console.error("prospection_scrape_custom_failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return NextResponse.json({ error: "scrape_failed" }, { status: 502 });
   }
 }

@@ -36,6 +36,23 @@ describe("normalizeScrapeParams", () => {
     expect(p.piecesMin).toBe(3);
   });
 
+  it("rejette budget_min > budget_max (bornes croisées)", () => {
+    expect(() => normalizeScrapeParams({ zone: "Nice", budgetMin: 500000, budgetMax: 300000 })).toThrow(
+      "budget_range_invalid",
+    );
+  });
+
+  it("rejette surface_min > surface_max (bornes croisées)", () => {
+    expect(() => normalizeScrapeParams({ zone: "Nice", surfaceMin: 120, surfaceMax: 40 })).toThrow(
+      "surface_range_invalid",
+    );
+  });
+
+  it("accepte min==max et min sans max", () => {
+    expect(() => normalizeScrapeParams({ zone: "Nice", budgetMin: 300000, budgetMax: 300000 })).not.toThrow();
+    expect(() => normalizeScrapeParams({ zone: "Nice", surfaceMin: 50 })).not.toThrow();
+  });
+
   it("parse motsCles depuis string CSV ou tableau, en minuscules", () => {
     expect(normalizeScrapeParams({ zone: "X", motsCles: "Terrasse, VUE MER" }).motsCles).toEqual([
       "terrasse",

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
@@ -8,6 +9,73 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type AcquereurCritere = Tables<"prosp_criteres_acquereur">;
+
+// ─── Validation input critères (Zod) ────────────────────────────────────────
+// Bornes : budget/surface/pièces ≥ 0 finis ; min ≤ max ; zone (via lead_id/zones)
+// non totalement vide ; coordonnées valides si fournies ; préférences en enum
+// must-have/preferred/excluded (miroir CHECK DB : 'indifferent'|'requis'|'exclu').
+const PREF = z.enum(["indifferent", "requis", "exclu"]);
+const UUID = z.string().uuid();
+
+// Une zone géographique optionnellement géolocalisée : label + coords + rayon.
+const ZoneSchema = z
+  .object({
+    label: z.string().trim().min(1).optional(),
+    cp: z.string().trim().min(1).optional(),
+    ville: z.string().trim().min(1).optional(),
+    lat: z.number().finite().min(-90).max(90).optional(),
+    lng: z.number().finite().min(-180).max(180).optional(),
+    rayon_km: z.number().finite().nonnegative().optional(),
+  })
+  .strict()
+  .refine((z) => !!(z.label || z.cp || z.ville), {
+    message: "zone_empty",
+  })
+  // lat sans lng (ou l'inverse) = coordonnée invalide.
+  .refine((z) => (z.lat === undefined) === (z.lng === undefined), {
+    message: "coords_invalid",
+  });
+
+const PosNum = z.number().finite().nonnegative();
+const PosInt = z.number().int().finite().nonnegative();
+
+const CreateCritereSchema = z
+  .object({
+    nom: z.string().trim().min(1).max(200),
+    lead_id: UUID.nullish(),
+    type_bien: z.union([z.array(z.string().trim().min(1)), z.string().trim().min(1)]).nullish(),
+    budget_min: PosNum.nullish(),
+    budget_max: PosNum.nullish(),
+    surface_min: PosNum.nullish(),
+    surface_max: PosNum.nullish(),
+    pieces_min: PosInt.nullish(),
+    pieces_max: PosInt.nullish(),
+    zones: z.array(ZoneSchema).max(50).optional(),
+    terrasse: PREF.optional(),
+    parking: PREF.optional(),
+    ascenseur: PREF.optional(),
+    jardin: PREF.optional(),
+    piscine: PREF.optional(),
+    dpe_max: z.string().trim().min(1).max(2).nullish(),
+    alerte_email: z.boolean().optional(),
+    alerte_whatsapp: z.boolean().optional(),
+    telephone: z.string().trim().min(1).max(32).nullish(),
+  })
+  .strict()
+  .refine((v) => v.budget_min == null || v.budget_max == null || v.budget_min <= v.budget_max, {
+    message: "budget_range_invalid",
+    path: ["budget_min"],
+  })
+  .refine((v) => v.surface_min == null || v.surface_max == null || v.surface_min <= v.surface_max, {
+    message: "surface_range_invalid",
+    path: ["surface_min"],
+  })
+  .refine((v) => v.pieces_min == null || v.pieces_max == null || v.pieces_min <= v.pieces_max, {
+    message: "pieces_range_invalid",
+    path: ["pieces_min"],
+  });
+
+export type CreateCritereInput = z.infer<typeof CreateCritereSchema>;
 
 async function fetchCriteresRest({
   tenantId,
@@ -60,7 +128,7 @@ export async function GET() {
 
   if (error) {
     console.error("prospection_criteres_fetch_failed", { tenantId, userId: claims.sub, error: error.message });
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
   }
 
   if ((data?.length ?? 0) > 0 || claims.role !== "admin") {
@@ -77,7 +145,7 @@ export async function GET() {
   const { data: tenantData, error: tenantError } = await buildQuery();
   if (tenantError) {
     console.error("prospection_criteres_tenant_fetch_failed", { tenantId, userId: claims.sub, error: tenantError.message });
-    return NextResponse.json({ error: tenantError.message }, { status: 500 });
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
   }
   if ((tenantData?.length ?? 0) > 0) return NextResponse.json({ data: tenantData });
 
@@ -96,38 +164,46 @@ export async function POST(req: NextRequest) {
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 
-  const body = await req.json().catch(() => null);
-  if (!body?.nom) return NextResponse.json({ error: "nom requis" }, { status: 400 });
+  const raw = await req.json().catch(() => null);
+  const parsed = CreateCritereSchema.safeParse(raw ?? {});
+  if (!parsed.success) {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+  }
+  const c = parsed.data;
+  const typeBien = c.type_bien == null ? null : Array.isArray(c.type_bien) ? c.type_bien : [c.type_bien];
 
   const { data, error } = await db
     .from("prosp_criteres_acquereur")
     .insert({
       tenant_id:       tenantId,
       user_id:         claims.sub,
-      lead_id:         body.lead_id ?? null,
-      nom:             body.nom,
-      type_bien:       body.type_bien ?? null,
-      budget_min:      body.budget_min ?? null,
-      budget_max:      body.budget_max ?? null,
-      surface_min:     body.surface_min ?? null,
-      surface_max:     body.surface_max ?? null,
-      pieces_min:      body.pieces_min ?? null,
-      pieces_max:      body.pieces_max ?? null,
-      zones:           body.zones ?? [],
-      terrasse:        body.terrasse ?? "indifferent",
-      parking:         body.parking ?? "indifferent",
-      ascenseur:       body.ascenseur ?? "indifferent",
-      jardin:          body.jardin ?? "indifferent",
-      piscine:         body.piscine ?? "indifferent",
-      dpe_max:         body.dpe_max ?? null,
-      alerte_email:    body.alerte_email ?? true,
-      alerte_whatsapp: body.alerte_whatsapp ?? false,
-      telephone:       body.telephone ?? null,
+      lead_id:         c.lead_id ?? null,
+      nom:             c.nom,
+      type_bien:       typeBien,
+      budget_min:      c.budget_min ?? null,
+      budget_max:      c.budget_max ?? null,
+      surface_min:     c.surface_min ?? null,
+      surface_max:     c.surface_max ?? null,
+      pieces_min:      c.pieces_min ?? null,
+      pieces_max:      c.pieces_max ?? null,
+      zones:           c.zones ?? [],
+      terrasse:        c.terrasse ?? "indifferent",
+      parking:         c.parking ?? "indifferent",
+      ascenseur:       c.ascenseur ?? "indifferent",
+      jardin:          c.jardin ?? "indifferent",
+      piscine:         c.piscine ?? "indifferent",
+      dpe_max:         c.dpe_max ?? null,
+      alerte_email:    c.alerte_email ?? true,
+      alerte_whatsapp: c.alerte_whatsapp ?? false,
+      telephone:       c.telephone ?? null,
     })
     .select("*")
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("prospection_criteres_create_failed", { tenantId, userId: claims.sub, error: error.message });
+    return NextResponse.json({ error: "create_failed" }, { status: 500 });
+  }
   return NextResponse.json({ data }, { status: 201 });
 }
 
@@ -139,7 +215,9 @@ export async function DELETE(req: NextRequest) {
   const tenantId = tenantOf(claims);
 
   const id = new URL(req.url).searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "id requis" }, { status: 400 });
+  if (!id || !UUID.safeParse(id).success) {
+    return NextResponse.json({ error: "invalid_id" }, { status: 400 });
+  }
 
   const { error } = await db
     .from("prosp_criteres_acquereur")
@@ -148,6 +226,9 @@ export async function DELETE(req: NextRequest) {
     .eq("tenant_id", tenantId)
     .eq("user_id", claims.sub);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("prospection_criteres_delete_failed", { tenantId, userId: claims.sub, error: error.message });
+    return NextResponse.json({ error: "delete_failed" }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

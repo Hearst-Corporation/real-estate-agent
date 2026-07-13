@@ -5,11 +5,14 @@ const DEFAULT_MAX_BYTES = 2 * 1024 * 1024; // 2 MiB
 
 /**
  * Fetch sécurisé restreint aux hôtes autorisés dans ALLOWED_HOSTS.
+ * - N'autorise que les schémas http/https (rejette file:/ftp:/data:/gopher:…),
+ *   défense en profondeur SSRF explicite (ne pas dépendre uniquement de l'allowlist d'hôtes).
  * - Rejette toute URL dont l'hôte n'est pas dans la liste blanche.
  * - Timeout configurable (défaut 8 s).
  * - Refuse les redirections (throw sur 3xx).
  * - Limite la taille de la réponse (défaut 2 MiB).
  */
+const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 export async function safeFetch(
   url: string,
   init?: RequestInit & { timeoutMs?: number; maxBytes?: number },
@@ -20,6 +23,11 @@ export async function safeFetch(
     parsed = new URL(url);
   } catch {
     throw new Error(`safeFetch: URL invalide — "${url}"`);
+  }
+
+  // Garde de schéma explicite (défense en profondeur) — n'autoriser que http/https.
+  if (!ALLOWED_PROTOCOLS.has(parsed.protocol)) {
+    throw new Error(`safeFetch: schéma non autorisé — "${parsed.protocol}"`);
   }
 
   const host = parsed.hostname;
@@ -57,7 +65,7 @@ export async function safeFetch(
   const contentLength = response.headers.get('content-length');
   if (contentLength !== null) {
     const length = parseInt(contentLength, 10);
-    if (!isNaN(length) && length > maxBytes) {
+    if (!Number.isNaN(length) && length > maxBytes) {
       throw new Error(
         `safeFetch: réponse trop volumineuse — ${length} octets > limite ${maxBytes} octets`,
       );

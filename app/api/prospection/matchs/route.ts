@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
@@ -6,6 +7,13 @@ import { normalizeVerdict } from "@/lib/prospection/feedback";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const FeedbackSchema = z
+  .object({
+    match_id: z.string().uuid(),
+    verdict: z.string().min(1),
+  })
+  .strict();
 
 function parsePaging(searchParams: URLSearchParams): { limit: number; offset: number } {
   const limitRaw = Number.parseInt(searchParams.get("limit") ?? "50", 10);
@@ -29,14 +37,14 @@ function mapAnnonce(annonce: RawAnnonce) {
   return {
     id: a.id,
     type_bien: a.type_bien,
-    titre: a.title,
+    titre: a.titre,
     prix: a.prix,
-    surface: a.surface_m2,
-    pieces: a.nb_pieces,
+    surface: a.surface,
+    pieces: a.pieces,
     code_postal: a.code_postal,
-    ville: a.commune,
-    url: a.source_url,
-    is_pap: String(a.type_annonceur ?? "").toLowerCase() === "pap",
+    ville: a.ville,
+    url: a.url,
+    is_pap: Boolean(a.is_pap),
   };
 }
 
@@ -53,7 +61,7 @@ export async function GET(req: NextRequest) {
 
   let q = db
     .from("prosp_matchs")
-    .select("id,score_match,bonus_breakdown,statut,alerted_at,date_match,annonce:prosp_annonces(id,type_bien,title,prix,surface_m2,nb_pieces,code_postal,commune,source_url,type_annonceur)", { count: "exact" })
+    .select("id,score_match,bonus_breakdown,statut,alerted_at,date_match,annonce:prosp_annonces(id,type_bien,titre,prix,surface,pieces,code_postal,ville,url,is_pap)", { count: "exact" })
     .eq("tenant_id", tenantId)
     .eq("user_id", claims.sub)
     .order("score_match", { ascending: false })
@@ -62,7 +70,10 @@ export async function GET(req: NextRequest) {
   if (critereId) q = q.eq("critere_id", critereId);
 
   const { data, error, count } = await q;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("prospection_matchs_fetch_failed", { tenantId, userId: claims.sub, error: error.message });
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
+  }
   const items = ((data ?? []) as RawMatch[]).map((m) => ({
     id: m.id,
     score_match: m.score_match,
@@ -84,11 +95,12 @@ export async function POST(req: NextRequest) {
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 
-  const body = await req.json().catch(() => null);
-  const { match_id, verdict } = body ?? {};
-  if (!match_id || typeof verdict !== "string") {
-    return NextResponse.json({ error: "match_id + verdict requis" }, { status: 400 });
+  const raw = await req.json().catch(() => null);
+  const parsed = FeedbackSchema.safeParse(raw ?? {});
+  if (!parsed.success) {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
+  const { match_id, verdict } = parsed.data;
 
   // La CHECK DB prosp_match_feedback_verdict_check n'accepte que up|down. On mappe
   // 👍→up / 👎→down (+ legacy like/dislike). `contact`/`visite` ne sont PAS du
@@ -125,6 +137,9 @@ export async function POST(req: NextRequest) {
     match_id,
     verdict: dbVerdict,
   });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("prospection_match_feedback_failed", { tenantId, userId: claims.sub, error: error.message });
+    return NextResponse.json({ error: "feedback_failed" }, { status: 500 });
+  }
   return NextResponse.json({ ok: true }, { status: 201 });
 }

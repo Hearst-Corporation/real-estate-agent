@@ -29,9 +29,9 @@ export async function GET(req: NextRequest) {
 
   let q = db
     .from("prosp_annonces")
-    .select("id,type_bien,title,prix,surface_m2,nb_pieces,code_postal,commune,source_url,photos_urls,type_annonceur,premiere_parution_at,derniere_republication_at", { count: "exact" })
+    .select("id,type_bien,titre,prix,surface,pieces,code_postal,ville,url,photos,is_pap,date_publication,republication", { count: "exact" })
     .eq("tenant_id", tenantId)
-    .order("date_collecte", { ascending: false })
+    .order("updated_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (cp) q = q.like("code_postal", `${cp}%`);
@@ -45,20 +45,21 @@ export async function GET(req: NextRequest) {
     if (code === "42P01" || code === "42703") {
       return NextResponse.json({ data: [], total: 0, degraded: "prospection_schema_missing" });
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("prospection_annonces_fetch_failed", { tenantId, error: error.message });
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
   }
   const items = (data ?? []).map((a: Record<string, unknown>) => ({
     id: a.id,
     type_bien: a.type_bien,
-    titre: a.title,
+    titre: a.titre,
     prix: a.prix,
-    surface: a.surface_m2,
-    pieces: a.nb_pieces,
+    surface: a.surface,
+    pieces: a.pieces,
     code_postal: a.code_postal,
-    ville: a.commune,
-    url: a.source_url,
-    photos: a.photos_urls,
-    is_pap: String(a.type_annonceur ?? "").toLowerCase() === "pap",
+    ville: a.ville,
+    url: a.url,
+    photos: a.photos,
+    is_pap: Boolean(a.is_pap),
   }));
   return NextResponse.json({ data: items, total: count });
 }
