@@ -80,7 +80,7 @@ export default async function EstimationsPage() {
       <div className="flex flex-col gap-4 pb-2">
         <div className="md:flex md:items-center md:justify-between">
           <div className="min-w-0 flex-1">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
               {t.eyebrow}
             </p>
             <Heading>{t.title}</Heading>
@@ -101,7 +101,7 @@ export default async function EstimationsPage() {
         {stats.map((item) => (
           <div
             key={item.name}
-            className="overflow-hidden rounded-xl border border-zinc-950/10 bg-white/[0.03] px-4 py-5 sm:p-6 dark:border-white/10"
+            className="overflow-hidden rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] px-4 py-5 sm:p-6 dark:border-white/10"
           >
             <dt className="truncate text-sm font-medium text-zinc-500 dark:text-zinc-400">{item.name}</dt>
             <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">{item.stat}</dd>
@@ -111,7 +111,7 @@ export default async function EstimationsPage() {
 
       {/* Répartitions */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-zinc-950/10 bg-white/[0.03] p-5 dark:border-white/10">
+        <section className="rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-5 dark:border-white/10">
           <Subheading className="mb-4">{t.charts.pipeline}</Subheading>
           {pipeline.length > 0 ? (
             <ul className="divide-y divide-zinc-950/10 dark:divide-white/10">
@@ -127,7 +127,7 @@ export default async function EstimationsPage() {
           )}
         </section>
 
-        <section className="rounded-xl border border-zinc-950/10 bg-white/[0.03] p-5 dark:border-white/10">
+        <section className="rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-5 dark:border-white/10">
           <Subheading className="mb-4">{t.charts.byType}</Subheading>
           {byType.length > 0 ? (
             <ul className="divide-y divide-zinc-950/10 dark:divide-white/10">
@@ -146,7 +146,7 @@ export default async function EstimationsPage() {
 
       {/* Table — primitives Catalyst */}
       {estimations.length > 0 ? (
-        <div className="rounded-xl border border-zinc-950/10 bg-white/[0.03] px-2 dark:border-white/10">
+        <div className="rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] px-2 dark:border-white/10">
           <Table>
             <TableHead>
               <TableRow>
@@ -178,7 +178,7 @@ export default async function EstimationsPage() {
                   <TableCell className="text-right text-zinc-500 dark:text-zinc-400">
                     {dateFr(e.updated_at)}
                   </TableCell>
-                  <TableCell className="text-right font-medium text-indigo-600 dark:text-indigo-400">
+                  <TableCell className="text-right font-medium text-accent-600 dark:text-accent-400">
                     {e.status === "draft" || e.status === "interviewing" ? t.resume : t.open}
                   </TableCell>
                 </TableRow>
@@ -188,7 +188,7 @@ export default async function EstimationsPage() {
         </div>
       ) : (
         /* Empty state */
-        <div className="rounded-xl border border-zinc-950/10 bg-white/[0.03] px-6 py-16 text-center dark:border-white/10">
+        <div className="rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] px-6 py-16 text-center dark:border-white/10">
           <HomeModernIcon aria-hidden="true" className="mx-auto size-12 text-zinc-400 dark:text-zinc-500" />
           <Subheading className="mt-2">{t.empty}</Subheading>
           <div className="mt-6">

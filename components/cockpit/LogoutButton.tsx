@@ -12,7 +12,7 @@ export function LogoutButton({ variant = "full" }: { variant?: "icon" | "full" }
     return (
       <button
         type="button"
-        className="flex size-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-100"
+        className="flex size-10 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-950/5 hover:text-zinc-900"
         title={UI.logout}
         aria-label={UI.logout}
         onClick={logout}
@@ -25,7 +25,7 @@ export function LogoutButton({ variant = "full" }: { variant?: "icon" | "full" }
   return (
     <button
       type="button"
-      className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/[0.08]"
+      className="w-full rounded-lg border border-zinc-950/10 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-950/5"
       onClick={logout}
     >
       {UI.logout}

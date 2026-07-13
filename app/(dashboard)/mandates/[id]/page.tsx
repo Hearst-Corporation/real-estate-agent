@@ -49,12 +49,12 @@ function daysUntil(d: string | null | undefined): number | null {
   return Math.round((new Date(d).getTime() - Date.now()) / MS_PER_DAY);
 }
 
-/** Card conteneur — TW+ layout__cards/03-card-with-header (thème sombre). */
+/** Card conteneur — TW+ layout__cards/03-card-with-header (thème clair). */
 function DetailCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20">
-      <div className="border-b border-white/10 px-5 py-4">
-        <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
+    <section className="overflow-hidden rounded-2xl border border-zinc-950/10 bg-white shadow-sm">
+      <div className="border-b border-zinc-950/10 px-5 py-4">
+        <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
       </div>
       <div className="px-5 py-4">{children}</div>
     </section>
@@ -146,22 +146,22 @@ export default async function MandateDetailPage({
 
   return (
     <div className="flex flex-col gap-6 pb-12">
-      {/* Page heading — TW+ headings/03-with-meta-and-actions (thème sombre) */}
+      {/* Page heading — TW+ headings/03-with-meta-and-actions (thème clair) */}
       <div className="flex flex-col gap-4 pb-2">
         <div className="@lg:flex @lg:items-center @lg:justify-between">
           <div className="min-w-0 flex-1">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500">
               {td.kicker + (mandate.reference ? ` · ${mandate.reference}` : "")}
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-white @sm:truncate @sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 @sm:truncate @sm:text-3xl">
               {pageTitle}
             </h1>
-            {metaSub && <p className="mt-1 text-sm text-slate-400">{metaSub}</p>}
+            {metaSub && <p className="mt-1 text-sm text-zinc-500">{metaSub}</p>}
           </div>
           <div className="mt-4 flex items-center gap-3 @lg:mt-0 @lg:ml-4">
             <Link
               href="/mandates"
-              className="inline-flex items-center rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08]"
+              className="inline-flex items-center rounded-lg border border-zinc-950/10 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-950/5"
             >
               {td.backLink}
             </Link>
@@ -169,17 +169,17 @@ export default async function MandateDetailPage({
           </div>
         </div>
 
-        {/* KPI stats — TW+ data-display/stats (thème sombre) */}
+        {/* KPI stats — TW+ data-display/stats (thème clair) */}
         <dl className="grid grid-cols-1 gap-3 @sm:grid-cols-3">
           {headerKpis.map((kpi) => (
             <div
               key={kpi.label}
-              className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
+              className="rounded-xl border border-zinc-950/10 bg-white px-4 py-3"
             >
-              <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                 {kpi.label}
               </dt>
-              <dd className="mt-1 text-lg font-semibold text-white">{kpi.value}</dd>
+              <dd className="mt-1 text-lg font-semibold text-zinc-900">{kpi.value}</dd>
             </div>
           ))}
         </dl>
@@ -255,11 +255,11 @@ export default async function MandateDetailPage({
         </DescriptionList>
 
         {mandate.notes && (
-          <div className="mt-4 border-t border-white/5 pt-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <div className="mt-4 border-t border-zinc-950/10 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
               {td.fields.notes}
             </p>
-            <p className="mt-2 text-sm whitespace-pre-wrap text-slate-300">{mandate.notes}</p>
+            <p className="mt-2 text-sm whitespace-pre-wrap text-zinc-700">{mandate.notes}</p>
           </div>
         )}
       </DetailCard>
@@ -300,35 +300,35 @@ export default async function MandateDetailPage({
                 <Badge>{UI.properties.statusLabels[property.status] ?? property.status}</Badge>
               </DescriptionDetails>
             </DescriptionList>
-            <div className="mt-4 border-t border-white/5 pt-4">
+            <div className="mt-4 border-t border-zinc-950/10 pt-4">
               <Link
                 href={`/properties/${property.id}` as import("@/config/nav").AppRoute}
-                className="text-sm font-medium text-indigo-300 hover:text-indigo-200"
+                className="text-sm font-medium text-accent-500 hover:text-accent-600"
               >
                 {td.wellLinked}
               </Link>
             </div>
           </div>
         ) : (
-          <p className="py-6 text-center text-sm text-slate-500">{td.emptyWell}</p>
+          <p className="py-6 text-center text-sm text-zinc-500">{td.emptyWell}</p>
         )}
       </DetailCard>
 
       {/* ── Visites du bien — TW+ lists__stacked-lists (thème sombre) ────── */}
       <DetailCard title={td.cardVisites}>
         {visits.length > 0 ? (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-zinc-950/10">
             {visits.map((visit) => (
               <li
                 key={visit.id}
                 className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0"
               >
                 <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="text-sm font-medium text-slate-100">
+                  <span className="text-sm font-medium text-zinc-900">
                     {dateTimeFr(visit.scheduled_at)}
                   </span>
                   {visit.leads?.full_name && (
-                    <span className="text-sm text-slate-400">{visit.leads.full_name}</span>
+                    <span className="text-sm text-zinc-500">{visit.leads.full_name}</span>
                   )}
                 </div>
                 <Badge>{UI.visits.statusLabels[visit.status] ?? visit.status}</Badge>
@@ -336,7 +336,7 @@ export default async function MandateDetailPage({
             ))}
           </ul>
         ) : (
-          <p className="py-6 text-center text-sm text-slate-500">{td.emptyVisits}</p>
+          <p className="py-6 text-center text-sm text-zinc-500">{td.emptyVisits}</p>
         )}
       </DetailCard>
     </div>

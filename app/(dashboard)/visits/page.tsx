@@ -66,7 +66,7 @@ export default async function VisitsPage() {
       <div className="flex flex-col gap-4 border-b border-zinc-950/10 pb-5 dark:border-white/10">
         <div className="md:flex md:items-center md:justify-between">
           <div className="min-w-0 flex-1">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
               {t.eyebrow}
             </p>
             <Heading>{t.title}</Heading>

@@ -113,7 +113,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
   return (
     <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
       {/* ── Fiche bien (accordéon, pleine largeur multi-colonnes) ── */}
-      <div className="col-span-full rounded-2xl border border-zinc-950/10 bg-white/[0.03] p-4 dark:border-white/10">
+      <div className="col-span-full rounded-2xl border border-zinc-950/10 bg-white p-4">
         <Button
           plain
           className="w-full justify-between !text-sm !font-semibold"
@@ -121,7 +121,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
           aria-expanded={ficheOpen}
         >
           <span>{UI.estimations.ficheTitle}</span>
-          <span className="font-mono text-xs tracking-widest text-indigo-600 dark:text-indigo-300">
+          <span className="font-mono text-xs tracking-widest text-accent-600">
             {"●".repeat(Math.min(coverage.collected, coverage.total))}
             {"○".repeat(Math.max(0, coverage.total - coverage.collected))}
           </span>
@@ -136,9 +136,9 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                 const formatted = formatValue(property[field]);
                 const toConfirm = fieldStatus[field] === "to_confirm";
                 return (
-                  <div key={field} className="flex items-baseline justify-between gap-2 border-b border-zinc-950/5 py-1.5 text-sm dark:border-white/5">
-                    <span className="text-zinc-500 dark:text-zinc-400">{label}</span>
-                    <span className="flex items-center gap-1.5 text-right text-zinc-950 dark:text-zinc-100">
+                  <div key={field} className="flex items-baseline justify-between gap-2 border-b border-zinc-950/5 py-1.5 text-sm">
+                    <span className="text-zinc-500">{label}</span>
+                    <span className="flex items-center gap-1.5 text-right text-zinc-950">
                       {formatted}
                       {toConfirm && (
                         <Badge color="amber">{UI.estimations.toConfirm}</Badge>
@@ -154,7 +154,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
 
       {/* ── Ajustements ── */}
       {valuation.adjustments.length > 0 && (
-        <div className="rounded-2xl border border-zinc-950/10 bg-white/[0.03] p-4 dark:border-white/10">
+        <div className="rounded-2xl border border-zinc-950/10 bg-white p-4">
           <Subheading>{UI.estimations.adjustmentsTitle}</Subheading>
           <ul className="mt-3 flex flex-col gap-3">
             {valuation.adjustments.map((adj, i) => (
@@ -164,9 +164,9 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                   {Math.abs(adj.pct)}%
                 </Badge>
                 <span className="text-sm">
-                  <strong className="font-semibold text-zinc-950 dark:text-zinc-100">{adj.label}</strong>
+                  <strong className="font-semibold text-zinc-950">{adj.label}</strong>
                   {adj.rationale && (
-                    <span className="text-zinc-500 dark:text-zinc-400">
+                    <span className="text-zinc-500">
                       {UI.estimations.adjustSeparator}{adj.rationale}
                     </span>
                   )}
@@ -178,7 +178,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
       )}
 
       {/* ── Contexte marché ── */}
-      <div className="rounded-2xl border border-zinc-950/10 bg-white/[0.03] p-4 dark:border-white/10">
+      <div className="rounded-2xl border border-zinc-950/10 bg-white p-4">
         <Subheading>{UI.estimations.marketContextTitle}</Subheading>
         <div className="mt-3">
           {!marketLoaded && (
@@ -194,7 +194,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
           )}
           {marketLoaded && marketHasContent && market && (
             <>
-              {market.summary && <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">{market.summary}</p>}
+              {market.summary && <p className="text-sm leading-relaxed text-zinc-700">{market.summary}</p>}
               {market.citations.length > 0 && (
                 <ul className="mt-2 flex flex-col gap-1">
                   {market.citations.map((c, i) => (
@@ -203,7 +203,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                         href={safeHref(c.url)}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200"
+                        className="text-xs font-medium text-accent-600 hover:text-accent-500"
                       >
                         {c.title}
                       </a>
@@ -218,13 +218,13 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
 
       {/* ── Annonces comparables ── */}
       {marketProp != null && (
-        <div className="col-span-full rounded-2xl border border-zinc-950/10 bg-white/[0.03] p-4 dark:border-white/10">
+        <div className="col-span-full rounded-2xl border border-zinc-950/10 bg-white p-4">
           <Subheading>{UI.estimations.listingComparablesTitle}</Subheading>
           <div className="mt-3">
             {listingFetchSource != null && (
               <p className="mb-3 text-xs text-zinc-500">
                 {UI.estimations.listingFetchSourcePrefix}{" "}
-                <strong className="font-semibold text-zinc-700 dark:text-zinc-300">
+                <strong className="font-semibold text-zinc-700">
                   {listingFallbackUsed && listingFetchSource !== "none"
                     ? UI.estimations.listingFetchSourceLabels["myswarms"]
                     : (UI.estimations.listingFetchSourceLabels[listingFetchSource] ?? listingFetchSource)}
@@ -233,7 +233,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
             )}
             {sectorMap && (
               <figure
-                className="relative mb-4 overflow-hidden rounded-xl border border-zinc-950/10 dark:border-white/10"
+                className="relative mb-4 overflow-hidden rounded-xl border border-zinc-950/10"
                 style={{ width: sectorMap.width, height: sectorMap.height }}
                 aria-label={UI.estimations.sectorMapTitle}
               >
@@ -253,7 +253,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                 {sectorMap.listings.map((m, i) => (
                   <span
                     key={i}
-                    className="absolute flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white shadow"
+                    className="absolute flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent-500 text-[10px] font-bold text-white shadow"
                     style={{ left: m.left, top: m.top }}
                   >
                     {i + 1}
@@ -261,7 +261,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                 ))}
                 {sectorMap.subject && (
                   <span
-                    className="absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-indigo-400 bg-white shadow"
+                    className="absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent-400 bg-white shadow"
                     style={{ left: sectorMap.subject.left, top: sectorMap.subject.top }}
                   />
                 )}
@@ -299,27 +299,27 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                             className="size-9 rounded-lg object-cover"
                           />
                         ) : (
-                          <span className="block size-9 rounded-lg bg-white/[0.06]" />
+                          <span className="block size-9 rounded-lg bg-zinc-950/5" />
                         )}
-                        <span className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white">
+                        <span className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-accent-500 text-[9px] font-bold text-white">
                           {i + 1}
                         </span>
                       </TableCell>
-                      <TableCell className="text-zinc-700 dark:text-zinc-200">
+                      <TableCell className="text-zinc-700">
                         {item.titre.length > LISTING_TITLE_MAX_CHARS
                           ? item.titre.slice(0, LISTING_TITLE_MAX_CHARS) + "…"
                           : item.titre}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums text-zinc-700 dark:text-zinc-200">{fmt.format(item.prix)}</TableCell>
-                      <TableCell className="text-right tabular-nums text-zinc-700 dark:text-zinc-200">{item.surface_m2}{UI.estimations.surfaceUnit}</TableCell>
-                      <TableCell className="text-right tabular-nums text-zinc-700 dark:text-zinc-200">{fmt.format(item.prix_m2)}{UI.estimations.perSqmUnit}</TableCell>
+                      <TableCell className="text-right tabular-nums text-zinc-700">{fmt.format(item.prix)}</TableCell>
+                      <TableCell className="text-right tabular-nums text-zinc-700">{item.surface_m2}{UI.estimations.surfaceUnit}</TableCell>
+                      <TableCell className="text-right tabular-nums text-zinc-700">{fmt.format(item.prix_m2)}{UI.estimations.perSqmUnit}</TableCell>
                       <TableCell>
                         {item.url ? (
                           <a
                             href={safeHref(item.url)}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200"
+                            className="text-xs font-medium text-accent-600 hover:text-accent-500"
                           >
                             {UI.estimations.listingComparablesLink}
                           </a>

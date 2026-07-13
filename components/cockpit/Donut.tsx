@@ -49,8 +49,8 @@ export function Donut({
       >
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={accent ? "#818cf8" : "rgba(226,232,240,0.7)"} />
-            <stop offset="100%" stopColor={accent ? "#a5b4fc" : "#f8fafc"} />
+            <stop offset="0%" stopColor={accent ? "#818cf8" : "#52525b"} />
+            <stop offset="100%" stopColor={accent ? "#a5b4fc" : "#18181b"} />
           </linearGradient>
           <filter id={fid} x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation={GLOW_BLUR} result="blur" />
@@ -61,7 +61,7 @@ export function Donut({
           </filter>
         </defs>
         <circle
-          className="fill-none stroke-white/10"
+          className="fill-none stroke-zinc-950/10"
           cx={center}
           cy={center}
           r={r}
@@ -81,8 +81,8 @@ export function Donut({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-bold text-white">{centerLabel ?? `${safe}%`}</span>
-        {sublabel && <span className="text-xs text-slate-400">{sublabel}</span>}
+        <span className="text-xl font-bold text-zinc-900">{centerLabel ?? `${safe}%`}</span>
+        {sublabel && <span className="text-xs text-zinc-500">{sublabel}</span>}
       </div>
     </div>
   );

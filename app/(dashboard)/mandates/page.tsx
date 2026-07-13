@@ -64,14 +64,14 @@ export default async function MandatesPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-12">
-      {/* Page heading — TW+ headings/03-with-meta-and-actions (thème sombre) */}
+      {/* Page heading — TW+ headings/03-with-meta-and-actions (thème clair) */}
       <div className="flex flex-col gap-4 pb-2">
         <div className="@lg:flex @lg:items-center @lg:justify-between">
           <div className="min-w-0 flex-1">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500">
               {t.eyebrow}
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-white @sm:truncate @sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 @sm:truncate @sm:text-3xl">
               {t.title}
             </h1>
           </div>
@@ -80,47 +80,47 @@ export default async function MandatesPage() {
           </div>
         </div>
 
-        <nav className="flex flex-wrap items-center gap-1 border-b border-white/10 pb-2">
+        <nav className="flex flex-wrap items-center gap-1 border-b border-zinc-950/10 pb-2">
           <PageNavTabs tabs={TAB_GROUPS.portefeuille} />
         </nav>
 
-        {/* KPI stats — TW+ data-display/stats (thème sombre) */}
+        {/* KPI stats — TW+ data-display/stats (thème clair) */}
         <dl className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @lg:grid-cols-4">
           {kpis.map((kpi) => (
             <div
               key={kpi.label}
-              className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
+              className="rounded-xl border border-zinc-950/10 bg-white px-4 py-3"
             >
-              <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                 {kpi.label}
               </dt>
-              <dd className="mt-1 text-2xl font-bold text-white">{kpi.value}</dd>
+              <dd className="mt-1 text-2xl font-bold text-zinc-900">{kpi.value}</dd>
             </div>
           ))}
         </dl>
       </div>
 
-      {/* Viz métier — cards TW+ layout/cards (thème sombre) */}
+      {/* Viz métier — cards TW+ layout/cards (thème clair) */}
       <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
-          <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+        <section className="rounded-2xl border border-zinc-950/10 bg-white p-5 shadow-sm">
+          <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
             {t.charts.pipeline}
           </div>
           <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
         </section>
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
-          <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+        <section className="rounded-2xl border border-zinc-950/10 bg-white p-5 shadow-sm">
+          <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
             {t.charts.byKind}
           </div>
           <BarList items={byKind} emptyLabel={UI.viz.empty} />
         </section>
       </div>
 
-      {/* Table — TW+ lists__tables/02-simple-in-card (thème sombre) */}
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20">
+      {/* Table — TW+ lists__tables/02-simple-in-card (thème clair) */}
+      <div className="overflow-hidden rounded-2xl border border-zinc-950/10 bg-white shadow-sm">
         {mandates.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <h3 className="text-sm font-semibold text-white">{t.empty}</h3>
+            <h3 className="text-sm font-semibold text-zinc-900">{t.empty}</h3>
           </div>
         ) : (
           <div className="px-2">

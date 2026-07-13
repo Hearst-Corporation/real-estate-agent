@@ -57,7 +57,7 @@ function NewEstimationInner() {
       {/* Header */}
       <div className="md:flex md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
             {t.eyebrow}
           </p>
           <Heading>{t.newCta}</Heading>
@@ -81,7 +81,7 @@ function NewEstimationInner() {
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <ArrowPathIcon aria-hidden="true" className="size-5 animate-spin text-indigo-500 dark:text-indigo-400" />
+            <ArrowPathIcon aria-hidden="true" className="size-5 animate-spin text-accent-500 dark:text-accent-400" />
             <Text>{t.creating}</Text>
           </div>
         )}

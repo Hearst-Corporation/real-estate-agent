@@ -100,7 +100,7 @@ export function IntegrationsPanel() {
           >
             <div className="flex items-center gap-2.5">
               <span
-                className="flex size-8 items-center justify-center rounded-lg border border-zinc-950/10 text-indigo-500 dark:border-white/10 dark:text-indigo-400"
+                className="flex size-8 items-center justify-center rounded-lg border border-zinc-950/10 text-accent-500 dark:border-white/10 dark:text-accent-400"
                 aria-hidden="true"
               >
                 <Icon name={icon} className="size-4" />

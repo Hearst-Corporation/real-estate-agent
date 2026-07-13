@@ -20,13 +20,13 @@ export function BarList({ items, emptyLabel }: BarListProps) {
       {items.map((item) => (
         <div className="flex flex-col gap-1.5" key={item.label}>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-300">{item.label}</span>
-            <span className="font-semibold text-slate-100 tabular-nums">{item.value}</span>
+            <span className="text-zinc-700">{item.label}</span>
+            <span className="font-semibold text-zinc-900 tabular-nums">{item.value}</span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-950/10">
             {/* largeur pilotée par la donnée → style inline (tout le reste vient des utilities) */}
             <div
-              className="h-full rounded-full bg-indigo-400 transition-all"
+              className="h-full rounded-full bg-accent-500 transition-all"
               style={{ width: `${Math.max(0, Math.min(100, item.percent))}%` }}
             />
           </div>

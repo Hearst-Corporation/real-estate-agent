@@ -60,7 +60,7 @@ function ActionFeedback({ state }: { state: ActionState }) {
       <div className="flex items-start gap-2 pt-1">
         <CheckCircleIcon
           aria-hidden="true"
-          className="mt-0.5 size-4 shrink-0 text-indigo-500 dark:text-indigo-400"
+          className="mt-0.5 size-4 shrink-0 text-accent-500 dark:text-accent-400"
         />
         <Text>
           {state.message}
@@ -261,7 +261,7 @@ export function AnnonceDetailDialog({
                   href={a.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-indigo-500 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent-500 hover:text-accent-400 dark:text-accent-400 dark:hover:text-accent-300"
                 >
                   {t.annonceVoir}
                   <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-3.5" />

@@ -58,7 +58,7 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
   return (
     <div className="flex flex-col gap-3">
       {/* Visionneuse principale */}
-      <div className="relative overflow-hidden rounded-xl border border-zinc-950/10 bg-black/20 dark:border-white/10">
+      <div className="relative overflow-hidden rounded-xl border border-zinc-950/10 bg-zinc-950/5 dark:border-white/10">
         {selected && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -83,7 +83,7 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
               key={photo.id}
               className={`group relative size-16 shrink-0 cursor-pointer overflow-hidden rounded-lg border transition-colors ${
                 selected?.id === photo.id
-                  ? "border-indigo-500/60"
+                  ? "border-accent-500/60"
                   : "border-zinc-950/10 hover:border-zinc-950/30 dark:border-white/10 dark:hover:border-white/30"
               }`}
               onClick={() => setSelected(photo)}

@@ -373,15 +373,15 @@ export function EstimationWizard({
   return (
     <div className="flex h-full flex-col">
       {/* ── Header sticky : stepper + barre ── */}
-      <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-zinc-950/10 bg-white/70 px-4 py-3 backdrop-blur-xl sm:px-6 dark:border-white/10 dark:bg-zinc-950/80">
+      <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-zinc-950/10 bg-white/70 px-4 py-3 backdrop-blur-xl sm:px-6">
         <WizardStepper
           coverage={coverage}
           nextLabel={nextLabel}
           canGenerate={canGenerate}
         />
-        <div className="h-1 overflow-hidden rounded-full bg-white/10">
+        <div className="h-1 overflow-hidden rounded-full bg-zinc-950/10">
           <div
-            className="h-full rounded-full bg-indigo-400 transition-all duration-300"
+            className="h-full rounded-full bg-accent-400 transition-all duration-300"
             style={{ width: `${progressPct}%` }}
           />
         </div>
@@ -391,10 +391,10 @@ export function EstimationWizard({
       <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6" ref={scrollRef}>
         {isEmpty ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-            <div className="flex size-14 items-center justify-center rounded-full bg-indigo-500/15 text-2xl font-bold text-indigo-600 dark:text-indigo-300">
+            <div className="flex size-14 items-center justify-center rounded-full bg-accent-500/15 text-2xl font-bold text-accent-600">
               €
             </div>
-            <p className="text-lg font-semibold text-zinc-950 dark:text-white">{UI.estimations.interviewTitle}</p>
+            <p className="text-lg font-semibold text-zinc-950">{UI.estimations.interviewTitle}</p>
             <Text className="max-w-sm">{UI.estimations.interviewSub}</Text>
             <Button
               color="indigo"
@@ -415,7 +415,7 @@ export function EstimationWizard({
             return (
             <div key={idx} className={`flex items-start gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
               {m.role === "assistant" && (
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-sm text-indigo-600 dark:text-indigo-300">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-sm text-accent-600">
                   {UI.chat.assistantAvatar}
                 </div>
               )}
@@ -423,21 +423,21 @@ export function EstimationWizard({
                 <div
                   className={`rounded-2xl px-4 py-2.5 text-sm ${
                     isUser
-                      ? "bg-indigo-500/20 text-indigo-950 dark:text-indigo-100"
-                      : "border border-zinc-950/10 bg-white/[0.04] text-zinc-700 dark:border-white/10 dark:text-zinc-200"
+                      ? "bg-accent-500/20 text-accent-950"
+                      : "border border-zinc-950/10 bg-white text-zinc-700"
                   }`}
                 >
                   {m.content ? (
                     renderBlocks(m.content)
                   ) : thinking && isLast ? (
                     liveReasoning ? (
-                      <span className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-                        <span className="size-1.5 animate-pulse rounded-full bg-indigo-400" />
+                      <span className="flex items-center gap-2 text-zinc-500">
+                        <span className="size-1.5 animate-pulse rounded-full bg-accent-400" />
                         {liveReasoning}
                       </span>
                     ) : (
-                      <span className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-                        <span className="size-1.5 animate-pulse rounded-full bg-indigo-400" />
+                      <span className="flex items-center gap-2 text-zinc-500">
+                        <span className="size-1.5 animate-pulse rounded-full bg-accent-400" />
                         Réflexion…
                       </span>
                     )
@@ -452,24 +452,24 @@ export function EstimationWizard({
 
                 {m.role === "assistant" && hasActivity && (
                   <details className="group w-full max-w-full text-xs text-zinc-500">
-                    <summary className="flex cursor-pointer list-none items-center gap-1.5 select-none hover:text-zinc-700 dark:hover:text-zinc-300">
+                    <summary className="flex cursor-pointer list-none items-center gap-1.5 select-none hover:text-zinc-700">
                       <span aria-hidden="true">⚡</span>
                       Activité de l&apos;agent
                       {act!.events.length > 0 && (
-                        <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
+                        <span className="rounded-full bg-zinc-950/5 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500">
                           {act!.events.length}
                         </span>
                       )}
                     </summary>
-                    <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-zinc-950/10 bg-white/[0.03] p-3 dark:border-white/10">
+                    <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-zinc-950/10 bg-white p-3">
                       {act!.events.map((e, i) => (
-                        <div key={i} className="flex items-start gap-1.5 text-zinc-500 dark:text-zinc-400">
-                          <span className="text-indigo-500 dark:text-indigo-400" aria-hidden="true">✓</span> {e}
+                        <div key={i} className="flex items-start gap-1.5 text-zinc-500">
+                          <span className="text-accent-500" aria-hidden="true">✓</span> {e}
                         </div>
                       ))}
                       {act!.reasoning && (
-                        <div className="mt-1 border-t border-zinc-950/10 pt-2 text-zinc-500 dark:border-white/10">
-                          <div className="mb-1 font-semibold text-zinc-500 dark:text-zinc-400">Réflexion</div>
+                        <div className="mt-1 border-t border-zinc-950/10 pt-2 text-zinc-500">
+                          <div className="mb-1 font-semibold text-zinc-500">Réflexion</div>
                           {act!.reasoning}
                         </div>
                       )}
@@ -492,7 +492,7 @@ export function EstimationWizard({
 
       {/* ── Footer : suggestions + input ── */}
       {!isEmpty && (
-        <div className="flex flex-col gap-3 border-t border-zinc-950/10 bg-white/70 px-4 py-3 backdrop-blur-xl sm:px-6 dark:border-white/10 dark:bg-zinc-950/80">
+        <div className="flex flex-col gap-3 border-t border-zinc-950/10 bg-white/70 px-4 py-3 backdrop-blur-xl sm:px-6">
           {suggestions.length > 0 && !busy && (
             <div className="flex flex-wrap gap-2">
               {suggestions.map((s, i) => (

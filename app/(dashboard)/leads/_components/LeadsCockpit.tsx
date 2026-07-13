@@ -67,7 +67,7 @@ function Zone({
             <li key={l.id} className="flex items-center justify-between gap-2">
               <Link
                 href={`/leads/${l.id}`}
-                className="truncate text-sm font-medium text-zinc-950 hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400"
+                className="truncate text-sm font-medium text-zinc-950 hover:text-accent-600 dark:text-white dark:hover:text-accent-400"
               >
                 {l.full_name}
               </Link>
@@ -140,7 +140,7 @@ export function LeadsCockpit({ leads }: { leads: CockpitLead[] }) {
               >
                 <Link
                   href={`/leads/${l.id}`}
-                  className="truncate text-sm font-medium text-zinc-950 hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400"
+                  className="truncate text-sm font-medium text-zinc-950 hover:text-accent-600 dark:text-white dark:hover:text-accent-400"
                 >
                   {l.full_name}
                 </Link>

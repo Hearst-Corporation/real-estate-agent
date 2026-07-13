@@ -114,7 +114,7 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
                 <TableCell>
                   <Link
                     href={`/properties/${p.id}`}
-                    className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                    className="font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400 dark:hover:text-accent-300"
                   >
                     {p.title ?? t.fallbackTitle}
                   </Link>

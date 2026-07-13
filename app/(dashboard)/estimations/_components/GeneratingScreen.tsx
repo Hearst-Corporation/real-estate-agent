@@ -21,8 +21,8 @@ export function GeneratingScreen({ currentStep }: Props) {
     <div className="flex h-full min-h-[60vh] items-center justify-center p-6">
       <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
         <div className="relative flex size-16 items-center justify-center">
-          <span className="absolute inset-0 animate-ping rounded-full bg-indigo-400/30" />
-          <span className="relative size-4 rounded-full bg-indigo-400" />
+          <span className="absolute inset-0 animate-ping rounded-full bg-accent-400/30" />
+          <span className="relative size-4 rounded-full bg-accent-400" />
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -30,7 +30,7 @@ export function GeneratingScreen({ currentStep }: Props) {
           <Text>{UI.estimations.generatingSub}</Text>
         </div>
 
-        <div className="flex w-full flex-col gap-2 rounded-xl border border-zinc-950/10 bg-white/[0.03] p-4 text-left dark:border-white/10">
+        <div className="flex w-full flex-col gap-2 rounded-xl border border-zinc-950/10 bg-white p-4 text-left">
           {steps.map((step, i) => {
             const done = i < currentIdx;
             const active = i === currentIdx;
@@ -39,19 +39,19 @@ export function GeneratingScreen({ currentStep }: Props) {
                 key={step}
                 className={`flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm ${
                   active
-                    ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
+                    ? "bg-accent-500/10 text-accent-700"
                     : done
-                      ? "text-zinc-700 dark:text-zinc-300"
+                      ? "text-zinc-700"
                       : "text-zinc-500"
                 }`}
               >
                 <span
                   className={`flex size-5 shrink-0 items-center justify-center rounded-full text-xs ${
                     done
-                      ? "bg-indigo-500/20 text-indigo-600 dark:text-indigo-300"
+                      ? "bg-accent-500/20 text-accent-600"
                       : active
-                        ? "bg-indigo-500/20 text-indigo-600 dark:text-indigo-300"
-                        : "bg-white/[0.06] text-zinc-500"
+                        ? "bg-accent-500/20 text-accent-600"
+                        : "bg-zinc-950/5 text-zinc-500"
                   }`}
                   aria-hidden="true"
                 >
@@ -60,7 +60,7 @@ export function GeneratingScreen({ currentStep }: Props) {
                 <span className="flex-1">{step}</span>
                 {active && (
                   <span
-                    className="size-3 shrink-0 animate-spin rounded-full border-2 border-indigo-400/30 border-t-indigo-400"
+                    className="size-3 shrink-0 animate-spin rounded-full border-2 border-accent-400/30 border-t-accent-400"
                     aria-hidden="true"
                   />
                 )}

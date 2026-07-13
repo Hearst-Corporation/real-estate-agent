@@ -29,7 +29,7 @@ export function BottomBar() {
 
   return (
     <nav
-      className="absolute inset-x-0 bottom-0 z-30 hidden border-t border-white/10 bg-slate-950/95 px-4 py-2 backdrop-blur-xl max-sm:block"
+      className="absolute inset-x-0 bottom-0 z-30 hidden border-t border-zinc-950/10 bg-lin-brut/95 px-4 py-2 backdrop-blur-xl max-sm:block"
       aria-label={UI.nav.home}
     >
       <div className="flex items-center justify-around gap-2">
@@ -41,7 +41,7 @@ export function BottomBar() {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center gap-1 text-[10px] font-semibold transition-colors ${
-                active ? "text-indigo-300" : "text-slate-400"
+                active ? "text-accent-700" : "text-zinc-500"
               }`}
               title={item.label}
               aria-label={item.label}

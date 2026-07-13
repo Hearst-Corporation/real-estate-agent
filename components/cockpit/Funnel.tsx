@@ -12,9 +12,9 @@ type FunnelProps = {
 };
 
 const TONE_BAR: Record<string, string> = {
-  "is-positive": "bg-emerald-400",
-  "is-warning": "bg-amber-400",
-  "is-negative": "bg-red-400",
+  "is-positive": "bg-emerald-500",
+  "is-warning": "bg-amber-500",
+  "is-negative": "bg-red-500",
 };
 
 export function Funnel({ steps, emptyLabel }: FunnelProps) {
@@ -32,14 +32,14 @@ export function Funnel({ steps, emptyLabel }: FunnelProps) {
             <span className="font-mono text-xs text-slate-500">
               {String(index + 1).padStart(2, "0")}
             </span>
-            <span className="flex-1 text-slate-200">{step.label}</span>
-            <span className="font-semibold text-slate-100 tabular-nums">{step.count}</span>
+            <span className="flex-1 text-zinc-700">{step.label}</span>
+            <span className="font-semibold text-zinc-900 tabular-nums">{step.count}</span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-950/10">
             {/* largeur pilotée par la donnée → style inline (tout le reste vient des utilities) */}
             <div
               className={`h-full rounded-full transition-all ${
-                step.tone ? (TONE_BAR[step.tone] ?? "bg-indigo-400") : "bg-indigo-400"
+                step.tone ? (TONE_BAR[step.tone] ?? "bg-accent-500") : "bg-accent-500"
               }`}
               style={{ width: `${Math.round((step.count / max) * 100)}%` }}
             />

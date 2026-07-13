@@ -24,7 +24,7 @@ export function Skeleton({
   const px = (v: number | string) => (typeof v === "number" ? `${v}px` : v);
   return (
     <span
-      className={`inline-block animate-pulse rounded-md bg-white/[0.08]${className ? ` ${className}` : ""}`}
+      className={`inline-block animate-pulse rounded-md bg-zinc-950/10${className ? ` ${className}` : ""}`}
       aria-hidden
       style={{
         width: width != null ? px(width) : "100%",

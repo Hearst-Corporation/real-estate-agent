@@ -13,13 +13,13 @@ export function RailRight({ open, toggle }: { open: boolean; toggle: () => void 
   if (!open) {
     return (
       <aside
-        className="fixed inset-y-0 right-0 z-20 flex w-10 items-start justify-center border-l border-white/10 bg-white/[0.03] pt-6"
+        className="fixed inset-y-0 right-0 z-20 flex w-10 items-start justify-center border-l border-zinc-950/10 bg-white/60 pt-6"
         aria-label={UI.chat.title}
       >
         <button
           type="button"
           onClick={toggle}
-          className="rounded-md px-1.5 py-3 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-100 [writing-mode:vertical-rl]"
+          className="rounded-md px-1.5 py-3 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-950/5 hover:text-zinc-900 [writing-mode:vertical-rl]"
         >
           {UI.chat.reopen}
         </button>
@@ -29,14 +29,14 @@ export function RailRight({ open, toggle }: { open: boolean; toggle: () => void 
 
   return (
     <aside
-      className="fixed inset-y-0 right-0 z-20 flex w-[420px] flex-col border-l border-white/10 bg-white/[0.03] backdrop-blur-xl"
+      className="fixed inset-y-0 right-0 z-20 flex w-[420px] flex-col border-l border-zinc-950/10 bg-white/60 backdrop-blur-xl"
       aria-label={UI.chat.title}
     >
-      <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-        <span className="text-sm font-semibold text-slate-100">{UI.chat.title}</span>
+      <div className="flex items-center justify-between border-b border-zinc-950/10 px-4 py-3">
+        <span className="text-sm font-semibold text-zinc-900">{UI.chat.title}</span>
         <button
           type="button"
-          className="flex size-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-100"
+          className="flex size-7 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-950/5 hover:text-zinc-900"
           onClick={toggle}
           title={UI.chat.collapse}
           aria-label={UI.chat.collapse}

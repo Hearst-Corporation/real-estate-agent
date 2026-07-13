@@ -37,10 +37,10 @@ export default function LoginForm() {
   }
 
   const FIELD_INPUT =
-    "block w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none";
-  const FIELD_LABEL = "text-xs font-medium text-slate-400";
+    "block w-full rounded-lg border border-zinc-950/10 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-accent-500/50 focus:outline-none focus:ring-1 focus:ring-accent-500/30";
+  const FIELD_LABEL = "text-xs font-medium text-zinc-600";
   const BTN_PRIMARY =
-    "flex w-full items-center justify-center rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-950/40 transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50";
+    "flex w-full items-center justify-center rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-700 disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
@@ -66,7 +66,7 @@ export default function LoginForm() {
           autoComplete="current-password"
         />
       </label>
-      {error ? <p className="text-sm text-red-400">{error}</p> : null}
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <button type="submit" disabled={busy} className={BTN_PRIMARY}>
         {busy ? t.submitBusy : t.submit}
       </button>

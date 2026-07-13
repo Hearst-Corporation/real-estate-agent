@@ -201,7 +201,7 @@ export default async function LeadDetailPage({
       {/* Header */}
       <div className="flex flex-col gap-4 border-b border-zinc-950/10 pb-5 lg:flex-row lg:items-center lg:justify-between dark:border-white/10">
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
             {eyebrow}
           </p>
           <Heading>{lead.full_name ?? td.fallbackName}</Heading>
@@ -240,7 +240,7 @@ export default async function LeadDetailPage({
               <DescriptionDetails>
                 <Link
                   href={`mailto:${lead.email}`}
-                  className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  className="text-accent-600 hover:text-accent-500 dark:text-accent-400 dark:hover:text-accent-300"
                 >
                   {lead.email}
                 </Link>
@@ -253,7 +253,7 @@ export default async function LeadDetailPage({
               <DescriptionDetails>
                 <Link
                   href={`tel:${lead.phone}`}
-                  className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  className="text-accent-600 hover:text-accent-500 dark:text-accent-400 dark:hover:text-accent-300"
                 >
                   {lead.phone}
                 </Link>
@@ -472,7 +472,7 @@ export default async function LeadDetailPage({
             <div className="mt-4 border-t border-zinc-950/10 pt-3 dark:border-white/10">
               <Link
                 href={`/properties/${linkedProperty.id}`}
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                className="text-sm font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400 dark:hover:text-accent-300"
               >
                 {td.bienLie.seeProperty}
               </Link>

@@ -49,16 +49,16 @@ export async function PropertyRelatedSection({ propertyId, userId, tenantId }: P
       {/* ── Leads ────────────────────────────────────────────────────────── */}
       <Card title={td.cardLeads}>
         {leads && leads.length > 0 ? (
-          <ul className="flex flex-col divide-y divide-white/5">
+          <ul className="flex flex-col divide-y divide-zinc-950/5">
             {leads.map((lead) => (
               <li key={lead.id} className="flex flex-col gap-1 py-2.5">
-                <span className="text-sm font-medium text-slate-100">{lead.full_name}</span>
+                <span className="text-sm font-medium text-zinc-900">{lead.full_name}</span>
                 <div className="flex flex-wrap gap-1.5">
                   <Badge>{tLeads.kindLabels[lead.kind] ?? lead.kind}</Badge>
                   <Badge>{tLeads.statusLabels[lead.status] ?? lead.status}</Badge>
                 </div>
                 {(lead.budget_min != null || lead.budget_max != null) && (
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-zinc-500">
                     {lead.budget_min != null ? eur(lead.budget_min) : ""}
                     {lead.budget_min != null && lead.budget_max != null ? " – " : ""}
                     {lead.budget_max != null ? eur(lead.budget_max) : ""}
@@ -68,10 +68,10 @@ export async function PropertyRelatedSection({ propertyId, userId, tenantId }: P
             ))}
           </ul>
         ) : (
-          <p className="py-4 text-sm text-slate-500">{td.leadsEmpty}</p>
+          <p className="py-4 text-sm text-zinc-500">{td.leadsEmpty}</p>
         )}
-        <div className="mt-3 border-t border-white/10 pt-3">
-          <Link href="/leads" className="text-sm font-semibold text-indigo-300 hover:text-indigo-200">
+        <div className="mt-3 border-t border-zinc-950/10 pt-3">
+          <Link href="/leads" className="text-sm font-semibold text-accent-300 hover:text-accent-200">
             {td.seeAllLeads}
           </Link>
         </div>
@@ -80,31 +80,31 @@ export async function PropertyRelatedSection({ propertyId, userId, tenantId }: P
       {/* ── Visites ──────────────────────────────────────────────────────── */}
       <Card title={td.cardVisites}>
         {visits && visits.length > 0 ? (
-          <ul className="flex flex-col divide-y divide-white/5">
+          <ul className="flex flex-col divide-y divide-zinc-950/5">
             {visits.map((visit) => (
               <li key={visit.id} className="flex flex-col gap-1 py-2.5">
-                <span className="text-sm font-medium text-slate-100">{dateTimeFr(visit.scheduled_at)}</span>
+                <span className="text-sm font-medium text-zinc-900">{dateTimeFr(visit.scheduled_at)}</span>
                 <div className="flex flex-wrap gap-1.5">
                   <Badge>{tVisits.statusLabels[visit.status] ?? visit.status}</Badge>
                 </div>
                 {visit.duration_min > 0 && (
-                  <span className="text-xs text-slate-500">{td.visitDuration(visit.duration_min)}</span>
+                  <span className="text-xs text-zinc-500">{td.visitDuration(visit.duration_min)}</span>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="py-4 text-sm text-slate-500">{td.visitsEmpty}</p>
+          <p className="py-4 text-sm text-zinc-500">{td.visitsEmpty}</p>
         )}
       </Card>
 
       {/* ── Mandats ──────────────────────────────────────────────────────── */}
       <Card title={td.cardMandats}>
         {mandates && mandates.length > 0 ? (
-          <ul className="flex flex-col divide-y divide-white/5">
+          <ul className="flex flex-col divide-y divide-zinc-950/5">
             {mandates.map((mandate) => (
               <li key={mandate.id} className="flex flex-col gap-1 py-2.5">
-                <span className="text-sm font-medium text-slate-100">
+                <span className="text-sm font-medium text-zinc-900">
                   {mandate.reference ?? td.mandateRef}
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -112,13 +112,13 @@ export async function PropertyRelatedSection({ propertyId, userId, tenantId }: P
                   <Badge>{tMandates.kindLabels[mandate.kind] ?? mandate.kind}</Badge>
                 </div>
                 {mandate.commission_pct != null && (
-                  <span className="text-xs text-slate-500">{td.commission(mandate.commission_pct)}</span>
+                  <span className="text-xs text-zinc-500">{td.commission(mandate.commission_pct)}</span>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="py-4 text-sm text-slate-500">{td.mandatesEmpty}</p>
+          <p className="py-4 text-sm text-zinc-500">{td.mandatesEmpty}</p>
         )}
       </Card>
     </>

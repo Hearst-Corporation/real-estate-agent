@@ -36,7 +36,7 @@ export default async function ProfilePage() {
     <div className="flex flex-col gap-8 pb-12">
       {/* Page header */}
       <div className="flex flex-col gap-1 pb-2">
-        <Subheading className="text-indigo-500 dark:text-indigo-400">{t.eyebrow}</Subheading>
+        <Subheading className="text-accent-500 dark:text-accent-400">{t.eyebrow}</Subheading>
         <Heading>{t.title}</Heading>
         <Text className="mt-1">{t.sub}</Text>
       </div>

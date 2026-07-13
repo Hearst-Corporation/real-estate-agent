@@ -33,7 +33,7 @@ export default function VisitsError({
           <div>
             <button
               type="button"
-              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400"
+              className="rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 transition hover:bg-accent-400"
               onClick={reset}
             >
               Réessayer

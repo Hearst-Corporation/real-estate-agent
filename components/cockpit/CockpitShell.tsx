@@ -23,9 +23,9 @@ export function CockpitShell({
   const { open, toggle } = useRailRight();
 
   return (
-    <div className="relative h-dvh overflow-hidden text-slate-100">
-      <div className="pointer-events-none absolute inset-0 bg-slate-950" />
-      <div className="pointer-events-none absolute inset-0 opacity-40 [background:radial-gradient(ellipse_80%_60%_at_50%_30%,theme(colors.indigo.600/25%)_0%,transparent_70%)]" />
+    <div className="relative h-dvh overflow-hidden text-zinc-900">
+      <div className="pointer-events-none absolute inset-0 bg-lin-brut" />
+      <div className="pointer-events-none absolute inset-0 opacity-40 [background:radial-gradient(ellipse_80%_60%_at_50%_30%,theme(colors.accent.500/12%)_0%,transparent_70%)]" />
 
       <RailLeft userEmail={userEmail} />
       <CenterPanel chatOpen={open}>{children}</CenterPanel>

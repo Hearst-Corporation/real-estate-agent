@@ -27,17 +27,17 @@ export default function DashboardError({
       <PageHeader kicker="Cockpit" title={title} />
       <Card>
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-zinc-600">
             Quelque chose s&apos;est mal passé en chargeant cette vue. Réessayez&nbsp;;
             si le problème persiste, rechargez la page.
           </p>
           {process.env.NODE_ENV === "development" && error.message ? (
-            <p className="text-xs text-slate-500">{error.message}</p>
+            <p className="text-xs text-zinc-500">{error.message}</p>
           ) : null}
           <div>
             <button
               type="button"
-              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
+              className="rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-400"
               onClick={reset}
             >
               Réessayer

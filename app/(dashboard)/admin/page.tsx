@@ -45,7 +45,7 @@ export default async function AdminPage() {
       {/* Page header */}
       <div className="flex flex-col gap-1 pb-2 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
-          <Subheading className="text-indigo-500 dark:text-indigo-400">{t.eyebrow}</Subheading>
+          <Subheading className="text-accent-500 dark:text-accent-400">{t.eyebrow}</Subheading>
           <Heading>{t.title}</Heading>
           <Text className="mt-1">{t.sub}</Text>
         </div>

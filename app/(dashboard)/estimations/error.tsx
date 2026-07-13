@@ -23,17 +23,17 @@ export default function EstimationsError({
       <PageHeader kicker={UI.estimations.eyebrow} title={title} />
       <Card>
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-zinc-600">
             Impossible de charger {UI.estimations.title.toLowerCase()}. Réessayez ;
             si le problème persiste, rechargez la page.
           </p>
           {process.env.NODE_ENV === "development" && error.message ? (
-            <p className="text-xs text-slate-500">{error.message}</p>
+            <p className="text-xs text-zinc-500">{error.message}</p>
           ) : null}
           <div>
             <button
               type="button"
-              className="inline-flex items-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-3 py-1.5 text-xs font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/25"
+              className="inline-flex items-center rounded-lg border border-accent-600/30 bg-accent-500/10 px-3 py-1.5 text-xs font-semibold text-accent-700 transition-colors hover:bg-accent-500/20"
               onClick={reset}
             >
               Réessayer

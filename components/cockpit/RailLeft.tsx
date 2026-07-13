@@ -40,8 +40,8 @@ function getCreateItems() {
 }
 
 const RAIL_ACTION =
-  "group relative flex w-16 flex-col items-center gap-1 rounded-xl py-2.5 text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-100";
-const RAIL_ACTION_ACTIVE = "bg-indigo-500/15 text-indigo-300";
+  "group relative flex w-16 flex-col items-center gap-1 rounded-xl py-2.5 text-zinc-500 transition-colors hover:bg-zinc-950/5 hover:text-zinc-900";
+const RAIL_ACTION_ACTIVE = "bg-accent-500/15 text-accent-700";
 
 export function RailLeft({ userEmail }: { userEmail?: string }) {
   const pathname = usePathname();
@@ -62,12 +62,12 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
 
   return (
     <nav
-      className="fixed inset-y-0 left-0 z-20 flex w-[104px] flex-col items-center border-r border-white/10 bg-white/[0.03] py-6 backdrop-blur-xl"
+      className="fixed inset-y-0 left-0 z-20 flex w-[104px] flex-col items-center border-r border-zinc-950/10 bg-white/60 py-6 backdrop-blur-xl"
       aria-label={UI.nav.home}
     >
       <Link
         href="/"
-        className="mb-6 flex size-10 items-center justify-center rounded-lg bg-white/[0.06] text-white"
+        className="mb-6 flex size-10 items-center justify-center rounded-lg bg-zinc-950/5 text-zinc-900"
         title={UI.nav.home}
       >
         <Logo />
@@ -113,13 +113,13 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
           </button>
 
           {menuOpen && (
-            <div className="absolute left-full top-0 z-30 ml-2 flex w-52 flex-col gap-1 rounded-xl border border-white/10 bg-slate-900/95 p-2 shadow-2xl backdrop-blur-xl">
+            <div className="absolute left-full top-0 z-30 ml-2 flex w-52 flex-col gap-1 rounded-xl border border-zinc-950/10 bg-white/95 p-2 shadow-2xl backdrop-blur-xl">
               {getCreateItems().map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setMenuOpen(false)}
-                  className="rounded-lg px-3 py-2 text-left text-sm text-slate-200 transition-colors hover:bg-white/5"
+                  className="rounded-lg px-3 py-2 text-left text-sm text-zinc-700 transition-colors hover:bg-zinc-950/5"
                 >
                   {label}
                 </Link>
@@ -134,8 +134,8 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
       <div className="pt-4">
         <Link
           href="/profile"
-          className={`flex size-10 items-center justify-center rounded-full bg-white/[0.06] text-sm font-semibold text-white transition-colors hover:bg-indigo-500/30 ${
-            pathname.startsWith("/profile") || pathname.startsWith("/admin") ? "ring-2 ring-indigo-400" : ""
+          className={`flex size-10 items-center justify-center rounded-full bg-zinc-950/5 text-sm font-semibold text-zinc-900 transition-colors hover:bg-accent-500/30 ${
+            pathname.startsWith("/profile") || pathname.startsWith("/admin") ? "ring-2 ring-accent-400" : ""
           }`}
           title={UI.nav.profile}
         >

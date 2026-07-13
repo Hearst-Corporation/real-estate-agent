@@ -72,7 +72,7 @@ export default async function AgendaPage() {
       {/* ── Header de page ── */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
             {t.eyebrow}
           </p>
           <Heading>{t.title}</Heading>
@@ -111,7 +111,7 @@ export default async function AgendaPage() {
             {visits.map((v) => (
               <li key={v.id} className="flex flex-wrap justify-between gap-x-6 gap-y-2 py-5">
                 <div className="flex min-w-0 gap-x-4">
-                  <div className="flex size-12 flex-none items-center justify-center rounded-xl border border-zinc-950/10 bg-indigo-500/15 text-indigo-500 dark:border-white/10 dark:text-indigo-400">
+                  <div className="flex size-12 flex-none items-center justify-center rounded-xl border border-zinc-950/10 bg-accent-500/15 text-accent-500 dark:border-white/10 dark:text-accent-400">
                     <CalendarIcon aria-hidden="true" className="size-6" />
                   </div>
                   <div className="min-w-0 flex-auto">

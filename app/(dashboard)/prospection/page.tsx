@@ -99,7 +99,7 @@ function scoreClass(score: number): "is-good" | "is-ok" | "is-low" {
 
 // Score ring : accent indigo (bon) / zinc (moyen/faible) — pas de couleur hors accent.
 const SCORE_TONE: Record<"is-good" | "is-ok" | "is-low", string> = {
-  "is-good": "stroke-indigo-400 text-indigo-500 dark:text-indigo-400",
+  "is-good": "stroke-accent-400 text-accent-500 dark:text-accent-400",
   "is-ok": "stroke-zinc-400 text-zinc-600 dark:text-zinc-300",
   "is-low": "stroke-zinc-500 text-zinc-500 dark:text-zinc-400",
 };
@@ -164,7 +164,7 @@ function EmptyState({
           {steps.map((s, i) => (
             <li key={i} className="flex items-center gap-2.5 text-sm text-zinc-600 dark:text-zinc-300">
               <span
-                className="flex size-5 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-xs font-semibold text-indigo-500 dark:text-indigo-300"
+                className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-xs font-semibold text-accent-500 dark:text-accent-300"
                 aria-hidden="true"
               >
                 {i + 1}
@@ -254,7 +254,7 @@ function AnnonceCard({
                 href={annonce.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-indigo-500 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300"
+                className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-500 hover:text-accent-400 dark:text-accent-400 dark:hover:text-accent-300"
               >
                 {UI.prospection.annonceVoir}
                 <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-3.5" />
@@ -414,7 +414,7 @@ export default function ProspectionPage() {
       <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
               {UI.prospection.kicker}
             </p>
             <Heading>{UI.prospection.title}</Heading>
@@ -443,7 +443,7 @@ export default function ProspectionPage() {
               plain
               onClick={() => selectTab(tItem)}
               aria-current={tab === tItem ? "page" : undefined}
-              className={tab === tItem ? "!text-indigo-500 dark:!text-indigo-400" : undefined}
+              className={tab === tItem ? "!text-accent-500 dark:!text-accent-400" : undefined}
             >
               {tabLabel(tItem)}
             </Button>
@@ -930,7 +930,7 @@ function Spinner() {
   return (
     <div className="flex items-center justify-center gap-2 py-12">
       <span
-        className="size-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent dark:border-indigo-400"
+        className="size-4 animate-spin rounded-full border-2 border-accent-500 border-t-transparent dark:border-accent-400"
         aria-hidden="true"
       />
       <Text>{UI.prospection.loading}</Text>

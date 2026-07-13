@@ -149,7 +149,7 @@ export function InterviewView({
   // ── Phase 1 : Wizard ──────────────────────────────────────────────────────
   if (phase === "wizard") {
     return (
-      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-950/10 bg-white">
         <EstimationWizard
           id={id}
           initialMessages={initialMessages}
@@ -183,7 +183,7 @@ export function InterviewView({
         {backToPropertyHref && (
           <Link
             href={backToPropertyHref}
-            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-indigo-300 hover:text-indigo-200"
+            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-accent-600 hover:text-accent-500"
           >
             <span aria-hidden="true">←</span>
             {UI.estimations.backToProperty}

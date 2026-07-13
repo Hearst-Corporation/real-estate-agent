@@ -62,7 +62,7 @@ export function PhotoUploader({ propertyId }: PhotoUploaderProps) {
     <div
       className={`flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed px-4 py-6 text-center transition-colors ${
         dragOver
-          ? "border-indigo-500/60 bg-indigo-500/10"
+          ? "border-accent-500/60 bg-accent-500/10"
           : "border-zinc-950/15 bg-zinc-950/[0.02] hover:border-zinc-950/25 hover:bg-zinc-950/[0.04] dark:border-white/15 dark:bg-white/[0.02] dark:hover:border-white/25 dark:hover:bg-white/[0.04]"
       }`}
       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}

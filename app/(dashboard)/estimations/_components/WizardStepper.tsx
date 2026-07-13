@@ -28,10 +28,10 @@ export function WizardStepper({ coverage, nextLabel, canGenerate }: Props) {
               key={i}
               className={`size-2 rounded-full transition-colors ${
                 filled
-                  ? "bg-indigo-400"
+                  ? "bg-accent-500"
                   : current
-                    ? "bg-white/20 ring-2 ring-indigo-400/50"
-                    : "bg-white/15"
+                    ? "bg-zinc-950/10 ring-2 ring-accent-400/50"
+                    : "bg-zinc-950/10"
               }`}
               aria-label={`Info clé ${i + 1}`}
             />
@@ -39,7 +39,7 @@ export function WizardStepper({ coverage, nextLabel, canGenerate }: Props) {
         })}
       </div>
       <div className="flex items-center gap-2 text-xs">
-        <span className="font-semibold text-zinc-700 dark:text-zinc-200">
+        <span className="font-semibold text-zinc-700">
           {UI.estimations.keyInfoProgress(Math.min(collected, total), total)}
         </span>
         <span className="text-zinc-500">{focus}</span>

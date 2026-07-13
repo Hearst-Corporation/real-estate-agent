@@ -64,7 +64,7 @@ function Zone({
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</span>
         <Badge color="zinc">{count}</Badge>
       </div>
       {properties.length === 0 ? (
@@ -75,16 +75,16 @@ function Zone({
             <li key={p.id} className="flex items-center justify-between gap-2">
               <Link
                 href={`/properties/${p.id}`}
-                className="truncate text-sm text-slate-200 hover:text-indigo-300"
+                className="truncate text-sm text-zinc-700 hover:text-accent-600"
               >
                 {p.title ?? tp.fallbackTitle}
               </Link>
               <span className="flex shrink-0 items-center gap-1.5">
                 {showPrice && (
-                  <span className="text-xs text-slate-500">{priceLabel(p.asking_price)}</span>
+                  <span className="text-xs text-zinc-500">{priceLabel(p.asking_price)}</span>
                 )}
                 {showDate && (
-                  <span className="text-xs text-slate-500">{dateFr(p.created_at ?? null)}</span>
+                  <span className="text-xs text-zinc-500">{dateFr(p.created_at ?? null)}</span>
                 )}
                 {showStatus && (
                   <Badge color={statusColorProp(p.status)}>
@@ -118,7 +118,7 @@ function HealthBlock({ properties }: { properties: CockpitProperty[] }) {
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
       <div>
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t.healthTitle}</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t.healthTitle}</span>
       </div>
       <div className="flex flex-wrap gap-2">
         {signals.map((s) => (
@@ -204,7 +204,7 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
       <HealthBlock properties={properties} />
 
       <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
           {t.recentActivity}
         </div>
         {byRecent.length === 0 ? (
@@ -215,7 +215,7 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
               <li key={p.id} className="flex items-center justify-between gap-2 py-2">
                 <Link
                   href={`/properties/${p.id}`}
-                  className="truncate text-sm text-slate-200 hover:text-indigo-300"
+                  className="truncate text-sm text-zinc-700 hover:text-accent-600"
                 >
                   {p.title ?? tp.fallbackTitle}
                 </Link>
@@ -224,10 +224,10 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
                     {tp.statusLabels[p.status] ?? p.status}
                   </Badge>
                   {p.city && (
-                    <span className="text-xs text-slate-500">{p.city}</span>
+                    <span className="text-xs text-zinc-500">{p.city}</span>
                   )}
                   {p.updated_at && (
-                    <span className="text-xs text-slate-500">{dateFr(p.updated_at)}</span>
+                    <span className="text-xs text-zinc-500">{dateFr(p.updated_at)}</span>
                   )}
                 </span>
               </li>

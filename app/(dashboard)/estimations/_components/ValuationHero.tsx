@@ -25,9 +25,9 @@ function pct(value: number, low: number, high: number): number {
 }
 
 const CONFIDENCE_COLOR: Record<string, string> = {
-  indicative: "border-white/15 bg-white/[0.06] text-zinc-600 dark:text-zinc-300",
-  moyenne: "border-white/15 bg-white/[0.08] text-zinc-700 dark:text-zinc-200",
-  elevee: "border-indigo-400/40 bg-indigo-500/15 text-indigo-700 dark:text-indigo-200",
+  indicative: "border-zinc-950/15 bg-zinc-950/5 text-zinc-600",
+  moyenne: "border-zinc-950/15 bg-zinc-950/[0.06] text-zinc-700",
+  elevee: "border-accent-400/40 bg-accent-500/15 text-accent-700",
 };
 
 export function ValuationHero({ id, valuation }: Props) {
@@ -70,7 +70,7 @@ export function ValuationHero({ id, valuation }: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-6 rounded-2xl border border-zinc-950/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur-sm lg:flex-row lg:items-stretch dark:border-white/10">
+    <div className="flex flex-col gap-6 rounded-2xl border border-zinc-950/10 bg-gradient-to-br from-accent-500/10 via-white to-white p-6 shadow-lg shadow-zinc-950/5 backdrop-blur-sm lg:flex-row lg:items-stretch">
       {/* ── Colonne valeur : badge, valeur, fourchette visuelle ── */}
       <div className="flex flex-1 flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -81,40 +81,40 @@ export function ValuationHero({ id, valuation }: Props) {
             {confidenceLabel}
           </span>
           {valuation.nbComparables > 0 && (
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs text-zinc-500">
               {UI.estimations.comparablesDvf(valuation.nbComparables)}
             </span>
           )}
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-300">
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent-600">
             {UI.estimations.market}
           </p>
-          <p className="mt-1 text-5xl font-black tracking-tight text-zinc-950 dark:text-white">
+          <p className="mt-1 text-5xl font-black tracking-tight text-zinc-950">
             {fmt.format(valuation.marketValue)}
           </p>
         </div>
 
         <div
-          className="relative mt-2 h-1.5 rounded-full bg-white/10"
+          className="relative mt-2 h-1.5 rounded-full bg-zinc-950/10"
           role="img"
           aria-label={`Fourchette ${fmt.format(valuation.lowValue)} à ${fmt.format(
             valuation.highValue
           )}, valeur de marché ${fmt.format(valuation.marketValue)}`}
         >
           <span
-            className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-zinc-300 dark:border-zinc-950"
+            className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-zinc-400"
             style={{ left: `${recoPct}%` }}
           />
           <span
-            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-indigo-400 dark:border-zinc-950"
+            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-accent-500"
             style={{ left: `${marketPct}%` }}
           />
         </div>
-        <p className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="flex items-center justify-between text-xs text-zinc-500">
           <span>{fmt.format(valuation.lowValue)}</span>
-          <span className="font-medium text-zinc-600 dark:text-zinc-300">
+          <span className="font-medium text-zinc-600">
             {UI.estimations.recoPriceLabel} · {fmt.format(valuation.recommendedListingPrice)}
           </span>
           <span>{fmt.format(valuation.highValue)}</span>
@@ -124,20 +124,20 @@ export function ValuationHero({ id, valuation }: Props) {
       {/* ── Colonne droite : KPIs + actions ── */}
       <div className="flex flex-col justify-between gap-4 lg:w-56 lg:shrink-0">
         <div className="flex flex-col gap-3">
-          <div className="rounded-xl border border-zinc-950/10 bg-white/[0.03] p-3 dark:border-white/10">
+          <div className="rounded-xl border border-zinc-950/10 bg-white p-3">
             <span className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
               {UI.estimations.perSqm}
             </span>
-            <span className="mt-1 block text-lg font-bold text-zinc-950 dark:text-white">
+            <span className="mt-1 block text-lg font-bold text-zinc-950">
               {fmt.format(valuation.adjustedPerM2)}
               {UI.estimations.perSqmUnit}
             </span>
           </div>
-          <div className="rounded-xl border border-indigo-400/40 bg-indigo-500/10 p-3">
+          <div className="rounded-xl border border-accent-400/40 bg-accent-500/10 p-3">
             <span className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
               {UI.estimations.recommended}
             </span>
-            <span className="mt-1 block text-lg font-bold text-indigo-700 dark:text-indigo-200">
+            <span className="mt-1 block text-lg font-bold text-accent-700">
               {fmt.format(valuation.recommendedListingPrice)}
             </span>
           </div>

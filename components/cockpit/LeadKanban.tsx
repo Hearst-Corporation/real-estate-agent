@@ -91,7 +91,7 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
     <div className="flex flex-col gap-4">
       {dropError && (
         <div
-          className="rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-2 text-sm text-red-400"
+          className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-700"
           role="alert"
         >
           {dropError}
@@ -101,26 +101,26 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
       {columns.map(col => (
         <div
           key={col.id}
-          className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-3"
+          className="flex flex-col gap-3 rounded-2xl border border-zinc-950/10 bg-zinc-950/[0.02] p-3"
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, col.id)}
         >
           <div className="flex items-center justify-between gap-2 px-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
               {col.title}
             </span>
-            <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-400">
+            <span className="rounded-full bg-zinc-950/5 px-2 py-0.5 text-xs font-medium text-zinc-500">
               {col.leads.length}
             </span>
           </div>
           <div className="flex min-h-16 flex-col gap-2">
             {col.leads.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-white/10" />
+              <div className="rounded-xl border border-dashed border-zinc-950/10" />
             ) : (
               col.leads.map(lead => (
                 <div
                   key={lead.id}
-                  className="cursor-grab rounded-xl border border-white/10 bg-white/[0.04] p-3 shadow-sm shadow-black/20 active:cursor-grabbing"
+                  className="cursor-grab rounded-xl border border-zinc-950/10 bg-white p-3 shadow-sm shadow-zinc-950/5 active:cursor-grabbing"
                   draggable
                   onDragStart={(e) => handleDragStart(e, lead.id)}
                 >
@@ -132,7 +132,7 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
                       {initials(lead.full_name)}
                     </div>
                     <span
-                      className="truncate text-sm font-medium text-slate-100"
+                      className="truncate text-sm font-medium text-zinc-900"
                       title={lead.full_name ?? ""}
                     >
                       {lead.full_name ?? t.fallbackInitials}
@@ -140,17 +140,17 @@ export function LeadKanban({ leads, onStatusChange }: LeadKanbanProps) {
                   </div>
                   <div className="mt-2">
                     {lead.budget_max ? (
-                      <span className="text-sm font-semibold tabular-nums text-slate-100">
+                      <span className="text-sm font-semibold tabular-nums text-zinc-900">
                         {eur(lead.budget_max)}
                       </span>
                     ) : lead.budget_min ? (
-                      <span className="text-sm font-semibold tabular-nums text-slate-100">
+                      <span className="text-sm font-semibold tabular-nums text-zinc-900">
                         ≥ {eur(lead.budget_min)}
                       </span>
                     ) : null}
                   </div>
                   <div className="mt-2 flex items-center justify-between gap-2">
-                    <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[0.65rem] font-medium text-slate-400">
+                    <span className="rounded-full bg-zinc-950/5 px-2 py-0.5 text-[0.65rem] font-medium text-zinc-500">
                       {lead.kind ? (t.kindLabels[lead.kind] || lead.kind) : "Lead"}
                     </span>
                     <LeadRowActions

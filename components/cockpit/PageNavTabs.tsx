@@ -18,7 +18,7 @@ export function PageNavTabs({ tabs }: { tabs: readonly TabItem[] }) {
             key={tab.href}
             href={tab.href}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              active ? "bg-indigo-500/15 text-indigo-300" : "text-slate-400 hover:text-slate-100"
+              active ? "bg-accent-500/15 text-accent-700" : "text-zinc-500 hover:text-zinc-900"
             }`}
             aria-current={active ? "page" : undefined}
           >

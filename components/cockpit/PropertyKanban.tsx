@@ -72,7 +72,7 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
     <div className="flex flex-col gap-3">
       {dropError && (
         <div
-          className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-300"
+          className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-700"
           role="alert"
         >
           {dropError}
@@ -82,28 +82,28 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
         {columns.map(col => (
           <div
             key={col.id}
-            className="flex w-72 shrink-0 flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3"
+            className="flex w-72 shrink-0 flex-col gap-3 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-3"
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, col.id)}
           >
             <div className="flex items-center justify-between gap-2 px-1">
-              <span className="text-sm font-semibold text-slate-100">{col.title}</span>
-              <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-300">
+              <span className="text-sm font-semibold text-zinc-900">{col.title}</span>
+              <span className="rounded-full border border-zinc-950/10 bg-zinc-950/5 px-2 py-0.5 text-xs font-medium text-zinc-600">
                 {col.properties.length}
               </span>
             </div>
             <div className="flex flex-col gap-3">
               {col.properties.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-white/10 py-6" />
+                <div className="rounded-lg border border-dashed border-zinc-950/10 py-6" />
               ) : (
                 col.properties.map(property => (
                   <div
                     key={property.id}
-                    className="cursor-grab overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] shadow-lg shadow-black/20 transition-colors hover:border-white/20 active:cursor-grabbing"
+                    className="cursor-grab overflow-hidden rounded-xl border border-zinc-950/10 bg-white shadow-sm shadow-zinc-950/5 transition-colors hover:border-zinc-950/20 active:cursor-grabbing"
                     draggable
                     onDragStart={(e) => handleDragStart(e, property.id)}
                   >
-                    <div className="relative h-32 w-full bg-black/20">
+                    <div className="relative h-32 w-full bg-zinc-950/5">
                       {property.cover_photo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -113,7 +113,7 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
                         />
                       ) : (
                         <div className="flex size-full items-center justify-center">
-                          <span className="text-xs text-slate-500">{t.photos.empty}</span>
+                          <span className="text-xs text-zinc-500">{t.photos.empty}</span>
                         </div>
                       )}
                       <div className="absolute left-2 top-2">
@@ -126,14 +126,14 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
                     <div className="flex flex-col gap-1.5 p-3">
                       <div>
                         <span
-                          className="block truncate text-sm font-medium text-slate-100"
+                          className="block truncate text-sm font-medium text-zinc-900"
                           title={property.title || t.fallbackTitle}
                         >
                           {property.title || t.fallbackTitle}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1 text-xs text-slate-400">
+                      <div className="flex items-center gap-1 text-xs text-zinc-500">
                         <span className="inline-flex items-center gap-1">
                           <Icon name="search" className="size-3" />
                           {property.city || "—"}
@@ -144,11 +144,11 @@ export function PropertyKanban({ properties, onStatusChange }: PropertyKanbanPro
                       </div>
 
                       <div className="mt-1 flex items-center justify-between gap-2">
-                        <span className="text-sm font-semibold text-white">{eur(property.asking_price)}</span>
+                        <span className="text-sm font-semibold text-zinc-900">{eur(property.asking_price)}</span>
 
                         <Link
                           href={`/properties/${property.id}`}
-                          className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
+                          className="rounded-lg border border-zinc-950/10 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-950/5"
                         >
                           {t.open}
                         </Link>

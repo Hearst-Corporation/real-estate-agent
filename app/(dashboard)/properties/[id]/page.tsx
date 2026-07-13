@@ -55,7 +55,7 @@ type PropertyRow = {
 
 /** Skeleton léger pour les sections en cours de chargement. */
 function SectionSkeleton() {
-  return <div className="h-24 animate-pulse rounded-lg bg-white/[0.04]" />;
+  return <div className="h-24 animate-pulse rounded-lg bg-zinc-950/[0.04]" />;
 }
 
 export default async function PropertyDetailPage({
@@ -155,7 +155,7 @@ export default async function PropertyDetailPage({
           value: (
             <Link
               href={`/estimations/${property.estimation_id}`}
-              className="font-semibold text-indigo-300 hover:text-indigo-200"
+              className="font-semibold text-accent-300 hover:text-accent-200"
             >
               {t.seeEstimation}
             </Link>
@@ -252,12 +252,12 @@ export default async function PropertyDetailPage({
       />
 
       {/* ── Hero prix ─────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6">
+      <div className="rounded-2xl border border-zinc-950/10 bg-gradient-to-br from-accent-500/10 via-white to-white p-6">
         {displayPrice != null && (
           <div className="flex flex-wrap items-baseline gap-3">
-            <span className="text-4xl font-black tracking-tight text-white">{eur(displayPrice)}</span>
+            <span className="text-4xl font-black tracking-tight text-zinc-900">{eur(displayPrice)}</span>
             {pricePerSqm != null && (
-              <span className="text-sm text-slate-400">{td.pricePerSqm(eur(pricePerSqm))}</span>
+              <span className="text-sm text-zinc-500">{td.pricePerSqm(eur(pricePerSqm))}</span>
             )}
           </div>
         )}
@@ -265,43 +265,43 @@ export default async function PropertyDetailPage({
         {/* Chips résumé — type · surface · pièces · chambres · étage · DPE */}
         <div className="mt-4 flex flex-wrap gap-2">
           {property.property_type && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-950/10 bg-zinc-950/5 px-3 py-1 text-xs font-medium text-zinc-700">
               <span aria-hidden="true">🏠</span>
               {t.typeLabels[property.property_type] ?? property.property_type}
             </span>
           )}
           {property.surface != null && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-950/10 bg-zinc-950/5 px-3 py-1 text-xs font-medium text-zinc-700">
               <span aria-hidden="true">📐</span>
               {sqm(property.surface)}
             </span>
           )}
           {property.rooms != null && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-950/10 bg-zinc-950/5 px-3 py-1 text-xs font-medium text-zinc-700">
               <span aria-hidden="true">🚪</span>
               {td.chipRooms(property.rooms)}
             </span>
           )}
           {property.bedrooms != null && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-950/10 bg-zinc-950/5 px-3 py-1 text-xs font-medium text-zinc-700">
               <span aria-hidden="true">🛏</span>
               {td.chipBedrooms(property.bedrooms)}
             </span>
           )}
           {property.floor != null && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-950/10 bg-zinc-950/5 px-3 py-1 text-xs font-medium text-zinc-700">
               <span aria-hidden="true">🏢</span>
               {td.chipFloor(property.floor, property.floor_total)}
             </span>
           )}
           {property.dpe_letter && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-950/10 bg-zinc-950/5 px-3 py-1 text-xs font-medium text-zinc-700">
               <span aria-hidden="true">⚡</span>
               {"DPE "}{property.dpe_letter}
             </span>
           )}
           {property.city && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-medium text-slate-200">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-950/10 bg-zinc-950/5 px-3 py-1 text-xs font-medium text-zinc-700">
               <span aria-hidden="true">📍</span>
               {property.city}
               {property.postal_code ? ` ${property.postal_code}` : ""}
@@ -310,7 +310,7 @@ export default async function PropertyDetailPage({
         </div>
 
         {daysOnMarket !== null && (
-          <span className="mt-3 block text-xs text-slate-500">{t.daysOnMarket(daysOnMarket)}</span>
+          <span className="mt-3 block text-xs text-zinc-500">{t.daysOnMarket(daysOnMarket)}</span>
         )}
       </div>
 
@@ -343,7 +343,7 @@ export default async function PropertyDetailPage({
             {equipItems.map((eq) => (
               <span
                 key={eq.key}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-sm text-slate-200"
+                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-950/10 bg-zinc-950/5 px-3 py-1.5 text-sm text-zinc-700"
               >
                 <span aria-hidden="true">{eq.icon}</span>
                 {eq.label}
@@ -358,10 +358,10 @@ export default async function PropertyDetailPage({
         <Card title={td.cardLocalisation}>
           <div className="flex flex-col gap-1.5">
             {property.address && (
-              <span className="text-sm text-slate-200">{property.address}</span>
+              <span className="text-sm text-zinc-700">{property.address}</span>
             )}
             {property.city && (
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-zinc-500">
                 {[property.postal_code, property.city].filter(Boolean).join(" ")}
               </span>
             )}
@@ -370,7 +370,7 @@ export default async function PropertyDetailPage({
                 href={`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-indigo-300 hover:text-indigo-200"
+                className="mt-1 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-accent-300 hover:text-accent-200"
               >
                 <span aria-hidden="true">{"📍"}</span>
                 {td.locMapsLink}
@@ -388,8 +388,8 @@ export default async function PropertyDetailPage({
               <div className="flex items-center gap-3">
                 <DpeBadge letter={property.dpe_letter} label={t.dpe.label} />
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold text-slate-100">{t.dpe.label}</span>
-                  <span className="text-xs text-slate-500">{td.dpeNote(property.dpe_letter)}</span>
+                  <span className="text-sm font-semibold text-zinc-900">{t.dpe.label}</span>
+                  <span className="text-xs text-zinc-500">{td.dpeNote(property.dpe_letter)}</span>
                 </div>
               </div>
             )}
@@ -397,8 +397,8 @@ export default async function PropertyDetailPage({
               <div className="flex items-center gap-3">
                 <DpeBadge letter={property.ges_letter} label={t.dpe.gesLabel} />
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold text-slate-100">{t.dpe.gesLabel}</span>
-                  <span className="text-xs text-slate-500">{td.gesNote(property.ges_letter)}</span>
+                  <span className="text-sm font-semibold text-zinc-900">{t.dpe.gesLabel}</span>
+                  <span className="text-xs text-zinc-500">{td.gesNote(property.ges_letter)}</span>
                 </div>
               </div>
             )}
@@ -409,9 +409,9 @@ export default async function PropertyDetailPage({
       {/* ── Notes internes ───────────────────────────────────────────────── */}
       <Card title={td.cardNotes}>
         {property.notes ? (
-          <p className="whitespace-pre-wrap text-sm text-slate-300">{property.notes}</p>
+          <p className="whitespace-pre-wrap text-sm text-zinc-700">{property.notes}</p>
         ) : (
-          <p className="text-sm text-slate-500">{td.notesEmpty}</p>
+          <p className="text-sm text-zinc-500">{td.notesEmpty}</p>
         )}
       </Card>
 

@@ -166,7 +166,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
   }
 
   const fieldsetClass = "rounded-xl border border-zinc-950/10 p-4 dark:border-white/10";
-  const legendClass = "px-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400";
+  const legendClass = "px-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400";
   const row2Class = "grid grid-cols-1 gap-4 sm:grid-cols-2";
 
   const letterOptions = ["A", "B", "C", "D", "E", "F", "G"];

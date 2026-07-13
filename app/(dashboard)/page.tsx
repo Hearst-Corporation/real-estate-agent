@@ -132,9 +132,9 @@ function QuickActions({
     <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)]">
       <Link
         href={primary.href}
-        className="flex items-center gap-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4 transition-colors hover:bg-indigo-500/15"
+        className="flex items-center gap-4 rounded-xl border border-accent-500/30 bg-accent-500/10 p-4 transition-colors hover:bg-accent-500/15"
       >
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-500 dark:text-indigo-300">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent-500/20 text-accent-500 dark:text-accent-300">
           <Icon name={primary.icon} />
         </span>
         <span className="flex flex-col gap-0.5">
@@ -361,7 +361,7 @@ export default async function DashboardPage() {
       {/* Header de page — structure headings__page-headings/01-with-actions montée en primitives */}
       <div className="md:flex md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-300">
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-300">
             {t.eyebrow}
           </p>
           <Heading className="mt-1 sm:truncate">{t.title}</Heading>
@@ -385,7 +385,7 @@ export default async function DashboardPage() {
               <dt className="truncate text-sm font-medium text-zinc-500 dark:text-zinc-400">
                 {item.label}
               </dt>
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-500 dark:text-indigo-300">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent-500/15 text-accent-500 dark:text-accent-300">
                 <Icon name={item.icon} />
               </span>
             </div>

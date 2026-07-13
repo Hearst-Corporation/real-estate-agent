@@ -45,7 +45,7 @@ export function StatusSelect({ endpoint, value, options, labels, ariaLabel }: St
   return (
     <>
       <select
-        className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs font-medium text-slate-100 focus:border-indigo-400/50 focus:outline-none disabled:opacity-50"
+        className="rounded-lg border border-zinc-950/10 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-900 focus:border-accent-500/50 focus:outline-none disabled:opacity-50"
         value={value}
         onChange={handleChange}
         disabled={busy}
@@ -57,7 +57,7 @@ export function StatusSelect({ endpoint, value, options, labels, ariaLabel }: St
           </option>
         ))}
       </select>
-      {error ? <span className="ml-2 text-xs text-red-400">{error}</span> : null}
+      {error ? <span className="ml-2 text-xs text-red-600">{error}</span> : null}
     </>
   );
 }
