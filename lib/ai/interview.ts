@@ -15,6 +15,7 @@ import { recordPropertyDataTool } from "@/lib/estimation/tool-schema";
 import { PropertyDataSchema } from "@/lib/estimation/schema";
 import type { PropertyData, FieldStatusMap } from "@/lib/estimation/types";
 import { trace, type TraceUsage } from "@/lib/providers/langfuse";
+import { scrubSecrets } from "@/lib/providers/scrub";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -201,9 +202,12 @@ export async function streamInterviewTurn(
   // Observabilité Langfuse — no-op si non configuré, jamais bloquant.
   let t: ReturnType<typeof trace> = { end: () => {} };
   try {
+    // Le message du vendeur peut porter de la PII (adresse complète, nom, email,
+    // téléphone). On le scrub AVANT de l'envoyer à l'observabilité Langfuse —
+    // adresse/rue/email/GPS masqués par scrubSecrets.
     t = trace(
       "interview-turn",
-      { model, userMessage: params.userMessage },
+      { model, userMessage: scrubSecrets(params.userMessage) },
       { provider: useKimi ? "kimi" : "anthropic", model },
     );
   } catch {

@@ -11,6 +11,17 @@ import { RECAP_FIELDS } from "@/lib/estimation/spec";
 import type { Coverage } from "@/lib/estimation/spec";
 import type { PropertyData, FieldStatusMap } from "@/lib/estimation/types";
 
+/**
+ * Codes d'erreur signalant une panne du provider LLM (et non une erreur de
+ * saisie). Ils déclenchent le mode dégradé : message clair, saisie préservée,
+ * génération toujours possible depuis les données déjà collectées.
+ */
+const LLM_FAILURE_CODES = new Set([
+  "interview_not_configured", // provider absent / clé manquante (503)
+  "stream_error", // exception serveur pendant le stream
+  "stream_failed", // réponse non-OK sans corps exploitable
+]);
+
 /** Trace d'activité de l'agent pour un tour : sa réflexion + ce qu'il a fait. */
 type AgentActivity = { reasoning: string; events: string[] };
 type Msg = { role: "user" | "assistant"; content: string; activity?: AgentActivity };
@@ -337,7 +348,13 @@ export function EstimationWizard({
         });
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : UI.common.error);
+      // Mode dégradé : un échec LLM (provider absent, timeout, 5xx, stream cassé)
+      // ne bloque PAS l'estimation. On affiche un message clair invitant à
+      // réessayer / continuer, jamais un code technique brut. La saisie reste
+      // ouverte et la génération se débloque dès que l'essentiel est collecté.
+      const code = e instanceof Error ? e.message : "";
+      const isLlmFailure = LLM_FAILURE_CODES.has(code);
+      setError(isLlmFailure ? UI.estimations.interviewUnavailable : code || UI.common.error);
       setMessages((m) => m.slice(0, -1));
     } finally {
       setBusy(false);

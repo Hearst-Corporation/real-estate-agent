@@ -69,18 +69,33 @@ function applyFirewall(html: string): string {
   return html;
 }
 
+// ── Échappement HTML (contenu contrôlé par le vendeur → jamais brut dans le <head>) ──
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 // ── Rendu HTML complet ────────────────────────────────────────────────────────
 export function renderBrochureHtml(estimation: Estimation): string {
   const innerMarkup = renderToStaticMarkup(
     React.createElement(Brochure, { estimation })
   );
 
+  // L'adresse vient de l'entretien (donnée vendeur) : elle est interpolée dans
+  // le <title> HORS du rendu React → on l'échappe manuellement (sinon injection
+  // de balises dans le <head>).
+  const titleAddr = escapeHtml(estimation.property.adresse ?? 'Brochure');
+
   const raw = `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Avis de Valeur — ${estimation.property.adresse ?? 'Brochure'}</title>
+<title>Avis de Valeur — ${titleAddr}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />

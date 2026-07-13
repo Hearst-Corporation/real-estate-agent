@@ -40,6 +40,8 @@ export default async function BrochurePage({ params }: Props) {
     <html lang="fr" className="brochure-host">
       <head>
         <meta charSet="utf-8" />
+        {/* Brochure = lien de partage privé porteur de PII : jamais indexée. */}
+        <meta name="robots" content="noindex, nofollow, noarchive" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <title>{UI.brochure.docTitle}</title>
         <style>{`
