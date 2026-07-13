@@ -18,7 +18,7 @@ export async function sendEmail(opts: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: opts.from ?? process.env.RESEND_FROM ?? "alerte@real-estate-agent.app",
+      from: opts.from ?? process.env.RESEND_FROM_EMAIL ?? "alerte@real-estate-agent.app",
       to: opts.to,
       subject: opts.subject,
       html: opts.html,
