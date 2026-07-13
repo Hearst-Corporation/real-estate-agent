@@ -56,7 +56,8 @@ export async function POST() {
       const { data: winner } = await findBlankDraft();
       if (winner) return NextResponse.json({ id: winner.id }, { status: 200 });
     }
-    return NextResponse.json({ error: "create_failed", detail: error?.message }, { status: 500 });
+    console.error("[estimations POST] create_failed:", error);
+    return NextResponse.json({ error: "create_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ id: data.id }, { status: 201 });
@@ -82,7 +83,8 @@ export async function GET() {
     .order("updated_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: "fetch_failed", detail: error.message }, { status: 500 });
+    console.error("[estimations GET] fetch_failed:", error);
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ estimations: data ?? [] });

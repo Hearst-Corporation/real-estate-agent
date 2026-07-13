@@ -160,9 +160,8 @@ export async function GET(
     if (etag) headers["ETag"] = etag;
     return new Response(pdfBuffer as unknown as BodyInit, { headers });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "render_error";
     console.error("[pdf/route] render error:", err);
     captureFatal(err, "estimations/[id]/pdf");
-    return Response.json({ error: message }, { status: 500 });
+    return Response.json({ error: "render_error" }, { status: 500 });
   }
 }

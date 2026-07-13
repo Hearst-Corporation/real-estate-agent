@@ -285,9 +285,10 @@ export async function POST(
 
         enqueueFrame({ type: "done" });
       } catch (err) {
+        console.error("[interview/route] stream error:", err);
         enqueueFrame({
           type: "error",
-          message: err instanceof Error ? err.message : "stream_error",
+          message: "stream_error",
         });
       } finally {
         controller.close();

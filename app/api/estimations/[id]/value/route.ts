@@ -256,14 +256,15 @@ export async function POST(
 
         emit({ type: 'done', valuation, market });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'pipeline_error';
         console.error('[value/route] pipeline error:', err);
         // Le 200 (stream) est déjà parti : pas de 500 HTTP, mais l'exception
         // pipeline reste fatale → on la capture quand même.
         captureFatal(err, 'estimations/[id]/value');
         try {
           controller.enqueue(
-            encoder.encode(JSON.stringify({ type: 'error', message: msg }) + '\n'),
+            encoder.encode(
+              JSON.stringify({ type: 'error', message: 'pipeline_error' }) + '\n',
+            ),
           );
         } catch {
           // controller might already be closed

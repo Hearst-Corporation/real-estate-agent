@@ -112,8 +112,7 @@ export async function GET(
       },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "render_error";
     console.error("[brochure/pdf] render error:", err);
-    return Response.json({ error: message }, { status: 500 });
+    return Response.json({ error: "render_error" }, { status: 500 });
   }
 }
