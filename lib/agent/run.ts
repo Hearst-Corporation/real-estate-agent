@@ -1,20 +1,28 @@
 /**
- * lib/agent/run.ts — Boucle agentique multi-tours, provider-agnostique.
+ * lib/agent/run.ts — Boucle agentique multi-tours sur OpenAI (function-calling natif).
  *
- * Réplique les conventions de lib/ai/interview.ts (streaming, tool_use Anthropic,
- * tool_calls Kimi/OpenAI, trace Langfuse). À chaque tour, le LLM peut appeler des
- * outils ; on les exécute, on émet des frames (text/tool/action) et on reboucle
- * jusqu'à `maxSteps` ou jusqu'à ce que le LLM s'arrête sans demander d'outil.
+ * À chaque tour, le modèle peut appeler des outils (`tool_calls` OpenAI) ; on les
+ * exécute, on émet des frames (text/tool/action) et on reboucle jusqu'à `maxSteps`
+ * ou jusqu'à ce que le modèle s'arrête sans demander d'outil.
  *
- * Le merge / l'exécution des outils se fait TOUJOURS sur des appels finalisés
- * (tool_use Anthropic complet ou arguments JSON Kimi entièrement bufferisés),
- * jamais sur des deltas partiels.
+ * L'exécution des outils se fait TOUJOURS sur des appels finalisés (arguments JSON
+ * entièrement bufferisés), jamais sur des deltas partiels.
+ *
+ * Sécurité :
+ *  - Les résultats de tools sont renvoyés comme messages `role:"tool"` (données),
+ *    jamais comme instructions système → barrière contre l'injection de prompt.
+ *  - Fallback modèle sur indispo/rate-limit/timeout (OPENAI_CHAT_FALLBACK_MODEL).
+ *  - AbortSignal propagé à chaque appel : l'annulation client coupe le stream.
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import type OpenAI from "openai";
-import { kimi } from "@/lib/llm/kimi";
-import { usesKimiPath } from "@/lib/ai/interview";
+import {
+  getOpenAiClient,
+  normalizeOpenAiError,
+  OPENAI_CHAT_FALLBACK_MODEL,
+  shouldFallback,
+  type OpenAiErrorCode,
+} from "@/lib/llm/openai";
 import { ALL_TOOLS, getTool } from "@/lib/agent/tools/registry";
 import type { AgentTool, ToolContext } from "@/lib/agent/types";
 import type { TraceUsage } from "@/lib/providers/langfuse";
@@ -37,24 +45,20 @@ interface RunAgentParams {
   userMessage: string;
   ctx: ToolContext;
   maxSteps?: number;
+  /** Signal d'annulation lié à la requête HTTP : coupe le stream si le client part. */
+  signal?: AbortSignal;
 }
 
 interface RunAgentResult {
   /** Texte visible cumulé sur tous les tours (à persister comme message assistant). */
   assistantText: string;
-  /** Usage tokens (uniquement sur le chemin Anthropic, cumulé). */
+  /** Usage tokens cumulé. */
   usage?: TraceUsage;
+  /** Code d'erreur normalisé si la génération a échoué (sans secret). */
+  errorCode?: OpenAiErrorCode;
 }
 
-// ─── Conversion des outils vers chaque format provider ──────────────────────
-
-function toAnthropicTool(t: AgentTool): Anthropic.Tool {
-  return {
-    name: t.name,
-    description: t.description,
-    input_schema: t.inputSchema as Anthropic.Tool.InputSchema,
-  };
-}
+// ─── Conversion des outils vers le format OpenAI ────────────────────────────
 
 function toOpenAiTool(t: AgentTool): OpenAI.Chat.Completions.ChatCompletionTool {
   return {
@@ -72,6 +76,9 @@ function toOpenAiTool(t: AgentTool): OpenAI.Chat.Completions.ChatCompletionTool 
 /**
  * Exécute un outil par nom et émet les frames tool (running → ok/error) + action.
  * Renvoie l'observation textuelle à renvoyer au LLM comme tool_result.
+ *
+ * Les tools de MUTATION appliquent eux-mêmes leur garde de confirmation
+ * (`confirmed=true` requis) : le moteur n'exécute jamais une mutation « en douce ».
  */
 async function runToolCall(
   toolUseId: string,
@@ -104,109 +111,7 @@ async function runToolCall(
   }
 }
 
-// ─── Chemin Anthropic ───────────────────────────────────────────────────────
-
-async function runAnthropic(params: RunAgentParams, maxSteps: number): Promise<RunAgentResult> {
-  const { model, system, history, userMessage, ctx } = params;
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const tools = ALL_TOOLS.map(toAnthropicTool);
-
-  const messages: Anthropic.MessageParam[] = [
-    ...history.map((m) => ({ role: m.role, content: m.content })),
-    { role: "user" as const, content: userMessage },
-  ];
-
-  let assistantText = "";
-  let inputTokens = 0;
-  let outputTokens = 0;
-  // Vrai si le dernier tour a poussé des tool_result jamais « vus » par le modèle.
-  let pendingToolResults = false;
-
-  for (let step = 0; step < maxSteps; step++) {
-    const stream = client.messages.stream({
-      model,
-      max_tokens: AGENT_MAX_TOKENS,
-      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-      tools,
-      tool_choice: { type: "auto" },
-      messages,
-    });
-
-    stream.on("text", (delta) => {
-      assistantText += delta;
-      ctx.emit({ type: "text", delta });
-    });
-
-    const finalMessage = await stream.finalMessage();
-    if (finalMessage.usage) {
-      inputTokens += finalMessage.usage.input_tokens;
-      outputTokens += finalMessage.usage.output_tokens;
-    }
-
-    if (finalMessage.stop_reason !== "tool_use") {
-      pendingToolResults = false;
-      break;
-    }
-
-    const toolUseBlocks = finalMessage.content.filter(
-      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
-    );
-    if (toolUseBlocks.length === 0) {
-      pendingToolResults = false;
-      break;
-    }
-
-    // Pousse la réponse de l'assistant (texte + tool_use) puis les tool_result.
-    messages.push({ role: "assistant", content: finalMessage.content });
-
-    const toolResults: Anthropic.ToolResultBlockParam[] = [];
-    for (const block of toolUseBlocks) {
-      const observation = await runToolCall(
-        block.id,
-        block.name,
-        (block.input ?? {}) as Record<string, unknown>,
-        ctx,
-      );
-      const safeContent = observation && observation.trim() ? observation : EMPTY_OBSERVATION_FALLBACK;
-      toolResults.push({ type: "tool_result", tool_use_id: block.id, content: safeContent });
-    }
-    messages.push({ role: "user", content: toolResults });
-    pendingToolResults = true;
-  }
-
-  // Sortie par épuisement de maxSteps avec des tool_result jamais synthétisés :
-  // un dernier appel SANS outils pour produire la phrase de synthèse.
-  if (pendingToolResults) {
-    try {
-      const finalStream = client.messages.stream({
-        model,
-        max_tokens: AGENT_MAX_TOKENS,
-        system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-        messages,
-      });
-
-      finalStream.on("text", (delta) => {
-        assistantText += delta;
-        ctx.emit({ type: "text", delta });
-      });
-
-      const finalSynthesis = await finalStream.finalMessage();
-      if (finalSynthesis.usage) {
-        inputTokens += finalSynthesis.usage.input_tokens;
-        outputTokens += finalSynthesis.usage.output_tokens;
-      }
-    } catch {
-      // synthèse best-effort : les outils ont déjà réussi, on n'émet pas d'erreur globale
-    }
-  }
-
-  return {
-    assistantText,
-    usage: { input: inputTokens, output: outputTokens, model },
-  };
-}
-
-// ─── Chemin Kimi / OpenAI ───────────────────────────────────────────────────
+// ─── Chemin OpenAI (function-calling natif, streaming) ──────────────────────
 
 interface AccumulatedToolCall {
   id: string;
@@ -214,42 +119,53 @@ interface AccumulatedToolCall {
   args: string;
 }
 
-async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAgentResult> {
-  const { model, system, history, userMessage, ctx } = params;
-  const tools = ALL_TOOLS.map(toOpenAiTool);
+interface TurnStreamResult {
+  /** Appels d'outils finalisés (id + name non vides). */
+  calls: AccumulatedToolCall[];
+  /** Texte visible produit ce tour (pour le message assistant sortant). */
+  content: string;
+  inputTokens: number;
+  outputTokens: number;
+  sawUsage: boolean;
+}
 
-  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-    { role: "system", content: system },
-    ...history.map((m) => ({ role: m.role, content: m.content }) as OpenAI.Chat.Completions.ChatCompletionMessageParam),
-    { role: "user", content: userMessage },
-  ];
+/**
+ * Un tour de stream OpenAI : émet les deltas de texte via `ctx.emit` et
+ * accumule les tool_calls. Bascule sur le modèle de repli si le principal
+ * échoue avec une erreur transitoire.
+ */
+async function streamTurn(
+  model: string,
+  messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+  tools: OpenAI.Chat.Completions.ChatCompletionTool[],
+  toolChoice: "auto" | "none",
+  ctx: ToolContext,
+  signal: AbortSignal | undefined,
+): Promise<TurnStreamResult> {
+  const client = getOpenAiClient();
 
-  let assistantText = "";
-  // Usage cumulé sur tous les tours : l'API OpenAI-compatible n'émet l'usage que
-  // sur le DERNIER chunk de chaque stream (avec `stream_options.include_usage`).
-  let inputTokens = 0;
-  let outputTokens = 0;
-  let sawUsage = false;
-  // Vrai si le dernier tour a poussé des messages tool jamais « vus » par le modèle.
-  let pendingToolResults = false;
-
-  for (let step = 0; step < maxSteps; step++) {
-    const stream = await kimi.chat.completions.create({
-      model,
-      stream: true,
-      stream_options: { include_usage: true },
-      max_tokens: AGENT_MAX_TOKENS,
-      messages,
-      tools,
-      tool_choice: "auto",
-    });
+  const attempt = async (m: string): Promise<TurnStreamResult> => {
+    const stream = await client.chat.completions.create(
+      {
+        model: m,
+        stream: true,
+        stream_options: { include_usage: true },
+        max_tokens: AGENT_MAX_TOKENS,
+        messages,
+        ...(toolChoice === "none"
+          ? { tool_choice: "none" as const }
+          : { tools, tool_choice: "auto" as const }),
+      },
+      { signal },
+    );
 
     let content = "";
-    // Indexées par `index` du delta (l'ordre des tool_calls dans le flux).
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let sawUsage = false;
     const toolCalls: Record<number, AccumulatedToolCall> = {};
 
     for await (const chunk of stream) {
-      // L'usage arrive sur le tout dernier chunk du stream (choices vide).
       if (chunk.usage) {
         inputTokens += chunk.usage.prompt_tokens;
         outputTokens += chunk.usage.completion_tokens;
@@ -260,7 +176,6 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
 
       if (delta.content) {
         content += delta.content;
-        assistantText += delta.content;
         ctx.emit({ type: "text", delta: delta.content });
       }
 
@@ -273,17 +188,59 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
       }
     }
 
-    // Ne garde que les appels finalisés et valides : `id` + `name` non vides.
-    // L'API OpenAI/Moonshot rejette un function.name vide au tour suivant.
+    // Ne garde que les appels finalisés : `id` + `name` non vides.
     const calls = Object.keys(toolCalls)
       .map((k) => Number(k))
       .sort((a, b) => a - b)
       .map((k) => toolCalls[k])
       .filter((c) => c.id.trim() !== "" && c.name.trim() !== "");
 
-    // Aucun appel valide → on traite ce tour comme une réponse texte et on s'arrête,
-    // en gardant le texte déjà streamé.
-    if (calls.length === 0) {
+    return { calls, content, inputTokens, outputTokens, sawUsage };
+  };
+
+  try {
+    return await attempt(model);
+  } catch (err) {
+    const norm = normalizeOpenAiError(err);
+    // Annulation client : ne pas retenter, propager tel quel.
+    if (norm.code === "aborted") throw norm;
+    // Si aucun texte n'a encore été streamé et l'erreur est transitoire, on
+    // retente sur le modèle de repli (une seule fois).
+    if (shouldFallback(norm.code) && model !== OPENAI_CHAT_FALLBACK_MODEL) {
+      return await attempt(OPENAI_CHAT_FALLBACK_MODEL);
+    }
+    throw norm;
+  }
+}
+
+async function runOpenAi(params: RunAgentParams, maxSteps: number): Promise<RunAgentResult> {
+  const { model, system, history, userMessage, ctx, signal } = params;
+  const tools = ALL_TOOLS.map(toOpenAiTool);
+
+  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+    { role: "system", content: system },
+    ...history.map(
+      (m) => ({ role: m.role, content: m.content }) as OpenAI.Chat.Completions.ChatCompletionMessageParam,
+    ),
+    { role: "user", content: userMessage },
+  ];
+
+  let assistantText = "";
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let sawUsage = false;
+  // Vrai si le dernier tour a poussé des messages tool jamais « vus » par le modèle.
+  let pendingToolResults = false;
+
+  for (let step = 0; step < maxSteps; step++) {
+    const turn = await streamTurn(model, messages, tools, "auto", ctx, signal);
+    assistantText += turn.content;
+    inputTokens += turn.inputTokens;
+    outputTokens += turn.outputTokens;
+    sawUsage = sawUsage || turn.sawUsage;
+
+    // Aucun appel valide → réponse texte finale, on s'arrête.
+    if (turn.calls.length === 0) {
       pendingToolResults = false;
       break;
     }
@@ -291,15 +248,15 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
     // Pousse le message assistant porteur des tool_calls, puis un message tool par appel.
     messages.push({
       role: "assistant",
-      content: content || null,
-      tool_calls: calls.map((c) => ({
+      content: turn.content || null,
+      tool_calls: turn.calls.map((c) => ({
         id: c.id,
         type: "function" as const,
         function: { name: c.name, arguments: c.args || "{}" },
       })),
     });
 
-    for (const c of calls) {
+    for (const c of turn.calls) {
       let parsed: Record<string, unknown> = {};
       try {
         parsed = c.args ? (JSON.parse(c.args) as Record<string, unknown>) : {};
@@ -307,7 +264,8 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
         parsed = {};
       }
       const observation = await runToolCall(c.id, c.name, parsed, ctx);
-      const safeContent = observation && observation.trim() ? observation : EMPTY_OBSERVATION_FALLBACK;
+      const safeContent = observation?.trim() ? observation : EMPTY_OBSERVATION_FALLBACK;
+      // Résultat de tool = DONNÉE (role:"tool"), jamais une instruction système.
       messages.push({ role: "tool", tool_call_id: c.id, content: safeContent });
     }
     pendingToolResults = true;
@@ -317,33 +275,16 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
   // un dernier appel SANS outils pour produire la phrase de synthèse.
   if (pendingToolResults) {
     try {
-      const finalStream = await kimi.chat.completions.create({
-        model,
-        stream: true,
-        stream_options: { include_usage: true },
-        max_tokens: AGENT_MAX_TOKENS,
-        messages,
-        tool_choice: "none",
-      });
-
-      for await (const chunk of finalStream) {
-        if (chunk.usage) {
-          inputTokens += chunk.usage.prompt_tokens;
-          outputTokens += chunk.usage.completion_tokens;
-          sawUsage = true;
-        }
-        const delta = chunk.choices?.[0]?.delta;
-        if (delta?.content) {
-          assistantText += delta.content;
-          ctx.emit({ type: "text", delta: delta.content });
-        }
-      }
+      const finalTurn = await streamTurn(model, messages, tools, "none", ctx, signal);
+      assistantText += finalTurn.content;
+      inputTokens += finalTurn.inputTokens;
+      outputTokens += finalTurn.outputTokens;
+      sawUsage = sawUsage || finalTurn.sawUsage;
     } catch {
       // synthèse best-effort : les outils ont déjà réussi, on n'émet pas d'erreur globale
     }
   }
 
-  // Usage remonté uniquement si le provider l'a émis (dernier chunk de stream).
   return {
     assistantText,
     usage: sawUsage ? { input: inputTokens, output: outputTokens, model } : undefined,
@@ -353,19 +294,24 @@ async function runKimi(params: RunAgentParams, maxSteps: number): Promise<RunAge
 // ─── Entrée publique ────────────────────────────────────────────────────────
 
 /**
- * Lance la boucle agentique. Streame texte + frames d'outils via `ctx.emit`.
- * Ne jette jamais : en cas d'erreur LLM, émet une note d'erreur et termine.
+ * Lance la boucle agentique OpenAI. Streame texte + frames d'outils via `ctx.emit`.
+ * Ne jette jamais : en cas d'erreur LLM, émet une note d'erreur normalisée
+ * (sans secret ni détail interne) et termine.
  */
 export async function runAgent(params: RunAgentParams): Promise<RunAgentResult> {
   const maxSteps = params.maxSteps ?? DEFAULT_MAX_STEPS;
-  const useKimi = usesKimiPath(params.model);
 
   try {
-    return useKimi ? await runKimi(params, maxSteps) : await runAnthropic(params, maxSteps);
+    return await runOpenAi(params, maxSteps);
   } catch (err) {
-    console.error("[cockpit-agent] échec de génération:", err instanceof Error ? err.message : String(err));
+    const norm = normalizeOpenAiError(err);
+    // Annulation client : silencieuse (le flux est déjà coupé), pas de note d'erreur.
+    if (norm.code === "aborted") {
+      return { assistantText: "", errorCode: "aborted" };
+    }
+    console.error("[cockpit-agent] échec de génération:", norm.code);
     const note = "\n[Erreur de génération]";
     params.ctx.emit({ type: "text", delta: note });
-    return { assistantText: note };
+    return { assistantText: note, errorCode: norm.code };
   }
 }

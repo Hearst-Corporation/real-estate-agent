@@ -2,7 +2,7 @@
  * app/api/cockpit-chat/route.ts — Chat Cockpit AGENTIQUE.
  *
  * Orchestrateur mince : auth → scope/chat → mémoire → historique → contexte
- * (faits de la page courante) → runAgent (boucle function-calling Kimi) →
+ * (faits de la page courante) → runAgent (boucle function-calling OpenAI) →
  * streaming NDJSON (frames chat|text|tool|action|error|done) → persistance.
  *
  * Toutes les ACTIONS passent par des outils (`lib/agent/tools/*`) filtrés
@@ -13,7 +13,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
-import { KIMI_MODEL, kimiIsConfigured } from "@/lib/llm/kimi";
+import { OPENAI_CHAT_MODEL, openaiIsConfigured } from "@/lib/llm/openai";
 import { tenantOf, uuidOwnerOf } from "@/lib/tenant";
 import { trace, type TraceUsage } from "@/lib/providers/langfuse";
 import { captureServer } from "@/lib/providers/posthog";
@@ -91,7 +91,14 @@ export async function POST(req: Request) {
 
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "invalid_body" }, { status: 400 });
-  if (!kimiIsConfigured()) return NextResponse.json({ error: "kimi_not_configured" }, { status: 503 });
+  // Mode dégradé HONNÊTE : sans clé OpenAI, l'assistant est désactivé — 503 clair,
+  // jamais de fausse réponse. Le reste de l'app continue de fonctionner.
+  if (!openaiIsConfigured()) {
+    return NextResponse.json(
+      { error: "assistant_not_configured", message: "L'assistant IA n'est pas configuré." },
+      { status: 503 },
+    );
+  }
 
   const sb = getSupabaseAdmin();
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
@@ -99,7 +106,7 @@ export async function POST(req: Request) {
   const userId = claims.sub;
   const tenant = tenantOf(claims);
   const ownerId = uuidOwnerOf(claims);
-  captureServer(userId, "chat_message", { model: KIMI_MODEL });
+  captureServer(userId, "chat_message", { model: OPENAI_CHAT_MODEL });
   const { message, context } = parsed.data;
   const estimationId = estimationIdFromPathname(context?.pathname);
   const chatScope = estimationId ? `estimation:${estimationId}` : `page:${context?.pathname ?? "global"}`;
@@ -165,7 +172,7 @@ export async function POST(req: Request) {
   // Observabilité (no-op si non configurée).
   let t: { end: (output: unknown, usage?: TraceUsage) => void } = { end: () => {} };
   try {
-    t = trace("cockpit-chat", { model: KIMI_MODEL, historyLen: history.length }, { provider: "kimi", model: KIMI_MODEL });
+    t = trace("cockpit-chat", { model: OPENAI_CHAT_MODEL, historyLen: history.length }, { provider: "openai", model: OPENAI_CHAT_MODEL });
   } catch {
     /* trace ne doit jamais bloquer le chat */
   }
@@ -182,7 +189,14 @@ export async function POST(req: Request) {
       let assistantText = "";
       let usage: TraceUsage | undefined;
       try {
-        const res = await runAgent({ model: KIMI_MODEL, system, history, userMessage: message, ctx });
+        const res = await runAgent({
+          model: OPENAI_CHAT_MODEL,
+          system,
+          history,
+          userMessage: message,
+          ctx,
+          signal: req.signal,
+        });
         assistantText = res.assistantText;
         usage = res.usage;
       } catch (err) {
