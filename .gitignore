@@ -75,3 +75,6 @@ test-layout.html
 
 # enable-adrien backups
 *.bak
+.scratch/
+playwright-report/
+*.log
