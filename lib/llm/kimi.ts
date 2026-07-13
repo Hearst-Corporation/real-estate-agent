@@ -11,8 +11,14 @@ import OpenAI from "openai";
  */
 const MOONSHOT_KEY = process.env.MOONSHOT_API_KEY;
 
+// `apiKey` retombe sur "" (jamais `undefined`) : le SDK OpenAI jette au
+// chargement du module si `undefined` ET `OPENAI_API_KEY` absent — ce qui
+// casserait le build/toute route important ce module sur un environnement
+// sans clé Kimi (ex. Vercel Preview). `kimiIsConfigured()` reste la garde
+// réelle avant tout appel réseau ; une "" ne fait juste échouer l'appel HTTP
+// que si jamais on l'atteignait sans avoir vérifié la config en amont.
 export const kimi = new OpenAI({
-  apiKey: MOONSHOT_KEY || process.env.HYPERCLI_API_KEY,
+  apiKey: MOONSHOT_KEY || process.env.HYPERCLI_API_KEY || "",
   baseURL: MOONSHOT_KEY
     ? process.env.MOONSHOT_BASE_URL || "https://api.moonshot.ai/v1"
     : process.env.HYPERCLI_BASE_URL || "https://api.hypercli.com/v1",
