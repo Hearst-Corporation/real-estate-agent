@@ -277,7 +277,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
             {(swarm.agents ?? []).length === 0 ? (
               <Text className="py-8 text-center">{UI.swarms.agentsEmpty}</Text>
             ) : (
-              <ul role="list" className="divide-y divide-zinc-950/5 dark:divide-white/5">
+              <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
                 {(swarm.agents ?? []).map((agent, i) => (
                   <li key={agent.id ?? i} className="py-4 first:pt-0 last:pb-0">
                     <Text className="font-medium text-zinc-950 dark:text-white">{agent.name}</Text>
@@ -294,7 +294,7 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
             {(swarm.tasks ?? []).length === 0 ? (
               <Text className="py-8 text-center">{UI.swarms.tasksEmpty}</Text>
             ) : (
-              <ul role="list" className="divide-y divide-zinc-950/5 dark:divide-white/5">
+              <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
                 {(swarm.tasks ?? []).map((task, i) => (
                   <li key={task.id ?? i} className="py-4 first:pt-0 last:pb-0">
                     <Text className="font-medium text-zinc-950 dark:text-white">{task.name}</Text>
@@ -361,7 +361,7 @@ function RunsTab({
         <Text className="py-8 text-center">{UI.swarms.runsEmpty}</Text>
       ) : (
         <div className="flow-root">
-          <ul role="list" className="-mb-8">
+          <ul className="-mb-8">
             {runs.map((run, runIdx) => {
               const date = dateTimeFr(run.created_at);
               return (

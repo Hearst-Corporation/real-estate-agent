@@ -100,7 +100,7 @@ export default async function PortfolioPage() {
       </Banner>
 
       {/* Positions — grid-lists/03-simple-cards (une card par position, adapté sombre) */}
-      <ul role="list" className="grid grid-cols-1 gap-5 @3xl:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-5 @3xl:grid-cols-2">
         {positions.map((pos) => (
           <li
             key={pos.dealId}

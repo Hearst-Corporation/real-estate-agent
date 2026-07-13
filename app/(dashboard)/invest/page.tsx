@@ -121,7 +121,6 @@ export default async function MarketplacePage() {
 
       {/* Grille de deals — grid-lists/03-simple-cards (structure ul/li, DealCard en contenu) */}
       <ul
-        role="list"
         className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 @4xl:grid-cols-3"
       >
         {cards.map((d) => (

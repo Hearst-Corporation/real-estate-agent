@@ -317,7 +317,7 @@ export default async function MandateDetailPage({
       {/* ── Visites du bien — TW+ lists__stacked-lists (thème sombre) ────── */}
       <DetailCard title={td.cardVisites}>
         {visits.length > 0 ? (
-          <ul role="list" className="divide-y divide-white/5">
+          <ul className="divide-y divide-white/5">
             {visits.map((visit) => (
               <li
                 key={visit.id}

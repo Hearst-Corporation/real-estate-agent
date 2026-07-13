@@ -71,7 +71,7 @@ export default async function MissionsPage() {
         {rows.length === 0 ? (
           <p className="px-5 py-16 text-center text-sm text-slate-500">{UI.missions.empty}</p>
         ) : (
-          <ul role="list" className="divide-y divide-white/5">
+          <ul className="divide-y divide-white/5">
             {rows.map((m) => (
               <li key={m.id} className="relative">
                 <Link

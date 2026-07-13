@@ -583,7 +583,7 @@ export default function ProspectionPage() {
                 ]}
               />
             ) : (
-              <ul role="list" className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
+              <ul className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
                 {annonces.map((a) => (
                   <li key={a.id}>
                     <AnnonceCard annonce={a} />
@@ -667,7 +667,7 @@ function MatchList({
   const sorted = [...matchs].sort((a, b) => b.score_match - a.score_match);
 
   return (
-    <ul role="list" className="divide-y divide-zinc-950/5 dark:divide-white/5">
+    <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
       {sorted.map((m) => {
         const a = m.annonce;
         const isGood = m.score_match >= MATCH_SCORE_ALERT;

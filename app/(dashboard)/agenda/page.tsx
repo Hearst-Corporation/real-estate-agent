@@ -107,7 +107,7 @@ export default async function AgendaPage() {
             </Button>
           </div>
         ) : (
-          <ul role="list" className="divide-y divide-zinc-950/5 dark:divide-white/5">
+          <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
             {visits.map((v) => (
               <li key={v.id} className="flex flex-wrap justify-between gap-x-6 gap-y-2 py-5">
                 <div className="flex min-w-0 gap-x-4">
