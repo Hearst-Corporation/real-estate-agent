@@ -61,6 +61,22 @@ export async function PATCH(
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
+
+  // Rattachement de lead : owner-check applicatif (service-role bypasse la RLS).
+  // Un lead_id null détache la visite — autorisé sans vérif.
+  if (typeof patch.lead_id === "string" && patch.lead_id) {
+    const { data: ownedLead } = await sb
+      .from("leads")
+      .select("id")
+      .eq("id", patch.lead_id)
+      .eq("user_id", claims.sub)
+      .eq("tenant_id", tenantOf(claims))
+      .maybeSingle();
+    if (!ownedLead) {
+      return NextResponse.json({ error: "lead_not_found" }, { status: 404 });
+    }
+  }
+
   patch.updated_at = new Date().toISOString();
 
   const { data, error } = await sb
@@ -72,7 +88,10 @@ export async function PATCH(
     .select("id")
     .single();
 
-  if (error || !data) return NextResponse.json({ error: "update_failed", detail: error?.message }, { status: 500 });
+  if (error || !data) {
+    console.error("[visits] update failed", { code: error?.code });
+    return NextResponse.json({ error: "update_failed" }, { status: 500 });
+  }
   return NextResponse.json({ id: data.id });
 }
 
@@ -93,6 +112,9 @@ export async function DELETE(
     .eq("user_id", claims.sub)
     .eq("tenant_id", tenantOf(claims));
 
-  if (error) return NextResponse.json({ error: "delete_failed", detail: error.message }, { status: 500 });
+  if (error) {
+    console.error("[visits] delete failed", { code: error.code });
+    return NextResponse.json({ error: "delete_failed" }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }

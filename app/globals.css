@@ -1,6 +1,16 @@
 @import "tailwindcss";
 
 /*
+  Dashboard dark-only : le fond est forcé sombre (#020617 ci-dessous) et TOUTE
+  la couleur de texte est écrite en variant `dark:`. Sans cette redéfinition, le
+  variant `dark:` de Tailwind v4 suit `prefers-color-scheme` — un visiteur en
+  light OS obtient alors du texte `zinc-950` (quasi-noir) sur fond sombre, donc
+  illisible (contraste AA cassé). On rend `dark:` inconditionnel pour coller au
+  fond dark forcé : le thème ne dépend plus du réglage OS.
+*/
+@custom-variant dark (&);
+
+/*
   Design system — palette + thème du repo. Voir DESIGN-SYSTEM.md à la racine
   pour la doc complète (tokens, primitives, conventions). Éditable librement
   ici : pas de source centrale, pas de resync, pas de lint bloquant.
@@ -38,6 +48,9 @@ body {
   height: 100%;
   overflow: hidden;
   background-color: #020617;
+  /* Dashboard dark-only : aligne les widgets natifs (scrollbars, form controls)
+     sur le thème sombre, indépendamment du réglage OS du visiteur. */
+  color-scheme: dark;
 }
 
 /* Scrollbar discrète pour les panneaux internes (page-area, chat, rails). */

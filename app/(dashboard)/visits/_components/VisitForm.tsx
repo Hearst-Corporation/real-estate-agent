@@ -12,6 +12,7 @@ import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
 
 type Property = { id: string; title: string | null; city: string | null };
+type Lead = { id: string; full_name: string | null };
 
 export default function VisitForm({ cta }: { cta: string }) {
   const t = UI.visits.form;
@@ -19,10 +20,12 @@ export default function VisitForm({ cta }: { cta: string }) {
   const [open, setOpen] = useState(false);
   useOpenFromQuery("new", useCallback(() => setOpen(true), []));
   const [properties, setProperties] = useState<Property[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [propertyId, setPropertyId] = useState("");
+  const [leadId, setLeadId] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
   const [duration, setDuration] = useState<number>(FORM_LIMITS.visitDurationDefault);
   const [notes, setNotes] = useState("");
@@ -33,6 +36,10 @@ export default function VisitForm({ cta }: { cta: string }) {
       .then((r) => r.json())
       .then((d) => setProperties(d.items ?? []))
       .catch(() => setProperties([]));
+    fetch("/api/leads")
+      .then((r) => r.json())
+      .then((d) => setLeads(d.items ?? []))
+      .catch(() => setLeads([]));
   }, [open]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -46,6 +53,7 @@ export default function VisitForm({ cta }: { cta: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           property_id: propertyId,
+          lead_id: leadId || undefined,
           scheduled_at: new Date(scheduledAt).toISOString(),
           duration_min: duration,
           notes: notes || undefined,
@@ -58,6 +66,7 @@ export default function VisitForm({ cta }: { cta: string }) {
       }
       setOpen(false);
       setPropertyId("");
+      setLeadId("");
       setScheduledAt("");
       setDuration(FORM_LIMITS.visitDurationDefault);
       setNotes("");
@@ -91,6 +100,22 @@ export default function VisitForm({ cta }: { cta: string }) {
                     {properties.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.title ?? p.city ?? p.id}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+
+                <Field>
+                  <Label>{t.lead}</Label>
+                  <Select
+                    name="lead_id"
+                    value={leadId}
+                    onChange={(e) => setLeadId(e.target.value)}
+                  >
+                    <option value="">—</option>
+                    {leads.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.full_name ?? l.id}
                       </option>
                     ))}
                   </Select>

@@ -27,7 +27,8 @@ export async function GET() {
     .limit(DEFAULT_LEADS_LIMIT);
 
   if (error) {
-    return NextResponse.json({ error: "fetch_failed", detail: error.message }, { status: 500 });
+    console.error("[leads] list failed", { code: error.code });
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ items: data ?? [] });
@@ -84,7 +85,8 @@ export async function POST(req: Request) {
     .single();
 
   if (error || !data) {
-    return NextResponse.json({ error: "create_failed", detail: error?.message }, { status: 500 });
+    console.error("[leads] create failed", { code: error?.code });
+    return NextResponse.json({ error: "create_failed" }, { status: 500 });
   }
 
   captureServer(claims.sub, "lead_created", { lead_id: data.id, kind: kind ?? "acheteur" });

@@ -44,7 +44,8 @@ export async function DELETE(
     .eq("tenant_id", tenantId);
 
   if (error) {
-    return NextResponse.json({ error: "delete_failed", detail: error.message }, { status: 500 });
+    console.error("[photos] delete failed", { code: error.code });
+    return NextResponse.json({ error: "delete_failed" }, { status: 500 });
   }
 
   // 3. Supprimer l'objet R2 (best-effort : ne pas faire échouer la requête si R2 rate).

@@ -42,7 +42,10 @@ export async function GET() {
     .eq("tenant_id", tenantOf(claims))
     .order("updated_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: "fetch_failed", detail: error.message }, { status: 500 });
+  if (error) {
+    console.error("[mandates] list failed", { code: error.code });
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
+  }
 
   return NextResponse.json({ items: data ?? [] });
 }
@@ -96,7 +99,8 @@ export async function POST(request: Request) {
     .single();
 
   if (error || !data) {
-    return NextResponse.json({ error: "create_failed", detail: error?.message }, { status: 500 });
+    console.error("[mandates] create failed", { code: error?.code });
+    return NextResponse.json({ error: "create_failed" }, { status: 500 });
   }
 
   captureServer(claims.sub, "mandate_created", { mandate_id: data.id, kind: kind ?? "simple" });

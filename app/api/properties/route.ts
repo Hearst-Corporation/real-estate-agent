@@ -25,7 +25,8 @@ export async function GET() {
     .order("updated_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: "fetch_failed", detail: error.message }, { status: 500 });
+    console.error("[properties] list failed", { code: error.code });
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ items: data ?? [] });
@@ -90,7 +91,8 @@ export async function POST(request: Request) {
     .single();
 
   if (error || !data) {
-    return NextResponse.json({ error: "create_failed", detail: error?.message }, { status: 500 });
+    console.error("[properties] create failed", { code: error?.code });
+    return NextResponse.json({ error: "create_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ id: data.id }, { status: 201 });

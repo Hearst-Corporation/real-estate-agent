@@ -95,7 +95,8 @@ export async function PATCH(
     .single();
 
   if (error || !data) {
-    return NextResponse.json({ error: "update_failed", detail: error?.message }, { status: 500 });
+    console.error("[leads] update failed", { code: error?.code });
+    return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ id: data.id });
@@ -123,7 +124,8 @@ export async function DELETE(
     .eq("tenant_id", tenantOf(claims));
 
   if (error) {
-    return NextResponse.json({ error: "delete_failed", detail: error.message }, { status: 500 });
+    console.error("[leads] delete failed", { code: error.code });
+    return NextResponse.json({ error: "delete_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

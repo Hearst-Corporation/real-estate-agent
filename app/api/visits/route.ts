@@ -28,6 +28,27 @@ async function propertyBelongsToUser(
   return Boolean(data);
 }
 
+async function leadBelongsToUser(
+  sb: ReturnType<typeof getSupabaseAdmin>,
+  leadId: string,
+  userId: string,
+  tenantId: string,
+): Promise<boolean> {
+  if (!sb) return false;
+  const { data, error } = await sb
+    .from("leads")
+    .select("id")
+    .eq("id", leadId)
+    .eq("user_id", userId)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+  if (error) {
+    console.error("[visits] lead ownership check failed", { code: error.code });
+    return false;
+  }
+  return Boolean(data);
+}
+
 export async function GET() {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -41,7 +62,10 @@ export async function GET() {
     .eq("tenant_id", tenantOf(claims))
     .order("scheduled_at", { ascending: true });
 
-  if (error) return NextResponse.json({ error: "fetch_failed", detail: error.message }, { status: 500 });
+  if (error) {
+    console.error("[visits] list failed", { code: error.code });
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
+  }
   return NextResponse.json({ items: data ?? [] });
 }
 
@@ -64,6 +88,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "property_not_found" }, { status: 404 });
   }
 
+  // Si un lead est rattaché, il DOIT appartenir au même user/tenant (owner-check
+  // applicatif — le service-role bypasse la RLS).
+  if (lead_id) {
+    const ownedLead = await leadBelongsToUser(sb, lead_id, claims.sub, tenantId);
+    if (!ownedLead) {
+      return NextResponse.json({ error: "lead_not_found" }, { status: 404 });
+    }
+  }
+
   const { data, error } = await sb
     .from("visits")
     .insert({
@@ -80,7 +113,8 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error || !data) {
-    return NextResponse.json({ error: "create_failed", detail: error?.message }, { status: 500 });
+    console.error("[visits] create failed", { code: error?.code });
+    return NextResponse.json({ error: "create_failed" }, { status: 500 });
   }
 
   captureServer(claims.sub, "visit_created", { visit_id: data.id });

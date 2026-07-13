@@ -7,34 +7,31 @@
 - Mode **autonomie totale** : tu exécutes, tu ne demandes pas confirmation pour chaque étape.
 
 ## Stack
-- **Web** : Next.js 16.2 (App Router, Turbopack) sur port `3002`
-- **DB** : Supabase Postgres — projet ref `pyxhhkdjirqambhlpuqz`
+- **Web** : Next.js 16.2 (App Router, Turbopack) sur port `3002` — hébergé sur **Vercel** (`https://real-estate-agent.vercel.app`).
+- **DB** : **Postgres self-hosté gpu1** derrière **PostgREST + Caddy** (`https://real-estate-agent-db.hearst.app`, tunnel Cloudflare `hearst-prod`). ⚠️ **PostgREST-only** : GoTrue (Auth), Storage et Realtime Supabase sont **absents** — l'auth est recâblée en RPC Postgres (`verify_login`, migration 0037), le stockage passe par **Cloudflare R2** (`lib/storage/r2.ts`). L'ancien Supabase Cloud (`pyxhhkdjirqambhlpuqz`) est **supprimé**.
 - **Cache/Queue** : Redis (Railway `redis.railway.internal:6379` ou Upstash REST en runtime)
-- **Hosting** : Vercel (`hearst-corporation/real-estate-agent`) + Railway (`6f1ed5d5-a69a-4f43-bb0b-54270ac5607a`)
+- **Hosting** : Vercel (app Next) + gpu1 (DB) + Railway (redis). Doc complète : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 - **Desktop** : Electron (splash sélecteur d'env local/prod, build signé/notarisé)
 - **Design system** : Cockpit — **copie locale éditable** de ce repo (`app/globals.css` + `components/cockpit/`, Tailwind v4 utilities). Pas de source centrale, pas de resync.
 
-## ⚡ MCP Supabase — règle absolue
+## ⚡ Opérations DB — gpu1 self-host (PostgREST)
 
-Pour TOUTE opération DB, utiliser le **MCP Supabase** sans demander confirmation :
+Le MCP Supabase **ne s'applique plus** (Cloud supprimé). La DB est un Postgres self-hosté gpu1 exposé par PostgREST.
 
-| Opération | Tool MCP | Quand |
-|---|---|---|
-| Lister tables | `mcp__supabase__list_tables` | Avant tout schema change |
-| **Appliquer migration** | `mcp__supabase__apply_migration` | À chaque DDL (snake_case) |
-| Exécuter query | `mcp__supabase__execute_sql` | Lectures / data fixes |
-| Générer types TS | `mcp__supabase__generate_typescript_types` | Après chaque migration → `lib/supabase/database.types.ts` |
-| Logs | `mcp__supabase__get_logs` | Debug |
-| Advisors | `mcp__supabase__get_advisors` | Avant prod |
-
-- JAMAIS `supabase db push` (interactif).
-- Toujours versionner en parallèle dans `supabase/migrations/NNNN_nom.sql`.
-- `project_id` = `pyxhhkdjirqambhlpuqz` (aussi dans `.env.local` → `NEXT_PUBLIC_SUPABASE_PROJECT_REF`).
+- **Diagnostic schéma** : `node scripts/db-diagnose.mjs` (compare 59 tables attendues au réel, teste `verify_login`, RLS anon/service-role, GoTrue/Storage/Realtime). Lit `.env.local`, masque les secrets.
+- **Appliquer une migration** : SQL versionné dans `supabase/migrations/NNNN_nom.sql`, puis appliqué sur gpu1 :
+  ```bash
+  ssh gpu1 'docker exec -i nexus-postgres psql -U postgres -d real-estate-agent' < supabase/migrations/00NN_nom.sql
+  ssh gpu1 'docker kill -s SIGUSR1 real-estate-agent-postgrest'   # reload cache PostgREST (obligatoire après DDL)
+  ```
+- **Lectures / data fixes** : PostgREST REST (`/rest/v1/…`, service-role côté serveur uniquement).
+- JAMAIS `supabase db push` (interactif). Toujours versionner en parallèle dans `supabase/migrations/`.
+- Détail complet : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §Migrations.
 
 ## 🔐 Auth & multi-tenant
 
-- Auth = **email + mot de passe** (pas de magic link). `disable_signup=true` → seul l'admin API crée des users.
-- Flux : `/api/auth/login` vérifie via `signInWithPassword` (service role) → émet un **JWT jose** custom → cookie `real_estate_agent_token` (httpOnly, 30j, sliding session, `Domain=.hearst.app` en prod).
+- Auth = **email + mot de passe** (pas de magic link). Seul l'admin crée des users.
+- Flux : `/api/auth/login` vérifie le mot de passe via la **RPC Postgres `verify_login`** (bcrypt/pgcrypto, migration 0037 — plus de GoTrue/`signInWithPassword`) → émet un **JWT jose** custom → cookie `real_estate_agent_token` (httpOnly, 30j, sliding session, `Domain=.hearst.app` en prod).
 - Garde : `proxy.ts` (Next 16 — **PAS** `middleware.ts`) vérifie le JWT. Routes ouvertes : `/auth/*`, `/api/auth/login`, `/api/auth/logout`, `/api/health`. Tout le reste exige une session ; `/api/*` non connecté → 401 JSON.
 - Layouts : `app/layout.tsx` (racine, **sans** CockpitShell) ; `app/(dashboard)/layout.tsx` (garde serveur + CockpitShell) ; `app/auth/login/` hors shell.
 - Profil : `app/(dashboard)/profile/page.tsx` (déconnexion principale ici).

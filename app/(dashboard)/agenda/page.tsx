@@ -131,7 +131,9 @@ export default async function AgendaPage() {
                       {dateFr(v.scheduled_at)} · {timeFr(v.scheduled_at)}
                     </time>
                   </p>
-                  <Badge color={v.status === "planifiee" ? "amber" : "zinc"}>{v.status}</Badge>
+                  <Badge color={v.status === "planifiee" ? "amber" : "zinc"}>
+                    {tv.statusLabels[v.status] ?? v.status}
+                  </Badge>
                 </div>
               </li>
             ))}

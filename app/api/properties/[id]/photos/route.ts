@@ -32,7 +32,8 @@ export async function GET(
     .order("position", { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: "fetch_failed", detail: error.message }, { status: 500 });
+    console.error("[photos] list failed", { code: error.code });
+    return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ items: data ?? [] });
@@ -146,7 +147,8 @@ export async function POST(
     } catch {
       // best-effort
     }
-    return NextResponse.json({ error: "insert_failed", detail: error?.message }, { status: 500 });
+    console.error("[photos] insert failed", { code: error?.code });
+    return NextResponse.json({ error: "insert_failed" }, { status: 500 });
   }
 
   return NextResponse.json({ id: data.id, url: data.url, position: data.position, is_cover: data.is_cover }, { status: 201 });

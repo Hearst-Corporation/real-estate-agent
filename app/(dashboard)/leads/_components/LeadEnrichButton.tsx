@@ -33,10 +33,21 @@ export function LeadEnrichButton({ leadId, hasData = false }: Props) {
           setError(te.errorNoEmail);
         } else if (res.status === 503) {
           setError(te.errorNotConfigured);
+        } else if (res.status === 403) {
+          setError(te.errorForbidden);
+        } else if (res.status === 429) {
+          setError(te.errorRateLimited);
         } else {
           setError(te.errorGeneric);
         }
         return;
+      }
+
+      // 200 mais aucun provider n'a matché → feedback explicite (sinon l'agent
+      // croit que rien ne s'est passé).
+      const json = (await res.json().catch(() => ({}))) as { enriched?: boolean };
+      if (json.enriched === false) {
+        setError(te.noData);
       }
 
       router.refresh();

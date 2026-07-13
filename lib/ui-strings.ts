@@ -1304,6 +1304,9 @@ export const UI = {
         errorGeneric: "Enrichissement indisponible pour le moment.",
         errorNoEmail: "Un email est nécessaire pour enrichir ce contact.",
         errorNotConfigured: "Enrichissement non configuré (clés fournisseur absentes).",
+        errorForbidden: "Enrichissement réservé aux contacts professionnels avec consentement.",
+        errorRateLimited: "Trop de requêtes — réessayez dans un instant.",
+        noData: "Aucune donnée trouvée pour ce contact.",
         empty: "Aucune donnée d'enrichissement pour l'instant.",
       },
       bienLie: {
