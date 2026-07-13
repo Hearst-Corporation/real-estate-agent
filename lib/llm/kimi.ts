@@ -9,23 +9,32 @@ import OpenAI from "openai";
  * `delta.reasoning_content` (champ séparé), la réponse dans `delta.content`.
  * Côté route, on ne stream que `delta.content`.
  */
-const MOONSHOT_KEY = process.env.MOONSHOT_API_KEY;
-
-// `apiKey` retombe sur "" (jamais `undefined`) : le SDK OpenAI jette au
-// chargement du module si `undefined` ET `OPENAI_API_KEY` absent — ce qui
-// casserait le build/toute route important ce module sur un environnement
-// sans clé Kimi (ex. Vercel Preview). `kimiIsConfigured()` reste la garde
-// réelle avant tout appel réseau ; une "" ne fait juste échouer l'appel HTTP
-// que si jamais on l'atteignait sans avoir vérifié la config en amont.
-export const kimi = new OpenAI({
-  apiKey: MOONSHOT_KEY || process.env.HYPERCLI_API_KEY || "",
-  baseURL: MOONSHOT_KEY
-    ? process.env.MOONSHOT_BASE_URL || "https://api.moonshot.ai/v1"
-    : process.env.HYPERCLI_BASE_URL || "https://api.hypercli.com/v1",
-});
-
 export const KIMI_MODEL = process.env.KIMI_MODEL || "kimi-k2.6";
 
 export function kimiIsConfigured(): boolean {
-  return Boolean(MOONSHOT_KEY || process.env.HYPERCLI_API_KEY);
+  return Boolean(process.env.MOONSHOT_API_KEY || process.env.HYPERCLI_API_KEY);
+}
+
+// Client lazy singleton : le SDK OpenAI jette DÈS LA CONSTRUCTION si `apiKey`
+// est absent/vide ET `OPENAI_API_KEY` non plus (même avec apiKey: "") — un
+// `export const kimi = new OpenAI(...)` au niveau module cassait donc le build
+// (`next build` collecte les page data en important ce module) sur tout
+// environnement sans clé Kimi/Hypercli, ex. Vercel Preview où ces clés sont
+// scopées Production only. On ne construit le client qu'au premier usage réel.
+let _kimi: OpenAI | null = null;
+
+export function getKimiClient(): OpenAI {
+  if (!kimiIsConfigured()) {
+    throw new Error("kimi_not_configured");
+  }
+  if (!_kimi) {
+    const moonshotKey = process.env.MOONSHOT_API_KEY;
+    _kimi = new OpenAI({
+      apiKey: moonshotKey || process.env.HYPERCLI_API_KEY,
+      baseURL: moonshotKey
+        ? process.env.MOONSHOT_BASE_URL || "https://api.moonshot.ai/v1"
+        : process.env.HYPERCLI_BASE_URL || "https://api.hypercli.com/v1",
+    });
+  }
+  return _kimi;
 }

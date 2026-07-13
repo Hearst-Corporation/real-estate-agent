@@ -9,7 +9,7 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import { kimi } from "@/lib/llm/kimi";
+import { getKimiClient } from "@/lib/llm/kimi";
 import { getOpenAiClient, isOpenAiModel, completionTokenParam } from "@/lib/llm/openai";
 import { BLOCKS, DATA_GAPS, PRIORITY_FIELDS } from "@/lib/estimation/spec";
 import { recordPropertyDataTool } from "@/lib/estimation/tool-schema";
@@ -357,7 +357,7 @@ async function _streamKimiTurn(params: {
   const pumpMessage = makeMessageStreamer(onText);
 
   // GPT OpenAI → client OpenAI officiel ; Kimi/Moonshot → client Hypercli.
-  const client = isOpenAiModel(model) ? getOpenAiClient() : kimi;
+  const client = isOpenAiModel(model) ? getOpenAiClient() : getKimiClient();
 
   const stream = await client.chat.completions.create({
     model,
