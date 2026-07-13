@@ -17,56 +17,14 @@ import { Input } from "@/components/ui/input";
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "@/components/ui/table";
 import { Text, Strong } from "@/components/ui/text";
 import { ScrapeCustomModal } from "./_components/ScrapeCustomModal";
+import { AnnonceDetailDialog } from "./_components/AnnonceDetailDialog";
+import { RecoBadge, MatchReasons } from "./_components/MatchReasons";
+import { matchReco } from "./_components/reco";
+import type { Annonce, Match } from "./_components/types";
 import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
 
 // ─── Interfaces API ────────────────────────────────────────────────────────────
-
-interface Annonce {
-  id: string;
-  type_bien: string;
-  titre?: string;
-  prix?: number;
-  prix_m2?: number;
-  surface_m2?: number;
-  /** Alias legacy */
-  surface?: number;
-  nb_pieces?: number;
-  /** Alias legacy */
-  pieces?: number;
-  nb_chambres?: number;
-  code_postal?: string;
-  commune?: string;
-  /** Alias legacy */
-  ville?: string;
-  url?: string;
-  photos_urls?: string[];
-  /** Alias legacy */
-  photos?: string[];
-  is_pap?: boolean;
-  type_annonceur?: "particulier" | "pro" | string;
-  prix_baisse_delta?: number | null;
-  dpe_note?: string | null;
-  source_platform?: string;
-  age_hours?: number | null;
-  terrasse?: boolean;
-  parking?: boolean;
-  ascenseur?: boolean;
-  jardin?: boolean;
-  piscine?: boolean;
-}
-
-interface Match {
-  id: string;
-  score_match: number;
-  alerte_envoyee?: boolean;
-  created_at?: string;
-  statut?: string;
-  annonce_id?: string;
-  critere_id?: string;
-  date_match?: string;
-  bonus_breakdown?: Record<string, number>;
-  annonce: Annonce;
-}
+// Annonce / Match : voir ./_components/types.ts (partagés avec le détail).
 
 interface Critere {
   id: string;
@@ -223,7 +181,13 @@ function EmptyState({
 
 // ─── Carte annonce (grille + primitives) ──────────────────────────────────────
 
-function AnnonceCard({ annonce }: { annonce: Annonce }) {
+function AnnonceCard({
+  annonce,
+  onOpenDetail,
+}: {
+  annonce: Annonce;
+  onOpenDetail: (a: Annonce) => void;
+}) {
   const photos = annoncePhotos(annonce);
   const surface = annonceSurface(annonce);
   const pieces = annoncePieces(annonce);
@@ -273,22 +237,30 @@ function AnnonceCard({ annonce }: { annonce: Annonce }) {
           </div>
         )}
 
-        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+        <div className="mt-auto flex flex-col gap-2 pt-2">
           <div className="flex flex-wrap gap-1.5">
+            <Badge color="zinc">{UI.prospection.detailProviderTag}</Badge>
             {annonce.age_hours != null && <Badge color="zinc">{UI.prospection.badgeAge(annonce.age_hours)}</Badge>}
-            {annonce.source_platform && <Badge color="zinc">{annonce.source_platform}</Badge>}
+            {(annonce.source_platform ?? annonce.source) && (
+              <Badge color="zinc">{annonce.source_platform ?? annonce.source}</Badge>
+            )}
           </div>
-          {annonce.url && (
-            <a
-              href={annonce.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-indigo-500 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300"
-            >
-              {UI.prospection.annonceVoir}
-              <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-3.5" />
-            </a>
-          )}
+          <div className="flex items-center justify-between gap-2">
+            <Button plain onClick={() => onOpenDetail(annonce)}>
+              {UI.prospection.detailOpen}
+            </Button>
+            {annonce.url && (
+              <a
+                href={annonce.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-indigo-500 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300"
+              >
+                {UI.prospection.annonceVoir}
+                <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-3.5" />
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </article>
@@ -305,6 +277,18 @@ export default function ProspectionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterEligible, setFilterEligible] = useState(false);
+  // Détail annonce (ouvert depuis une card annonce OU une ligne de match).
+  const [detailAnnonce, setDetailAnnonce] = useState<Annonce | null>(null);
+  const [detailMatch, setDetailMatch] = useState<Match | undefined>(undefined);
+
+  function openAnnonceDetail(a: Annonce, m?: Match) {
+    setDetailAnnonce(a);
+    setDetailMatch(m);
+  }
+  function closeDetail() {
+    setDetailAnnonce(null);
+    setDetailMatch(undefined);
+  }
 
   async function loadAnnonces(nextFilterEligible = filterEligible) {
     setLoading(true);
@@ -414,14 +398,14 @@ export default function ProspectionPage() {
     }
   }
 
+  // Priorité haute dérivée du même seuil partagé que le moteur (source unique).
+  const highPriorityCount = matchs.filter((m) => matchReco(m) === "high_priority").length;
+
   const stats = [
     { name: UI.prospection.kpiAcquereurs, value: String(criteres.length) },
     { name: UI.prospection.kpiMatchs, value: String(matchs.length) },
+    { name: UI.prospection.kpiHighPriority, value: String(highPriorityCount) },
     { name: UI.prospection.kpiAnnonces, value: String(annonces.length) },
-    {
-      name: UI.prospection.kpiAlertes,
-      value: String(criteres.filter((c) => c.alerte_email || c.alerte_whatsapp).length),
-    },
   ];
 
   return (
@@ -586,7 +570,7 @@ export default function ProspectionPage() {
               <ul className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
                 {annonces.map((a) => (
                   <li key={a.id}>
-                    <AnnonceCard annonce={a} />
+                    <AnnonceCard annonce={a} onOpenDetail={(x) => openAnnonceDetail(x)} />
                   </li>
                 ))}
               </ul>
@@ -628,7 +612,7 @@ export default function ProspectionPage() {
               <MatchList
                 matchs={matchs}
                 onFeedback={sendFeedback}
-                onContactSoon={() => setError(UI.prospection.contactSoon)}
+                onOpenDetail={(a, m) => openAnnonceDetail(a, m)}
               />
             )}
           </div>
@@ -637,6 +621,18 @@ export default function ProspectionPage() {
         {/* ── Onglet critères ── */}
         {tab === "criteres" && <CriteresPanel onChanged={loadCriteres} />}
       </section>
+
+      {/* ── Détail annonce enrichi + actions CRM/contact/optout ── */}
+      <AnnonceDetailDialog
+        open={detailAnnonce !== null}
+        onClose={closeDetail}
+        annonce={detailAnnonce}
+        match={detailMatch}
+        onChanged={() => {
+          if (tab === "annonces") void loadAnnonces();
+          if (tab === "matching") void loadMatchs();
+        }}
+      />
     </div>
   );
 }
@@ -657,11 +653,11 @@ function ErrorLine({ msg }: { msg: string }) {
 function MatchList({
   matchs,
   onFeedback,
-  onContactSoon,
+  onOpenDetail,
 }: {
   matchs: Match[];
   onFeedback: (id: string, signal: "up" | "down") => Promise<void>;
-  onContactSoon: () => void;
+  onOpenDetail: (a: Annonce, m: Match) => void;
 }) {
   // Trier : bons matchs en premier
   const sorted = [...matchs].sort((a, b) => b.score_match - a.score_match);
@@ -682,26 +678,34 @@ function MatchList({
         if (a.prix) metaParts.push(UI.prospection.annoncePrix(a.prix));
 
         return (
-          <li key={m.id} className="flex flex-wrap items-center gap-4 py-4">
+          <li key={m.id} className="flex flex-wrap items-start gap-4 py-4">
             <ScoreRing score={m.score_match} />
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <Strong>{annonceTitle(a)}</Strong>
+                <RecoBadge match={m} />
                 {isGood && <Badge color="indigo">{UI.prospection.matchGoodLabel}</Badge>}
               </div>
               {metaParts.length > 0 && <Text>{metaParts.join(" · ")}</Text>}
+              {/* Pourquoi ce match : facteurs de score + explain (si dispo). */}
+              <div className="mt-2">
+                <Text>{UI.prospection.reasonsWhy}</Text>
+                <div className="mt-1">
+                  <MatchReasons match={m} />
+                </div>
+              </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-1.5">
+            <div className="flex shrink-0 flex-wrap items-center gap-1.5">
               <Button plain aria-label={UI.prospection.feedbackLikeAria} onClick={() => onFeedback(m.id, "up")}>
                 👍
               </Button>
               <Button plain aria-label={UI.prospection.feedbackDislikeAria} onClick={() => onFeedback(m.id, "down")}>
                 👎
               </Button>
-              <Button color="indigo" title={UI.prospection.contactSoon} onClick={() => onContactSoon()}>
-                {UI.prospection.matchContactBtn}
+              <Button color="indigo" onClick={() => onOpenDetail(a, m)}>
+                {UI.prospection.detailOpen}
               </Button>
             </div>
           </li>
