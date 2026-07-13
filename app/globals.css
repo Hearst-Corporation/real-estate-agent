@@ -18,34 +18,77 @@
   (lib/design-tokens.ts côté front) — source de vérité unique documentée.
 */
 @theme {
-  /* ACCENT UNIQUE — Bleu de Staël #3B4C5A (échelle 50→950 dérivée).
-     Tout le reste du dashboard est neutre (zinc). Les autres couleurs
-     Catalyst sont interdites (gate check:catalyst). */
-  --color-accent-50: #f3f4f5;
-  --color-accent-100: #e4e6e8;
-  --color-accent-200: #c8cdd1;
-  --color-accent-300: #a5adb3;
-  --color-accent-400: #76828c;
-  --color-accent-500: #53616e;
-  --color-accent-600: #3b4c5a;
-  --color-accent-700: #303e4a;
-  --color-accent-800: #27323b;
-  --color-accent-900: #1e262d;
-  --color-accent-950: #13181d;
+  /* ACCENT UNIQUE — Or "Pierre Blonde" #C9B08A (échelle 50→950 dérivée).
+     C'est désormais l'accent principal du dashboard : nav active, focus,
+     hero, charts. Tout le reste est neutre (zinc). Le Bleu de Staël devient
+     une couleur nommée secondaire (usage éditorial ponctuel). */
+  --color-accent-50: #faf8f4;
+  --color-accent-100: #f2ece1;
+  --color-accent-200: #e6d9c4;
+  --color-accent-300: #dcc9ab;
+  --color-accent-400: #d1bb98;
+  --color-accent-500: #c9b08a;  /* = Pierre Blonde, cœur de l'accent */
+  --color-accent-600: #b2955f;
+  --color-accent-700: #8f7549;
+  --color-accent-800: #6d5938;
+  --color-accent-900: #4c3e28;
+  --color-accent-950: #2c2418;
 
   /* Couleurs nommées de la charte Remparts (usage éditorial ponctuel). */
   --color-lin-brut: #f7f5f0;       /* fond clair */
-  --color-pierre-blonde: #c9b08a;  /* accent chaud secondaire */
+  --color-pierre-blonde: #c9b08a;  /* = accent-500 (or principal) */
   --color-ombre-grimaldi: #2c2c2c; /* texte foncé */
-  --color-bleu-stael: #3b4c5a;     /* = accent-600 */
+  --color-bleu-stael: #3b4c5a;     /* accent froid secondaire (ponctuel) */
   --color-vert-olivier: #8b9685;   /* accent nature ponctuel */
 
-  --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
+  /* Satoshi Variable — fonte unique du produit (self-hostée, cf. layout.tsx). */
+  --font-sans: var(--font-satoshi, ui-sans-serif, system-ui, sans-serif);
   --font-mono: var(--font-geist-mono, ui-monospace, "SFMono-Regular", monospace);
+
+  /* Ombres CHAUDES teintées or (profondeur "joaillerie") — pas du gris/noir.
+     C'est ce qui fait flotter les cartes blanches sur le fond crème. */
+  --shadow-card: 0 1px 2px rgba(120, 95, 55, 0.06), 0 4px 16px rgba(120, 95, 55, 0.07);
+  --shadow-card-hover: 0 2px 6px rgba(120, 95, 55, 0.10), 0 10px 28px rgba(120, 95, 55, 0.12);
+  --shadow-hero: 0 2px 8px rgba(120, 95, 55, 0.08), 0 16px 40px rgba(120, 95, 55, 0.10);
 
   /* Largeurs de rail du shell 3 colonnes (rail gauche / chat droit ouvert). */
   --spacing-rail-left: 104px;
-  --spacing-rail-right: 420px;
+  --spacing-rail-right: 340px;
+}
+
+/* Titres — Satoshi (fonte unique), différenciés par poids + tracking serré. */
+.font-titre {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* SURFACE CANONIQUE — la SEULE façon de faire une carte dans le dashboard.
+   Blanc pur qui flotte sur le fond crème via une ombre chaude (profondeur).
+   Toutes les box de contenu doivent l'utiliser → cohérence totale, plus de
+   mélange blanc/transparent. Radius généreux, filet or très subtil. */
+.surface {
+  background-color: #ffffff;
+  border: 1px solid rgba(201, 176, 138, 0.14); /* filet or très discret */
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: var(--shadow-card);
+}
+/* Variante cliquable : l'ombre s'accentue au survol. */
+.surface-hover {
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.surface-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+/* Alias conservé (déjà utilisé par l'accueil). */
+.card-flottante {
+  background-color: #ffffff;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.card-flottante:hover {
+  box-shadow: var(--shadow-card-hover);
 }
 
 * {
@@ -60,6 +103,7 @@ body {
   background-color: #f7f5f0;
   color: #2c2c2c;
   color-scheme: light;
+  font-family: var(--font-sans);
 }
 
 /* Scrollbar discrète pour les panneaux internes (page-area, chat, rails). */

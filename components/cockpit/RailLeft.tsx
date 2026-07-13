@@ -67,11 +67,14 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
     >
       <Link
         href="/"
-        className="mb-6 flex size-10 items-center justify-center rounded-lg bg-zinc-950/5 text-zinc-900"
+        className="mb-6 flex size-10 items-center justify-center rounded-lg bg-accent-500/10 text-accent-600"
         title={UI.nav.home}
       >
         <Logo />
       </Link>
+
+      {/* Espace flexible : centre le bloc de nav sur l'axe vertical du rail. */}
+      <div className="flex-1" />
 
       <div className="flex flex-col items-center gap-1">
         {navRail.map((item) => {

@@ -11,16 +11,18 @@ export function Eyebrow({ children }: { children: ReactNode }) {
 }
 
 export function Title({ children }: { children: ReactNode }) {
-  return <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{children}</h1>;
+  return (
+    <h1 className="font-titre text-3xl font-semibold tracking-tight text-zinc-900">{children}</h1>
+  );
 }
 
 export function Sub({ children }: { children: ReactNode }) {
   return <p className="text-sm text-zinc-500">{children}</p>;
 }
 
-/** H2 de section — titre lisible sous le H1 de page. */
+/** H2 de section — titre lisible sous le H1 de page (serif éditoriale luxe). */
 export function SectionTitle({ children, as: Tag = "h2" }: { children: ReactNode; as?: "h2" | "div" }) {
-  return <Tag className="text-lg font-semibold text-zinc-800">{children}</Tag>;
+  return <Tag className="font-titre text-xl font-semibold text-zinc-900">{children}</Tag>;
 }
 
 /** H3 de sous-section. */
@@ -60,8 +62,8 @@ export function PageHeader({
               {kicker}
             </p>
           ) : null}
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{title}</h1>
-          {meta ? <div className="mt-1 text-sm text-zinc-500">{meta}</div> : null}
+          <h1 className="font-titre text-3xl font-semibold tracking-tight text-zinc-900">{title}</h1>
+          {meta ? <div className="mt-1.5 text-sm text-zinc-500">{meta}</div> : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
@@ -77,10 +79,13 @@ export function PageHeader({
           {kpis.map((kpi, i) => (
             <div
               key={i}
-              className="flex items-center gap-2 rounded-lg border border-zinc-950/10 bg-white px-3 py-2"
+              className="flex items-center gap-2 rounded-xl border border-accent-500/10 bg-white px-3.5 py-2.5 shadow-[var(--shadow-card)]"
             >
               {kpi.icon ? (
-                <span className="text-pierre-blonde" aria-hidden="true">
+                <span
+                  className="flex size-6 items-center justify-center rounded-md bg-accent-500/10 text-accent-600"
+                  aria-hidden="true"
+                >
                   <Icon name={kpi.icon} className="size-4" />
                 </span>
               ) : null}
@@ -101,7 +106,7 @@ export function PageStack({ children }: { children: ReactNode }) {
 }
 
 const CARD_VARIANT: Record<"hero" | "chart" | "dense", string> = {
-  hero: "bg-gradient-to-br from-pierre-blonde/12 via-white to-white border-t-2 border-t-pierre-blonde/50",
+  hero: "bg-gradient-to-br from-accent-500/10 via-white to-white border-t-2 border-t-accent-500/50 shadow-[var(--shadow-hero)]",
   chart: "p-4",
   dense: "p-3",
 };
@@ -122,7 +127,7 @@ export function Card({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-zinc-950/10 bg-white p-5 shadow-sm shadow-zinc-950/5 ${
+      className={`rounded-2xl border border-accent-500/10 bg-white p-6 shadow-[var(--shadow-card)] transition-shadow duration-200 ${
         variant ? CARD_VARIANT[variant] : ""
       } ${className ?? ""}`}
     >
