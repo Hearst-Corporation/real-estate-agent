@@ -72,6 +72,8 @@ type BuildComparablesResult = {
   medianPricePerSqm: number | null;
   nbComparables: number;
   confidence: 'indicative' | 'moyenne' | 'elevee';
+  /** Distance moyenne (km) des comparables géolocalisés au bien. null si aucune géoloc. */
+  distanceMoyenneKm: number | null;
 };
 
 export function buildComparables(
@@ -171,5 +173,14 @@ export function buildComparables(
   const confidence: 'indicative' | 'moyenne' | 'elevee' =
     nbComparables >= 5 ? 'elevee' : nbComparables >= 3 ? 'moyenne' : 'indicative';
 
-  return { comparables, medianPricePerSqm, nbComparables, confidence };
+  // Distance moyenne des comps géolocalisés (explicabilité de la confiance).
+  const distances = finalWithPrixM2
+    .map((m) => m.distance_km)
+    .filter((d): d is number => d !== null);
+  const distanceMoyenneKm =
+    distances.length > 0
+      ? Math.round((distances.reduce((a, b) => a + b, 0) / distances.length) * 100) / 100
+      : null;
+
+  return { comparables, medianPricePerSqm, nbComparables, confidence, distanceMoyenneKm };
 }

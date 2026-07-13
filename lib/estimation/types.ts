@@ -152,6 +152,24 @@ export type ValuationAdjustment = {
   rationale: string;
 };
 
+/**
+ * Facteurs de confiance mesurables — exposés pour l'explicabilité de l'estimation.
+ * Tous dérivés des comparables réellement retenus (déterministe, aucun IO).
+ */
+export type ConfidenceFactors = {
+  /** Nombre de comparables retenus après filtrage. */
+  nbComparables: number;
+  /** Coefficient de variation des prix/m² indexés (écart-type / médiane). Plus bas = plus fiable. null si <2 comps. */
+  cvPrixM2: number | null;
+  /** Distance moyenne (km) des comparables au bien. null si aucune géoloc dispo. */
+  distanceMoyenneKm: number | null;
+  /** Ancienneté moyenne des mutations (mois). null si aucune date exploitable. */
+  recenceMoyenneMois: number | null;
+};
+
+/** Statut de complétude des données ayant servi au calcul (miroir de la colonne DB). */
+export type DataStatus = 'complete' | 'partial' | 'degraded';
+
 export type Valuation = {
   basePerM2: number;
   adjustedPerM2: number;
@@ -162,6 +180,12 @@ export type Valuation = {
   recommendedListingPrice: number;
   confidence: 'indicative' | 'moyenne' | 'elevee';
   nbComparables: number;
+  /** Version du moteur ayant produit cette valorisation (auditabilité). */
+  engineVersion: string;
+  /** Facteurs de confiance mesurables (explicabilité). */
+  confidenceFactors: ConfidenceFactors;
+  /** Statut de complétude des données (déterministe, dérivé des comps + géoloc). */
+  dataStatus: DataStatus;
 };
 
 // ─── Estimation ───────────────────────────────────────────────────────────────

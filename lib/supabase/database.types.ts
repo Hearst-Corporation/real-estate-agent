@@ -124,6 +124,8 @@ export type Database = {
           city: string | null
           confirmed_blocks: Json
           created_at: string
+          data_status: string | null
+          engine_version: string | null
           field_status: Json
           id: string
           insee_code: string | null
@@ -137,6 +139,7 @@ export type Database = {
           property: Json
           property_photo_key: string | null
           property_type: string | null
+          quality_alerts: Json | null
           recommended_price: number | null
           sale_strategies: Json | null
           sources_snapshot: Json | null
@@ -147,6 +150,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
           valuation: Json | null
+          valued_at: string | null
           vue_perenne: boolean | null
         }
         Insert: {
@@ -155,6 +159,8 @@ export type Database = {
           city?: string | null
           confirmed_blocks?: Json
           created_at?: string
+          data_status?: string | null
+          engine_version?: string | null
           field_status?: Json
           id?: string
           insee_code?: string | null
@@ -168,6 +174,7 @@ export type Database = {
           property?: Json
           property_photo_key?: string | null
           property_type?: string | null
+          quality_alerts?: Json | null
           recommended_price?: number | null
           sale_strategies?: Json | null
           sources_snapshot?: Json | null
@@ -178,6 +185,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           valuation?: Json | null
+          valued_at?: string | null
           vue_perenne?: boolean | null
         }
         Update: {
@@ -186,6 +194,8 @@ export type Database = {
           city?: string | null
           confirmed_blocks?: Json
           created_at?: string
+          data_status?: string | null
+          engine_version?: string | null
           field_status?: Json
           id?: string
           insee_code?: string | null
@@ -199,6 +209,7 @@ export type Database = {
           property?: Json
           property_photo_key?: string | null
           property_type?: string | null
+          quality_alerts?: Json | null
           recommended_price?: number | null
           sale_strategies?: Json | null
           sources_snapshot?: Json | null
@@ -209,6 +220,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           valuation?: Json | null
+          valued_at?: string | null
           vue_perenne?: boolean | null
         }
         Relationships: []

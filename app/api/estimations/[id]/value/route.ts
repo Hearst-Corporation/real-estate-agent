@@ -28,6 +28,7 @@ import { fetchDpeForAddress } from '@/lib/estimation/ademe';
 import { computeValuation } from '@/lib/estimation/valuation';
 import { fetchListingComparables } from '@/lib/estimation/listings';
 import { buildSourcesSnapshot } from '@/lib/estimation/snapshot';
+import { ENGINE_VERSION } from '@/lib/estimation/valuation';
 import type { PropertyData, MarketAnalysis } from '@/lib/estimation/types';
 import type { Json } from '@/lib/supabase/database.types';
 
@@ -54,6 +55,10 @@ export async function POST(
 ) {
   const { id } = await ctx.params;
 
+  // `?force=true` autorise explicitement un recalcul d'une estimation déjà `ready`
+  // (sinon simplement loggé). Un `archived` n'est JAMAIS écrasé, même en force.
+  const force = new URL(_req.url).searchParams.get('force') === 'true';
+
   // ── Auth ────────────────────────────────────────────────────────────────
   const claims = await getSession();
   if (!claims) {
@@ -75,6 +80,24 @@ export async function POST(
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
   }
 
+  // ── Garde anti-écrasement ───────────────────────────────────────────────
+  // Une estimation `archived` est un livrable figé : on refuse tout recalcul
+  // qui écraserait silencieusement la valeur remise au vendeur.
+  // Une estimation `ready` PEUT être réévaluée (l'agent peut vouloir relancer
+  // après correction du bien) : on l'autorise mais on le trace explicitement,
+  // et `valued_at`/`engine_version` sont réécrits à jour à la persistance.
+  if (estimation.status === 'archived') {
+    return NextResponse.json(
+      { error: 'estimation_archived', message: 'Estimation archivée : recalcul refusé.' },
+      { status: 409 },
+    );
+  }
+  if (estimation.status === 'ready' && estimation.valuation) {
+    console.warn(
+      `[value/route] recalcul d'une estimation déjà finalisée id=${id} status=ready force=${force} — la valorisation précédente sera remplacée`,
+    );
+  }
+
   // ── Rate-limit (5 req / 60 s per user) ─────────────────────────────────
   const allowed = await rateLimit(`value:${userId}`, 5, 60);
   if (!allowed) {
@@ -88,7 +111,17 @@ export async function POST(
 
   const readable = new ReadableStream<Uint8Array>({
     async start(controller) {
+      // Alertes qualité émises pendant le pipeline (mode dégradé, source absente…).
+      // Persistées dans `quality_alerts` au lieu d'être jetées après le stream.
+      const qualityAlerts: { code: string; message: string }[] = [];
+
       const emit = (frame: Record<string, unknown>) => {
+        if (frame.type === 'error' && typeof frame.message === 'string') {
+          qualityAlerts.push({
+            code: typeof frame.code === 'string' ? frame.code : 'degraded',
+            message: frame.message,
+          });
+        }
         controller.enqueue(encoder.encode(JSON.stringify(frame) + '\n'));
       };
 
@@ -103,23 +136,34 @@ export async function POST(
         const geo = await geocode(adresse);
 
         if (!geo) {
-          emit({ type: 'error', message: 'Adresse introuvable — données de marché indisponibles.' });
+          emit({
+            type: 'error',
+            code: 'geocode_failed',
+            message: 'Adresse introuvable — données de marché indisponibles.',
+          });
           // Persiste un état dégradé et ferme
+          const valuedAt = new Date().toISOString();
           const degradedValuation = computeValuation(property, [], {
             medianPricePerSqm: null,
             confidence: 'indicative',
+            geocoded: false,
+            refNowIso: valuedAt,
           });
           const saleStrategies = buildSaleStrategies(0);
           const degradedSnapshot = buildSourcesSnapshot(
             { adresse, geo: null },
-            new Date().toISOString(),
+            valuedAt,
           );
           await sb.from('estimations').update({
             valuation: degradedValuation as unknown as Json,
             sale_strategies: saleStrategies as unknown as Json,
             sources_snapshot: degradedSnapshot as unknown as Json,
+            engine_version: ENGINE_VERSION,
+            valued_at: valuedAt,
+            data_status: degradedValuation.dataStatus,
+            quality_alerts: qualityAlerts as unknown as Json,
             status: 'ready',
-            updated_at: new Date().toISOString(),
+            updated_at: valuedAt,
           }).eq('id', id);
 
           emit({ type: 'done', valuation: degradedValuation, market: null });
@@ -141,7 +185,7 @@ export async function POST(
         const sections = await candidateSections(geo.lat, geo.lon, parcelle?.section);
         const mutations = await fetchMutationsMultiSection(inseeCode, sections);
 
-        const { comparables, medianPricePerSqm, nbComparables, confidence } =
+        const { comparables, medianPricePerSqm, nbComparables, confidence, distanceMoyenneKm } =
           buildComparables(
             {
               type_bien: property.type_bien,
@@ -153,10 +197,15 @@ export async function POST(
             mutations,
           );
 
+        // Instant de valorisation — unique pour toute la passe (récence des comps,
+        // fetched_at du market, valued_at persisté). Couche IO : jamais dans la fn pure.
+        const valuedAt = new Date().toISOString();
+
         // Mode dégradé si <3 comps
         if (nbComparables < 3) {
           emit({
             type: 'error',
+            code: 'few_comparables',
             message: `Seulement ${nbComparables} transaction(s) comparable(s) trouvée(s). La valorisation est indicative.`,
           });
         }
@@ -184,6 +233,9 @@ export async function POST(
           medianPricePerSqm,
           confidence,
           compDpeMix: null, // pas de DPE moyen connu sur les comps DVF
+          geocoded: true,
+          distanceMoyenneKm,
+          refNowIso: valuedAt,
         });
 
         const saleStrategies = buildSaleStrategies(valuation.marketValue);
@@ -212,7 +264,7 @@ export async function POST(
           listing_source: listingResult,
           subject_lat: geo.lat,
           subject_lon: geo.lon,
-          fetched_at: new Date().toISOString(),
+          fetched_at: valuedAt,
         };
 
         // ── Snapshot sources (auditabilité, capé, inclus dans l'update) ──
@@ -240,8 +292,12 @@ export async function POST(
             market_value: valuation.marketValue || null,
             recommended_price: valuation.recommendedListingPrice || null,
             surface: property.surface_habitable_m2 ?? property.surface_carrez_m2 ?? null,
+            engine_version: ENGINE_VERSION,
+            valued_at: valuedAt,
+            data_status: valuation.dataStatus,
+            quality_alerts: qualityAlerts as unknown as Json,
             status: 'ready',
-            updated_at: new Date().toISOString(),
+            updated_at: valuedAt,
           })
           .eq('id', id);
 

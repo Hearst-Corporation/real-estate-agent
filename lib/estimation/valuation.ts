@@ -11,8 +11,25 @@
  * 5. Fourchette selon confidence spread.
  */
 
-import type { PropertyData, DvfComparable, Valuation, ValuationAdjustment } from './types';
+import type {
+  PropertyData,
+  DvfComparable,
+  Valuation,
+  ValuationAdjustment,
+  ConfidenceFactors,
+  DataStatus,
+} from './types';
 import { indexComparable } from './price-index';
+
+/**
+ * Version du moteur de valorisation (semver). À incrémenter dès que la
+ * méthodologie (tables d'ajustement, clamp, annexes, indexation) change, pour
+ * qu'une estimation persistée reste rejouable/auditable.
+ *   patch : correction sans effet sur les valeurs produites
+ *   minor : nouvel axe d'ajustement / facteurs de confiance (rétro-compatible)
+ *   major : changement de méthode qui déplace les valeurs
+ */
+export const ENGINE_VERSION = 'valuation@1.1.0';
 
 // ─── Median ───────────────────────────────────────────────────────────────────
 
@@ -23,6 +40,55 @@ function median(values: number[]): number | null {
   return sorted.length % 2 === 0
     ? (sorted[mid - 1] + sorted[mid]) / 2
     : sorted[mid];
+}
+
+// ─── Confidence factors ───────────────────────────────────────────────────────
+
+/** Moyenne arithmétique, null si tableau vide. */
+function mean(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+/**
+ * Coefficient de variation (écart-type population / médiane) des prix/m² indexés.
+ * Mesure la dispersion : plus il est bas, plus le marché est homogène et
+ * l'estimation fiable. null si <2 comps ou médiane nulle.
+ */
+function coeffVariation(prices: number[]): number | null {
+  if (prices.length < 2) return null;
+  const med = median(prices);
+  if (med === null || med === 0) return null;
+  const m = prices.reduce((a, b) => a + b, 0) / prices.length;
+  const variance =
+    prices.reduce((acc, p) => acc + (p - m) ** 2, 0) / prices.length;
+  return Math.sqrt(variance) / med;
+}
+
+/**
+ * Ancienneté moyenne des mutations (en mois) par rapport à `now`.
+ * `now` injecté pour rester déterministe (défaut = dernier trimestre indexé
+ * si non fourni ; ici on prend `Date.now` UNIQUEMENT si aucune date de réf.
+ * n'est passée — le calcul reste pur tant que l'appelant fournit `refNowIso`).
+ */
+function recenceMoyenneMois(
+  comps: DvfComparable[],
+  refNowIso: string | undefined,
+): number | null {
+  if (comps.length === 0) return null;
+  const ref = refNowIso ? new Date(refNowIso) : null;
+  if (ref === null || Number.isNaN(ref.getTime())) return null;
+  const monthsList: number[] = [];
+  for (const c of comps) {
+    const d = new Date(c.date_mutation);
+    if (Number.isNaN(d.getTime())) continue;
+    const months =
+      (ref.getUTCFullYear() - d.getUTCFullYear()) * 12 +
+      (ref.getUTCMonth() - d.getUTCMonth());
+    monthsList.push(Math.max(0, months));
+  }
+  const avg = mean(monthsList);
+  return avg === null ? null : Math.round(avg * 10) / 10;
 }
 
 // ─── DPE adjustment tables ────────────────────────────────────────────────────
@@ -113,6 +179,12 @@ export function computeValuation(
     medianPricePerSqm: number | null;
     confidence: 'indicative' | 'moyenne' | 'elevee';
     compDpeMix?: string | null;
+    /** ISO de référence (= market.fetched_at) pour la récence des comps. Garde le calcul pur. */
+    refNowIso?: string;
+    /** Distance moyenne (km) des comps, calculée en amont (comparables.ts). */
+    distanceMoyenneKm?: number | null;
+    /** Géocodage du bien réussi (pilote data_status). Défaut : true si des comps existent. */
+    geocoded?: boolean;
   },
 ): Valuation {
   const adjustments: ValuationAdjustment[] = [];
@@ -122,6 +194,30 @@ export function computeValuation(
   const indexedComps = comparables.map(indexComparable);
   const prices = indexedComps.map((c) => c.prix_m2).filter((p) => p > 0);
   const computedMedian = median(prices);
+
+  // ── Facteurs de confiance mesurables (explicabilité) ─────────────────────
+  const cvRaw = coeffVariation(prices);
+  const confidenceFactors: ConfidenceFactors = {
+    nbComparables: comparables.length,
+    cvPrixM2: cvRaw === null ? null : Math.round(cvRaw * 1000) / 1000,
+    distanceMoyenneKm:
+      opts.distanceMoyenneKm === undefined || opts.distanceMoyenneKm === null
+        ? null
+        : Math.round(opts.distanceMoyenneKm * 100) / 100,
+    recenceMoyenneMois: recenceMoyenneMois(comparables, opts.refNowIso),
+  };
+
+  // ── data_status : dérivé géoloc + nb comps ───────────────────────────────
+  // complete : géoloc OK + DVF + ≥3 comparables
+  // partial  : géoloc OK mais <3 comparables
+  // degraded : géoloc échouée / 0 comparable
+  const geocoded = opts.geocoded ?? comparables.length > 0;
+  const dataStatus: DataStatus =
+    !geocoded || comparables.length === 0
+      ? 'degraded'
+      : comparables.length >= 3
+        ? 'complete'
+        : 'partial';
 
   // Priorité : médiane calculée sur les comps indexés, sinon medianPricePerSqm fourni
   const basePerM2Raw = computedMedian ?? opts.medianPricePerSqm ?? 0;
@@ -138,6 +234,14 @@ export function computeValuation(
       recommendedListingPrice: 0,
       confidence: 'indicative',
       nbComparables: 0,
+      engineVersion: ENGINE_VERSION,
+      confidenceFactors: {
+        nbComparables: 0,
+        cvPrixM2: null,
+        distanceMoyenneKm: null,
+        recenceMoyenneMois: null,
+      },
+      dataStatus: 'degraded',
     };
   }
 
@@ -363,6 +467,10 @@ export function computeValuation(
       recommendedListingPrice: 0,
       confidence: 'indicative',
       nbComparables: comparables.length,
+      engineVersion: ENGINE_VERSION,
+      confidenceFactors,
+      // Surface inconnue → on ne peut pas produire une valeur : donnée incomplète.
+      dataStatus: 'partial',
     };
   }
 
@@ -444,5 +552,8 @@ export function computeValuation(
     recommendedListingPrice,
     confidence: opts.confidence,
     nbComparables: comparables.length,
+    engineVersion: ENGINE_VERSION,
+    confidenceFactors,
+    dataStatus,
   };
 }
