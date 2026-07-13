@@ -18,7 +18,6 @@ type VisitRow = {
   leads: { full_name: string } | null;
 };
 
-
 /** Compte les visites planifiées dans les 7 prochains jours (à partir d'aujourd'hui minuit). */
 function countThisWeek(visits: VisitRow[]): number {
   const now = new Date();
@@ -82,14 +81,11 @@ export default async function AgendaPage() {
       {/* ── Stats (grille KPI + primitives) ── */}
       <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {stats.map((item) => (
-          <div
-            key={item.name}
-            className="rounded-xl border border-zinc-950/10 p-4 dark:border-white/10"
-          >
+          <div key={item.name} className="surface p-4">
             <dt>
               <Text>{item.name}</Text>
             </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+            <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">
               {item.value}
             </dd>
           </div>
@@ -97,17 +93,17 @@ export default async function AgendaPage() {
       </dl>
 
       {/* ── Liste des visites (stacked list) ── */}
-      <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
+      <section className="surface p-5">
         {visits.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-950/10 px-6 py-12 text-center dark:border-white/10">
-            <CalendarIcon aria-hidden="true" className="size-10 text-zinc-400 dark:text-zinc-500" />
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-950/10 px-6 py-12 text-center">
+            <CalendarIcon aria-hidden="true" className="size-10 text-zinc-400" />
             <Text>{tv.empty}</Text>
             <Button href="/visits" color="indigo" className="mt-2">
               {tv.newCta}
             </Button>
           </div>
         ) : (
-          <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
+          <ul className="divide-y divide-zinc-950/5">
             {visits.map((v) => (
               <li key={v.id} className="flex flex-wrap justify-between gap-x-6 gap-y-2 py-5">
                 <div className="flex min-w-0 gap-x-4">
@@ -119,14 +115,20 @@ export default async function AgendaPage() {
                       {v.properties?.title ?? v.properties?.city ?? "—"}
                     </p>
                     <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-zinc-500 dark:text-zinc-400">
-                      <UserIcon aria-hidden="true" className="size-4 text-zinc-400 dark:text-zinc-500" />
+                      <UserIcon
+                        aria-hidden="true"
+                        className="size-4 text-zinc-400 dark:text-zinc-500"
+                      />
                       {v.leads?.full_name ?? "—"}
                     </p>
                   </div>
                 </div>
                 <div className="flex shrink-0 flex-col items-end justify-center gap-1">
                   <p className="flex items-center gap-1.5 text-sm text-zinc-950 dark:text-white">
-                    <MapPinIcon aria-hidden="true" className="size-4 text-zinc-400 dark:text-zinc-500" />
+                    <MapPinIcon
+                      aria-hidden="true"
+                      className="size-4 text-zinc-400 dark:text-zinc-500"
+                    />
                     <time dateTime={v.scheduled_at}>
                       {dateFr(v.scheduled_at)} · {timeFr(v.scheduled_at)}
                     </time>

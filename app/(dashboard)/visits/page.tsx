@@ -4,7 +4,14 @@ import { Donut } from "@/components/cockpit/Donut";
 import { StatusSelect } from "@/components/cockpit/StatusSelect";
 import { DeleteButton } from "@/components/cockpit/DeleteButton";
 import { Heading, Subheading } from "@/components/ui/heading";
-import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeader,
+  TableCell,
+} from "@/components/ui/table";
 import { countByStatus, ratio } from "@/lib/crm/aggregate";
 import { dateTimeFr, VISIT_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
@@ -49,7 +56,7 @@ export default async function VisitsPage() {
   const noShowRate = visits.length > 0 ? Math.round((noShow / visits.length) * 100) : 0;
 
   const pipeline = countByStatus(visits, VISIT_STATUSES, t.statusLabels, (s) =>
-    statusTone("visit", s)
+    statusTone("visit", s),
   );
   const doneRate = ratio(visits, (v) => v.status === "realisee");
 
@@ -83,14 +90,9 @@ export default async function VisitsPage() {
       {/* KPI — grille zinc + primitives */}
       <dl className="grid grid-cols-2 gap-5 lg:grid-cols-4">
         {stats.map((item) => (
-          <div
-            key={item.name}
-            className="overflow-hidden rounded-xl border border-zinc-950/10 bg-white px-4 py-5 sm:p-6 dark:border-white/10 dark:bg-zinc-900"
-          >
-            <dt className="truncate text-sm font-medium text-zinc-500 dark:text-zinc-400">
-              {item.name}
-            </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+          <div key={item.name} className="surface overflow-hidden px-4 py-5 sm:p-6">
+            <dt className="truncate text-sm font-medium text-zinc-500">{item.name}</dt>
+            <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">
               {item.value}
             </dd>
           </div>
@@ -99,68 +101,67 @@ export default async function VisitsPage() {
 
       {/* Charts — conteneur zinc, viz métier conservée */}
       <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
-        <section className="rounded-xl border border-zinc-950/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
-          <Subheading className="mb-3">{t.charts.pipeline}</Subheading>
+        <section className="surface p-5">
+          <Subheading className="font-titre mb-3">{t.charts.pipeline}</Subheading>
           <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
         </section>
-        <section className="rounded-xl border border-zinc-950/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
-          <Subheading className="mb-3">{t.charts.doneRate}</Subheading>
+        <section className="surface p-5">
+          <Subheading className="font-titre mb-3">{t.charts.doneRate}</Subheading>
           <Donut value={doneRate} sublabel={t.charts.doneRateSub} accent />
         </section>
       </div>
 
       {/* Table — primitives Catalyst */}
       {visits.length === 0 ? (
-        <div className="rounded-xl border border-zinc-950/10 bg-white px-6 py-16 text-center dark:border-white/10 dark:bg-zinc-900">
-          <CalendarDaysIcon
-            aria-hidden="true"
-            className="mx-auto size-12 text-zinc-400 dark:text-zinc-500"
-          />
+        <div className="surface px-6 py-16 text-center">
+          <CalendarDaysIcon aria-hidden="true" className="mx-auto size-12 text-zinc-400" />
           <Subheading className="mt-2">{t.empty}</Subheading>
         </div>
       ) : (
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>{t.table.property}</TableHeader>
-              <TableHeader>{t.table.datetime}</TableHeader>
-              <TableHeader className="text-right">{t.table.duration}</TableHeader>
-              <TableHeader>{t.table.status}</TableHeader>
-              <TableHeader className="text-right">{t.table.action}</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {visits.map((v) => (
-              <TableRow key={v.id}>
-                <TableCell className="font-medium text-zinc-950 dark:text-white">
-                  {v.properties?.title ?? v.properties?.city ?? v.property_id}
-                </TableCell>
-                <TableCell className="whitespace-nowrap text-zinc-500 dark:text-zinc-400">
-                  {dateTimeFr(v.scheduled_at)}
-                </TableCell>
-                <TableCell className="text-right tabular-nums whitespace-nowrap">
-                  {`${v.duration_min}${t.durationUnit}`}
-                </TableCell>
-                <TableCell>
-                  <StatusSelect
-                    endpoint={`/api/visits/${v.id}`}
-                    value={v.status}
-                    options={VISIT_STATUSES}
-                    labels={t.statusLabels}
-                    ariaLabel={t.table.status}
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <DeleteButton
-                    endpoint={`/api/visits/${v.id}`}
-                    label={t.delete}
-                    confirmMessage={t.delete}
-                  />
-                </TableCell>
+        <div className="surface overflow-hidden px-2">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>{t.table.property}</TableHeader>
+                <TableHeader>{t.table.datetime}</TableHeader>
+                <TableHeader className="text-right">{t.table.duration}</TableHeader>
+                <TableHeader>{t.table.status}</TableHeader>
+                <TableHeader className="text-right">{t.table.action}</TableHeader>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {visits.map((v) => (
+                <TableRow key={v.id}>
+                  <TableCell className="font-medium text-zinc-950 dark:text-white">
+                    {v.properties?.title ?? v.properties?.city ?? v.property_id}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-zinc-500 dark:text-zinc-400">
+                    {dateTimeFr(v.scheduled_at)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums whitespace-nowrap">
+                    {`${v.duration_min}${t.durationUnit}`}
+                  </TableCell>
+                  <TableCell>
+                    <StatusSelect
+                      endpoint={`/api/visits/${v.id}`}
+                      value={v.status}
+                      options={VISIT_STATUSES}
+                      labels={t.statusLabels}
+                      ariaLabel={t.table.status}
+                    />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DeleteButton
+                      endpoint={`/api/visits/${v.id}`}
+                      label={t.delete}
+                      confirmMessage={t.delete}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   );

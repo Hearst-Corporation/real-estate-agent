@@ -394,7 +394,7 @@ export function EstimationWizard({
             <div className="flex size-14 items-center justify-center rounded-full bg-accent-500/15 text-2xl font-bold text-accent-600">
               €
             </div>
-            <p className="text-lg font-semibold text-zinc-950">{UI.estimations.interviewTitle}</p>
+            <p className="font-titre text-lg font-semibold text-zinc-950">{UI.estimations.interviewTitle}</p>
             <Text className="max-w-sm">{UI.estimations.interviewSub}</Text>
             <Button
               color="indigo"
@@ -424,7 +424,7 @@ export function EstimationWizard({
                   className={`rounded-2xl px-4 py-2.5 text-sm ${
                     isUser
                       ? "bg-accent-500/20 text-accent-950"
-                      : "border border-zinc-950/10 bg-white text-zinc-700"
+                      : "surface text-zinc-700"
                   }`}
                 >
                   {m.content ? (
@@ -461,7 +461,7 @@ export function EstimationWizard({
                         </span>
                       )}
                     </summary>
-                    <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-zinc-950/10 bg-white p-3">
+                    <div className="surface mt-2 flex flex-col gap-1.5 p-3">
                       {act!.events.map((e, i) => (
                         <div key={i} className="flex items-start gap-1.5 text-zinc-500">
                           <span className="text-accent-500" aria-hidden="true">✓</span> {e}

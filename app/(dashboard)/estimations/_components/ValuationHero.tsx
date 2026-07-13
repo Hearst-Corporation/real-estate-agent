@@ -70,7 +70,7 @@ export function ValuationHero({ id, valuation }: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-6 rounded-2xl border border-zinc-950/10 bg-gradient-to-br from-accent-500/10 via-white to-white p-6 shadow-lg shadow-zinc-950/5 backdrop-blur-sm lg:flex-row lg:items-stretch">
+    <div className="surface flex flex-col gap-6 p-6 lg:flex-row lg:items-stretch">
       {/* ── Colonne valeur : badge, valeur, fourchette visuelle ── */}
       <div className="flex flex-1 flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -91,7 +91,7 @@ export function ValuationHero({ id, valuation }: Props) {
           <p className="text-xs font-semibold uppercase tracking-widest text-accent-600">
             {UI.estimations.market}
           </p>
-          <p className="mt-1 text-5xl font-black tracking-tight text-zinc-950">
+          <p className="mt-1 text-3xl font-semibold tracking-tight text-accent-700 tabular-nums">
             {fmt.format(valuation.marketValue)}
           </p>
         </div>
@@ -124,7 +124,7 @@ export function ValuationHero({ id, valuation }: Props) {
       {/* ── Colonne droite : KPIs + actions ── */}
       <div className="flex flex-col justify-between gap-4 lg:w-56 lg:shrink-0">
         <div className="flex flex-col gap-3">
-          <div className="rounded-xl border border-zinc-950/10 bg-white p-3">
+          <div className="surface p-3">
             <span className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
               {UI.estimations.perSqm}
             </span>
@@ -133,7 +133,7 @@ export function ValuationHero({ id, valuation }: Props) {
               {UI.estimations.perSqmUnit}
             </span>
           </div>
-          <div className="rounded-xl border border-accent-400/40 bg-accent-500/10 p-3">
+          <div className="surface p-3">
             <span className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
               {UI.estimations.recommended}
             </span>

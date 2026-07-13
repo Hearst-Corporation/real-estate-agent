@@ -56,10 +56,7 @@ export default async function AdminPage() {
         <Subheading level={2}>{t.countsTitle}</Subheading>
         <dl className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((item) => (
-            <div
-              key={item.name}
-              className="rounded-xl border border-zinc-950/10 p-4 dark:border-white/10"
-            >
+            <div key={item.name} className="surface p-4">
               <dt className="truncate text-sm/6 text-zinc-500 dark:text-zinc-400">{item.name}</dt>
               <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
                 {item.stat}
@@ -70,7 +67,7 @@ export default async function AdminPage() {
       </div>
 
       {!sb && (
-        <div className="flex items-center gap-3 rounded-xl border border-zinc-950/10 px-4 py-3 dark:border-white/10">
+        <div className="surface flex items-center gap-3 px-4 py-3">
           <Badge color="amber">!</Badge>
           <Text>{t.degraded}</Text>
         </div>
@@ -78,12 +75,16 @@ export default async function AdminPage() {
 
       {/* Observabilité + Jobs */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
-          <Subheading level={3}>{t.obsTitle}</Subheading>
+        <section className="surface p-5">
+          <Subheading level={3} className="font-titre">
+            {t.obsTitle}
+          </Subheading>
           <Text className="mt-2">{t.obsBody}</Text>
         </section>
-        <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
-          <Subheading level={3}>{t.jobsTitle}</Subheading>
+        <section className="surface p-5">
+          <Subheading level={3} className="font-titre">
+            {t.jobsTitle}
+          </Subheading>
           <Text className="mt-2">{t.jobsPlaceholder}</Text>
         </section>
       </div>
@@ -117,9 +118,7 @@ export default async function AdminPage() {
                     {r.name}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Badge color={r.ok ? "lime" : "zinc"}>
-                      {r.ok ? t.configured : t.absent}
-                    </Badge>
+                    <Badge color={r.ok ? "lime" : "zinc"}>{r.ok ? t.configured : t.absent}</Badge>
                   </TableCell>
                 </TableRow>
               ))

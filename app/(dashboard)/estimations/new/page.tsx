@@ -60,13 +60,13 @@ function NewEstimationInner() {
           <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
             {t.eyebrow}
           </p>
-          <Heading>{t.newCta}</Heading>
+          <Heading className="font-titre">{t.newCta}</Heading>
           <Text className="mt-1">{t.interviewSub}</Text>
         </div>
       </div>
 
       {/* Card conteneur */}
-      <section className="rounded-xl border border-zinc-950/10 bg-white/[0.03] p-6 dark:border-white/10">
+      <section className="surface p-6">
         {error ? (
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">

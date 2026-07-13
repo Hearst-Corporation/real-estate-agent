@@ -92,7 +92,7 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
       ) : view === "kanban" ? (
         <PropertyKanban properties={properties} />
       ) : properties.length === 0 ? (
-        <div className="rounded-xl border border-zinc-950/10 p-8 text-center dark:border-white/10">
+        <div className="surface p-8 text-center">
           <Text>{t.empty}</Text>
         </div>
       ) : (

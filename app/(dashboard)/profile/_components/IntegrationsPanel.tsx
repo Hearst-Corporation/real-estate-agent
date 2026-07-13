@@ -94,10 +94,7 @@ export function IntegrationsPanel() {
         const provider = t.providers[key];
         const connected = key === "gmail" ? status.gmail : status.calendar;
         return (
-          <div
-            key={toolkit}
-            className="flex flex-col gap-3 rounded-xl border border-zinc-950/10 p-4 dark:border-white/10"
-          >
+          <div key={toolkit} className="surface flex flex-col gap-3 p-4">
             <div className="flex items-center gap-2.5">
               <span
                 className="flex size-8 items-center justify-center rounded-lg border border-zinc-950/10 text-accent-500 dark:border-white/10 dark:text-accent-400"

@@ -26,11 +26,11 @@ export function GeneratingScreen({ currentStep }: Props) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Heading>{UI.estimations.generatingTitle}</Heading>
+          <Heading className="font-titre">{UI.estimations.generatingTitle}</Heading>
           <Text>{UI.estimations.generatingSub}</Text>
         </div>
 
-        <div className="flex w-full flex-col gap-2 rounded-xl border border-zinc-950/10 bg-white p-4 text-left">
+        <div className="surface flex w-full flex-col gap-2 p-4 text-left">
           {steps.map((step, i) => {
             const done = i < currentIdx;
             const active = i === currentIdx;

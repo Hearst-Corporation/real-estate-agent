@@ -16,9 +16,9 @@ type Phase =
   | "loading"
   | "unavailable"
   | "disabled"
-  | "setup"        // POST setup ok, affiche secret + uri
-  | "enabling"     // POST enable en cours
-  | "backup"       // POST enable ok, affiche backup codes
+  | "setup" // POST setup ok, affiche secret + uri
+  | "enabling" // POST enable en cours
+  | "backup" // POST enable ok, affiche backup codes
   | "enabled"
   | "disabling";
 
@@ -32,8 +32,10 @@ function formatSecret(s: string): string {
 /** Conteneur de section MFA (remplace la Card Cockpit maison). */
 function MfaSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
-      <Subheading level={2}>{title}</Subheading>
+    <section className="surface p-5">
+      <Subheading level={2} className="font-titre">
+        {title}
+      </Subheading>
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -67,7 +69,9 @@ export function MfaPanel() {
       .catch(() => {
         if (alive) setPhase("unavailable");
       });
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   async function startSetup() {
@@ -75,7 +79,10 @@ export function MfaPanel() {
     setError(null);
     try {
       const res = await fetch("/api/auth/mfa/setup", { method: "POST" });
-      if (res.status === 503) { setPhase("unavailable"); return; }
+      if (res.status === 503) {
+        setPhase("unavailable");
+        return;
+      }
       if (!res.ok) throw new Error("setup");
       const data = (await res.json()) as SetupData;
       setSetup(data);
@@ -99,7 +106,10 @@ export function MfaPanel() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ code: code.trim() }),
       });
-      if (res.status === 503) { setPhase("unavailable"); return; }
+      if (res.status === 503) {
+        setPhase("unavailable");
+        return;
+      }
       if (res.status === 400) {
         setError("Code invalide. Vérifiez l'heure de votre appareil et réessayez.");
         setPhase("setup");
@@ -129,7 +139,10 @@ export function MfaPanel() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ code: code.trim() }),
       });
-      if (res.status === 503) { setPhase("unavailable"); return; }
+      if (res.status === 503) {
+        setPhase("unavailable");
+        return;
+      }
       if (res.status === 400) {
         setError("Code invalide. Réessayez.");
         setPhase("enabled");

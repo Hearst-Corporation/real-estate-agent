@@ -1,5 +1,12 @@
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
@@ -36,7 +43,9 @@ export default async function MandatesPage() {
   if (claims && sb) {
     const { data } = await sb
       .from("mandates")
-      .select("id, status, kind, reference, asking_price, commission_pct, expires_at, properties(title, city)")
+      .select(
+        "id, status, kind, reference, asking_price, commission_pct, expires_at, properties(title, city)",
+      )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .order("updated_at", { ascending: false });
@@ -48,7 +57,7 @@ export default async function MandatesPage() {
   const avgCommission = average(actifs, "commission_pct");
 
   const pipeline = countByStatus(mandates, MANDATE_STATUSES, t.statusLabels, (s) =>
-    statusTone("mandate", s)
+    statusTone("mandate", s),
   );
   const byKind = topByCategory(mandates, "kind", t.kindLabels);
 
@@ -71,7 +80,7 @@ export default async function MandatesPage() {
             <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500">
               {t.eyebrow}
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 @sm:truncate @sm:text-3xl">
+            <h1 className="font-titre text-2xl font-bold tracking-tight text-zinc-900 @sm:truncate @sm:text-3xl">
               {t.title}
             </h1>
           </div>
@@ -87,10 +96,7 @@ export default async function MandatesPage() {
         {/* KPI stats — TW+ data-display/stats (thème clair) */}
         <dl className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @lg:grid-cols-4">
           {kpis.map((kpi) => (
-            <div
-              key={kpi.label}
-              className="rounded-xl border border-zinc-950/10 bg-white px-4 py-3"
-            >
+            <div key={kpi.label} className="surface px-4 py-3">
               <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                 {kpi.label}
               </dt>
@@ -102,14 +108,14 @@ export default async function MandatesPage() {
 
       {/* Viz métier — cards TW+ layout/cards (thème clair) */}
       <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
-        <section className="rounded-2xl border border-zinc-950/10 bg-white p-5 shadow-sm">
-          <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
+        <section className="surface p-5">
+          <div className="font-titre mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
             {t.charts.pipeline}
           </div>
           <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
         </section>
-        <section className="rounded-2xl border border-zinc-950/10 bg-white p-5 shadow-sm">
-          <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
+        <section className="surface p-5">
+          <div className="font-titre mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
             {t.charts.byKind}
           </div>
           <BarList items={byKind} emptyLabel={UI.viz.empty} />
@@ -117,7 +123,7 @@ export default async function MandatesPage() {
       </div>
 
       {/* Table — TW+ lists__tables/02-simple-in-card (thème clair) */}
-      <div className="overflow-hidden rounded-2xl border border-zinc-950/10 bg-white shadow-sm">
+      <div className="surface overflow-hidden">
         {mandates.length === 0 ? (
           <div className="px-6 py-16 text-center">
             <h3 className="text-sm font-semibold text-zinc-900">{t.empty}</h3>
@@ -142,9 +148,7 @@ export default async function MandatesPage() {
                     <TableCell className="font-medium text-zinc-950 dark:text-white">
                       {m.reference ?? m.properties?.city ?? t.noReference}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {eur(m.asking_price)}
-                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{eur(m.asking_price)}</TableCell>
                     <TableCell className="text-right tabular-nums">
                       {m.commission_pct != null ? `${m.commission_pct}${t.commissionUnit}` : "—"}
                     </TableCell>

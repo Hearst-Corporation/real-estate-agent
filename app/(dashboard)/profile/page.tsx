@@ -61,8 +61,10 @@ export default async function ProfilePage() {
 
         {/* Colonne latérale — scopes / session / admin */}
         <div className="flex flex-col gap-8">
-          <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
-            <Subheading level={3}>{t.scopesTitle}</Subheading>
+          <section className="surface p-5">
+            <Subheading level={3} className="font-titre">
+              {t.scopesTitle}
+            </Subheading>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {scopes.length === 0 ? (
                 <Text>{t.empty}</Text>
@@ -76,15 +78,19 @@ export default async function ProfilePage() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
-            <Subheading level={3}>{t.sessionTitle}</Subheading>
+          <section className="surface p-5">
+            <Subheading level={3} className="font-titre">
+              {t.sessionTitle}
+            </Subheading>
             <Text className="mt-2 mb-3">{t.sessionHint}</Text>
             <LogoutButton variant="full" />
           </section>
 
           {claims.role === "admin" && (
-            <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
-              <Subheading level={3}>{UI.nav.admin}</Subheading>
+            <section className="surface p-5">
+              <Subheading level={3} className="font-titre">
+                {UI.nav.admin}
+              </Subheading>
               <Text className="mt-2 mb-3">
                 Console d&apos;administration : fournisseurs, observabilité, données tenant.
               </Text>

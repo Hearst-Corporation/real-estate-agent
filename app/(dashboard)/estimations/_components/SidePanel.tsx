@@ -113,7 +113,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
   return (
     <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
       {/* ── Fiche bien (accordéon, pleine largeur multi-colonnes) ── */}
-      <div className="col-span-full rounded-2xl border border-zinc-950/10 bg-white p-4">
+      <div className="surface col-span-full p-4">
         <Button
           plain
           className="w-full justify-between !text-sm !font-semibold"
@@ -154,8 +154,8 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
 
       {/* ── Ajustements ── */}
       {valuation.adjustments.length > 0 && (
-        <div className="rounded-2xl border border-zinc-950/10 bg-white p-4">
-          <Subheading>{UI.estimations.adjustmentsTitle}</Subheading>
+        <div className="surface p-4">
+          <Subheading className="font-titre">{UI.estimations.adjustmentsTitle}</Subheading>
           <ul className="mt-3 flex flex-col gap-3">
             {valuation.adjustments.map((adj, i) => (
               <li key={i} className="flex items-start gap-3">
@@ -178,8 +178,8 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
       )}
 
       {/* ── Contexte marché ── */}
-      <div className="rounded-2xl border border-zinc-950/10 bg-white p-4">
-        <Subheading>{UI.estimations.marketContextTitle}</Subheading>
+      <div className="surface p-4">
+        <Subheading className="font-titre">{UI.estimations.marketContextTitle}</Subheading>
         <div className="mt-3">
           {!marketLoaded && (
             <>
@@ -218,8 +218,8 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
 
       {/* ── Annonces comparables ── */}
       {marketProp != null && (
-        <div className="col-span-full rounded-2xl border border-zinc-950/10 bg-white p-4">
-          <Subheading>{UI.estimations.listingComparablesTitle}</Subheading>
+        <div className="surface col-span-full p-4">
+          <Subheading className="font-titre">{UI.estimations.listingComparablesTitle}</Subheading>
           <div className="mt-3">
             {listingFetchSource != null && (
               <p className="mb-3 text-xs text-zinc-500">

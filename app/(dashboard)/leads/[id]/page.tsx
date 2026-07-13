@@ -85,12 +85,12 @@ type PropertyRow = {
 
 // ─── UI primitives (Catalyst) ──────────────────────────────────────────────────
 
-/** Card conteneur — panneau zinc + Subheading. */
+/** Card conteneur — carte flottante canonique (surface) + Subheading. */
 function DetailCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-zinc-950/10 bg-white dark:border-white/10 dark:bg-zinc-900">
+    <section className="surface overflow-hidden">
       <div className="px-6 py-5">
-        <Subheading>{title}</Subheading>
+        <Subheading className="font-titre">{title}</Subheading>
       </div>
       <div className="border-t border-zinc-950/10 px-6 py-5 dark:border-white/10">{children}</div>
     </section>

@@ -86,31 +86,26 @@ export default async function LeadsPage() {
         </nav>
       </div>
 
-      {/* KPI — grille zinc + primitives */}
+      {/* KPI — cartes surface, chiffre grand */}
       <dl className="grid grid-cols-2 gap-5 lg:grid-cols-4">
         {stats.map((item) => (
-          <div
-            key={item.name}
-            className="overflow-hidden rounded-xl border border-zinc-950/10 bg-white px-4 py-5 sm:p-6 dark:border-white/10 dark:bg-zinc-900"
-          >
-            <dt className="truncate text-sm font-medium text-zinc-500 dark:text-zinc-400">
-              {item.name}
-            </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+          <div key={item.name} className="surface overflow-hidden px-4 py-5 sm:p-6">
+            <dt className="truncate text-sm font-medium text-zinc-500">{item.name}</dt>
+            <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">
               {item.value}
             </dd>
           </div>
         ))}
       </dl>
 
-      {/* Charts — conteneur zinc, viz métier conservée */}
+      {/* Charts — cartes surface, viz métier conservée */}
       <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
-        <section className="rounded-xl border border-zinc-950/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
-          <Subheading className="mb-3">{t.charts.pipeline}</Subheading>
+        <section className="surface p-5">
+          <Subheading className="font-titre mb-3">{t.charts.pipeline}</Subheading>
           <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
         </section>
-        <section className="rounded-xl border border-zinc-950/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
-          <Subheading className="mb-3">{t.charts.conversionRate}</Subheading>
+        <section className="surface p-5">
+          <Subheading className="font-titre mb-3">{t.charts.conversionRate}</Subheading>
           <Donut value={conversion} sublabel="Convertis" accent />
         </section>
       </div>

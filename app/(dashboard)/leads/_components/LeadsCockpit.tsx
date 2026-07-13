@@ -29,13 +29,9 @@ function budgetLabel(min: number | null, max: number | null): string {
   return "—";
 }
 
-/** Conteneur sobre zinc (pas de primitive Catalyst "card"). */
+/** Carte flottante canonique (surface). */
 function Panel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-zinc-950/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-      {children}
-    </div>
-  );
+  return <div className="surface p-4">{children}</div>;
 }
 
 /** Zone compacte : titre + compteur + 3 items max. */
@@ -54,7 +50,7 @@ function Zone({
   return (
     <Panel>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+        <span className="font-titre text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
           {label}
         </span>
         <Badge color="zinc">{count}</Badge>
@@ -126,7 +122,7 @@ export function LeadsCockpit({ leads }: { leads: CockpitLead[] }) {
       </div>
 
       <Panel>
-        <div className="text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+        <div className="font-titre text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
           {t.recentActivity}
         </div>
         {byRecent.length === 0 ? (

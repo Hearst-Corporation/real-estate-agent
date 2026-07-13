@@ -155,7 +155,7 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-950/10 px-6 py-12 text-center dark:border-white/10">
+    <div className="surface flex flex-col items-center gap-3 px-6 py-12 text-center">
       <IconCmp aria-hidden="true" className="size-10 text-zinc-400 dark:text-zinc-500" />
       <Strong>{title}</Strong>
       <Text className="max-w-md">{text}</Text>
@@ -202,7 +202,7 @@ function AnnonceCard({
   else if (annonce.code_postal) metaParts.push(annonce.code_postal);
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-xl border border-zinc-950/10 dark:border-white/10">
+    <article className="surface surface-hover flex flex-col overflow-hidden">
       <div className="relative aspect-[4/3] w-full bg-zinc-950/[0.02] dark:bg-white/[0.02]">
         {photos[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -417,7 +417,7 @@ export default function ProspectionPage() {
             <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
               {UI.prospection.kicker}
             </p>
-            <Heading>{UI.prospection.title}</Heading>
+            <Heading className="font-titre">{UI.prospection.title}</Heading>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <ScrapeCustomModal
@@ -454,9 +454,9 @@ export default function ProspectionPage() {
       {/* ── Stats (grille KPI + primitives) ── */}
       <dl className="grid grid-cols-2 gap-4 @2xl:grid-cols-4">
         {stats.map((item) => (
-          <div key={item.name} className="rounded-xl border border-zinc-950/10 p-4 dark:border-white/10">
-            <dt>
-              <Text>{item.name}</Text>
+          <div key={item.name} className="surface p-4">
+            <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              {item.name}
             </dt>
             <dd className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
               {item.value}
@@ -465,7 +465,7 @@ export default function ProspectionPage() {
         ))}
       </dl>
 
-      <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
+      <section className="surface p-5">
         {/* ── Onglet acquéreurs ── */}
         {tab === "acquereurs" && (
           <div>
@@ -841,7 +841,7 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
       </div>
 
       {showForm && (
-        <div className="mb-4 rounded-xl border border-zinc-950/10 p-4 dark:border-white/10">
+        <div className="surface mb-4 p-4">
           <FieldGroup>
             <Field>
               <Label>{UI.prospection.critereNamePlaceholder}</Label>

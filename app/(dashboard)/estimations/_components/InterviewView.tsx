@@ -149,7 +149,7 @@ export function InterviewView({
   // ── Phase 1 : Wizard ──────────────────────────────────────────────────────
   if (phase === "wizard") {
     return (
-      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-950/10 bg-white">
+      <div className="surface flex h-full flex-col overflow-hidden">
         <EstimationWizard
           id={id}
           initialMessages={initialMessages}

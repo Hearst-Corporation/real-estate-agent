@@ -62,7 +62,7 @@ function Zone({
 }) {
   const tp = UI.properties;
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
+    <div className="surface flex flex-col gap-2 p-4">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</span>
         <Badge color="zinc">{count}</Badge>
@@ -116,7 +116,7 @@ function HealthBlock({ properties }: { properties: CockpitProperty[] }) {
   if (signals.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
+    <div className="surface flex flex-col gap-2 p-4">
       <div>
         <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t.healthTitle}</span>
       </div>
@@ -203,7 +203,7 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
 
       <HealthBlock properties={properties} />
 
-      <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
+      <div className="surface flex flex-col gap-2 p-4">
         <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
           {t.recentActivity}
         </div>

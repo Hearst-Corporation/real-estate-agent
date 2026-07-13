@@ -7,7 +7,6 @@ import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { Button } from "@/components/ui/button";
-import { Heading, Subheading } from "@/components/ui/heading";
 import { Text, TextLink } from "@/components/ui/text";
 import { Link } from "@/components/ui/link";
 import {
@@ -88,9 +87,9 @@ function TodayBlock({
   href: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 p-4 dark:border-white/10">
+    <div className="flex flex-col gap-2 rounded-xl border border-accent-500/10 bg-lin-brut/50 p-4 transition-colors hover:border-accent-500/25">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
           {label}
         </span>
         <TextLink href={href} className="text-xs">
@@ -105,7 +104,7 @@ function TodayBlock({
             <li key={item.id}>
               <Link
                 href={item.href}
-                className="flex flex-col gap-0.5 py-2 text-sm text-zinc-950 transition-colors hover:text-zinc-500 dark:text-white dark:hover:text-zinc-400"
+                className="flex flex-col gap-0.5 py-2 text-sm text-zinc-950 transition-colors hover:text-accent-700"
               >
                 <span className="font-medium">{item.line1}</span>
                 {item.line2 ? (
@@ -132,14 +131,14 @@ function QuickActions({
     <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)]">
       <Link
         href={primary.href}
-        className="flex items-center gap-4 rounded-xl border border-accent-500/30 bg-accent-500/10 p-4 transition-colors hover:bg-accent-500/15"
+        className="flex items-center gap-4 rounded-xl border border-accent-500/20 border-t-2 border-t-accent-500/50 bg-gradient-to-br from-accent-500/12 via-white to-white p-5 shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)]"
       >
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent-500/20 text-accent-500 dark:text-accent-300">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent-500/15 text-accent-600">
           <Icon name={primary.icon} />
         </span>
         <span className="flex flex-col gap-0.5">
-          <span className="text-sm font-semibold text-zinc-950 dark:text-white">{primary.label}</span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">{primary.desc}</span>
+          <span className="text-sm font-semibold text-zinc-950">{primary.label}</span>
+          <span className="text-xs text-zinc-500">{primary.desc}</span>
         </span>
       </Link>
       <div className="grid grid-cols-2 gap-3 @lg:grid-cols-4">
@@ -147,12 +146,14 @@ function QuickActions({
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center gap-2 rounded-xl border border-zinc-950/10 p-3 text-center transition-colors hover:bg-zinc-950/5 dark:border-white/10 dark:hover:bg-white/5"
+            className="group flex flex-col items-center gap-2 rounded-xl border border-accent-500/10 bg-white p-4 text-center shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)]"
           >
-            <span className="flex size-9 items-center justify-center rounded-lg bg-zinc-950/5 text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-accent-500/10 text-accent-600 transition-colors group-hover:bg-accent-500/15">
               <Icon name={item.icon} />
             </span>
-            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-200">{item.label}</span>
+            <span className="text-xs font-medium text-zinc-700 transition-colors group-hover:text-accent-700">
+              {item.label}
+            </span>
           </Link>
         ))}
       </div>
@@ -361,11 +362,14 @@ export default async function DashboardPage() {
       {/* Header de page — structure headings__page-headings/01-with-actions montée en primitives */}
       <div className="md:flex md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-300">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-600">
+            <span aria-hidden className="h-px w-6 bg-accent-500/70" />
             {t.eyebrow}
           </p>
-          <Heading className="mt-1 sm:truncate">{t.title}</Heading>
-          <Text className="mt-1">{t.sub}</Text>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:truncate">
+            {t.title}
+          </h1>
+          <Text className="mt-1.5">{t.sub}</Text>
         </div>
         <div className="mt-4 flex md:mt-0 md:ml-4">
           <Button color="indigo" href="/properties/new">
@@ -374,40 +378,40 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI tiles — grille CSS + primitives (structure data-display__stats/03-simple-in-cards) */}
+      {/* KPI tiles — cartes flottantes blanc pur, chiffre or serif (data-display__stats) */}
       <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((item) => (
           <div
             key={item.label}
-            className="overflow-hidden rounded-2xl border border-zinc-950/10 px-5 py-6 dark:border-white/10"
+            className="group overflow-hidden rounded-2xl border border-accent-500/10 border-t-2 border-t-accent-500/40 bg-white px-6 py-6 shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)]"
           >
             <div className="flex items-center justify-between">
-              <dt className="truncate text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              <dt className="truncate text-xs font-semibold uppercase tracking-widest text-zinc-500">
                 {item.label}
               </dt>
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent-500/15 text-accent-500 dark:text-accent-300">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-500/10 text-accent-600 transition-colors group-hover:bg-accent-500/15">
                 <Icon name={item.icon} />
               </span>
             </div>
-            <dd className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+            <dd className="mt-3 text-3xl font-semibold tracking-tight text-accent-700 tabular-nums">
               {item.value}
             </dd>
           </div>
         ))}
       </dl>
 
-      {/* Actions — card conteneur (layout__cards) + grille d'actions cockpit */}
-      <section className="rounded-2xl border border-zinc-950/10 p-5 dark:border-white/10">
-        <Subheading>{t.actions.title}</Subheading>
-        <div className="mt-4">
+      {/* Actions — card conteneur flottante (layout__cards) + grille d'actions cockpit */}
+      <section className="rounded-2xl border border-accent-500/10 bg-white p-6 shadow-[var(--shadow-card)]">
+        <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.actions.title}</h2>
+        <div className="mt-5">
           <QuickActions primary={primaryAction} secondary={secondaryActions} />
         </div>
       </section>
 
-      {/* À faire aujourd'hui — grille de listes empilées (lists__stacked-lists) */}
-      <section className="rounded-2xl border border-zinc-950/10 p-5 dark:border-white/10">
-        <Subheading>{t.today.title}</Subheading>
-        <div className="mt-4 grid grid-cols-1 gap-4 @2xl:grid-cols-2 @6xl:grid-cols-4">
+      {/* À faire aujourd'hui — card flottante + grille de listes empilées (lists__stacked-lists) */}
+      <section className="rounded-2xl border border-accent-500/10 bg-white p-6 shadow-[var(--shadow-card)]">
+        <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.today.title}</h2>
+        <div className="mt-5 grid grid-cols-1 gap-4 @2xl:grid-cols-2 @6xl:grid-cols-4">
           <TodayBlock
             label={t.today.leadsLabel}
             items={leadItems}
@@ -435,10 +439,10 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* Portefeuille récent — Table Catalyst + empty-state */}
-      <section className="rounded-2xl border border-zinc-950/10 p-5 dark:border-white/10">
+      {/* Portefeuille récent — card flottante + Table Catalyst + empty-state */}
+      <section className="rounded-2xl border border-accent-500/10 bg-white p-6 shadow-[var(--shadow-card)]">
         <div className="flex items-center justify-between gap-4">
-          <Subheading>{t.recentPortfolio}</Subheading>
+          <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.recentPortfolio}</h2>
           {properties.length > 0 ? (
             <TextLink href="/properties" className="text-sm">
               {t.seeAllProperties}

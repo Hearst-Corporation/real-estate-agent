@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from "@/components/ui/description-list";
+import {
+  DescriptionDetails,
+  DescriptionList,
+  DescriptionTerm,
+} from "@/components/ui/description-list";
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateFr, dateTimeFr } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
@@ -52,20 +56,16 @@ function daysUntil(d: string | null | undefined): number | null {
 /** Card conteneur — TW+ layout__cards/03-card-with-header (thème clair). */
 function DetailCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-zinc-950/10 bg-white shadow-sm">
+    <section className="surface overflow-hidden">
       <div className="border-b border-zinc-950/10 px-5 py-4">
-        <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
+        <h2 className="font-titre text-sm font-semibold text-zinc-900">{title}</h2>
       </div>
       <div className="px-5 py-4">{children}</div>
     </section>
   );
 }
 
-export default async function MandateDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function MandateDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const t = UI.mandates;
   const td = UI.mandates.detail;
@@ -136,10 +136,7 @@ export default async function MandateDetailPage({
     { label: t.table.price, value: eur(mandate.asking_price) },
     {
       label: t.table.commission,
-      value:
-        mandate.commission_pct != null
-          ? `${mandate.commission_pct}${t.commissionUnit}`
-          : "—",
+      value: mandate.commission_pct != null ? `${mandate.commission_pct}${t.commissionUnit}` : "—",
     },
     { label: t.table.expires, value: dateFr(mandate.expires_at) },
   ];
@@ -153,7 +150,7 @@ export default async function MandateDetailPage({
             <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500">
               {td.kicker + (mandate.reference ? ` · ${mandate.reference}` : "")}
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 @sm:truncate @sm:text-3xl">
+            <h1 className="font-titre text-2xl font-bold tracking-tight text-zinc-900 @sm:truncate @sm:text-3xl">
               {pageTitle}
             </h1>
             {metaSub && <p className="mt-1 text-sm text-zinc-500">{metaSub}</p>}
@@ -172,10 +169,7 @@ export default async function MandateDetailPage({
         {/* KPI stats — TW+ data-display/stats (thème clair) */}
         <dl className="grid grid-cols-1 gap-3 @sm:grid-cols-3">
           {headerKpis.map((kpi) => (
-            <div
-              key={kpi.label}
-              className="rounded-xl border border-zinc-950/10 bg-white px-4 py-3"
-            >
+            <div key={kpi.label} className="surface px-4 py-3">
               <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                 {kpi.label}
               </dt>

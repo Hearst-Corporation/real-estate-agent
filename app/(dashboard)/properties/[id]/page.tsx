@@ -252,10 +252,10 @@ export default async function PropertyDetailPage({
       />
 
       {/* ── Hero prix ─────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-zinc-950/10 bg-gradient-to-br from-accent-500/10 via-white to-white p-6">
+      <div className="surface p-6">
         {displayPrice != null && (
           <div className="flex flex-wrap items-baseline gap-3">
-            <span className="text-4xl font-black tracking-tight text-zinc-900">{eur(displayPrice)}</span>
+            <span className="text-3xl font-semibold tracking-tight text-accent-600 tabular-nums">{eur(displayPrice)}</span>
             {pricePerSqm != null && (
               <span className="text-sm text-zinc-500">{td.pricePerSqm(eur(pricePerSqm))}</span>
             )}

@@ -44,7 +44,7 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+        <div className="font-titre text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
           {t.cockpit.panelTitle}
         </div>
         <div className="flex items-center gap-1">
@@ -77,9 +77,12 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
       ) : view === "kanban" ? (
         <LeadKanban leads={leads} />
       ) : leads.length === 0 ? (
-        <Text>{t.empty}</Text>
+        <div className="surface px-6 py-16 text-center">
+          <Text>{t.empty}</Text>
+        </div>
       ) : (
-        <Table>
+        <div className="surface overflow-hidden px-2">
+          <Table>
           <TableHead>
             <TableRow>
               <TableHeader>{t.table.name}</TableHeader>
@@ -134,7 +137,8 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
               </TableRow>
             ))}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
       )}
     </div>
   );

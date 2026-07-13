@@ -49,7 +49,7 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
 
   if (photos.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-xl border border-dashed border-zinc-950/10 bg-zinc-950/[0.02] py-12 dark:border-white/10 dark:bg-white/[0.02]">
+      <div className="surface flex items-center justify-center py-12">
         <Text>{t.empty}</Text>
       </div>
     );
@@ -58,7 +58,7 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
   return (
     <div className="flex flex-col gap-3">
       {/* Visionneuse principale */}
-      <div className="relative overflow-hidden rounded-xl border border-zinc-950/10 bg-zinc-950/5 dark:border-white/10">
+      <div className="surface relative overflow-hidden">
         {selected && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
