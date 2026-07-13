@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
 
   let q = db
     .from("prosp_matchs")
-    .select("id,score_match,bonus_breakdown,statut,alerted_at,date_match,annonce:prosp_annonces(id,type_bien,titre,prix,surface,pieces,code_postal,ville,url,is_pap)", { count: "exact" })
+    .select("id,score_match,score_breakdown,engine_version,alerte_envoyee,alerte_at,created_at,annonce:prosp_annonces(id,type_bien,titre,prix,surface,pieces,code_postal,ville,url,is_pap)", { count: "exact" })
     .eq("tenant_id", tenantId)
     .eq("user_id", claims.sub)
     .order("score_match", { ascending: false })
@@ -77,11 +77,11 @@ export async function GET(req: NextRequest) {
   const items = ((data ?? []) as RawMatch[]).map((m) => ({
     id: m.id,
     score_match: m.score_match,
-    bonus_breakdown: m.bonus_breakdown,
-    statut: m.statut,
-    alerte_envoyee: Boolean(m.alerted_at),
-    alerted_at: m.alerted_at,
-    created_at: m.date_match,
+    score_breakdown: m.score_breakdown,
+    engine_version: m.engine_version,
+    alerte_envoyee: Boolean(m.alerte_envoyee),
+    alerte_at: m.alerte_at,
+    created_at: m.created_at,
     annonce: mapAnnonce(m.annonce ?? null),
   }));
   return NextResponse.json({ data: items, total: count });

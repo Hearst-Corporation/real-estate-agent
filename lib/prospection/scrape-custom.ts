@@ -165,9 +165,9 @@ export async function scrapeCustomAndMatch(
             critere_id: critere.id,
             annonce_id: annonce.id,
             score_match: result.score,
-            bonus_breakdown: result.breakdown,
+            score_breakdown: result.breakdown as Json,
             features_snapshot: result.features as Json,
-            statut: "nouveau",
+            engine_version: result.engineVersion,
           },
           // L'index unique réel est uq_prosp_match(user_id, tenant_id, annonce_id, critere_id).
           { onConflict: "user_id,tenant_id,annonce_id,critere_id", ignoreDuplicates: false },

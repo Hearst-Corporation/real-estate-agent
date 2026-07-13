@@ -3632,57 +3632,45 @@ export type Database = {
       }
       prosp_matchs: {
         Row: {
-          alerted_at: string | null
+          alerte_at: string | null
+          alerte_envoyee: boolean
           annonce_id: string
-          bonus_breakdown: Json
           created_at: string
           critere_id: string
-          date_match: string
-          digest_sent_at: string | null
+          engine_version: string | null
           features_snapshot: Json
           id: string
-          proposed_to_others: Json
+          score_breakdown: Json
           score_match: number
-          sent_at: string | null
-          statut: string
           tenant_id: string
-          updated_at: string
           user_id: string
         }
         Insert: {
-          alerted_at?: string | null
+          alerte_at?: string | null
+          alerte_envoyee?: boolean
           annonce_id: string
-          bonus_breakdown?: Json
           created_at?: string
           critere_id: string
-          date_match?: string
-          digest_sent_at?: string | null
+          engine_version?: string | null
           features_snapshot?: Json
           id?: string
-          proposed_to_others?: Json
+          score_breakdown?: Json
           score_match?: number
-          sent_at?: string | null
-          statut?: string
           tenant_id?: string
-          updated_at?: string
           user_id: string
         }
         Update: {
-          alerted_at?: string | null
+          alerte_at?: string | null
+          alerte_envoyee?: boolean
           annonce_id?: string
-          bonus_breakdown?: Json
           created_at?: string
           critere_id?: string
-          date_match?: string
-          digest_sent_at?: string | null
+          engine_version?: string | null
           features_snapshot?: Json
           id?: string
-          proposed_to_others?: Json
+          score_breakdown?: Json
           score_match?: number
-          sent_at?: string | null
-          statut?: string
           tenant_id?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: [

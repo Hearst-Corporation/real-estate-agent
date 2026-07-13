@@ -169,25 +169,25 @@ export const prospScoring = inngest.createFunction(
               critere_id:       critere.id,
               annonce_id:       annonce.id,
               score_match:      result.score,
-              bonus_breakdown:  result.breakdown,
+              score_breakdown:  result.breakdown as Json,
               features_snapshot: result.features as Json,
-              statut:           "nouveau",
+              engine_version:   result.engineVersion,
               // Index unique réel : uq_prosp_match(user_id, tenant_id, annonce_id, critere_id).
             }, { onConflict: "user_id,tenant_id,annonce_id,critere_id", ignoreDuplicates: false })
-            .select("id,statut,alerted_at")
+            .select("id,alerte_envoyee,alerte_at")
             .single();
 
-          if (matchRow && !matchRow.alerted_at && result.score >= MATCH_SCORE_ALERT) {
+          if (matchRow && !matchRow.alerte_at && result.score >= MATCH_SCORE_ALERT) {
             // CLAIM ATOMIQUE anti-double-alerte : on pose `alerted_at` AVANT l'envoi,
             // conditionné à `alerted_at IS NULL`. Sur rejeu Inngest (step.run relancé),
             // seul le 1er passage gagne la ligne → pas de spam WhatsApp. Filtrage
             // tenant systématique. Si l'envoi échoue ensuite, on compense (reset NULL).
             const { data: claimed } = await db
               .from("prosp_matchs")
-              .update({ alerted_at: new Date().toISOString() })
+              .update({ alerte_at: new Date().toISOString() })
               .eq("id", matchRow.id)
               .eq("tenant_id", DEFAULT_TENANT_ID)
-              .is("alerted_at", null)
+              .is("alerte_at", null)
               .select("id")
               .maybeSingle();
 
@@ -197,7 +197,7 @@ export const prospScoring = inngest.createFunction(
                 if (alertResult.sent) {
                   await db
                     .from("prosp_matchs")
-                    .update({ statut: "alerte_envoyee" })
+                    .update({ alerte_envoyee: true })
                     .eq("id", matchRow.id)
                     .eq("tenant_id", DEFAULT_TENANT_ID);
                 } else {
@@ -205,7 +205,7 @@ export const prospScoring = inngest.createFunction(
                   // pour réessayer au prochain run dès que la condition se débloque.
                   await db
                     .from("prosp_matchs")
-                    .update({ alerted_at: null })
+                    .update({ alerte_at: null, alerte_envoyee: false })
                     .eq("id", matchRow.id)
                     .eq("tenant_id", DEFAULT_TENANT_ID);
                 }
@@ -220,7 +220,7 @@ export const prospScoring = inngest.createFunction(
                 });
                 await db
                   .from("prosp_matchs")
-                  .update({ alerted_at: null })
+                  .update({ alerte_at: null, alerte_envoyee: false })
                   .eq("id", matchRow.id)
                   .eq("tenant_id", DEFAULT_TENANT_ID);
                 captureFatal(err, "inngest/prosp-scoring:alert");
