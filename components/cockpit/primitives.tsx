@@ -3,7 +3,8 @@ import { Icon, type IconName } from "@/components/cockpit/Icon";
 
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <div className="text-xs font-semibold uppercase tracking-widest text-accent-300">
+    <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-pierre-blonde">
+      <span aria-hidden className="h-px w-5 bg-pierre-blonde/60" />
       {children}
     </div>
   );
@@ -54,7 +55,8 @@ export function PageHeader({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           {kicker ? (
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-300">
+            <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-pierre-blonde">
+              <span aria-hidden className="h-px w-5 bg-pierre-blonde/60" />
               {kicker}
             </p>
           ) : null}
@@ -78,7 +80,7 @@ export function PageHeader({
               className="flex items-center gap-2 rounded-lg border border-zinc-950/10 bg-white px-3 py-2"
             >
               {kpi.icon ? (
-                <span className="text-accent-300" aria-hidden="true">
+                <span className="text-pierre-blonde" aria-hidden="true">
                   <Icon name={kpi.icon} className="size-4" />
                 </span>
               ) : null}
@@ -99,7 +101,7 @@ export function PageStack({ children }: { children: ReactNode }) {
 }
 
 const CARD_VARIANT: Record<"hero" | "chart" | "dense", string> = {
-  hero: "bg-gradient-to-br from-accent-500/10 via-white to-white",
+  hero: "bg-gradient-to-br from-pierre-blonde/12 via-white to-white border-t-2 border-t-pierre-blonde/50",
   chart: "p-4",
   dense: "p-3",
 };
