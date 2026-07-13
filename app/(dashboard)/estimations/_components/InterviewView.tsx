@@ -179,7 +179,7 @@ export function InterviewView({
         {valuation ? (
           <ValuationHero id={id} valuation={valuation} />
         ) : (
-          <p className="text-sm text-slate-500">{UI.common.error}</p>
+          <p className="text-sm text-zinc-500">{UI.common.error}</p>
         )}
         {valuation ? (
           <SidePanel

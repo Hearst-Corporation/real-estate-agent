@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/cockpit/Icon";
 import { UI } from "@/lib/ui-strings";
+import { Text } from "@/components/ui/text";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 /** Réponse de GET /api/integrations/composio/status. */
 type Status = { gmail: boolean; calendar: boolean; configured: boolean };
@@ -71,14 +74,18 @@ export function IntegrationsPanel() {
   }
 
   if (phase === "loading") {
-    return <p className="text-sm text-slate-400">{UI.common.loading}</p>;
+    return <Text>{UI.common.loading}</Text>;
   }
   if (phase === "error") {
-    return <p className="text-sm text-red-400">{t.loadError}</p>;
+    return (
+      <Text>
+        <Badge color="red">{t.loadError}</Badge>
+      </Text>
+    );
   }
   // Clé API Composio absente → tout est indisponible (état honnête).
   if (!status?.configured) {
-    return <p className="text-sm text-slate-400">{t.notConfigured}</p>;
+    return <Text>{t.notConfigured}</Text>;
   }
 
   return (
@@ -89,34 +96,37 @@ export function IntegrationsPanel() {
         return (
           <div
             key={toolkit}
-            className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4"
+            className="flex flex-col gap-3 rounded-xl border border-zinc-950/10 p-4 dark:border-white/10"
           >
             <div className="flex items-center gap-2.5">
-              <span className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-indigo-300" aria-hidden="true">
+              <span
+                className="flex size-8 items-center justify-center rounded-lg border border-zinc-950/10 text-indigo-500 dark:border-white/10 dark:text-indigo-400"
+                aria-hidden="true"
+              >
                 <Icon name={icon} className="size-4" />
               </span>
-              <span className="text-sm font-semibold text-slate-100">{provider.name}</span>
-              <span
-                className={`ml-auto inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                  connected
-                    ? "bg-emerald-400/10 text-emerald-300"
-                    : "bg-white/[0.06] text-slate-400"
-                }`}
-              >
-                {connected ? t.connected : t.disconnected}
+              <span className="text-sm font-semibold text-zinc-950 dark:text-white">
+                {provider.name}
+              </span>
+              <span className="ml-auto">
+                <Badge color={connected ? "lime" : "zinc"}>
+                  {connected ? t.connected : t.disconnected}
+                </Badge>
               </span>
             </div>
 
-            <p className="text-sm text-slate-400">{provider.description}</p>
+            <Text>{provider.description}</Text>
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
                 {t.capabilitiesLabel}
               </span>
-              <ul className="flex flex-col gap-1 text-sm text-slate-300">
+              <ul className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
                 {provider.capabilities.map((cap) => (
                   <li key={cap} className="flex gap-1.5">
-                    <span className="text-slate-600" aria-hidden="true">•</span>
+                    <span className="text-zinc-400 dark:text-zinc-600" aria-hidden="true">
+                      •
+                    </span>
                     {cap}
                   </li>
                 ))}
@@ -125,18 +135,21 @@ export function IntegrationsPanel() {
 
             <div className="mt-1 flex flex-col gap-2">
               {connected ? (
-                <span className="text-xs text-slate-500">{t.testInChat}</span>
+                <Text className="text-xs">{t.testInChat}</Text>
               ) : (
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+                <Button
+                  color="indigo"
                   disabled={connecting === toolkit}
                   onClick={() => connect(toolkit)}
                 >
                   {connecting === toolkit ? t.connecting : `${t.connect} ${provider.name}`}
-                </button>
+                </Button>
               )}
-              {note?.toolkit === toolkit ? <p className="text-sm text-red-400">{note.msg}</p> : null}
+              {note?.toolkit === toolkit ? (
+                <Text>
+                  <Badge color="red">{note.msg}</Badge>
+                </Text>
+              ) : null}
             </div>
           </div>
         );

@@ -2,15 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
 import { useOpenFromQuery } from "@/lib/hooks/useOpenFromQuery";
-import {
-  CockpitForm,
-  Field,
-  TextInput,
-  Select,
-  MoneyInput,
-} from "@/components/cockpit/form";
+import { Dialog, DialogTitle, DialogBody } from "@/components/ui/dialog";
+import { Fieldset, FieldGroup, Field, Label, ErrorMessage } from "@/components/ui/fieldset";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { UI } from "@/lib/ui-strings";
 import {
   LEAD_KINDS,
@@ -112,106 +109,102 @@ export function LeadForm({
   }
 
   return (
-    <CockpitForm onSubmit={handleSubmit}>
-      <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">{t.title}</div>
+    <form onSubmit={handleSubmit}>
+      <Fieldset>
+        <FieldGroup>
+          <Field>
+            <Label>{t.fullName}</Label>
+            <Input
+              name="full_name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+          </Field>
 
-      <Field label={t.fullName} htmlFor="lead-full-name" required>
-        <TextInput
-          id="lead-full-name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          required
-        />
-      </Field>
+          <Field>
+            <Label>{t.email}</Label>
+            <Input
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </Field>
 
-      <Field label={t.email} htmlFor="lead-email">
-        <TextInput
-          id="lead-email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </Field>
+          <Field>
+            <Label>{t.phone}</Label>
+            <Input name="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </Field>
 
-      <Field label={t.phone} htmlFor="lead-phone">
-        <TextInput
-          id="lead-phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-      </Field>
+          <Field>
+            <Label>{t.source}</Label>
+            <Input name="source" value={source} onChange={(e) => setSource(e.target.value)} />
+          </Field>
 
-      <Field label={t.source} htmlFor="lead-source">
-        <TextInput
-          id="lead-source"
-          value={source}
-          onChange={(e) => setSource(e.target.value)}
-        />
-      </Field>
+          <Field>
+            <Label>{t.kind}</Label>
+            <Select name="kind" value={kind} onChange={(e) => setKind(e.target.value)}>
+              {LEAD_KINDS.map((k) => (
+                <option key={k} value={k}>
+                  {UI.leads.kindLabels[k]}
+                </option>
+              ))}
+            </Select>
+          </Field>
 
-      <Field label={t.kind} htmlFor="lead-kind">
-        <Select
-          id="lead-kind"
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-          options={LEAD_KINDS.map((k) => ({
-            value: k,
-            label: UI.leads.kindLabels[k],
-          }))}
-        />
-      </Field>
+          <Field>
+            <Label>{t.typePersonne}</Label>
+            <Select
+              name="type_personne"
+              value={typePersonne}
+              onChange={(e) => setTypePersonne(e.target.value)}
+            >
+              {LEAD_TYPE_PERSONNE.map((tp) => (
+                <option key={tp} value={tp}>
+                  {UI.leads.typePersonneLabels[tp]}
+                </option>
+              ))}
+            </Select>
+          </Field>
 
-      <Field label={t.typePersonne} htmlFor="lead-type-personne">
-        <Select
-          id="lead-type-personne"
-          value={typePersonne}
-          onChange={(e) => setTypePersonne(e.target.value)}
-          options={LEAD_TYPE_PERSONNE.map((tp) => ({
-            value: tp,
-            label: UI.leads.typePersonneLabels[tp],
-          }))}
-        />
-      </Field>
+          <Field>
+            <Label>{t.budgetMin}</Label>
+            <Input
+              name="budget_min"
+              type="number"
+              min={FORM_LIMITS.priceMin}
+              value={budgetMin}
+              onChange={(e) => setBudgetMin(e.target.value)}
+            />
+          </Field>
 
-      <Field label={t.budgetMin} htmlFor="lead-budget-min">
-        <MoneyInput
-          id="lead-budget-min"
-          min={FORM_LIMITS.priceMin}
-          value={budgetMin}
-          onChange={(e) => setBudgetMin(e.target.value)}
-        />
-      </Field>
+          <Field>
+            <Label>{t.budgetMax}</Label>
+            <Input
+              name="budget_max"
+              type="number"
+              min={0}
+              value={budgetMax}
+              onChange={(e) => setBudgetMax(e.target.value)}
+            />
+          </Field>
 
-      <Field label={t.budgetMax} htmlFor="lead-budget-max">
-        <MoneyInput
-          id="lead-budget-max"
-          min={0}
-          value={budgetMax}
-          onChange={(e) => setBudgetMax(e.target.value)}
-        />
-      </Field>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
-
-      <div className="flex items-center gap-2 pt-2">
-        <button
-          className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:opacity-50"
-          type="submit"
-          disabled={loading}
-        >
-          {t.save}
-        </button>
-        {onClose && (
-          <button
-            className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-            type="button"
-            onClick={onClose}
-          >
-            {t.cancel}
-          </button>
-        )}
-      </div>
-    </CockpitForm>
+          <div className="flex items-center gap-3 pt-2">
+            <Button color="indigo" type="submit" disabled={loading}>
+              {t.save}
+            </Button>
+            {onClose && (
+              <Button plain type="button" onClick={onClose}>
+                {t.cancel}
+              </Button>
+            )}
+          </div>
+        </FieldGroup>
+      </Fieldset>
+    </form>
   );
 }
 
@@ -220,21 +213,17 @@ export default function LeadFormModal({ cta }: { cta: string }) {
   const [open, setOpen] = useState(false);
   useOpenFromQuery("new", useCallback(() => setOpen(true), []));
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
-        onClick={() => setOpen(true)}
-      >
-        {cta}
-      </button>
-    );
-  }
-
   return (
-    <AccessibleModal title={UI.leads.form.title} onClose={() => setOpen(false)}>
-      <LeadForm onClose={() => setOpen(false)} />
-    </AccessibleModal>
+    <>
+      <Button color="indigo" type="button" onClick={() => setOpen(true)}>
+        {cta}
+      </Button>
+      <Dialog open={open} onClose={setOpen}>
+        <DialogTitle>{UI.leads.form.title}</DialogTitle>
+        <DialogBody>
+          <LeadForm onClose={() => setOpen(false)} />
+        </DialogBody>
+      </Dialog>
+    </>
   );
 }

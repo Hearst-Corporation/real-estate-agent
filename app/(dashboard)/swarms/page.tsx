@@ -1,13 +1,18 @@
-import { PageHeader, Card, Badge, PageStack } from "@/components/cockpit/primitives";
+import { PageHeader, PageStack } from "@/components/cockpit/primitives";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { getSession } from "@/lib/server/session";
 import { uuidOwnerOf } from "@/lib/tenant";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { listSwarms } from "@/lib/swarms/client";
 import type { Swarm } from "@/lib/swarms/types";
-import Link from "next/link";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
+import { Button } from "@/components/ui/button";
+import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Subheading } from "@/components/ui/heading";
+import { Text, TextLink } from "@/components/ui/text";
+import { ErrorMessage } from "@/components/ui/fieldset";
 
 export default async function SwarmsPage() {
   const claims = await getSession();
@@ -51,12 +56,9 @@ export default async function SwarmsPage() {
         title={UI.swarms.title}
         nav={<PageNavTabs tabs={TAB_GROUPS.swarms} />}
         action={
-          <Link
-            href="/swarms/new"
-            className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
-          >
+          <Button href="/swarms/new" color="indigo">
             {UI.swarms.newCta}
-          </Link>
+          </Button>
         }
         kpis={[
           { label: UI.swarms.kpis.total, value: String(total) },
@@ -67,61 +69,52 @@ export default async function SwarmsPage() {
       />
 
       <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
-        <Card title="Activité" variant="chart">
-          <p className="py-8 text-center text-sm text-slate-500">Aucune activité récente.</p>
-        </Card>
-        <Card title="Ressources" variant="chart">
-          <p className="py-8 text-center text-sm text-slate-500">Aucune ressource allouée.</p>
-        </Card>
+        <div className="rounded-2xl border border-zinc-950/10 bg-white/[0.03] p-5 dark:border-white/10">
+          <Subheading level={2} className="mb-3">Activité</Subheading>
+          <Text className="py-8 text-center">Aucune activité récente.</Text>
+        </div>
+        <div className="rounded-2xl border border-zinc-950/10 bg-white/[0.03] p-5 dark:border-white/10">
+          <Subheading level={2} className="mb-3">Ressources</Subheading>
+          <Text className="py-8 text-center">Aucune ressource allouée.</Text>
+        </div>
       </div>
 
-      {/* TW+ lists__tables/02-simple-in-card — adapté thème sombre */}
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20">
+      <div className="rounded-2xl border border-zinc-950/10 bg-white/[0.03] p-5 dark:border-white/10">
         {loadError ? (
-          <p className="p-5 text-sm text-red-400">{loadError}</p>
+          <ErrorMessage className="[&>[data-slot=error]]:mt-0">{loadError}</ErrorMessage>
         ) : swarms.length === 0 ? (
-          <p className="p-8 text-center text-sm text-slate-500">{UI.swarms.empty}</p>
+          <Text className="py-8 text-center">{UI.swarms.empty}</Text>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-white/10">
-              <thead>
-                <tr>
-                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Nom
-                  </th>
-                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Statut
-                  </th>
-                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Agents
-                  </th>
-                  <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Tâches
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {swarms.map((r) => (
-                  <tr key={r.id} className="transition-colors hover:bg-white/[0.02]">
-                    <td className="px-5 py-4 text-sm whitespace-nowrap">
-                      <Link href={`/swarms/${r.id}`} className="font-medium text-indigo-300 hover:text-indigo-200">
-                        {r.name}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-4 text-sm whitespace-nowrap">
-                      <Badge>{r.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}</Badge>
-                    </td>
-                    <td className="px-5 py-4 text-sm whitespace-nowrap text-slate-400">
-                      {`${r.agents?.length ?? 0} agent(s)`}
-                    </td>
-                    <td className="px-5 py-4 text-sm whitespace-nowrap text-slate-400">
-                      {`${r.tasks?.length ?? 0} tâche(s)`}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Nom</TableHeader>
+                <TableHeader>Statut</TableHeader>
+                <TableHeader>Agents</TableHeader>
+                <TableHeader>Tâches</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {swarms.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">
+                    <TextLink href={`/swarms/${r.id}`}>{r.name}</TextLink>
+                  </TableCell>
+                  <TableCell>
+                    <Badge color={r.is_active ? "indigo" : "zinc"}>
+                      {r.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-zinc-500 dark:text-zinc-400">
+                    {`${r.agents?.length ?? 0} agent(s)`}
+                  </TableCell>
+                  <TableCell className="text-zinc-500 dark:text-zinc-400">
+                    {`${r.tasks?.length ?? 0} tâche(s)`}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
     </PageStack>

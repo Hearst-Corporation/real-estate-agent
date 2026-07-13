@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { WizardStepper } from "./WizardStepper";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Text } from "@/components/ui/text";
 import { UI } from "@/lib/ui-strings";
 import { RECAP_FIELDS } from "@/lib/estimation/spec";
 import type { Coverage } from "@/lib/estimation/spec";
@@ -352,7 +356,7 @@ export function EstimationWizard({
   return (
     <div className="flex h-full flex-col">
       {/* ── Header sticky : stepper + barre ── */}
-      <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-white/10 bg-slate-950/80 px-4 py-3 backdrop-blur-xl sm:px-6">
+      <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-zinc-950/10 bg-white/70 px-4 py-3 backdrop-blur-xl sm:px-6 dark:border-white/10 dark:bg-zinc-950/80">
         <WizardStepper
           coverage={coverage}
           nextLabel={nextLabel}
@@ -370,18 +374,19 @@ export function EstimationWizard({
       <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6" ref={scrollRef}>
         {isEmpty ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-            <div className="flex size-14 items-center justify-center rounded-full bg-indigo-500/15 text-2xl font-bold text-indigo-300">
+            <div className="flex size-14 items-center justify-center rounded-full bg-indigo-500/15 text-2xl font-bold text-indigo-600 dark:text-indigo-300">
               €
             </div>
-            <p className="text-lg font-semibold text-white">{UI.estimations.interviewTitle}</p>
-            <p className="max-w-sm text-sm text-slate-400">{UI.estimations.interviewSub}</p>
-            <button
-              className="mt-2 inline-flex items-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2 text-sm font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/25 disabled:opacity-50"
+            <p className="text-lg font-semibold text-zinc-950 dark:text-white">{UI.estimations.interviewTitle}</p>
+            <Text className="max-w-sm">{UI.estimations.interviewSub}</Text>
+            <Button
+              color="indigo"
+              className="mt-2"
               disabled={busy}
               onClick={() => send("Bonjour, commençons l'entretien.")}
             >
               Démarrer l&apos;entretien
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -393,7 +398,7 @@ export function EstimationWizard({
             return (
             <div key={idx} className={`flex items-start gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
               {m.role === "assistant" && (
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-sm text-indigo-300">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-sm text-indigo-600 dark:text-indigo-300">
                   {UI.chat.assistantAvatar}
                 </div>
               )}
@@ -401,53 +406,53 @@ export function EstimationWizard({
                 <div
                   className={`rounded-2xl px-4 py-2.5 text-sm ${
                     isUser
-                      ? "bg-indigo-500/20 text-indigo-100"
-                      : "border border-white/10 bg-white/[0.04] text-slate-200"
+                      ? "bg-indigo-500/20 text-indigo-950 dark:text-indigo-100"
+                      : "border border-zinc-950/10 bg-white/[0.04] text-zinc-700 dark:border-white/10 dark:text-zinc-200"
                   }`}
                 >
                   {m.content ? (
                     renderBlocks(m.content)
                   ) : thinking && isLast ? (
                     liveReasoning ? (
-                      <span className="flex items-center gap-2 text-slate-400">
+                      <span className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
                         <span className="size-1.5 animate-pulse rounded-full bg-indigo-400" />
                         {liveReasoning}
                       </span>
                     ) : (
-                      <span className="flex items-center gap-2 text-slate-400">
+                      <span className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
                         <span className="size-1.5 animate-pulse rounded-full bg-indigo-400" />
                         Réflexion…
                       </span>
                     )
                   ) : (
                     <span className="flex items-center gap-1">
-                      <span className="size-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
-                      <span className="size-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
-                      <span className="size-1.5 animate-bounce rounded-full bg-slate-400" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-zinc-400" />
                     </span>
                   )}
                 </div>
 
                 {m.role === "assistant" && hasActivity && (
-                  <details className="group w-full max-w-full text-xs text-slate-500">
-                    <summary className="flex cursor-pointer list-none items-center gap-1.5 select-none hover:text-slate-300">
+                  <details className="group w-full max-w-full text-xs text-zinc-500">
+                    <summary className="flex cursor-pointer list-none items-center gap-1.5 select-none hover:text-zinc-700 dark:hover:text-zinc-300">
                       <span aria-hidden="true">⚡</span>
                       Activité de l&apos;agent
                       {act!.events.length > 0 && (
-                        <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">
+                        <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
                           {act!.events.length}
                         </span>
                       )}
                     </summary>
-                    <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                    <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-zinc-950/10 bg-white/[0.03] p-3 dark:border-white/10">
                       {act!.events.map((e, i) => (
-                        <div key={i} className="flex items-start gap-1.5 text-slate-400">
-                          <span className="text-emerald-400" aria-hidden="true">✓</span> {e}
+                        <div key={i} className="flex items-start gap-1.5 text-zinc-500 dark:text-zinc-400">
+                          <span className="text-indigo-500 dark:text-indigo-400" aria-hidden="true">✓</span> {e}
                         </div>
                       ))}
                       {act!.reasoning && (
-                        <div className="mt-1 border-t border-white/10 pt-2 text-slate-500">
-                          <div className="mb-1 font-semibold text-slate-400">Réflexion</div>
+                        <div className="mt-1 border-t border-zinc-950/10 pt-2 text-zinc-500 dark:border-white/10">
+                          <div className="mb-1 font-semibold text-zinc-500 dark:text-zinc-400">Réflexion</div>
                           {act!.reasoning}
                         </div>
                       )}
@@ -461,65 +466,64 @@ export function EstimationWizard({
           </div>
         )}
         {error ? (
-          <p className="mt-3 text-sm text-red-400">
-            {UI.chat.errorPrefix} : {error}
-          </p>
+          <div className="mt-3 flex items-center gap-2">
+            <Badge color="red">{UI.chat.errorPrefix}</Badge>
+            <Text>{error}</Text>
+          </div>
         ) : null}
       </div>
 
       {/* ── Footer : suggestions + input ── */}
       {!isEmpty && (
-        <div className="flex flex-col gap-3 border-t border-white/10 bg-slate-950/80 px-4 py-3 backdrop-blur-xl sm:px-6">
+        <div className="flex flex-col gap-3 border-t border-zinc-950/10 bg-white/70 px-4 py-3 backdrop-blur-xl sm:px-6 dark:border-white/10 dark:bg-zinc-950/80">
           {suggestions.length > 0 && !busy && (
             <div className="flex flex-wrap gap-2">
               {suggestions.map((s, i) => (
-                <button
-                  key={i}
-                  className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/[0.08]"
-                  onClick={() => send(s)}
-                >
+                <Button key={i} plain className="!rounded-full" onClick={() => send(s)}>
                   {s}
-                </button>
+                </Button>
               ))}
             </div>
           )}
 
           <div className="flex items-center gap-2">
-            <input
-              ref={inputRef}
-              className="flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none disabled:opacity-50"
-              placeholder={UI.chat.placeholder}
-              value={input}
-              disabled={busy}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send();
-                }
-              }}
-            />
-            <button
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-indigo-500 text-white transition-colors hover:bg-indigo-400 disabled:opacity-40"
+            <div className="flex-1">
+              <Input
+                ref={inputRef}
+                aria-label={UI.chat.placeholder}
+                placeholder={UI.chat.placeholder}
+                value={input}
+                disabled={busy}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    send();
+                  }
+                }}
+              />
+            </div>
+            <Button
+              color="indigo"
               disabled={busy || !input.trim()}
               onClick={() => send()}
               aria-label="Envoyer"
             >
               →
-            </button>
+            </Button>
           </div>
 
           {generateError && (
-            <p className="text-sm text-red-400">{generateError}</p>
+            <div className="flex items-center gap-2">
+              <Badge color="red">{UI.chat.errorPrefix}</Badge>
+              <Text>{generateError}</Text>
+            </div>
           )}
 
           {canGenerate && (
-            <button
-              className="inline-flex items-center justify-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2.5 text-sm font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/25"
-              onClick={onGenerate}
-            >
+            <Button color="indigo" onClick={onGenerate}>
               {UI.estimations.generate}
-            </button>
+            </Button>
           )}
         </div>
       )}

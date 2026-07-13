@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Badge } from "@/components/cockpit/primitives";
-import { Field, TextInput } from "@/components/cockpit/form";
 import { UI } from "@/lib/ui-strings";
+import { Subheading } from "@/components/ui/heading";
+import { Text, Strong, Code } from "@/components/ui/text";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Field, Label } from "@/components/ui/fieldset";
+import { Input } from "@/components/ui/input";
 
 /** Durée d'affichage du feedback "Copié !" (ms). */
 const COPY_FEEDBACK_DURATION_MS = 2500;
@@ -23,6 +27,16 @@ type SetupData = { otpauthUrl: string; secret: string };
 /** Formate un secret TOTP en groupes de 4 pour lisibilité. */
 function formatSecret(s: string): string {
   return s.replace(/(.{4})/g, "$1 ").trim();
+}
+
+/** Conteneur de section MFA (remplace la Card Cockpit maison). */
+function MfaSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
+      <Subheading level={2}>{title}</Subheading>
+      <div className="mt-3">{children}</div>
+    </section>
+  );
 }
 
 export function MfaPanel() {
@@ -144,78 +158,81 @@ export function MfaPanel() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
-  const BTN_PRIMARY =
-    "inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50";
-  const BTN_GHOST =
-    "inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50";
-  const FIELD_LABEL = "text-xs font-medium text-slate-400";
+  const errorNode = error ? (
+    <Text>
+      <Badge color="red">{error}</Badge>
+    </Text>
+  ) : null;
 
   if (phase === "loading") {
     return (
-      <Card title={UI.profile.mfa.title} titleAs="section">
-        <p className="text-sm text-slate-400">Chargement…</p>
-      </Card>
+      <MfaSection title={UI.profile.mfa.title}>
+        <Text>Chargement…</Text>
+      </MfaSection>
     );
   }
 
   if (phase === "unavailable") {
     return (
-      <Card title={UI.profile.mfa.title} titleAs="section">
-        <p className="text-sm text-slate-400">
-          2FA bientôt disponible (migration en attente).
-        </p>
-      </Card>
+      <MfaSection title={UI.profile.mfa.title}>
+        <Text>2FA bientôt disponible (migration en attente).</Text>
+      </MfaSection>
     );
   }
 
   // ── État : désactivé ─────────────────────────────────────────────────────
   if (phase === "disabled") {
     return (
-      <Card title={UI.profile.mfa.title} titleAs="section">
-        <p className="mb-3 text-sm text-slate-400">
-          Protégez votre compte avec un code temporaire (TOTP) en plus de votre mot de passe.
-        </p>
-        {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
-        <button type="button" className={BTN_PRIMARY} disabled={busy} onClick={startSetup}>
-          {busy ? "Chargement…" : "Activer la double authentification"}
-        </button>
-      </Card>
+      <MfaSection title={UI.profile.mfa.title}>
+        <div className="flex flex-col gap-3">
+          <Text>
+            Protégez votre compte avec un code temporaire (TOTP) en plus de votre mot de passe.
+          </Text>
+          {errorNode}
+          <div>
+            <Button color="indigo" disabled={busy} onClick={startSetup}>
+              {busy ? "Chargement…" : "Activer la double authentification"}
+            </Button>
+          </div>
+        </div>
+      </MfaSection>
     );
   }
 
   // ── État : setup — affiche secret + URI ──────────────────────────────────
   if (phase === "setup" || phase === "enabling") {
     return (
-      <Card title={UI.profile.mfa.title} titleAs="section">
+      <MfaSection title={UI.profile.mfa.title}>
         <div className="flex flex-col gap-4">
-          <p className="text-sm text-slate-300">
-            <strong className="font-semibold text-slate-100">{UI.profile.mfa.step1}</strong> Dans Google Authenticator, Authy ou une app TOTP, sélectionnez
-            «&nbsp;Ajouter un compte manuellement&nbsp;» et saisissez la clé ci-dessous.
-          </p>
+          <Text>
+            <Strong>{UI.profile.mfa.step1}</Strong> Dans Google Authenticator, Authy ou une app
+            TOTP, sélectionnez «&nbsp;Ajouter un compte manuellement&nbsp;» et saisissez la clé
+            ci-dessous.
+          </Text>
 
-          <div className="flex flex-col gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] p-3">
-            <span className={FIELD_LABEL}>{UI.profile.mfa.secretLabel}</span>
-            <code className="break-all font-mono text-sm text-slate-100">
-              {setup ? formatSecret(setup.secret) : "—"}
-            </code>
+          <div className="flex flex-col gap-1.5 rounded-lg border border-zinc-950/10 p-3 dark:border-white/10">
+            <Text className="text-xs">{UI.profile.mfa.secretLabel}</Text>
+            <Code className="break-all">{setup ? formatSecret(setup.secret) : "—"}</Code>
           </div>
 
           {setup?.otpauthUrl && (
-            <div className="flex flex-col gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] p-3">
-              <span className={FIELD_LABEL}>{UI.profile.mfa.uriLabel}</span>
-              <code className="break-all font-mono text-xs text-slate-300">{setup.otpauthUrl}</code>
-              <span className="text-xs text-slate-500">
+            <div className="flex flex-col gap-1.5 rounded-lg border border-zinc-950/10 p-3 dark:border-white/10">
+              <Text className="text-xs">{UI.profile.mfa.uriLabel}</Text>
+              <Code className="break-all text-xs">{setup.otpauthUrl}</Code>
+              <Text className="text-xs">
                 Note : le QR code sera disponible dans une prochaine mise à jour.
-              </span>
+              </Text>
             </div>
           )}
 
-          <p className="text-sm text-slate-300">
-            <strong className="font-semibold text-slate-100">{UI.profile.mfa.step2}</strong> Saisissez le code à 6 chiffres généré par l’application.
-          </p>
+          <Text>
+            <Strong>{UI.profile.mfa.step2}</Strong> Saisissez le code à 6 chiffres généré par
+            l’application.
+          </Text>
 
-          <Field label={UI.profile.mfa.codeLabel} htmlFor="mfa-setup-code">
-            <TextInput
+          <Field>
+            <Label>{UI.profile.mfa.codeLabel}</Label>
+            <Input
               id="mfa-setup-code"
               type="text"
               inputMode="numeric"
@@ -228,79 +245,85 @@ export function MfaPanel() {
             />
           </Field>
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {errorNode}
 
           <div className="flex gap-2">
-            <button type="button" className={BTN_PRIMARY} disabled={busy || code.length < 6} onClick={confirmEnable}>
+            <Button color="indigo" disabled={busy || code.length < 6} onClick={confirmEnable}>
               {busy ? "Vérification…" : "Valider et activer"}
-            </button>
-            <button
-              type="button"
-              className={BTN_GHOST}
+            </Button>
+            <Button
+              outline
               disabled={busy}
-              onClick={() => { setPhase("disabled"); setError(null); setCode(""); }}
+              onClick={() => {
+                setPhase("disabled");
+                setError(null);
+                setCode("");
+              }}
             >
               Annuler
-            </button>
+            </Button>
           </div>
         </div>
-      </Card>
+      </MfaSection>
     );
   }
 
   // ── État : backup codes (juste après activation) ─────────────────────────
   if (phase === "backup") {
     return (
-      <Card title={UI.profile.mfa.titleEnabled} titleAs="section">
+      <MfaSection title={UI.profile.mfa.titleEnabled}>
         <div className="flex flex-col gap-4">
           <div>
-            <Badge>{UI.profile.mfa.badge}</Badge>
+            <Badge color="lime">{UI.profile.mfa.badge}</Badge>
           </div>
 
-          <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 p-3">
-            <strong className="text-sm font-semibold text-amber-300">{UI.profile.mfa.backupWarning}</strong>
-            <p className="mt-1 text-sm text-amber-100/80">
-              Ces codes permettent d&apos;accéder à votre compte si vous perdez accès à
-              votre application d&apos;authentification. Ils ne seront affichés qu&apos;une seule fois.
-            </p>
+          <div className="rounded-lg border border-zinc-950/10 p-3 dark:border-white/10">
+            <div className="mb-1">
+              <Badge color="amber">{UI.profile.mfa.backupWarning}</Badge>
+            </div>
+            <Text>
+              Ces codes permettent d&apos;accéder à votre compte si vous perdez accès à votre
+              application d&apos;authentification. Ils ne seront affichés qu&apos;une seule fois.
+            </Text>
           </div>
 
-          <ul className="grid grid-cols-2 gap-2 rounded-lg border border-white/10 bg-white/[0.04] p-3 @sm:grid-cols-3">
+          <ul className="grid grid-cols-2 gap-2 rounded-lg border border-zinc-950/10 p-3 @sm:grid-cols-3 dark:border-white/10">
             {backupCodes.map((c) => (
               <li key={c}>
-                <code className="font-mono text-sm text-slate-100">{c}</code>
+                <Code>{c}</Code>
               </li>
             ))}
           </ul>
 
           <div className="flex gap-2">
-            <button type="button" className={BTN_GHOST} onClick={copyBackupCodes}>
+            <Button outline onClick={copyBackupCodes}>
               {copied ? "Copié !" : "Copier les codes"}
-            </button>
-            <button type="button" className={BTN_PRIMARY} onClick={() => setPhase("enabled")}>
+            </Button>
+            <Button color="indigo" onClick={() => setPhase("enabled")}>
               J&apos;ai noté mes codes
-            </button>
+            </Button>
           </div>
         </div>
-      </Card>
+      </MfaSection>
     );
   }
 
   // ── État : activé ────────────────────────────────────────────────────────
   if (phase === "enabled" || phase === "disabling") {
     return (
-      <Card title={UI.profile.mfa.title} titleAs="section">
+      <MfaSection title={UI.profile.mfa.title}>
         <div className="flex flex-col gap-4">
           <div>
-            <Badge>{UI.profile.mfa.badge}</Badge>
+            <Badge color="lime">{UI.profile.mfa.badge}</Badge>
           </div>
-          <p className="text-sm text-slate-400">
-            Votre compte est protégé par un second facteur.
-            Pour désactiver, saisissez un code de votre application d&apos;authentification.
-          </p>
+          <Text>
+            Votre compte est protégé par un second facteur. Pour désactiver, saisissez un code de
+            votre application d&apos;authentification.
+          </Text>
 
-          <Field label={UI.profile.mfa.codeLabel} htmlFor="mfa-disable-code">
-            <TextInput
+          <Field>
+            <Label>{UI.profile.mfa.codeLabel}</Label>
+            <Input
               id="mfa-disable-code"
               type="text"
               inputMode="numeric"
@@ -313,13 +336,15 @@ export function MfaPanel() {
             />
           </Field>
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {errorNode}
 
-          <button type="button" className={BTN_GHOST} disabled={busy || code.length < 6} onClick={disableMfa}>
-            {busy ? "Désactivation…" : "Désactiver la 2FA"}
-          </button>
+          <div>
+            <Button outline disabled={busy || code.length < 6} onClick={disableMfa}>
+              {busy ? "Désactivation…" : "Désactiver la 2FA"}
+            </Button>
+          </div>
         </div>
-      </Card>
+      </MfaSection>
     );
   }
 

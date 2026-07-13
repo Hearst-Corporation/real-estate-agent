@@ -18,7 +18,7 @@
  */
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { Donut } from "@/components/cockpit/Donut";
 import { BarList } from "@/components/cockpit/BarList";
@@ -46,6 +46,13 @@ import { getDemoDeal, DEMO_DEALS } from "../_data/demo";
 import { fetchDealBySlug } from "../_data/server";
 import { SubscribePanel } from "./_components/SubscribePanel";
 import { PageStack } from "@/components/cockpit/primitives";
+import { Button } from "@/components/ui/button";
+import { Heading, Subheading } from "@/components/ui/heading";
+import {
+  DescriptionList,
+  DescriptionTerm,
+  DescriptionDetails,
+} from "@/components/ui/description-list";
 import { UI } from "@/lib/ui-strings";
 
 const di = UI.invest.dealDetail;
@@ -194,12 +201,9 @@ export default async function DealDetailPage({
   }));
 
   const kycCta = (
-    <Link
-      href="/invest/onboarding"
-      className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400"
-    >
+    <Button href="/invest/onboarding" color="indigo">
       {di.kycCta}
-    </Link>
+    </Button>
   );
 
   return (
@@ -217,9 +221,7 @@ export default async function DealDetailPage({
         <div className="flex items-end rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6 min-h-56">
           <div className="min-w-0 flex-1">
             <p className="text-sm text-slate-400">{view.localisation}</p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl sm:truncate">
-              {view.nom}
-            </h1>
+            <Heading className="mt-1 sm:truncate">{view.nom}</Heading>
             <div className="mt-3">
               <ProductBadges badges={view.badges} />
             </div>
@@ -277,13 +279,9 @@ export default async function DealDetailPage({
             </div>
             {view.dealId ? null : (
               <>
-                <button
-                  className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white opacity-50"
-                  type="button"
-                  disabled
-                >
+                <Button className="w-full" color="indigo" type="button" disabled>
                   {di.demoReserveBtn}
-                </button>
+                </Button>
                 <p className="text-xs text-slate-500">{di.demoReserveNote}</p>
               </>
             )}
@@ -500,7 +498,7 @@ export default async function DealDetailPage({
         {/* Sûretés — TW+ layout__cards/03-card-with-header + stacked list */}
         <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
           <div className="border-b border-white/10 px-5 py-4">
-            <h2 className="text-lg font-semibold text-slate-100">{di.securitiesTitle}</h2>
+            <Subheading>{di.securitiesTitle}</Subheading>
           </div>
           <ul className="divide-y divide-white/5 px-5">
             {di.suretes.map((s) => (
@@ -514,29 +512,31 @@ export default async function DealDetailPage({
         {/* Token — TW+ data-display__description-lists/02-left-aligned-in-card (adapté sombre) */}
         <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
           <div className="border-b border-white/10 px-5 py-4">
-            <h2 className="text-lg font-semibold text-slate-100">{di.tokenTitle}</h2>
+            <Subheading>{di.tokenTitle}</Subheading>
           </div>
-          <dl className="divide-y divide-white/5">
-            {[
-              { dt: di.tokenDl.nature, dd: di.tokenDl.natureVal },
-              { dt: di.tokenDl.standard, dd: di.tokenDl.standardVal },
-              { dt: di.tokenDl.emission, dd: di.tokenDl.emissionVal },
-              { dt: di.tokenDl.settlement, dd: di.tokenDl.settlementVal },
-              { dt: di.tokenDl.framework, dd: di.tokenDl.frameworkVal },
-            ].map((row) => (
-              <div className="px-5 py-3 sm:grid sm:grid-cols-3 sm:gap-4" key={row.dt}>
-                <dt className="text-sm font-medium text-slate-400">{row.dt}</dt>
-                <dd className="mt-1 text-sm text-slate-200 sm:col-span-2 sm:mt-0">{row.dd}</dd>
-              </div>
-            ))}
-          </dl>
+          <div className="px-5 py-4">
+            <DescriptionList>
+              {[
+                { dt: di.tokenDl.nature, dd: di.tokenDl.natureVal },
+                { dt: di.tokenDl.standard, dd: di.tokenDl.standardVal },
+                { dt: di.tokenDl.emission, dd: di.tokenDl.emissionVal },
+                { dt: di.tokenDl.settlement, dd: di.tokenDl.settlementVal },
+                { dt: di.tokenDl.framework, dd: di.tokenDl.frameworkVal },
+              ].map((row) => (
+                <Fragment key={row.dt}>
+                  <DescriptionTerm>{row.dt}</DescriptionTerm>
+                  <DescriptionDetails>{row.dd}</DescriptionDetails>
+                </Fragment>
+              ))}
+            </DescriptionList>
+          </div>
         </section>
       </div>
 
       {/* Data room (inv_documents publics du deal) — TW+ layout__cards/03 + lists__tables/02 */}
       <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
         <div className="border-b border-white/10 px-5 py-4">
-          <h2 className="text-lg font-semibold text-slate-100">{di.dataRoomTitle}</h2>
+          <Subheading>{di.dataRoomTitle}</Subheading>
         </div>
         {view.documents.length > 0 ? (
           <ul className="divide-y divide-white/5 px-5">
@@ -555,7 +555,7 @@ export default async function DealDetailPage({
       {/* Closing timeline — TW+ layout__cards/03-card-with-header */}
       <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
         <div className="border-b border-white/10 px-5 py-4">
-          <h2 className="text-lg font-semibold text-slate-100">{di.closingTitle}</h2>
+          <Subheading>{di.closingTitle}</Subheading>
         </div>
         <div className="px-5 py-4">
           <Timeline items={[...di.closing]} />

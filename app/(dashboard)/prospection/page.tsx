@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import {
   UsersIcon,
   MagnifyingGlassIcon,
@@ -8,7 +8,14 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
-import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
+import { Field, Label, FieldGroup } from "@/components/ui/fieldset";
+import { Heading } from "@/components/ui/heading";
+import { Input } from "@/components/ui/input";
+import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "@/components/ui/table";
+import { Text, Strong } from "@/components/ui/text";
 import { ScrapeCustomModal } from "./_components/ScrapeCustomModal";
 import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
 
@@ -81,6 +88,16 @@ type Tab = "acquereurs" | "matching" | "annonces" | "criteres";
 
 const TABS: Tab[] = ["acquereurs", "matching", "annonces", "criteres"];
 
+function tabLabel(t: Tab): string {
+  return t === "acquereurs"
+    ? UI.prospection.tabAcquereurs
+    : t === "annonces"
+    ? UI.prospection.annonces
+    : t === "matching"
+    ? UI.prospection.matching
+    : UI.prospection.criteres;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function zonesLabel(zones: unknown): string {
@@ -122,23 +139,14 @@ function scoreClass(score: number): "is-good" | "is-ok" | "is-low" {
   return "is-low";
 }
 
+// Score ring : accent indigo (bon) / zinc (moyen/faible) — pas de couleur hors accent.
 const SCORE_TONE: Record<"is-good" | "is-ok" | "is-low", string> = {
-  "is-good": "stroke-emerald-400 text-emerald-300",
-  "is-ok": "stroke-amber-400 text-amber-300",
-  "is-low": "stroke-slate-500 text-slate-400",
+  "is-good": "stroke-indigo-400 text-indigo-500 dark:text-indigo-400",
+  "is-ok": "stroke-zinc-400 text-zinc-600 dark:text-zinc-300",
+  "is-low": "stroke-zinc-500 text-zinc-500 dark:text-zinc-400",
 };
 
-// ─── Badge (inline, ex-primitive) ─────────────────────────────────────────────
-
-function Badge({ children }: { children: ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
-      {children}
-    </span>
-  );
-}
-
-// ─── Composant score ring ─────────────────────────────────────────────────────
+// ─── Composant score ring (data-viz — gardé, tokenisé accent/zinc) ────────────
 
 function ScoreRing({ score }: { score: number }) {
   const radius = 26;
@@ -148,7 +156,13 @@ function ScoreRing({ score }: { score: number }) {
   return (
     <div className="relative size-16 shrink-0" aria-label={`Score ${score}/100`}>
       <svg viewBox="0 0 64 64" className="size-16 -rotate-90">
-        <circle cx="32" cy="32" r={radius} className="fill-none stroke-white/10" strokeWidth="6" />
+        <circle
+          cx="32"
+          cy="32"
+          r={radius}
+          className="fill-none stroke-zinc-950/10 dark:stroke-white/10"
+          strokeWidth="6"
+        />
         <circle
           cx="32"
           cy="32"
@@ -167,7 +181,7 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-// ─── Empty state (TW+ feedback__empty-states/03-with-starting-points adapté) ───
+// ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyState({
   icon: IconCmp,
@@ -183,16 +197,16 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-white/10 px-6 py-12 text-center">
-      <IconCmp aria-hidden="true" className="size-10 text-slate-500" />
-      <p className="text-base font-semibold text-slate-100">{title}</p>
-      <p className="max-w-md text-sm text-slate-400">{text}</p>
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-950/10 px-6 py-12 text-center dark:border-white/10">
+      <IconCmp aria-hidden="true" className="size-10 text-zinc-400 dark:text-zinc-500" />
+      <Strong>{title}</Strong>
+      <Text className="max-w-md">{text}</Text>
       {steps && steps.length > 0 && (
         <ol className="mt-2 flex flex-col gap-2 text-left" aria-label={UI.prospection.emptyStepsAria}>
           {steps.map((s, i) => (
-            <li key={i} className="flex items-center gap-2.5 text-sm text-slate-300">
+            <li key={i} className="flex items-center gap-2.5 text-sm text-zinc-600 dark:text-zinc-300">
               <span
-                className="flex size-5 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-xs font-semibold text-indigo-300"
+                className="flex size-5 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-xs font-semibold text-indigo-500 dark:text-indigo-300"
                 aria-hidden="true"
               >
                 {i + 1}
@@ -207,64 +221,7 @@ function EmptyState({
   );
 }
 
-// ─── Table (TW+ lists__tables/02-simple-in-card adapté, remplace DataTable) ────
-
-type SimpleColumn<T> = {
-  key: string;
-  header: string;
-  render: (row: T) => ReactNode;
-  align?: "left" | "right";
-};
-
-function SimpleTable<T>({
-  columns,
-  rows,
-  emptyLabel,
-  getKey,
-}: {
-  columns: SimpleColumn<T>[];
-  rows: T[];
-  emptyLabel: string;
-  getKey: (row: T) => string;
-}) {
-  if (rows.length === 0) {
-    return <p className="py-8 text-center text-sm text-slate-500">{emptyLabel}</p>;
-  }
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-500">
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                className={`px-3 py-2 font-medium ${col.align === "right" ? "text-right tabular-nums" : ""}`}
-              >
-                {col.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-white/5">
-          {rows.map((row) => (
-            <tr key={getKey(row)} className="transition-colors hover:bg-white/[0.03]">
-              {columns.map((col) => (
-                <td
-                  key={col.key}
-                  className={`px-3 py-2.5 text-slate-200 ${col.align === "right" ? "text-right tabular-nums" : ""}`}
-                >
-                  {col.render(row)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// ─── Carte annonce (TW+ lists__grid-lists/06-images-with-details adapté) ──────
+// ─── Carte annonce (grille + primitives) ──────────────────────────────────────
 
 function AnnonceCard({ annonce }: { annonce: Annonce }) {
   const photos = annoncePhotos(annonce);
@@ -281,51 +238,35 @@ function AnnonceCard({ annonce }: { annonce: Annonce }) {
   else if (annonce.code_postal) metaParts.push(annonce.code_postal);
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20">
-      <div className="relative aspect-[4/3] w-full bg-white/[0.02]">
+    <article className="flex flex-col overflow-hidden rounded-xl border border-zinc-950/10 dark:border-white/10">
+      <div className="relative aspect-[4/3] w-full bg-zinc-950/[0.02] dark:bg-white/[0.02]">
         {photos[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photos[0]} alt={annonceTitle(annonce)} loading="lazy" className="size-full object-cover" />
         ) : (
-          <div className="flex size-full items-center justify-center text-slate-600" aria-hidden="true">
+          <div className="flex size-full items-center justify-center text-zinc-400 dark:text-zinc-600" aria-hidden="true">
             <BuildingOffice2Icon className="size-12" />
           </div>
         )}
         <div className="absolute inset-x-2 top-2 flex flex-wrap gap-1.5">
-          {isPap && (
-            <span className="inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-300 backdrop-blur-sm">
-              {UI.prospection.badgePap}
-            </span>
-          )}
-          {!isPap && annonce.type_annonceur === "pro" && (
-            <span className="inline-flex items-center rounded-full border border-white/10 bg-black/40 px-2 py-0.5 text-xs font-medium text-slate-200 backdrop-blur-sm">
-              {UI.prospection.badgePro}
-            </span>
-          )}
-          {hasBaisse && (
-            <span className="inline-flex items-center rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-300 backdrop-blur-sm">
-              {UI.prospection.badgeBaissePrix}
-            </span>
-          )}
-          {annonce.dpe_note && (
-            <span className="inline-flex items-center rounded-full border border-white/10 bg-black/40 px-2 py-0.5 text-xs font-medium text-slate-200 backdrop-blur-sm">
-              {UI.prospection.badgeDpe(annonce.dpe_note)}
-            </span>
-          )}
+          {isPap && <Badge color="lime">{UI.prospection.badgePap}</Badge>}
+          {!isPap && annonce.type_annonceur === "pro" && <Badge color="zinc">{UI.prospection.badgePro}</Badge>}
+          {hasBaisse && <Badge color="amber">{UI.prospection.badgeBaissePrix}</Badge>}
+          {annonce.dpe_note && <Badge color="zinc">{UI.prospection.badgeDpe(annonce.dpe_note)}</Badge>}
         </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <div className="text-sm font-semibold text-slate-100">{annonceTitle(annonce)}</div>
-        {metaParts.length > 0 && (
-          <div className="text-xs text-slate-400">{metaParts.join(" · ")}</div>
-        )}
+        <Strong>{annonceTitle(annonce)}</Strong>
+        {metaParts.length > 0 && <Text>{metaParts.join(" · ")}</Text>}
 
         {annonce.prix != null && (
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-white">{UI.prospection.annoncePrix(annonce.prix)}</span>
+            <span className="text-lg font-bold text-zinc-950 dark:text-white">
+              {UI.prospection.annoncePrix(annonce.prix)}
+            </span>
             {annonce.prix_m2 != null && (
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 {UI.prospection.annoncePrixM2(Math.round(annonce.prix_m2))}
               </span>
             )}
@@ -334,17 +275,15 @@ function AnnonceCard({ annonce }: { annonce: Annonce }) {
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
           <div className="flex flex-wrap gap-1.5">
-            {annonce.age_hours != null && (
-              <Badge>{UI.prospection.badgeAge(annonce.age_hours)}</Badge>
-            )}
-            {annonce.source_platform && <Badge>{annonce.source_platform}</Badge>}
+            {annonce.age_hours != null && <Badge color="zinc">{UI.prospection.badgeAge(annonce.age_hours)}</Badge>}
+            {annonce.source_platform && <Badge color="zinc">{annonce.source_platform}</Badge>}
           </div>
           {annonce.url && (
             <a
               href={annonce.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-indigo-300 hover:text-indigo-200"
+              className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-indigo-500 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300"
             >
               {UI.prospection.annonceVoir}
               <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-3.5" />
@@ -475,29 +414,6 @@ export default function ProspectionPage() {
     }
   }
 
-  // ── Colonnes acquéreurs ──────────────────────────────────────────────────
-  const acquereurColumns: SimpleColumn<Critere>[] = [
-    { key: "nom", header: UI.prospection.colNom, render: (c) => <strong>{c.nom}</strong> },
-    { key: "budget", header: UI.prospection.colBudget, render: (c) => budgetLabel(c) },
-    { key: "zones", header: UI.prospection.colZones, render: (c) => zonesLabel(c.zones) },
-    { key: "contact", header: UI.prospection.colContact, render: (c) => c.telephone ?? "—" },
-    {
-      key: "criteres",
-      header: UI.prospection.colCriteres,
-      render: (c) => (
-        <div className="flex flex-wrap gap-1.5">
-          {c.type_bien?.map((type) => <Badge key={type}>{type}</Badge>)}
-          {c.surface_min ? (
-            <Badge>{UI.prospection.annonceSurface(c.surface_min)} min</Badge>
-          ) : null}
-          {c.pieces_min ? (
-            <Badge>{UI.prospection.annoncePieces(c.pieces_min)} min</Badge>
-          ) : null}
-        </div>
-      ),
-    },
-  ];
-
   const stats = [
     { name: UI.prospection.kpiAcquereurs, value: String(criteres.length) },
     { name: UI.prospection.kpiMatchs, value: String(matchs.length) },
@@ -510,14 +426,14 @@ export default function ProspectionPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-12 @container">
-      {/* ── Header (TW+ page-headings/08-with-filters-and-action adapté sombre) ── */}
+      {/* ── Header ── */}
       <div className="flex flex-col gap-4 pb-2">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
               {UI.prospection.kicker}
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-white">{UI.prospection.title}</h1>
+            <Heading>{UI.prospection.title}</Heading>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <ScrapeCustomModal
@@ -527,55 +443,49 @@ export default function ProspectionPage() {
                 void loadMatchs();
               }}
             />
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
-              onClick={() => selectTab("criteres")}
-            >
+            <Button color="indigo" onClick={() => selectTab("criteres")}>
               {UI.prospection.newAcquereurBtn}
-            </button>
+            </Button>
           </div>
         </div>
 
-        <nav className="flex flex-wrap items-center gap-1 border-b border-white/10 pb-2">
-          <PageSegmentTabs
-            tabs={TABS.map((t) => ({
-              id: t,
-              label:
-                t === "acquereurs"
-                  ? UI.prospection.tabAcquereurs
-                  : t === "annonces"
-                  ? UI.prospection.annonces
-                  : t === "matching"
-                  ? UI.prospection.matching
-                  : UI.prospection.criteres,
-            }))}
-            active={tab}
-            onSelect={selectTab}
-          />
+        <nav
+          className="flex flex-wrap items-center gap-1 border-b border-zinc-950/10 pb-2 dark:border-white/10"
+          aria-label={UI.prospection.tabAcquereurs}
+        >
+          {TABS.map((tItem) => (
+            <Button
+              key={tItem}
+              plain
+              onClick={() => selectTab(tItem)}
+              aria-current={tab === tItem ? "page" : undefined}
+              className={tab === tItem ? "!text-indigo-500 dark:!text-indigo-400" : undefined}
+            >
+              {tabLabel(tItem)}
+            </Button>
+          ))}
         </nav>
       </div>
 
-      {/* ── Stats (TW+ data-display__stats/03-simple-in-cards adapté sombre) ── */}
+      {/* ── Stats (grille KPI + primitives) ── */}
       <dl className="grid grid-cols-2 gap-4 @2xl:grid-cols-4">
         {stats.map((item) => (
-          <div
-            key={item.name}
-            className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 shadow-lg shadow-black/20"
-          >
-            <dt className="truncate text-sm font-medium text-slate-400">{item.name}</dt>
-            <dd className="mt-1 text-2xl font-semibold tracking-tight text-white">{item.value}</dd>
+          <div key={item.name} className="rounded-xl border border-zinc-950/10 p-4 dark:border-white/10">
+            <dt>
+              <Text>{item.name}</Text>
+            </dt>
+            <dd className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+              {item.value}
+            </dd>
           </div>
         ))}
       </dl>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
+      <section className="rounded-xl border border-zinc-950/10 p-5 dark:border-white/10">
         {/* ── Onglet acquéreurs ── */}
         {tab === "acquereurs" && (
           <div>
-            {error && criteres.length > 0 ? (
-              <p className="p-4 text-sm text-red-400">{error}</p>
-            ) : null}
+            {error && criteres.length > 0 ? <ErrorLine msg={error} /> : null}
             {loading ? (
               <Spinner />
             ) : criteres.length === 0 ? (
@@ -589,22 +499,50 @@ export default function ProspectionPage() {
                   UI.prospection.emptyCriteresStep3,
                 ]}
                 action={
-                  <button
-                    type="button"
-                    className="mt-2 inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
-                    onClick={() => selectTab("criteres")}
-                  >
+                  <Button color="indigo" className="mt-2" onClick={() => selectTab("criteres")}>
                     {UI.prospection.newCritere}
-                  </button>
+                  </Button>
                 }
               />
             ) : (
-              <SimpleTable
-                columns={acquereurColumns}
-                rows={criteres}
-                emptyLabel={error ?? UI.prospection.emptyCriteres}
-                getKey={(c) => c.id}
-              />
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>{UI.prospection.colNom}</TableHeader>
+                    <TableHeader>{UI.prospection.colBudget}</TableHeader>
+                    <TableHeader>{UI.prospection.colZones}</TableHeader>
+                    <TableHeader>{UI.prospection.colContact}</TableHeader>
+                    <TableHeader>{UI.prospection.colCriteres}</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {criteres.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell>
+                        <Strong>{c.nom}</Strong>
+                      </TableCell>
+                      <TableCell>{budgetLabel(c)}</TableCell>
+                      <TableCell>{zonesLabel(c.zones)}</TableCell>
+                      <TableCell>{c.telephone ?? "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1.5">
+                          {c.type_bien?.map((type) => (
+                            <Badge key={type} color="zinc">
+                              {type}
+                            </Badge>
+                          ))}
+                          {c.surface_min ? (
+                            <Badge color="zinc">{UI.prospection.annonceSurface(c.surface_min)} min</Badge>
+                          ) : null}
+                          {c.pieces_min ? (
+                            <Badge color="zinc">{UI.prospection.annoncePieces(c.pieces_min)} min</Badge>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </div>
         )}
@@ -613,34 +551,23 @@ export default function ProspectionPage() {
         {tab === "annonces" && (
           <div>
             <div className="mb-4 flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 text-sm text-slate-300">
-                <input
-                  type="checkbox"
+              <CheckboxField>
+                <Checkbox
                   checked={filterEligible}
-                  className="size-4 rounded border-white/20 bg-white/[0.04] text-indigo-500 focus:ring-indigo-400/50"
-                  onChange={(e) => {
-                    const checked = e.target.checked;
+                  onChange={(checked) => {
                     setFilterEligible(checked);
                     void loadAnnonces(checked);
                   }}
                 />
-                {UI.prospection.eligibleOnly}
-              </label>
-              <span className="text-sm text-slate-500">
-                {UI.prospection.annonceCount(annonces.length)}
-              </span>
-              <button
-                type="button"
-                className="ml-auto inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-                onClick={() => loadAnnonces()}
-              >
+                <Label>{UI.prospection.eligibleOnly}</Label>
+              </CheckboxField>
+              <Text>{UI.prospection.annonceCount(annonces.length)}</Text>
+              <Button outline className="ml-auto" onClick={() => loadAnnonces()}>
                 {UI.prospection.refresh}
-              </button>
+              </Button>
             </div>
 
-            {error && annonces.length > 0 ? (
-              <p className="p-4 text-sm text-red-400">{error}</p>
-            ) : null}
+            {error && annonces.length > 0 ? <ErrorLine msg={error} /> : null}
 
             {loading ? (
               <Spinner />
@@ -656,10 +583,7 @@ export default function ProspectionPage() {
                 ]}
               />
             ) : (
-              <ul
-                role="list"
-                className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3"
-              >
+              <ul role="list" className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
                 {annonces.map((a) => (
                   <li key={a.id}>
                     <AnnonceCard annonce={a} />
@@ -674,19 +598,13 @@ export default function ProspectionPage() {
         {tab === "matching" && (
           <div>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-slate-400">{UI.prospection.matchingHint}</p>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-                onClick={() => loadMatchs()}
-              >
+              <Text>{UI.prospection.matchingHint}</Text>
+              <Button outline onClick={() => loadMatchs()}>
                 {UI.prospection.refresh}
-              </button>
+              </Button>
             </div>
 
-            {error && matchs.length > 0 ? (
-              <p className="p-4 text-sm text-red-400">{error}</p>
-            ) : null}
+            {error && matchs.length > 0 ? <ErrorLine msg={error} /> : null}
 
             {loading ? (
               <Spinner />
@@ -701,13 +619,9 @@ export default function ProspectionPage() {
                   UI.prospection.emptyMatchsStep3,
                 ]}
                 action={
-                  <button
-                    type="button"
-                    className="mt-2 inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
-                    onClick={() => selectTab("criteres")}
-                  >
+                  <Button color="indigo" className="mt-2" onClick={() => selectTab("criteres")}>
                     {UI.prospection.newCritere}
-                  </button>
+                  </Button>
                 }
               />
             ) : (
@@ -727,7 +641,18 @@ export default function ProspectionPage() {
   );
 }
 
-// ─── Match list (TW+ lists__stacked-lists/01-simple adapté sombre) ────────────
+// ─── Ligne d'erreur (Badge + Text, pattern repo) ──────────────────────────────
+
+function ErrorLine({ msg }: { msg: string }) {
+  return (
+    <div className="flex items-center gap-2 p-4">
+      <Badge color="red">{UI.common.error}</Badge>
+      <Text>{msg}</Text>
+    </div>
+  );
+}
+
+// ─── Match list (stacked list + primitives) ───────────────────────────────────
 
 function MatchList({
   matchs,
@@ -742,7 +667,7 @@ function MatchList({
   const sorted = [...matchs].sort((a, b) => b.score_match - a.score_match);
 
   return (
-    <ul role="list" className="divide-y divide-white/5">
+    <ul role="list" className="divide-y divide-zinc-950/5 dark:divide-white/5">
       {sorted.map((m) => {
         const a = m.annonce;
         const isGood = m.score_match >= MATCH_SCORE_ALERT;
@@ -757,47 +682,27 @@ function MatchList({
         if (a.prix) metaParts.push(UI.prospection.annoncePrix(a.prix));
 
         return (
-          <li
-            key={m.id}
-            className={`flex flex-wrap items-center gap-4 py-4 ${isGood ? "bg-emerald-400/[0.03]" : ""}`}
-          >
+          <li key={m.id} className="flex flex-wrap items-center gap-4 py-4">
             <ScoreRing score={m.score_match} />
 
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-100">
-                {annonceTitle(a)}
-                {isGood && <Badge>{UI.prospection.matchGoodLabel}</Badge>}
+              <div className="flex flex-wrap items-center gap-2">
+                <Strong>{annonceTitle(a)}</Strong>
+                {isGood && <Badge color="indigo">{UI.prospection.matchGoodLabel}</Badge>}
               </div>
-              {metaParts.length > 0 && (
-                <div className="mt-0.5 text-xs text-slate-400">{metaParts.join(" · ")}</div>
-              )}
+              {metaParts.length > 0 && <Text>{metaParts.join(" · ")}</Text>}
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
-              <button
-                type="button"
-                className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-sm transition-colors hover:bg-white/[0.08]"
-                aria-label={UI.prospection.feedbackLikeAria}
-                onClick={() => onFeedback(m.id, "up")}
-              >
+              <Button plain aria-label={UI.prospection.feedbackLikeAria} onClick={() => onFeedback(m.id, "up")}>
                 👍
-              </button>
-              <button
-                type="button"
-                className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-sm transition-colors hover:bg-white/[0.08]"
-                aria-label={UI.prospection.feedbackDislikeAria}
-                onClick={() => onFeedback(m.id, "down")}
-              >
+              </Button>
+              <Button plain aria-label={UI.prospection.feedbackDislikeAria} onClick={() => onFeedback(m.id, "down")}>
                 👎
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
-                title={UI.prospection.contactSoon}
-                onClick={() => onContactSoon()}
-              >
+              </Button>
+              <Button color="indigo" title={UI.prospection.contactSoon} onClick={() => onContactSoon()}>
                 {UI.prospection.matchContactBtn}
-              </button>
+              </Button>
             </div>
           </li>
         );
@@ -917,96 +822,56 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
     }
   }
 
-  const critereColumns: SimpleColumn<Critere>[] = [
-    { key: "nom", header: UI.prospection.colNom, render: (c) => <strong>{c.nom}</strong> },
-    { key: "zones", header: UI.prospection.colZones, render: (c) => zonesLabel(c.zones) },
-    {
-      key: "budget",
-      header: UI.prospection.colBudgetMax,
-      render: (c) =>
-        c.budget_max ? `${Number(c.budget_max).toLocaleString("fr-FR")} €` : "—",
-    },
-    {
-      key: "action",
-      header: UI.prospection.colAction,
-      align: "right",
-      render: (c) => (
-        <button
-          type="button"
-          className="text-sm font-medium text-red-400 hover:text-red-300"
-          onClick={() => deleteCritere(c.id)}
-        >
-          {UI.prospection.delete}
-        </button>
-      ),
-    },
-  ];
-
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <span className="text-sm text-slate-500">
-          {UI.prospection.criteresCount(criteres.length)}
-        </span>
+        <Text>{UI.prospection.criteresCount(criteres.length)}</Text>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-            onClick={loadCriteres}
-          >
+          <Button outline onClick={loadCriteres}>
             {UI.prospection.refresh}
-          </button>
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
-            onClick={() => setShowForm((v) => !v)}
-          >
+          </Button>
+          <Button color="indigo" onClick={() => setShowForm((v) => !v)}>
             {UI.prospection.newCritere}
-          </button>
+          </Button>
         </div>
       </div>
 
       {showForm && (
-        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <input
-            className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none"
-            placeholder={UI.prospection.critereNamePlaceholder}
-            value={nom}
-            onChange={(e) => setNom(e.target.value)}
-          />
-          <input
-            className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none"
-            placeholder={UI.prospection.critereZonesPlaceholder}
-            value={zones}
-            onChange={(e) => setZones(e.target.value)}
-          />
-          <input
-            className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none"
-            placeholder={UI.prospection.budgetMaxPlaceholder}
-            type="number"
-            value={budgetMax}
-            onChange={(e) => setBudgetMax(e.target.value)}
-          />
-          <input
-            className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none"
-            placeholder={UI.prospection.surfaceMinPlaceholder}
-            type="number"
-            value={surfaceMin}
-            onChange={(e) => setSurfaceMin(e.target.value)}
-          />
-          <button
-            type="button"
-            className="inline-flex w-fit items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={save}
-            disabled={saving}
-          >
-            {saving ? UI.prospection.saving : UI.prospection.save}
-          </button>
+        <div className="mb-4 rounded-xl border border-zinc-950/10 p-4 dark:border-white/10">
+          <FieldGroup>
+            <Field>
+              <Label>{UI.prospection.critereNamePlaceholder}</Label>
+              <Input
+                placeholder={UI.prospection.critereNamePlaceholder}
+                value={nom}
+                onChange={(e) => setNom(e.target.value)}
+              />
+            </Field>
+            <Field>
+              <Label>{UI.prospection.critereZonesPlaceholder}</Label>
+              <Input
+                placeholder={UI.prospection.critereZonesPlaceholder}
+                value={zones}
+                onChange={(e) => setZones(e.target.value)}
+              />
+            </Field>
+            <Field>
+              <Label>{UI.prospection.budgetMaxPlaceholder}</Label>
+              <Input type="number" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
+            </Field>
+            <Field>
+              <Label>{UI.prospection.surfaceMinPlaceholder}</Label>
+              <Input type="number" value={surfaceMin} onChange={(e) => setSurfaceMin(e.target.value)} />
+            </Field>
+            <Button color="indigo" className="w-fit" onClick={save} disabled={saving}>
+              {saving ? UI.prospection.saving : UI.prospection.save}
+            </Button>
+          </FieldGroup>
         </div>
       )}
 
       <div>
-        {error ? <p className="p-4 text-sm text-red-400">{error}</p> : null}
+        {error ? <ErrorLine msg={error} /> : null}
         {loading ? (
           <Spinner />
         ) : criteres.length === 0 ? (
@@ -1021,12 +886,34 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
             ]}
           />
         ) : (
-          <SimpleTable
-            columns={critereColumns}
-            rows={criteres}
-            emptyLabel={UI.prospection.emptyCriteres}
-            getKey={(c) => c.id}
-          />
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>{UI.prospection.colNom}</TableHeader>
+                <TableHeader>{UI.prospection.colZones}</TableHeader>
+                <TableHeader>{UI.prospection.colBudgetMax}</TableHeader>
+                <TableHeader className="text-right">{UI.prospection.colAction}</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {criteres.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell>
+                    <Strong>{c.nom}</Strong>
+                  </TableCell>
+                  <TableCell>{zonesLabel(c.zones)}</TableCell>
+                  <TableCell>
+                    {c.budget_max ? `${Number(c.budget_max).toLocaleString("fr-FR")} €` : "—"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button plain onClick={() => deleteCritere(c.id)}>
+                      {UI.prospection.delete}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
     </div>
@@ -1037,12 +924,12 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
 
 function Spinner() {
   return (
-    <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-500">
+    <div className="flex items-center justify-center gap-2 py-12">
       <span
-        className="size-4 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent"
+        className="size-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent dark:border-indigo-400"
         aria-hidden="true"
       />
-      <span>{UI.prospection.loading}</span>
+      <Text>{UI.prospection.loading}</Text>
     </div>
   );
 }

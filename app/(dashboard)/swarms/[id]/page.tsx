@@ -1,18 +1,32 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PlayCircleIcon } from "@heroicons/react/24/outline";
 import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
-import { Badge, Caption, Card, PageHeader, PageStack, SubsectionTitle } from "@/components/cockpit/primitives";
+import { PageHeader, PageStack } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import { dateFr, dateTimeFr } from "@/lib/crm/format";
 import RunStatusBadge from "@/components/swarms/RunStatusBadge";
 import SwarmKickoffPanel from "@/components/swarms/SwarmKickoffPanel";
 import type { Swarm, SwarmRun } from "@/lib/swarms/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
+import { Badge } from "@/components/ui/badge";
+import { Subheading } from "@/components/ui/heading";
+import { Text, TextLink } from "@/components/ui/text";
+import { DescriptionList, DescriptionTerm, DescriptionDetails } from "@/components/ui/description-list";
 
 type Tab = "config" | "agents" | "runs";
+
+function SectionCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-zinc-950/10 bg-white/[0.03] p-5 dark:border-white/10">
+      {children}
+    </div>
+  );
+}
 
 export default function SwarmDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -105,19 +119,16 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   if (loading) {
-    return <p className="p-8 text-sm text-slate-500">{UI.common.loading}</p>;
+    return <Text className="p-8">{UI.common.loading}</Text>;
   }
 
   if (error || !swarm) {
     return (
       <div className="p-8">
-        <p className="mb-3 text-sm text-red-400">{error ?? UI.swarms.notFound}</p>
-        <Link
-          href="/swarms"
-          className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-        >
+        <ErrorMessage className="mb-3 [&>[data-slot=error]]:mt-0">{error ?? UI.swarms.notFound}</ErrorMessage>
+        <Button href="/swarms" outline>
           {UI.swarms.backToSwarms}
-        </Link>
+        </Button>
       </div>
     );
   }
@@ -129,14 +140,15 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
       <PageHeader
         kicker={
           <>
-            <Link href="/swarms" className="text-indigo-300 hover:text-indigo-200">
-              {UI.nav.swarms}
-            </Link>{" "}
-            /
+            <TextLink href="/swarms">{UI.nav.swarms}</TextLink> /
           </>
         }
         title={swarm.name}
-        meta={<Badge>{swarm.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}</Badge>}
+        meta={
+          <Badge color={swarm.is_active ? "indigo" : "zinc"}>
+            {swarm.is_active ? UI.swarms.statusActive : UI.swarms.statusInactive}
+          </Badge>
+        }
         nav={
           <PageSegmentTabs
             tabs={[
@@ -150,46 +162,25 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
         }
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
-              onClick={() => setShowKickoff((v) => !v)}
-            >
+            <Button color="indigo" onClick={() => setShowKickoff((v) => !v)}>
               {showKickoff ? UI.swarms.hideBtn : UI.swarms.launchBtn}
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-              onClick={() => { setEditing((v) => !v); setEditError(null); }}
-            >
+            </Button>
+            <Button outline onClick={() => { setEditing((v) => !v); setEditError(null); }}>
               {UI.swarms.editBtn}
-            </button>
+            </Button>
             {!deleteConfirm ? (
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-lg border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm font-medium text-red-300 transition-colors hover:bg-red-400/20"
-                onClick={() => setDeleteConfirm(true)}
-              >
+              <Button outline onClick={() => setDeleteConfirm(true)}>
                 {UI.swarms.deleteBtn}
-              </button>
+              </Button>
             ) : (
               <div className="flex items-center gap-2">
-                <Caption as="span">{UI.swarms.confirmDelete}</Caption>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-1.5 text-sm font-medium text-red-300 transition-colors hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={handleDelete}
-                  disabled={deleteLoading}
-                >
+                <Text>{UI.swarms.confirmDelete}</Text>
+                <Button outline onClick={handleDelete} disabled={deleteLoading}>
                   {deleteLoading ? UI.common.busy : UI.swarms.confirmYes}
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-                  onClick={() => setDeleteConfirm(false)}
-                >
+                </Button>
+                <Button plain onClick={() => setDeleteConfirm(false)}>
                   {UI.swarms.confirmNo}
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -198,87 +189,76 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
 
       {/* Inline edit form */}
       {editing && (
-        <Card title={UI.swarms.editTitle}>
+        <SectionCard>
+          <Subheading level={2} className="mb-3">{UI.swarms.editTitle}</Subheading>
           <div className="flex flex-col gap-3">
-            <input
-              className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none"
-              type="text"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              placeholder={UI.swarms.manualSectionGeneral}
-            />
-            <input
-              className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400/50 focus:outline-none"
-              type="text"
-              value={editDesc}
-              onChange={(e) => setEditDesc(e.target.value)}
-              placeholder={UI.swarms.manualDescPlaceholder}
-            />
-            {editError && <p className="text-sm text-red-400">{editError}</p>}
+            <Field>
+              <Label className="sr-only">{UI.swarms.manualSectionGeneral}</Label>
+              <Input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder={UI.swarms.manualSectionGeneral}
+              />
+            </Field>
+            <Field>
+              <Label className="sr-only">{UI.swarms.manualDescPlaceholder}</Label>
+              <Input
+                type="text"
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                placeholder={UI.swarms.manualDescPlaceholder}
+              />
+            </Field>
+            {editError && (
+              <ErrorMessage className="[&>[data-slot=error]]:mt-0">{editError}</ErrorMessage>
+            )}
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
-                onClick={handleEdit}
-                disabled={editLoading}
-              >
+              <Button color="indigo" onClick={handleEdit} disabled={editLoading}>
                 {editLoading ? UI.swarms.editSaving : UI.swarms.editSave}
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-                onClick={() => setEditing(false)}
-              >
+              </Button>
+              <Button outline onClick={() => setEditing(false)}>
                 {UI.swarms.editCancel}
-              </button>
+              </Button>
             </div>
           </div>
-        </Card>
+        </SectionCard>
       )}
 
       {/* Kickoff panel */}
       {showKickoff && (
-        <Card title={UI.swarms.launchPanelTitle}>
+        <SectionCard>
+          <Subheading level={2} className="mb-3">{UI.swarms.launchPanelTitle}</Subheading>
           <SwarmKickoffPanel
             swarmId={swarm.id}
             swarmName={swarm.name}
             onDone={() => { if (id) void loadSwarm(id); }}
           />
-        </Card>
+        </SectionCard>
       )}
 
       {/* Tab: Configuration */}
       {tab === "config" && (
-        <Card>
-          <SubsectionTitle as="div">{UI.swarms.manualSectionGeneral}</SubsectionTitle>
-          <div className="mt-3 flex flex-col gap-3">
-            <div>
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                {UI.swarms.metaName}
-              </span>
-              <p className="mt-0.5 text-base font-semibold text-slate-100">{swarm.name}</p>
-            </div>
+        <SectionCard>
+          <Subheading level={2} className="mb-3">{UI.swarms.manualSectionGeneral}</Subheading>
+          <DescriptionList>
+            <DescriptionTerm>{UI.swarms.metaName}</DescriptionTerm>
+            <DescriptionDetails>{swarm.name}</DescriptionDetails>
             {swarm.description && (
-              <div>
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  {UI.swarms.metaDescription}
-                </span>
-                <p className="mt-0.5 text-sm text-slate-300">{swarm.description}</p>
-              </div>
+              <>
+                <DescriptionTerm>{UI.swarms.metaDescription}</DescriptionTerm>
+                <DescriptionDetails>{swarm.description}</DescriptionDetails>
+              </>
             )}
-            <div>
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                {UI.swarms.metaCreatedAt}
-              </span>
-              <p className="mt-0.5 text-sm text-slate-300">{createdAt}</p>
-            </div>
-          </div>
+            <DescriptionTerm>{UI.swarms.metaCreatedAt}</DescriptionTerm>
+            <DescriptionDetails>{createdAt}</DescriptionDetails>
+          </DescriptionList>
 
           {swarm.tool_bindings && swarm.tool_bindings.length > 0 && (
             <div className="mt-4">
-              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <Subheading level={3} className="mb-2 text-zinc-500 uppercase dark:text-zinc-400">
                 {UI.swarms.toolsTitle}
-              </div>
+              </Subheading>
               <div className="flex flex-wrap gap-2">
                 {swarm.tool_bindings.map((tb, i) => (
                   <Badge key={i}>{tb.tool_id}</Badge>
@@ -286,54 +266,54 @@ export default function SwarmDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
           )}
-        </Card>
+        </SectionCard>
       )}
 
-      {/* Tab: Agents & Tasks — TW+ lists__stacked-lists/06-in-card, adapté thème sombre */}
+      {/* Tab: Agents & Tasks */}
       {tab === "agents" && (
         <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-2">
-          <Card title={UI.swarms.agentsCount(swarm.agents?.length ?? 0)}>
+          <SectionCard>
+            <Subheading level={2} className="mb-3">{UI.swarms.agentsCount(swarm.agents?.length ?? 0)}</Subheading>
             {(swarm.agents ?? []).length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.agentsEmpty}</p>
+              <Text className="py-8 text-center">{UI.swarms.agentsEmpty}</Text>
             ) : (
-              <ul role="list" className="divide-y divide-white/5">
+              <ul role="list" className="divide-y divide-zinc-950/5 dark:divide-white/5">
                 {(swarm.agents ?? []).map((agent, i) => (
                   <li key={agent.id ?? i} className="py-4 first:pt-0 last:pb-0">
-                    <p className="text-sm font-medium text-slate-100">{agent.name}</p>
-                    <p className="mt-0.5 text-xs text-indigo-300">{agent.role}</p>
-                    {agent.goal && <p className="mt-1 text-xs text-slate-400">{agent.goal}</p>}
-                    {agent.backstory && (
-                      <p className="mt-1 text-xs text-slate-500">{agent.backstory}</p>
-                    )}
+                    <Text className="font-medium text-zinc-950 dark:text-white">{agent.name}</Text>
+                    <Text className="mt-0.5 text-indigo-600 dark:text-indigo-400">{agent.role}</Text>
+                    {agent.goal && <Text className="mt-1">{agent.goal}</Text>}
+                    {agent.backstory && <Text className="mt-1">{agent.backstory}</Text>}
                   </li>
                 ))}
               </ul>
             )}
-          </Card>
-          <Card title={UI.swarms.tasksCount(swarm.tasks?.length ?? 0)}>
+          </SectionCard>
+          <SectionCard>
+            <Subheading level={2} className="mb-3">{UI.swarms.tasksCount(swarm.tasks?.length ?? 0)}</Subheading>
             {(swarm.tasks ?? []).length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.tasksEmpty}</p>
+              <Text className="py-8 text-center">{UI.swarms.tasksEmpty}</Text>
             ) : (
-              <ul role="list" className="divide-y divide-white/5">
+              <ul role="list" className="divide-y divide-zinc-950/5 dark:divide-white/5">
                 {(swarm.tasks ?? []).map((task, i) => (
                   <li key={task.id ?? i} className="py-4 first:pt-0 last:pb-0">
-                    <p className="text-sm font-medium text-slate-100">{task.name}</p>
-                    {task.description && <p className="mt-0.5 text-xs text-slate-400">{task.description}</p>}
+                    <Text className="font-medium text-zinc-950 dark:text-white">{task.name}</Text>
+                    {task.description && <Text className="mt-0.5">{task.description}</Text>}
                     {task.expected_output && (
-                      <p className="mt-1 text-xs text-slate-500">
+                      <Text className="mt-1">
                         {UI.swarms.expectedOutputPrefix}{task.expected_output}
-                      </p>
+                      </Text>
                     )}
                     {task.agent_name && (
-                      <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
-                        {task.agent_name}
-                      </span>
+                      <div className="mt-2">
+                        <Badge>{task.agent_name}</Badge>
+                      </div>
                     )}
                   </li>
                 ))}
               </ul>
             )}
-          </Card>
+          </SectionCard>
         </div>
       )}
 
@@ -370,24 +350,16 @@ function RunsTab({
   }
 
   return (
-    <Card>
+    <SectionCard>
       <div className="mb-4 flex items-center justify-between">
-        <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-          {UI.swarms.runsHistory}
-        </div>
-        <button
-          type="button"
-          className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
-          onClick={handleRelaunch}
-          disabled={launching}
-        >
+        <Subheading level={2}>{UI.swarms.runsHistory}</Subheading>
+        <Button color="indigo" onClick={handleRelaunch} disabled={launching}>
           {launching ? UI.swarms.runsRelaunching : UI.swarms.runsRelaunch}
-        </button>
+        </Button>
       </div>
       {runs.length === 0 ? (
-        <p className="py-8 text-center text-sm text-slate-500">{UI.swarms.runsEmpty}</p>
+        <Text className="py-8 text-center">{UI.swarms.runsEmpty}</Text>
       ) : (
-        // TW+ lists__feeds/01-simple-with-icons — adapté thème sombre
         <div className="flow-root">
           <ul role="list" className="-mb-8">
             {runs.map((run, runIdx) => {
@@ -396,22 +368,21 @@ function RunsTab({
                 <li key={run.run_id}>
                   <div className="relative pb-8">
                     {runIdx !== runs.length - 1 ? (
-                      <span aria-hidden="true" className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-white/10" />
+                      <span aria-hidden="true" className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-zinc-950/10 dark:bg-white/10" />
                     ) : null}
                     <div className="relative flex items-start gap-3">
-                      <span className="flex size-8 items-center justify-center rounded-full bg-indigo-500/15 ring-8 ring-slate-950">
-                        <PlayCircleIcon aria-hidden="true" className="size-5 text-indigo-300" />
+                      <span className="flex size-8 items-center justify-center rounded-full bg-indigo-500/15 ring-8 ring-zinc-50 dark:ring-zinc-950">
+                        <PlayCircleIcon aria-hidden="true" className="size-5 text-indigo-600 dark:text-indigo-300" />
                       </span>
                       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 pt-1.5">
-                        <span className="font-mono text-xs text-slate-500">{run.run_id}</span>
+                        <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">{run.run_id}</span>
                         <RunStatusBadge status={run.status} size="sm" />
-                        <Caption as="span">{date}</Caption>
-                        <Link
-                          href={`/swarms/${swarmId}/run/${run.run_id}`}
-                          className="ml-auto inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-                        >
-                          {UI.swarms.runsView}
-                        </Link>
+                        <Text className="text-xs">{date}</Text>
+                        <div className="ml-auto">
+                          <Button href={`/swarms/${swarmId}/run/${run.run_id}`} outline>
+                            {UI.swarms.runsView}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -421,6 +392,6 @@ function RunsTab({
           </ul>
         </div>
       )}
-    </Card>
+    </SectionCard>
   );
 }

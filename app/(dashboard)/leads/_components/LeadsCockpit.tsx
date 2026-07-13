@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { eur, dateFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
-import { Card } from "@/components/cockpit/primitives";
+import { Badge } from "@/components/ui/badge";
+import { Text } from "@/components/ui/text";
 
 export type CockpitLead = {
   id: string;
@@ -28,7 +29,16 @@ function budgetLabel(min: number | null, max: number | null): string {
   return "—";
 }
 
-/** Zone compacte : titre + compteur + 3 items max + lien « voir tout ». */
+/** Conteneur sobre zinc (pas de primitive Catalyst "card"). */
+function Panel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-zinc-950/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+      {children}
+    </div>
+  );
+}
+
+/** Zone compacte : titre + compteur + 3 items max. */
 function Zone({
   label,
   count,
@@ -42,41 +52,38 @@ function Zone({
 }) {
   const t = UI.leads;
   return (
-    <Card>
+    <Panel>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
           {label}
         </span>
-        <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-400">
-          {count}
-        </span>
+        <Badge color="zinc">{count}</Badge>
       </div>
       {leads.length === 0 ? (
-        <p className="mt-3 text-sm text-slate-500">{t.cockpit.zoneEmpty}</p>
+        <Text className="mt-3">{t.cockpit.zoneEmpty}</Text>
       ) : (
         <ul className="mt-3 flex flex-col gap-2.5">
           {leads.slice(0, 3).map((l) => (
             <li key={l.id} className="flex items-center justify-between gap-2">
               <Link
                 href={`/leads/${l.id}`}
-                className="truncate text-sm font-medium text-slate-100 hover:text-indigo-300"
+                className="truncate text-sm font-medium text-zinc-950 hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400"
               >
                 {l.full_name}
               </Link>
-              <span className="shrink-0 text-xs text-slate-500">{meta(l)}</span>
+              <span className="shrink-0 text-xs text-zinc-500 dark:text-zinc-400">{meta(l)}</span>
             </li>
           ))}
         </ul>
       )}
-    </Card>
+    </Panel>
   );
 }
 
 /**
  * Vue COCKPIT relationnel des clients : zones métier dérivées des leads (à
  * relancer / nouveaux / vendeurs chauds / acquéreurs actifs) + activité récente.
- * Lecture seule, aucune action destructive exposée. La liste/kanban complète
- * reste accessible via le toggle parent.
+ * Lecture seule, aucune action destructive exposée.
  */
 export function LeadsCockpit({ leads }: { leads: CockpitLead[] }) {
   const t = UI.leads.cockpit;
@@ -118,14 +125,14 @@ export function LeadsCockpit({ leads }: { leads: CockpitLead[] }) {
         />
       </div>
 
-      <Card>
-        <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+      <Panel>
+        <div className="text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
           {t.recentActivity}
         </div>
         {byRecent.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">{t.zoneEmpty}</p>
+          <Text className="mt-3">{t.zoneEmpty}</Text>
         ) : (
-          <ul className="mt-3 divide-y divide-white/5">
+          <ul className="mt-3 divide-y divide-zinc-950/5 dark:divide-white/5">
             {byRecent.slice(0, 5).map((l) => (
               <li
                 key={l.id}
@@ -133,18 +140,18 @@ export function LeadsCockpit({ leads }: { leads: CockpitLead[] }) {
               >
                 <Link
                   href={`/leads/${l.id}`}
-                  className="truncate text-sm font-medium text-slate-100 hover:text-indigo-300"
+                  className="truncate text-sm font-medium text-zinc-950 hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400"
                 >
                   {l.full_name}
                 </Link>
-                <span className="shrink-0 text-xs text-slate-500">
+                <span className="shrink-0 text-xs text-zinc-500 dark:text-zinc-400">
                   {(UI.leads.statusLabels[l.status] ?? l.status)} · {dateFr(l.updated_at)}
                 </span>
               </li>
             ))}
           </ul>
         )}
-      </Card>
+      </Panel>
     </div>
   );
 }

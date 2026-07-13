@@ -21,6 +21,8 @@ import {
   type SubscriptionView,
 } from "@/lib/invest/subscription";
 import { SubscriptionsList } from "./_components/SubscriptionsList";
+import { Heading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
 
 export const dynamic = "force-dynamic";
 
@@ -47,15 +49,15 @@ export default async function SubscriptionsPage() {
     <div className="flex flex-col gap-8 pb-12">
       {/* En-tête — application-ui/headings__page-headings/01-with-actions (adapté sombre) */}
       <div className="min-w-0 flex-1">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-300">
           Invest · Souscriptions
         </p>
-        <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Mes souscriptions</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <Heading>Mes souscriptions</Heading>
+        <Text className="mt-1">
           Suivez l&apos;état de vos souscriptions : réservation non engageante, signature, versement en
           séquestre tiers. Vous prêtez à une société (vous êtes créancier) ; tout rendement est une cible
           non garantie et comporte un risque de perte en capital.
-        </p>
+        </Text>
       </div>
 
       {!configured ? (

@@ -1,4 +1,5 @@
-import { Badge } from "@/components/cockpit/primitives";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
@@ -122,52 +123,38 @@ export default async function MandatesPage() {
             <h3 className="text-sm font-semibold text-white">{t.empty}</h3>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-white/10">
-              <thead className="bg-white/[0.02]">
-                <tr>
-                  <th scope="col" className="py-3 pr-3 pl-6 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t.table.reference}
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t.table.price}
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t.table.commission}
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t.table.kind}
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t.table.expires}
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t.table.status}
-                  </th>
-                  <th scope="col" className="py-3 pr-6 pl-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t.table.action}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
+          <div className="px-2">
+            <Table dense>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>{t.table.reference}</TableHeader>
+                  <TableHeader className="text-right">{t.table.price}</TableHeader>
+                  <TableHeader className="text-right">{t.table.commission}</TableHeader>
+                  <TableHeader>{t.table.kind}</TableHeader>
+                  <TableHeader className="text-right">{t.table.expires}</TableHeader>
+                  <TableHeader>{t.table.status}</TableHeader>
+                  <TableHeader className="text-right">{t.table.action}</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {mandates.map((m) => (
-                  <tr key={m.id} className="transition-colors hover:bg-white/[0.03]">
-                    <td className="py-4 pr-3 pl-6 text-sm font-medium whitespace-nowrap text-slate-100">
+                  <TableRow key={m.id}>
+                    <TableCell className="font-medium text-zinc-950 dark:text-white">
                       {m.reference ?? m.properties?.city ?? t.noReference}
-                    </td>
-                    <td className="px-3 py-4 text-right text-sm whitespace-nowrap text-slate-300 tabular-nums">
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
                       {eur(m.asking_price)}
-                    </td>
-                    <td className="px-3 py-4 text-right text-sm whitespace-nowrap text-slate-300 tabular-nums">
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
                       {m.commission_pct != null ? `${m.commission_pct}${t.commissionUnit}` : "—"}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap">
+                    </TableCell>
+                    <TableCell>
                       <Badge>{t.kindLabels[m.kind] ?? m.kind}</Badge>
-                    </td>
-                    <td className="px-3 py-4 text-right text-sm whitespace-nowrap text-slate-300 tabular-nums">
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
                       {dateFr(m.expires_at)}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap">
+                    </TableCell>
+                    <TableCell>
                       <StatusSelect
                         endpoint={`/api/mandates/${m.id}`}
                         value={m.status}
@@ -175,18 +162,18 @@ export default async function MandatesPage() {
                         labels={t.statusLabels}
                         ariaLabel={t.table.status}
                       />
-                    </td>
-                    <td className="py-4 pr-6 pl-3 text-right text-sm whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <DeleteButton
                         endpoint={`/api/mandates/${m.id}`}
                         label={t.delete}
                         confirmMessage={t.delete}
                       />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

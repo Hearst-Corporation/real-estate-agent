@@ -9,10 +9,12 @@
  *  - Sorties : timeline dans une card (headings + layout__cards)
  * La logique métier (fetch, mapping, agrégats) est inchangée.
  */
-import Link from "next/link";
 import { ProductBadges, StatusPill, Banner, Timeline, eur, pct } from "@/components/invest";
 import type { StatusTone } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
+import { Heading, Subheading } from "@/components/ui/heading";
+import { Text, TextLink } from "@/components/ui/text";
+import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "@/components/ui/table";
 import { DEAL_BADGES_MAX } from "@/lib/invest/constants";
 import { DEMO_POSITIONS } from "../_data/demo";
 import { fetchMyPortfolio, type PortfolioPositionView } from "../_data/server";
@@ -65,11 +67,11 @@ export default async function PortfolioPage() {
     <div className="flex flex-col gap-8 pb-12">
       {/* En-tête — page-headings/01-with-actions (adapté sombre) */}
       <div className="min-w-0 flex-1">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-300">
           {p.eyebrow}
         </p>
-        <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{p.title}</h1>
-        <p className="mt-1 text-sm text-slate-400">{p.sub}</p>
+        <Heading>{p.title}</Heading>
+        <Text className="mt-1">{p.sub}</Text>
       </div>
 
       {isDemo && <Banner tone="info">{p.demoBanner}</Banner>}
@@ -79,12 +81,12 @@ export default async function PortfolioPage() {
         {stats.map((item) => (
           <div
             key={item.name}
-            className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-5 sm:p-6"
+            className="overflow-hidden rounded-2xl border border-zinc-950/10 bg-white px-4 py-5 shadow-sm sm:p-6 dark:border-white/10 dark:bg-white/[0.03]"
           >
-            <dt className="truncate text-xs font-medium uppercase tracking-wide text-slate-500">
+            <dt className="truncate text-xs font-medium uppercase tracking-wide text-zinc-500">
               {item.name}
             </dt>
-            <dd className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <dd className="mt-1 text-2xl font-bold tracking-tight text-zinc-950 sm:text-3xl dark:text-white">
               {item.value}
             </dd>
           </div>
@@ -102,37 +104,32 @@ export default async function PortfolioPage() {
         {positions.map((pos) => (
           <li
             key={pos.dealId}
-            className="col-span-1 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20"
+            className="col-span-1 flex flex-col gap-3 rounded-2xl border border-zinc-950/10 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03]"
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-semibold text-slate-100">{pos.dealName}</span>
+                  <span className="text-base font-semibold text-zinc-950 dark:text-white">{pos.dealName}</span>
                   <StatusPill tone={pos.statutTone}>{pos.statutLabel}</StatusPill>
                 </div>
                 <ProductBadges badges={pos.badges} />
-                <div className="text-xs text-slate-500">
+                <Text>
                   {p.positionSummary(
                     eur(pos.capitalPreteEur),
                     pos.units,
                     pct(pos.triCible),
                     eur(pos.distributionsRecuesEur),
                   )}
-                </div>
+                </Text>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <div className="flex items-baseline gap-1.5 text-xs text-slate-400">
+                <div className="flex items-baseline gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
                   <span>{p.ltvCurrent}</span>
-                  <b className="text-sm text-slate-100">
+                  <b className="text-sm text-zinc-950 dark:text-white">
                     {pos.ltv != null ? pct(pos.ltv) : UI.common.empty}
                   </b>
                 </div>
-                <Link
-                  href={`/invest/${pos.dealSlug}`}
-                  className="text-sm text-indigo-300 hover:text-indigo-200"
-                >
-                  {p.viewDetail}
-                </Link>
+                <TextLink href={`/invest/${pos.dealSlug}`}>{p.viewDetail}</TextLink>
               </div>
             </div>
           </li>
@@ -141,47 +138,32 @@ export default async function PortfolioPage() {
 
       {/* Distributions — tables/02-simple-in-card (adapté sombre) */}
       {payouts.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20">
-          <div className="border-b border-white/10 px-5 py-4">
-            <h2 className="text-lg font-semibold text-slate-100">{p.payoutsTitle}</h2>
+        <div className="overflow-hidden rounded-2xl border border-zinc-950/10 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+          <div className="border-b border-zinc-950/10 px-5 py-4 dark:border-white/10">
+            <Subheading>{p.payoutsTitle}</Subheading>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-white/10">
-              <thead className="bg-white/[0.02]">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
-                  >
-                    {p.payoutDefaultDeal}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
-                  >
-                    {p.payoutDefaultType}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400"
-                  >
-                    €
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
+          <div className="px-5">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>{p.payoutDefaultDeal}</TableHeader>
+                  <TableHeader>{p.payoutDefaultType}</TableHeader>
+                  <TableHeader className="text-right">€</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {payouts.map((po) => (
-                  <tr key={po.id}>
-                    <td className="px-5 py-4 text-sm font-medium whitespace-nowrap text-slate-100">
+                  <TableRow key={po.id}>
+                    <TableCell className="font-medium text-zinc-950 dark:text-white">
                       {po.dealName ?? p.payoutDefaultDeal}
-                    </td>
-                    <td className="px-5 py-4 text-sm whitespace-nowrap text-slate-400">
+                    </TableCell>
+                    <TableCell className="text-zinc-500 dark:text-zinc-400">
                       {p.distribTypes[po.distributionType ?? ""] ?? p.payoutDefaultType} ·{" "}
                       {p.payoutUnits(po.unitsHeld)}
-                    </td>
-                    <td className="px-5 py-4 whitespace-nowrap text-right">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-3">
-                        <b className="text-sm text-slate-100">{eur(po.netAmountEur)}</b>
+                        <b className="text-zinc-950 dark:text-white">{eur(po.netAmountEur)}</b>
                         <StatusPill
                           tone={
                             po.status === "paid"
@@ -194,22 +176,22 @@ export default async function PortfolioPage() {
                           {p.payoutStatus[po.status] ?? po.status}
                         </StatusPill>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}
 
       {/* Sorties — timeline dans une card (layout__cards + headings) */}
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20">
-        <h2 className="mb-3 text-lg font-semibold text-slate-100">{p.exitsTitle}</h2>
+      <div className="overflow-hidden rounded-2xl border border-zinc-950/10 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+        <Subheading className="mb-3">{p.exitsTitle}</Subheading>
         <Timeline items={exits} />
       </div>
 
-      <p className="text-xs text-slate-500">{p.fineprint}</p>
+      <Text>{p.fineprint}</Text>
     </div>
   );
 }

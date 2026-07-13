@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Heading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
 import { UI } from "@/lib/ui-strings";
 
 export default function NewEstimationPage() {
@@ -41,35 +44,35 @@ export default function NewEstimationPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-12">
-      {/* Header — bloc TW+ headings__page-headings/01-with-actions (adapté sombre) */}
+      {/* Header */}
       <div className="md:flex md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
             {t.eyebrow}
           </p>
-          <h1 className="text-2xl font-bold tracking-tight text-white sm:truncate">{t.newCta}</h1>
-          <p className="mt-1 text-sm text-slate-400">{t.interviewSub}</p>
+          <Heading>{t.newCta}</Heading>
+          <Text className="mt-1">{t.interviewSub}</Text>
         </div>
       </div>
 
-      {/* Card conteneur — bloc TW+ layout__cards/01-basic-card (adapté sombre) */}
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+      {/* Card conteneur */}
+      <section className="rounded-xl border border-zinc-950/10 bg-white/[0.03] p-6 dark:border-white/10">
         {error ? (
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-red-400">{error}</p>
+            <div className="flex items-center gap-2">
+              <Badge color="red">{UI.common.error}</Badge>
+              <Text>{error}</Text>
+            </div>
             <div>
-              <Link
-                href="/estimations"
-                className="inline-flex items-center rounded-md border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-              >
+              <Button outline href="/estimations">
                 {t.back}
-              </Link>
+              </Button>
             </div>
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <ArrowPathIcon aria-hidden="true" className="size-5 animate-spin text-indigo-300" />
-            <p className="text-sm text-slate-400">{t.creating}</p>
+            <ArrowPathIcon aria-hidden="true" className="size-5 animate-spin text-indigo-500 dark:text-indigo-400" />
+            <Text>{t.creating}</Text>
           </div>
         )}
       </section>

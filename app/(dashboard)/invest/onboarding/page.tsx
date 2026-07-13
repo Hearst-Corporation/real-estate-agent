@@ -16,6 +16,8 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { supabaseInvestorStore, getOrCreateProfile } from "@/lib/invest/investor";
 import { OnboardingWizard } from "./_components/OnboardingWizard";
+import { Heading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
 
 export const dynamic = "force-dynamic";
 
@@ -50,16 +52,14 @@ export default async function OnboardingPage() {
     <div className="flex flex-col gap-8 pb-12">
       {/* En-tête — application-ui/headings__page-headings/01-with-actions (adapté sombre) */}
       <div className="min-w-0 flex-1">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-300">
           Invest · Onboarding
         </p>
-        <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-          Devenir investisseur
-        </h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <Heading>Devenir investisseur</Heading>
+        <Text className="mt-1">
           Quatre étapes pour débloquer la souscription : profil, test ECSP, vérification d&apos;identité et
           wallet. Vous prêtez à une société (vous êtes créancier) ; aucun argent n&apos;est placé ici.
-        </p>
+        </Text>
       </div>
 
       <OnboardingWizard initialProfile={initialProfile} />

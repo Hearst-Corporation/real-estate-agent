@@ -4,10 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import { PageSegmentTabs } from "@/components/cockpit/PageSegmentTabs";
-import { Card, PageHeader, PageStack } from "@/components/cockpit/primitives";
-import { TextInput, Textarea } from "@/components/cockpit/form";
+import { PageHeader, PageStack } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import type { SwarmAgent, SwarmTask, ArchitectSpec } from "@/lib/swarms/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
+import { Subheading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
 
 type Tab = "architect" | "manual";
 
@@ -18,6 +23,14 @@ const EMPTY_AGENT: AgentDraft = { name: "", role: "", goal: "" };
 const EMPTY_TASK: TaskDraft = { name: "", description: "", expected_output: "" };
 
 const ARCHITECT_TEXTAREA_ROWS = 5;
+
+function SectionCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-zinc-950/10 bg-white/[0.03] p-5 dark:border-white/10">
+      {children}
+    </div>
+  );
+}
 
 export default function NewSwarmPage() {
   const router = useRouter();
@@ -152,63 +165,72 @@ export default function NewSwarmPage() {
       {tab === "architect" && (
         <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-2">
           {/* Colonne gauche : prompt */}
-          <Card title={UI.swarms.architectTitle}>
+          <SectionCard>
+            <Subheading level={2} className="mb-3">{UI.swarms.architectTitle}</Subheading>
             <div className="flex flex-col gap-3">
-              <Textarea
-                rows={ARCHITECT_TEXTAREA_ROWS}
-                placeholder={UI.swarms.architectPlaceholder}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-              <button
-                type="button"
-                className="inline-flex w-fit items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+              <Field>
+                <Label className="sr-only">{UI.swarms.architectTitle}</Label>
+                <Textarea
+                  rows={ARCHITECT_TEXTAREA_ROWS}
+                  placeholder={UI.swarms.architectPlaceholder}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </Field>
+              <Button
+                color="indigo"
+                className="w-fit"
                 onClick={handleGenerateSpec}
                 disabled={specLoading || !description.trim()}
               >
                 {specLoading ? UI.swarms.architectGenerating : UI.swarms.architectGenerateCta}
-              </button>
-              {specError && <p className="text-sm text-red-400">{specError}</p>}
+              </Button>
+              {specError && (
+                <ErrorMessage className="[&>[data-slot=error]]:mt-0">{specError}</ErrorMessage>
+              )}
             </div>
-          </Card>
+          </SectionCard>
 
           {/* Colonne droite : spec générée (structurée) ou indice */}
           {spec ? (
-            <Card title={UI.swarms.architectSpecTitle(spec.name)}>
+            <SectionCard>
+              <Subheading level={2} className="mb-3">
+                {UI.swarms.architectSpecTitle(spec.name)}
+              </Subheading>
               <div className="flex flex-col gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-slate-100">{spec.name}</p>
-                  {spec.description && <p className="mt-0.5 text-sm text-slate-400">{spec.description}</p>}
+                  <Text className="font-semibold text-zinc-950 dark:text-white">{spec.name}</Text>
+                  {spec.description && <Text className="mt-0.5">{spec.description}</Text>}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
                   <div>
-                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <Subheading level={3} className="mb-2 text-zinc-500 uppercase dark:text-zinc-400">
                       {UI.swarms.agentsCount(spec.agents?.length ?? 0)}
-                    </h4>
+                    </Subheading>
                     <div className="flex flex-col gap-2">
                       {(spec.agents ?? []).map((a, i) => (
-                        <div key={a.id ?? i} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
-                          <p className="text-sm font-medium text-slate-100">{a.name}</p>
-                          {a.role && <p className="mt-0.5 text-xs text-indigo-300">{a.role}</p>}
-                          {a.goal && <p className="mt-1 text-xs text-slate-400">{a.goal}</p>}
+                        <div key={a.id ?? i} className="rounded-lg border border-zinc-950/10 bg-white/[0.02] p-3 dark:border-white/10">
+                          <Text className="font-medium text-zinc-950 dark:text-white">{a.name}</Text>
+                          {a.role && <Text className="mt-0.5 text-indigo-600 dark:text-indigo-400">{a.role}</Text>}
+                          {a.goal && <Text className="mt-1">{a.goal}</Text>}
                         </div>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <Subheading level={3} className="mb-2 text-zinc-500 uppercase dark:text-zinc-400">
                       {UI.swarms.tasksCount(spec.tasks?.length ?? 0)}
-                    </h4>
+                    </Subheading>
                     <div className="flex flex-col gap-2">
                       {(spec.tasks ?? []).map((t, i) => (
-                        <div key={t.id ?? i} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
-                          <p className="text-sm font-medium text-slate-100">{t.name}</p>
-                          {t.description && <p className="mt-0.5 text-xs text-slate-400">{t.description}</p>}
+                        <div key={t.id ?? i} className="rounded-lg border border-zinc-950/10 bg-white/[0.02] p-3 dark:border-white/10">
+                          <Text className="font-medium text-zinc-950 dark:text-white">{t.name}</Text>
+                          {t.description && <Text className="mt-0.5">{t.description}</Text>}
                           {t.expected_output && (
-                            <p className="mt-1 text-xs text-slate-500">
+                            <Text className="mt-1">
                               {UI.swarms.expectedOutputPrefix}{t.expected_output}
-                            </p>
+                            </Text>
                           )}
                         </div>
                       ))}
@@ -216,175 +238,181 @@ export default function NewSwarmPage() {
                   </div>
                 </div>
 
-                <details className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
-                  <summary className="cursor-pointer text-xs font-medium text-slate-400 select-none">
+                <details className="rounded-lg border border-zinc-950/10 bg-white/[0.02] p-3 dark:border-white/10">
+                  <summary className="cursor-pointer text-xs font-medium text-zinc-500 select-none dark:text-zinc-400">
                     {UI.swarms.architectJsonDetails}
                   </summary>
-                  <pre className="mt-2 overflow-x-auto font-mono text-xs text-slate-300">
+                  <pre className="mt-2 overflow-x-auto font-mono text-xs text-zinc-600 dark:text-zinc-300">
                     {JSON.stringify(spec, null, 2)}
                   </pre>
                 </details>
 
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
-                    onClick={handleCreateFromSpec}
-                    disabled={createLoading}
-                  >
+                  <Button color="indigo" onClick={handleCreateFromSpec} disabled={createLoading}>
                     {createLoading ? UI.swarms.architectCreating : UI.swarms.architectCreateCta}
-                  </button>
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
-                    onClick={() => setSpec(null)}
-                    disabled={createLoading}
-                  >
+                  </Button>
+                  <Button outline onClick={() => setSpec(null)} disabled={createLoading}>
                     {UI.swarms.architectRegenCta}
-                  </button>
+                  </Button>
                 </div>
-                {createError && <p className="text-sm text-red-400">{createError}</p>}
+                {createError && (
+                  <ErrorMessage className="[&>[data-slot=error]]:mt-0">{createError}</ErrorMessage>
+                )}
               </div>
-            </Card>
+            </SectionCard>
           ) : (
-            // TW+ feedback__empty-states/02-with-dashed-border — adapté thème sombre
-            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/15 p-8 text-center">
-              <SparklesIcon aria-hidden="true" className="size-10 text-indigo-300" />
-              <p className="text-sm text-slate-400">{UI.swarms.architectHint}</p>
+            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-zinc-950/15 p-8 text-center dark:border-white/15">
+              <SparklesIcon aria-hidden="true" className="size-10 text-indigo-500 dark:text-indigo-400" />
+              <Text>{UI.swarms.architectHint}</Text>
             </div>
           )}
         </div>
       )}
 
       {tab === "manual" && (
-        <Card>
+        <SectionCard>
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <Subheading level={3} className="text-zinc-500 uppercase dark:text-zinc-400">
                 {UI.swarms.manualSectionGeneral}
-              </h4>
-              <TextInput
-                type="text"
-                placeholder={UI.swarms.manualNamePlaceholder}
-                value={manualName}
-                onChange={(e) => setManualName(e.target.value)}
-              />
-              <TextInput
-                type="text"
-                placeholder={UI.swarms.manualDescPlaceholder}
-                value={manualDesc}
-                onChange={(e) => setManualDesc(e.target.value)}
-              />
+              </Subheading>
+              <Field>
+                <Label className="sr-only">{UI.swarms.manualNamePlaceholder}</Label>
+                <Input
+                  type="text"
+                  placeholder={UI.swarms.manualNamePlaceholder}
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <Label className="sr-only">{UI.swarms.manualDescPlaceholder}</Label>
+                <Input
+                  type="text"
+                  placeholder={UI.swarms.manualDescPlaceholder}
+                  value={manualDesc}
+                  onChange={(e) => setManualDesc(e.target.value)}
+                />
+              </Field>
             </div>
 
             <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
               <div className="flex flex-col gap-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <Subheading level={3} className="text-zinc-500 uppercase dark:text-zinc-400">
                   {UI.swarms.manualSectionAgents}
-                </h4>
+                </Subheading>
                 <div className="flex flex-col gap-3">
                   {agents.map((agent, i) => (
-                    <div key={i} className="relative flex flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                    <div key={i} className="relative flex flex-col gap-2 rounded-lg border border-zinc-950/10 bg-white/[0.02] p-3 dark:border-white/10">
                       {agents.length > 1 && (
-                        <button
-                          type="button"
-                          className="absolute top-2 right-2 text-slate-500 hover:text-slate-300"
-                          aria-label={UI.swarms.removeAgent}
-                          onClick={() => removeAgent(i)}
-                        >
-                          ×
-                        </button>
+                        <div className="absolute top-1 right-1">
+                          <Button
+                            plain
+                            aria-label={UI.swarms.removeAgent}
+                            onClick={() => removeAgent(i)}
+                          >
+                            ×
+                          </Button>
+                        </div>
                       )}
-                      <TextInput
-                        type="text"
-                        placeholder={UI.swarms.manualAgentNamePlaceholder}
-                        value={agent.name}
-                        onChange={(e) => updateAgent(i, "name", e.target.value)}
-                      />
-                      <TextInput
-                        type="text"
-                        placeholder={UI.swarms.manualAgentRolePlaceholder}
-                        value={agent.role}
-                        onChange={(e) => updateAgent(i, "role", e.target.value)}
-                      />
-                      <TextInput
-                        type="text"
-                        placeholder={UI.swarms.manualAgentGoalPlaceholder}
-                        value={agent.goal}
-                        onChange={(e) => updateAgent(i, "goal", e.target.value)}
-                      />
+                      <Field>
+                        <Label className="sr-only">{UI.swarms.manualAgentNamePlaceholder}</Label>
+                        <Input
+                          type="text"
+                          placeholder={UI.swarms.manualAgentNamePlaceholder}
+                          value={agent.name}
+                          onChange={(e) => updateAgent(i, "name", e.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <Label className="sr-only">{UI.swarms.manualAgentRolePlaceholder}</Label>
+                        <Input
+                          type="text"
+                          placeholder={UI.swarms.manualAgentRolePlaceholder}
+                          value={agent.role}
+                          onChange={(e) => updateAgent(i, "role", e.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <Label className="sr-only">{UI.swarms.manualAgentGoalPlaceholder}</Label>
+                        <Input
+                          type="text"
+                          placeholder={UI.swarms.manualAgentGoalPlaceholder}
+                          value={agent.goal}
+                          onChange={(e) => updateAgent(i, "goal", e.target.value)}
+                        />
+                      </Field>
                     </div>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  className="w-fit text-xs font-medium text-indigo-300 hover:text-indigo-200"
-                  onClick={addAgent}
-                >
+                <Button plain className="w-fit" onClick={addAgent}>
                   {UI.swarms.manualAddAgent}
-                </button>
+                </Button>
               </div>
 
               <div className="flex flex-col gap-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <Subheading level={3} className="text-zinc-500 uppercase dark:text-zinc-400">
                   {UI.swarms.manualSectionTasks}
-                </h4>
+                </Subheading>
                 <div className="flex flex-col gap-3">
                   {tasks.map((task, i) => (
-                    <div key={i} className="relative flex flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                    <div key={i} className="relative flex flex-col gap-2 rounded-lg border border-zinc-950/10 bg-white/[0.02] p-3 dark:border-white/10">
                       {tasks.length > 1 && (
-                        <button
-                          type="button"
-                          className="absolute top-2 right-2 text-slate-500 hover:text-slate-300"
-                          aria-label={UI.swarms.removeTask}
-                          onClick={() => removeTask(i)}
-                        >
-                          ×
-                        </button>
+                        <div className="absolute top-1 right-1">
+                          <Button
+                            plain
+                            aria-label={UI.swarms.removeTask}
+                            onClick={() => removeTask(i)}
+                          >
+                            ×
+                          </Button>
+                        </div>
                       )}
-                      <TextInput
-                        type="text"
-                        placeholder={UI.swarms.manualTaskNamePlaceholder}
-                        value={task.name}
-                        onChange={(e) => updateTask(i, "name", e.target.value)}
-                      />
-                      <TextInput
-                        type="text"
-                        placeholder={UI.swarms.manualTaskDescPlaceholder}
-                        value={task.description}
-                        onChange={(e) => updateTask(i, "description", e.target.value)}
-                      />
-                      <TextInput
-                        type="text"
-                        placeholder={UI.swarms.manualTaskOutputPlaceholder}
-                        value={task.expected_output}
-                        onChange={(e) => updateTask(i, "expected_output", e.target.value)}
-                      />
+                      <Field>
+                        <Label className="sr-only">{UI.swarms.manualTaskNamePlaceholder}</Label>
+                        <Input
+                          type="text"
+                          placeholder={UI.swarms.manualTaskNamePlaceholder}
+                          value={task.name}
+                          onChange={(e) => updateTask(i, "name", e.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <Label className="sr-only">{UI.swarms.manualTaskDescPlaceholder}</Label>
+                        <Input
+                          type="text"
+                          placeholder={UI.swarms.manualTaskDescPlaceholder}
+                          value={task.description}
+                          onChange={(e) => updateTask(i, "description", e.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <Label className="sr-only">{UI.swarms.manualTaskOutputPlaceholder}</Label>
+                        <Input
+                          type="text"
+                          placeholder={UI.swarms.manualTaskOutputPlaceholder}
+                          value={task.expected_output}
+                          onChange={(e) => updateTask(i, "expected_output", e.target.value)}
+                        />
+                      </Field>
                     </div>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  className="w-fit text-xs font-medium text-indigo-300 hover:text-indigo-200"
-                  onClick={addTask}
-                >
+                <Button plain className="w-fit" onClick={addTask}>
                   {UI.swarms.manualAddTask}
-                </button>
+                </Button>
               </div>
             </div>
 
-            {manualError && <p className="text-sm text-red-400">{manualError}</p>}
+            {manualError && (
+              <ErrorMessage className="[&>[data-slot=error]]:mt-0">{manualError}</ErrorMessage>
+            )}
 
-            <button
-              type="button"
-              className="inline-flex w-fit items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
-              onClick={handleManualCreate}
-              disabled={manualLoading}
-            >
+            <Button color="indigo" className="w-fit" onClick={handleManualCreate} disabled={manualLoading}>
               {manualLoading ? UI.swarms.manualCreating : UI.swarms.manualCreateCta}
-            </button>
+            </Button>
           </div>
-        </Card>
+        </SectionCard>
       )}
     </PageStack>
   );

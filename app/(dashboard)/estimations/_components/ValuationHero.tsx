@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { UI } from "@/lib/ui-strings";
 import type { Valuation } from "@/lib/estimation/types";
 
@@ -24,9 +25,9 @@ function pct(value: number, low: number, high: number): number {
 }
 
 const CONFIDENCE_COLOR: Record<string, string> = {
-  indicative: "border-white/15 bg-white/[0.06] text-slate-300",
-  moyenne: "border-white/15 bg-white/[0.08] text-slate-200",
-  elevee: "border-indigo-400/40 bg-indigo-500/15 text-indigo-200",
+  indicative: "border-white/15 bg-white/[0.06] text-zinc-600 dark:text-zinc-300",
+  moyenne: "border-white/15 bg-white/[0.08] text-zinc-700 dark:text-zinc-200",
+  elevee: "border-indigo-400/40 bg-indigo-500/15 text-indigo-700 dark:text-indigo-200",
 };
 
 export function ValuationHero({ id, valuation }: Props) {
@@ -69,7 +70,7 @@ export function ValuationHero({ id, valuation }: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur-sm lg:flex-row lg:items-stretch">
+    <div className="flex flex-col gap-6 rounded-2xl border border-zinc-950/10 bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur-sm lg:flex-row lg:items-stretch dark:border-white/10">
       {/* ── Colonne valeur : badge, valeur, fourchette visuelle ── */}
       <div className="flex flex-1 flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -80,17 +81,17 @@ export function ValuationHero({ id, valuation }: Props) {
             {confidenceLabel}
           </span>
           {valuation.nbComparables > 0 && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">
               {UI.estimations.comparablesDvf(valuation.nbComparables)}
             </span>
           )}
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-300">
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-300">
             {UI.estimations.market}
           </p>
-          <p className="mt-1 text-5xl font-black tracking-tight text-white">
+          <p className="mt-1 text-5xl font-black tracking-tight text-zinc-950 dark:text-white">
             {fmt.format(valuation.marketValue)}
           </p>
         </div>
@@ -103,17 +104,17 @@ export function ValuationHero({ id, valuation }: Props) {
           )}, valeur de marché ${fmt.format(valuation.marketValue)}`}
         >
           <span
-            className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-slate-950 bg-slate-300"
+            className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-zinc-300 dark:border-zinc-950"
             style={{ left: `${recoPct}%` }}
           />
           <span
-            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-slate-950 bg-indigo-400"
+            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-indigo-400 dark:border-zinc-950"
             style={{ left: `${marketPct}%` }}
           />
         </div>
-        <p className="flex items-center justify-between text-xs text-slate-400">
+        <p className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
           <span>{fmt.format(valuation.lowValue)}</span>
-          <span className="font-medium text-slate-300">
+          <span className="font-medium text-zinc-600 dark:text-zinc-300">
             {UI.estimations.recoPriceLabel} · {fmt.format(valuation.recommendedListingPrice)}
           </span>
           <span>{fmt.format(valuation.highValue)}</span>
@@ -123,41 +124,37 @@ export function ValuationHero({ id, valuation }: Props) {
       {/* ── Colonne droite : KPIs + actions ── */}
       <div className="flex flex-col justify-between gap-4 lg:w-56 lg:shrink-0">
         <div className="flex flex-col gap-3">
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-            <span className="block text-xs font-medium uppercase tracking-wide text-slate-500">
+          <div className="rounded-xl border border-zinc-950/10 bg-white/[0.03] p-3 dark:border-white/10">
+            <span className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
               {UI.estimations.perSqm}
             </span>
-            <span className="mt-1 block text-lg font-bold text-white">
+            <span className="mt-1 block text-lg font-bold text-zinc-950 dark:text-white">
               {fmt.format(valuation.adjustedPerM2)}
               {UI.estimations.perSqmUnit}
             </span>
           </div>
           <div className="rounded-xl border border-indigo-400/40 bg-indigo-500/10 p-3">
-            <span className="block text-xs font-medium uppercase tracking-wide text-slate-500">
+            <span className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
               {UI.estimations.recommended}
             </span>
-            <span className="mt-1 block text-lg font-bold text-indigo-200">
+            <span className="mt-1 block text-lg font-bold text-indigo-700 dark:text-indigo-200">
               {fmt.format(valuation.recommendedListingPrice)}
             </span>
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <a
+          <Button
+            color="indigo"
             href={`/api/estimations/${id}/pdf`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-3 py-2 text-xs font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/25"
           >
             {UI.estimations.downloadPdf}
-          </a>
-          <button
-            className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
-            onClick={handleShare}
-            disabled={sharing}
-          >
+          </Button>
+          <Button outline onClick={handleShare} disabled={sharing}>
             {shareLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

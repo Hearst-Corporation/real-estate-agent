@@ -2,9 +2,18 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
+import {
+  Dialog,
+  DialogTitle,
+  DialogBody,
+} from "@/components/ui/dialog";
 import { useOpenFromQuery } from "@/lib/hooks/useOpenFromQuery";
-import { CockpitForm, Field, TextInput, Textarea, Select, MoneyInput } from "@/components/cockpit/form";
+import { Fieldset, Legend, Field, Label, ErrorMessage } from "@/components/ui/fieldset";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
 import { emitPropertyChanged } from "@/lib/hooks/usePropertyLive";
@@ -43,6 +52,15 @@ interface PropertyFormProps {
   onClose?: () => void;
 }
 
+/** Clés des 6 booléens équipement gérés en état contrôlé (Catalyst Checkbox). */
+type BoolKey =
+  | "has_elevator"
+  | "has_parking"
+  | "has_garden"
+  | "has_terrace"
+  | "has_pool"
+  | "cellar";
+
 export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormProps) {
   const t = UI.properties;
   const router = useRouter();
@@ -50,6 +68,17 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
   const [error, setError] = useState<string | null>(null);
 
   const isEdit = Boolean(id);
+
+  // Booléens équipement : Catalyst Checkbox est un composant contrôlé (pas
+  // d'input natif submittable) → on gère leur état ici et on l'injecte dans body.
+  const [bools, setBools] = useState<Record<BoolKey, boolean>>({
+    has_elevator: defaultValues.has_elevator ?? false,
+    has_parking: defaultValues.has_parking ?? false,
+    has_garden: defaultValues.has_garden ?? false,
+    has_terrace: defaultValues.has_terrace ?? false,
+    has_pool: defaultValues.has_pool ?? false,
+    cellar: defaultValues.cellar ?? false,
+  });
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -99,13 +128,13 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
     if (taxe_fonciere) body.taxe_fonciere = Number(taxe_fonciere);
     if (parking_count) body.parking_count = Number(parking_count);
 
-    // Booléens checkboxes
-    body.has_elevator = fd.get("has_elevator") === "true";
-    body.has_parking = fd.get("has_parking") === "true";
-    body.has_garden = fd.get("has_garden") === "true";
-    body.has_terrace = fd.get("has_terrace") === "true";
-    body.has_pool = fd.get("has_pool") === "true";
-    body.cellar = fd.get("cellar") === "true";
+    // Booléens checkboxes (état contrôlé)
+    body.has_elevator = bools.has_elevator;
+    body.has_parking = bools.has_parking;
+    body.has_garden = bools.has_garden;
+    body.has_terrace = bools.has_terrace;
+    body.has_pool = bools.has_pool;
+    body.cellar = bools.cellar;
 
     const url = isEdit ? `/api/properties/${id}` : "/api/properties";
     const method = isEdit ? "PATCH" : "POST";
@@ -136,180 +165,187 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
     }
   }
 
-  const fieldsetClass = "flex flex-col gap-4 rounded-xl border border-white/10 p-4";
-  const legendClass = "px-1 text-xs font-semibold uppercase tracking-widest text-indigo-300";
+  const fieldsetClass = "rounded-xl border border-zinc-950/10 p-4 dark:border-white/10";
+  const legendClass = "px-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400";
   const row2Class = "grid grid-cols-1 gap-4 sm:grid-cols-2";
-  const checkboxLabelClass =
-    "flex items-center gap-2 text-sm text-slate-300";
-  const checkboxInputClass =
-    "size-4 rounded border-white/20 bg-white/[0.04] text-indigo-500 focus:ring-indigo-400/50 focus:ring-offset-0";
+
+  const letterOptions = ["A", "B", "C", "D", "E", "F", "G"];
+  const orientationOptions = ["N", "S", "E", "O", "NE", "NO", "SE", "SO"];
+
+  const checkboxRows: [BoolKey, string][] = [
+    ["has_elevator", t.form.hasElevator],
+    ["has_parking", t.form.hasParking],
+    ["has_garden", t.form.hasGarden],
+    ["has_terrace", t.form.hasTerrace],
+    ["has_pool", t.form.hasPool],
+    ["cellar", t.form.hasCellar],
+  ];
 
   return (
-    <CockpitForm onSubmit={handleSubmit}>
-      <div className="text-sm font-semibold text-slate-100">{t.form.title}</div>
-
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {/* Section : informations principales */}
-      <fieldset className={fieldsetClass}>
-        <legend className={legendClass}>{t.form.sectionMain}</legend>
+      <Fieldset className={fieldsetClass}>
+        <Legend className={legendClass}>{t.form.sectionMain}</Legend>
         <div className={row2Class}>
-          <Field label={t.form.name} htmlFor="property-title" required>
-            <TextInput id="property-title" name="title" required defaultValue={defaultValues.title ?? ""} />
+          <Field>
+            <Label>{t.form.name}</Label>
+            <Input name="title" required defaultValue={defaultValues.title ?? ""} />
           </Field>
-          <Field label={t.form.type} htmlFor="property-type" required>
-            <TextInput id="property-type" name="property_type" required defaultValue={defaultValues.property_type ?? ""} />
+          <Field>
+            <Label>{t.form.type}</Label>
+            <Input name="property_type" required defaultValue={defaultValues.property_type ?? ""} />
           </Field>
         </div>
-      </fieldset>
+      </Fieldset>
 
       {/* Section : localisation */}
-      <fieldset className={fieldsetClass}>
-        <legend className={legendClass}>{t.form.sectionLocation}</legend>
-        <Field label={t.form.address} htmlFor="property-address" required>
-          <TextInput id="property-address" name="address" required defaultValue={defaultValues.address ?? ""} />
+      <Fieldset className={fieldsetClass}>
+        <Legend className={legendClass}>{t.form.sectionLocation}</Legend>
+        <Field>
+          <Label>{t.form.address}</Label>
+          <Input name="address" required defaultValue={defaultValues.address ?? ""} />
         </Field>
-        <div className={row2Class}>
-          <Field label={t.form.city} htmlFor="property-city" required>
-            <TextInput id="property-city" name="city" required defaultValue={defaultValues.city ?? ""} />
+        <div className={`${row2Class} mt-4`}>
+          <Field>
+            <Label>{t.form.city}</Label>
+            <Input name="city" required defaultValue={defaultValues.city ?? ""} />
           </Field>
-          <Field label={t.form.postalCode} htmlFor="property-postal-code" required>
-            <TextInput id="property-postal-code" name="postal_code" required defaultValue={defaultValues.postal_code ?? ""} />
+          <Field>
+            <Label>{t.form.postalCode}</Label>
+            <Input name="postal_code" required defaultValue={defaultValues.postal_code ?? ""} />
           </Field>
         </div>
-      </fieldset>
+      </Fieldset>
 
       {/* Section : caractéristiques */}
-      <fieldset className={fieldsetClass}>
-        <legend className={legendClass}>{t.form.sectionFeatures}</legend>
+      <Fieldset className={fieldsetClass}>
+        <Legend className={legendClass}>{t.form.sectionFeatures}</Legend>
         <div className={row2Class}>
-          <Field label={t.form.surface} htmlFor="property-surface">
-            <TextInput id="property-surface" name="surface" type="number" min={0} defaultValue={defaultValues.surface ?? ""} />
+          <Field>
+            <Label>{t.form.surface}</Label>
+            <Input name="surface" type="number" min={0} defaultValue={defaultValues.surface ?? ""} />
           </Field>
-          <Field label={t.form.rooms} htmlFor="property-rooms">
-            <TextInput id="property-rooms" name="rooms" type="number" min={0} defaultValue={defaultValues.rooms ?? ""} />
+          <Field>
+            <Label>{t.form.rooms}</Label>
+            <Input name="rooms" type="number" min={0} defaultValue={defaultValues.rooms ?? ""} />
           </Field>
         </div>
-        <div className={row2Class}>
-          <Field label={t.form.bedrooms} htmlFor="property-bedrooms">
-            <TextInput id="property-bedrooms" name="bedrooms" type="number" min={0} defaultValue={defaultValues.bedrooms ?? ""} />
+        <div className={`${row2Class} mt-4`}>
+          <Field>
+            <Label>{t.form.bedrooms}</Label>
+            <Input name="bedrooms" type="number" min={0} defaultValue={defaultValues.bedrooms ?? ""} />
           </Field>
         </div>
-      </fieldset>
+      </Fieldset>
 
       {/* Section : prix / mandat */}
-      <fieldset className={fieldsetClass}>
-        <legend className={legendClass}>{t.form.sectionPrice}</legend>
-        <Field label={t.form.askingPrice} htmlFor="property-asking-price">
-          <MoneyInput id="property-asking-price" name="asking_price" min={0} defaultValue={defaultValues.asking_price ?? ""} />
+      <Fieldset className={fieldsetClass}>
+        <Legend className={legendClass}>{t.form.sectionPrice}</Legend>
+        <Field>
+          <Label>{t.form.askingPrice}</Label>
+          <Input name="asking_price" type="number" min={0} defaultValue={defaultValues.asking_price ?? ""} />
         </Field>
-        <Field label={t.form.notes} htmlFor="property-notes">
-          <Textarea id="property-notes" name="notes" rows={FORM_LIMITS.textareaRows} defaultValue={defaultValues.notes ?? ""} />
+        <Field className="mt-4">
+          <Label>{t.form.notes}</Label>
+          <Textarea name="notes" rows={FORM_LIMITS.textareaRows} defaultValue={defaultValues.notes ?? ""} />
         </Field>
-      </fieldset>
+      </Fieldset>
 
       {/* Informations complémentaires */}
-      <fieldset className={fieldsetClass}>
-        <legend className={legendClass}>{t.enrichissement.title}</legend>
+      <Fieldset className={fieldsetClass}>
+        <Legend className={legendClass}>{t.enrichissement.title}</Legend>
 
         <div className={row2Class}>
-          <Field label={t.form.dpeLabel} htmlFor="property-dpe-letter">
-            <Select
-              id="property-dpe-letter"
-              name="dpe_letter"
-              defaultValue={defaultValues.dpe_letter ?? ""}
-              options={[{ value: "", label: "—" }, ...["A","B","C","D","E","F","G"].map(l => ({ value: l, label: l }))]}
-            />
+          <Field>
+            <Label>{t.form.dpeLabel}</Label>
+            <Select name="dpe_letter" defaultValue={defaultValues.dpe_letter ?? ""}>
+              <option value="">—</option>
+              {letterOptions.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </Select>
           </Field>
-          <Field label={t.form.gesLabel} htmlFor="property-ges-letter">
-            <Select
-              id="property-ges-letter"
-              name="ges_letter"
-              defaultValue={defaultValues.ges_letter ?? ""}
-              options={[{ value: "", label: "—" }, ...["A","B","C","D","E","F","G"].map(l => ({ value: l, label: l }))]}
-            />
+          <Field>
+            <Label>{t.form.gesLabel}</Label>
+            <Select name="ges_letter" defaultValue={defaultValues.ges_letter ?? ""}>
+              <option value="">—</option>
+              {letterOptions.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </Select>
           </Field>
         </div>
 
-        <div className={row2Class}>
-          <Field label={t.form.yearBuilt} htmlFor="property-year-built">
-            <TextInput id="property-year-built" name="year_built" type="number" min={1800} max={2030} defaultValue={defaultValues.year_built ?? ""} />
+        <div className={`${row2Class} mt-4`}>
+          <Field>
+            <Label>{t.form.yearBuilt}</Label>
+            <Input name="year_built" type="number" min={1800} max={2030} defaultValue={defaultValues.year_built ?? ""} />
           </Field>
-          <Field label={t.form.orientation} htmlFor="property-orientation">
-            <Select
-              id="property-orientation"
-              name="orientation"
-              defaultValue={defaultValues.orientation ?? ""}
-              options={[{ value: "", label: "—" }, ...["N","S","E","O","NE","NO","SE","SO"].map(o => ({ value: o, label: o }))]}
-            />
-          </Field>
-        </div>
-
-        <div className={row2Class}>
-          <Field label={t.form.floor} htmlFor="property-floor">
-            <TextInput id="property-floor" name="floor" type="number" min={0} defaultValue={defaultValues.floor ?? ""} />
-          </Field>
-          <Field label={t.form.floorTotal} htmlFor="property-floor-total">
-            <TextInput id="property-floor-total" name="floor_total" type="number" min={1} defaultValue={defaultValues.floor_total ?? ""} />
+          <Field>
+            <Label>{t.form.orientation}</Label>
+            <Select name="orientation" defaultValue={defaultValues.orientation ?? ""}>
+              <option value="">—</option>
+              {orientationOptions.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </Select>
           </Field>
         </div>
 
-        <div className={row2Class}>
-          <Field label={t.form.chargesMonthly} htmlFor="property-charges-monthly">
-            <MoneyInput id="property-charges-monthly" name="charges_monthly" min={0} defaultValue={defaultValues.charges_monthly ?? ""} />
+        <div className={`${row2Class} mt-4`}>
+          <Field>
+            <Label>{t.form.floor}</Label>
+            <Input name="floor" type="number" min={0} defaultValue={defaultValues.floor ?? ""} />
           </Field>
-          <Field label={t.form.taxeFonciere} htmlFor="property-taxe-fonciere">
-            <MoneyInput id="property-taxe-fonciere" name="taxe_fonciere" min={0} defaultValue={defaultValues.taxe_fonciere ?? ""} />
+          <Field>
+            <Label>{t.form.floorTotal}</Label>
+            <Input name="floor_total" type="number" min={1} defaultValue={defaultValues.floor_total ?? ""} />
           </Field>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-          {([
-            ["has_elevator", t.form.hasElevator, defaultValues.has_elevator],
-            ["has_parking", t.form.hasParking, defaultValues.has_parking],
-            ["has_garden", t.form.hasGarden, defaultValues.has_garden],
-            ["has_terrace", t.form.hasTerrace, defaultValues.has_terrace],
-            ["has_pool", t.form.hasPool, defaultValues.has_pool],
-            ["cellar", t.form.hasCellar, defaultValues.cellar],
-          ] as [string, string, boolean | undefined][]).map(([name, label, checked]) => (
-            <label key={name} className={checkboxLabelClass}>
-              <input
-                type="checkbox"
+        <div className={`${row2Class} mt-4`}>
+          <Field>
+            <Label>{t.form.chargesMonthly}</Label>
+            <Input name="charges_monthly" type="number" min={0} defaultValue={defaultValues.charges_monthly ?? ""} />
+          </Field>
+          <Field>
+            <Label>{t.form.taxeFonciere}</Label>
+            <Input name="taxe_fonciere" type="number" min={0} defaultValue={defaultValues.taxe_fonciere ?? ""} />
+          </Field>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+          {checkboxRows.map(([name, label]) => (
+            <CheckboxField key={name}>
+              <Checkbox
                 name={name}
-                defaultChecked={checked ?? false}
-                value="true"
-                className={checkboxInputClass}
+                checked={bools[name]}
+                onChange={(checked) => setBools((b) => ({ ...b, [name]: checked }))}
               />
-              <span>{label}</span>
-            </label>
+              <Label>{label}</Label>
+            </CheckboxField>
           ))}
         </div>
 
-        <Field label={t.form.parkingCount} htmlFor="property-parking-count">
-          <TextInput id="property-parking-count" name="parking_count" type="number" min={0} defaultValue={defaultValues.parking_count ?? ""} />
+        <Field className="mt-4">
+          <Label>{t.form.parkingCount}</Label>
+          <Input name="parking_count" type="number" min={0} defaultValue={defaultValues.parking_count ?? ""} />
         </Field>
-      </fieldset>
+      </Fieldset>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
 
       <div className="flex items-center gap-2">
-        <button
-          type="submit"
-          className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:opacity-50"
-          disabled={loading}
-          aria-busy={loading}
-        >
+        <Button type="submit" color="indigo" disabled={loading} aria-busy={loading}>
           {loading ? UI.common.saving : t.form.save}
-        </button>
+        </Button>
         {onClose && (
-          <button
-            type="button"
-            className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-            onClick={onClose}
-          >
+          <Button type="button" plain onClick={onClose}>
             {t.form.cancel}
-          </button>
+          </Button>
         )}
       </div>
-    </CockpitForm>
+    </form>
   );
 }
 
@@ -326,20 +362,17 @@ export default function PropertyFormModal({ id, defaultValues, triggerLabel }: P
   // `?new=1` ouvre uniquement la modale de CRÉATION (pas l'édition d'une fiche).
   useOpenFromQuery(id ? "" : "new", useCallback(() => setOpen(true), []));
 
-  if (!open) {
-    return (
-      <button
-        className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
-        onClick={() => setOpen(true)}
-      >
-        {triggerLabel ?? t.newCta}
-      </button>
-    );
-  }
-
   return (
-    <AccessibleModal title={t.form.title} onClose={() => setOpen(false)}>
-      <PropertyForm id={id} defaultValues={defaultValues} onClose={() => setOpen(false)} />
-    </AccessibleModal>
+    <>
+      <Button color="indigo" onClick={() => setOpen(true)}>
+        {triggerLabel ?? t.newCta}
+      </Button>
+      <Dialog open={open} onClose={() => setOpen(false)} size="2xl">
+        <DialogTitle>{t.form.title}</DialogTitle>
+        <DialogBody>
+          <PropertyForm id={id} defaultValues={defaultValues} onClose={() => setOpen(false)} />
+        </DialogBody>
+      </Dialog>
+    </>
   );
 }

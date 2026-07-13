@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { DataTable, type Column } from "@/components/cockpit/DataTable";
 import { LeadKanban } from "@/components/cockpit/LeadKanban";
 import { StatusSelect } from "@/components/cockpit/StatusSelect";
-import { Badge } from "@/components/cockpit/primitives";
+import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 import { LeadRowActions } from "@/app/(dashboard)/leads/_components/LeadRowActions";
 import { LeadsCockpit } from "@/app/(dashboard)/leads/_components/LeadsCockpit";
 import { eur, LEAD_STATUSES } from "@/lib/crm/format";
@@ -39,78 +41,34 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
   const [view, setView] = useState<"cockpit" | "kanban" | "list">("cockpit");
   const t = UI.leads;
 
-  const columns: Column<Lead>[] = [
-    { key: "name", header: t.table.name, render: (l) => l.full_name },
-    {
-      key: "kind",
-      header: t.table.kind,
-      render: (l) => (l.kind ? <Badge>{t.kindLabels[l.kind] ?? l.kind}</Badge> : "—"),
-    },
-    {
-      key: "status",
-      header: t.table.status,
-      render: (l) => (
-        <StatusSelect
-          endpoint={`/api/leads/${l.id}`}
-          value={l.status}
-          options={LEAD_STATUSES}
-          labels={t.statusLabels}
-          ariaLabel={t.table.status}
-        />
-      ),
-    },
-    {
-      key: "budget",
-      header: t.table.budget,
-      align: "right",
-      render: (l) => budgetRange(l.budget_min, l.budget_max),
-    },
-    { key: "source", header: t.table.source, render: (l) => l.source ?? "—" },
-    {
-      key: "action",
-      header: t.table.action,
-      align: "right",
-      render: (l) => (
-        <LeadRowActions
-          id={l.id}
-          fullName={l.full_name}
-          defaultValues={{
-            full_name: l.full_name,
-            email: l.email,
-            phone: l.phone,
-            source: l.source,
-            kind: l.kind,
-            type_personne: l.type_personne,
-            budget_min: l.budget_min,
-            budget_max: l.budget_max,
-            status: l.status,
-          }}
-        />
-      ),
-    },
-  ];
-
-  const segBtn = (active: boolean) =>
-    `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-      active ? "bg-indigo-500/15 text-indigo-300" : "text-slate-400 hover:text-slate-100"
-    }`;
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+        <div className="text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
           {t.cockpit.panelTitle}
         </div>
-        <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] p-1">
-          <button className={segBtn(view === "cockpit")} onClick={() => setView("cockpit")}>
-            {t.cockpit.tabCockpit}
-          </button>
-          <button className={segBtn(view === "kanban")} onClick={() => setView("kanban")}>
-            {t.cockpit.tabKanban}
-          </button>
-          <button className={segBtn(view === "list")} onClick={() => setView("list")}>
-            {t.cockpit.tabList}
-          </button>
+        <div className="flex items-center gap-1">
+          {view === "cockpit" ? (
+            <Button color="indigo">{t.cockpit.tabCockpit}</Button>
+          ) : (
+            <Button plain onClick={() => setView("cockpit")}>
+              {t.cockpit.tabCockpit}
+            </Button>
+          )}
+          {view === "kanban" ? (
+            <Button color="indigo">{t.cockpit.tabKanban}</Button>
+          ) : (
+            <Button plain onClick={() => setView("kanban")}>
+              {t.cockpit.tabKanban}
+            </Button>
+          )}
+          {view === "list" ? (
+            <Button color="indigo">{t.cockpit.tabList}</Button>
+          ) : (
+            <Button plain onClick={() => setView("list")}>
+              {t.cockpit.tabList}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -118,10 +76,65 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
         <LeadsCockpit leads={leads} />
       ) : view === "kanban" ? (
         <LeadKanban leads={leads} />
+      ) : leads.length === 0 ? (
+        <Text>{t.empty}</Text>
       ) : (
-        <div className="flex flex-col gap-4">
-          <DataTable columns={columns} rows={leads} emptyLabel={t.empty} getKey={(l) => l.id} />
-        </div>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader>{t.table.name}</TableHeader>
+              <TableHeader>{t.table.kind}</TableHeader>
+              <TableHeader>{t.table.status}</TableHeader>
+              <TableHeader className="text-right">{t.table.budget}</TableHeader>
+              <TableHeader>{t.table.source}</TableHeader>
+              <TableHeader className="text-right">{t.table.action}</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {leads.map((l) => (
+              <TableRow key={l.id}>
+                <TableCell className="font-medium text-zinc-950 dark:text-white">
+                  {l.full_name}
+                </TableCell>
+                <TableCell>
+                  {l.kind ? <Badge color="zinc">{t.kindLabels[l.kind] ?? l.kind}</Badge> : "—"}
+                </TableCell>
+                <TableCell>
+                  <StatusSelect
+                    endpoint={`/api/leads/${l.id}`}
+                    value={l.status}
+                    options={LEAD_STATUSES}
+                    labels={t.statusLabels}
+                    ariaLabel={t.table.status}
+                  />
+                </TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {budgetRange(l.budget_min, l.budget_max)}
+                </TableCell>
+                <TableCell className="text-zinc-500 dark:text-zinc-400">
+                  {l.source ?? "—"}
+                </TableCell>
+                <TableCell className="text-right">
+                  <LeadRowActions
+                    id={l.id}
+                    fullName={l.full_name}
+                    defaultValues={{
+                      full_name: l.full_name,
+                      email: l.email,
+                      phone: l.phone,
+                      source: l.source,
+                      kind: l.kind,
+                      type_personne: l.type_personne,
+                      budget_min: l.budget_min,
+                      budget_max: l.budget_max,
+                      status: l.status,
+                    }}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
     </div>
   );

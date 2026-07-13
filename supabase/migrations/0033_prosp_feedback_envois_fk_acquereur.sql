@@ -14,21 +14,39 @@
 --
 -- Périmètre strict : on ne touche QUE ces 2 FK. prosp_criteres NON supprimée.
 -- Les 2 tables sont vides → migration sans perte de données.
+--
+-- IDEMPOTENCE (2026-07-13) : selon l'état schéma cumulé, `critere_id` peut être
+-- absente de prosp_match_feedback et la table prosp_envois inexistante. On garde
+-- l'intention (repointer la FK vers prosp_criteres_acquereur QUAND la colonne
+-- existe) mais chaque bloc devient conditionnel → migration re-jouable à froid
+-- sur une base neuve (montage gpu1) comme sur l'historique Cloud.
 
-ALTER TABLE public.prosp_match_feedback
-  DROP CONSTRAINT IF EXISTS prosp_match_feedback_critere_id_fkey;
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='prosp_match_feedback' AND column_name='critere_id'
+  ) THEN
+    ALTER TABLE public.prosp_match_feedback
+      DROP CONSTRAINT IF EXISTS prosp_match_feedback_critere_id_fkey;
+    ALTER TABLE public.prosp_match_feedback
+      ADD CONSTRAINT prosp_match_feedback_critere_id_fkey
+      FOREIGN KEY (critere_id)
+      REFERENCES public.prosp_criteres_acquereur(id)
+      ON DELETE SET NULL;
+  END IF;
+END $$;
 
-ALTER TABLE public.prosp_match_feedback
-  ADD CONSTRAINT prosp_match_feedback_critere_id_fkey
-  FOREIGN KEY (critere_id)
-  REFERENCES public.prosp_criteres_acquereur(id)
-  ON DELETE SET NULL;
-
-ALTER TABLE public.prosp_envois
-  DROP CONSTRAINT IF EXISTS prosp_envois_critere_id_fkey;
-
-ALTER TABLE public.prosp_envois
-  ADD CONSTRAINT prosp_envois_critere_id_fkey
-  FOREIGN KEY (critere_id)
-  REFERENCES public.prosp_criteres_acquereur(id)
-  ON DELETE CASCADE;
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='prosp_envois' AND column_name='critere_id'
+  ) THEN
+    ALTER TABLE public.prosp_envois
+      DROP CONSTRAINT IF EXISTS prosp_envois_critere_id_fkey;
+    ALTER TABLE public.prosp_envois
+      ADD CONSTRAINT prosp_envois_critere_id_fkey
+      FOREIGN KEY (critere_id)
+      REFERENCES public.prosp_criteres_acquereur(id)
+      ON DELETE CASCADE;
+  END IF;
+END $$;

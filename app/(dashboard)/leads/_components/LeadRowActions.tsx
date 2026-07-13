@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
+import { EllipsisHorizontalIcon } from "@heroicons/react/16/solid";
+import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/ui/dropdown";
+import { Dialog, DialogTitle, DialogBody } from "@/components/ui/dialog";
+import { Text } from "@/components/ui/text";
 import { UI } from "@/lib/ui-strings";
 import { isEnrichable } from "@/lib/crm/enrichable";
 import { LeadForm, type LeadDefaults } from "./LeadForm";
@@ -13,7 +16,7 @@ type LeadRowActionsProps = {
   defaultValues: LeadDefaults;
 };
 
-/** Actions d'une ligne lead : Modifier (modale) + Supprimer. */
+/** Actions d'une ligne lead : Modifier (modale) + Enrichir + Supprimer. */
 export function LeadRowActions({ id, fullName, defaultValues }: LeadRowActionsProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -69,39 +72,32 @@ export function LeadRowActions({ id, fullName, defaultValues }: LeadRowActionsPr
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-end gap-1.5">
-      {canEnrich ? (
-        <button
-          type="button"
-          className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
-          onClick={handleEnrich}
-          disabled={enriching}
-        >
-          {enriching ? UI.leads.enriching : UI.leads.enrich}
-        </button>
-      ) : null}
-      <button
-        type="button"
-        className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-        onClick={() => setEditing(true)}
-      >
-        {UI.viz.edit}
-      </button>
-      <button
-        type="button"
-        className="rounded-lg border border-red-400/20 bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
-        onClick={handleDelete}
-        disabled={deleting}
-      >
-        {deleting ? UI.common.busy : UI.viz.delete}
-      </button>
-      {message ? <span className="text-xs text-slate-500">{message}</span> : null}
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {message ? <Text className="text-xs">{message}</Text> : null}
 
-      {editing && (
-        <AccessibleModal title="Modifier le lead" onClose={() => setEditing(false)}>
+      <Dropdown>
+        <DropdownButton plain aria-label={UI.viz.edit} disabled={deleting || enriching}>
+          <EllipsisHorizontalIcon />
+        </DropdownButton>
+        <DropdownMenu anchor="bottom end">
+          <DropdownItem onClick={() => setEditing(true)}>{UI.viz.edit}</DropdownItem>
+          {canEnrich ? (
+            <DropdownItem onClick={handleEnrich}>
+              {enriching ? UI.leads.enriching : UI.leads.enrich}
+            </DropdownItem>
+          ) : null}
+          <DropdownItem onClick={handleDelete}>
+            {deleting ? UI.common.busy : UI.viz.delete}
+          </DropdownItem>
+        </DropdownMenu>
+      </Dropdown>
+
+      <Dialog open={editing} onClose={setEditing}>
+        <DialogTitle>Modifier le lead</DialogTitle>
+        <DialogBody>
           <LeadForm id={id} defaultValues={defaultValues} onClose={() => setEditing(false)} />
-        </AccessibleModal>
-      )}
+        </DialogBody>
+      </Dialog>
     </div>
   );
 }

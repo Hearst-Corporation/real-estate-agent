@@ -1,6 +1,7 @@
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { Donut } from "@/components/cockpit/Donut";
+import { Heading, Subheading } from "@/components/ui/heading";
 import { LeadsViewToggle } from "./_components/LeadsViewToggle";
 import { countByStatus } from "@/lib/crm/aggregate";
 import { LEAD_STATUSES } from "@/lib/crm/format";
@@ -67,16 +68,14 @@ export default async function LeadsPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-12">
-      {/* Header — headings__page-headings/01-with-actions (dark) */}
-      <div className="flex flex-col gap-4 border-b border-white/10 pb-5">
+      {/* Header */}
+      <div className="flex flex-col gap-4 border-b border-zinc-950/10 pb-5 dark:border-white/10">
         <div className="md:flex md:items-center md:justify-between">
           <div className="min-w-0 flex-1">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
               {t.eyebrow}
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:truncate sm:text-3xl">
-              {t.title}
-            </h1>
+            <Heading>{t.title}</Heading>
           </div>
           <div className="mt-4 flex shrink-0 md:mt-0 md:ml-4">
             <LeadFormModal cta={t.newCta} />
@@ -87,27 +86,31 @@ export default async function LeadsPage() {
         </nav>
       </div>
 
-      {/* KPI — data-display__stats/03-simple-in-cards (dark) */}
+      {/* KPI — grille zinc + primitives */}
       <dl className="grid grid-cols-2 gap-5 lg:grid-cols-4">
         {stats.map((item) => (
           <div
             key={item.name}
-            className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-5 sm:p-6"
+            className="overflow-hidden rounded-xl border border-zinc-950/10 bg-white px-4 py-5 sm:p-6 dark:border-white/10 dark:bg-zinc-900"
           >
-            <dt className="truncate text-sm font-medium text-slate-400">{item.name}</dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">{item.value}</dd>
+            <dt className="truncate text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              {item.name}
+            </dt>
+            <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+              {item.value}
+            </dd>
           </div>
         ))}
       </dl>
 
-      {/* Charts — layout__cards/01-basic-card (dark) conteneur, viz métier conservée */}
+      {/* Charts — conteneur zinc, viz métier conservée */}
       <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <h2 className="mb-3 text-base font-semibold text-white">{t.charts.pipeline}</h2>
+        <section className="rounded-xl border border-zinc-950/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
+          <Subheading className="mb-3">{t.charts.pipeline}</Subheading>
           <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
         </section>
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <h2 className="mb-3 text-base font-semibold text-white">{t.charts.conversionRate}</h2>
+        <section className="rounded-xl border border-zinc-950/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
+          <Subheading className="mb-3">{t.charts.conversionRate}</Subheading>
           <Donut value={conversion} sublabel="Convertis" accent />
         </section>
       </div>

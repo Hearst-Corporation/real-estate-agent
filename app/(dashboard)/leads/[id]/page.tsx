@@ -11,6 +11,15 @@ import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { isEnrichable } from "@/lib/crm/enrichable";
+import { Heading, Subheading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DescriptionList,
+  DescriptionTerm,
+  DescriptionDetails,
+} from "@/components/ui/description-list";
 import { LeadEnrichButton } from "../_components/LeadEnrichButton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -74,35 +83,17 @@ type PropertyRow = {
   property_type: string | null;
 };
 
-// ─── UI primitives (blocs Tailwind Plus, thème sombre) ──────────────────────────
+// ─── UI primitives (Catalyst) ──────────────────────────────────────────────────
 
-function Badge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-200">
-      {children}
-    </span>
-  );
-}
-
-/** Card conteneur — data-display__description-lists/02-left-aligned-in-card (dark). */
+/** Card conteneur — panneau zinc + Subheading. */
 function DetailCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+    <section className="overflow-hidden rounded-xl border border-zinc-950/10 bg-white dark:border-white/10 dark:bg-zinc-900">
       <div className="px-6 py-5">
-        <h3 className="text-base/7 font-semibold text-white">{title}</h3>
+        <Subheading>{title}</Subheading>
       </div>
-      <div className="border-t border-white/10 px-6 py-5">{children}</div>
+      <div className="border-t border-zinc-950/10 px-6 py-5 dark:border-white/10">{children}</div>
     </section>
-  );
-}
-
-/** Ligne dt/dd — description-list en grille (dark). */
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="py-3 first:pt-0 last:pb-0 sm:grid sm:grid-cols-3 sm:gap-4">
-      <dt className="text-sm font-medium text-slate-500">{label}</dt>
-      <dd className="mt-1 text-sm/6 text-slate-200 sm:col-span-2 sm:mt-0">{children}</dd>
-    </div>
   );
 }
 
@@ -207,114 +198,150 @@ export default async function LeadDetailPage({
 
   return (
     <div className="flex flex-col gap-6 pb-12">
-      {/* Header — headings__page-headings/03-with-meta-and-actions (dark) */}
-      <div className="flex flex-col gap-4 border-b border-white/10 pb-5 lg:flex-row lg:items-center lg:justify-between">
+      {/* Header */}
+      <div className="flex flex-col gap-4 border-b border-zinc-950/10 pb-5 lg:flex-row lg:items-center lg:justify-between dark:border-white/10">
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
             {eyebrow}
           </p>
-          <h1 className="text-2xl font-bold tracking-tight text-white sm:truncate sm:text-3xl">
-            {lead.full_name ?? td.fallbackName}
-          </h1>
-          <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:gap-x-6">
-            <div className="mt-2 flex items-center text-sm text-slate-400">
-              <Badge>{t.statusLabels[lead.status] ?? lead.status}</Badge>
+          <Heading>{lead.full_name ?? td.fallbackName}</Heading>
+          <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
+            <div className="mt-2 flex items-center text-sm text-zinc-500 dark:text-zinc-400">
+              <Badge color="zinc">{t.statusLabels[lead.status] ?? lead.status}</Badge>
             </div>
             {lead.source && (
-              <div className="mt-2 flex items-center text-sm text-slate-400">
-                <TagIcon aria-hidden="true" className="mr-1.5 size-5 shrink-0 text-slate-500" />
+              <div className="mt-2 flex items-center text-sm text-zinc-500 dark:text-zinc-400">
+                <TagIcon aria-hidden="true" className="mr-1.5 size-5 shrink-0 text-zinc-400 dark:text-zinc-500" />
                 {lead.source}
               </div>
             )}
             {lead.created_at && (
-              <div className="mt-2 flex items-center text-sm text-slate-400">
-                <CalendarIcon aria-hidden="true" className="mr-1.5 size-5 shrink-0 text-slate-500" />
+              <div className="mt-2 flex items-center text-sm text-zinc-500 dark:text-zinc-400">
+                <CalendarIcon aria-hidden="true" className="mr-1.5 size-5 shrink-0 text-zinc-400 dark:text-zinc-500" />
                 {td.fields.createdAt} {dateFr(lead.created_at)}
               </div>
             )}
           </div>
         </div>
         <div className="mt-5 flex shrink-0 lg:mt-0 lg:ml-4">
-          <Link
-            href="/leads"
-            className="inline-flex items-center rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20"
-          >
-            <ArrowLeftIcon aria-hidden="true" className="mr-1.5 -ml-0.5 size-5 text-slate-400" />
+          <Button href="/leads" outline>
+            <ArrowLeftIcon />
             {td.backLink}
-          </Link>
+          </Button>
         </div>
       </div>
 
       {/* ── Identité & contact ── */}
       <DetailCard title={td.cardIdentite}>
-        <dl className="divide-y divide-white/5">
+        <DescriptionList>
           {lead.email && (
-            <Row label={td.fields.email}>
-              <a href={`mailto:${lead.email}`} className="text-indigo-300 hover:text-indigo-200">
-                {lead.email}
-              </a>
-            </Row>
+            <>
+              <DescriptionTerm>{td.fields.email}</DescriptionTerm>
+              <DescriptionDetails>
+                <Link
+                  href={`mailto:${lead.email}`}
+                  className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
+                  {lead.email}
+                </Link>
+              </DescriptionDetails>
+            </>
           )}
           {lead.phone && (
-            <Row label={td.fields.phone}>
-              <a href={`tel:${lead.phone}`} className="text-indigo-300 hover:text-indigo-200">
-                {lead.phone}
-              </a>
-            </Row>
+            <>
+              <DescriptionTerm>{td.fields.phone}</DescriptionTerm>
+              <DescriptionDetails>
+                <Link
+                  href={`tel:${lead.phone}`}
+                  className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
+                  {lead.phone}
+                </Link>
+              </DescriptionDetails>
+            </>
           )}
-          {lead.source && <Row label={td.fields.source}>{lead.source}</Row>}
+          {lead.source && (
+            <>
+              <DescriptionTerm>{td.fields.source}</DescriptionTerm>
+              <DescriptionDetails>{lead.source}</DescriptionDetails>
+            </>
+          )}
           {lead.type_personne && (
-            <Row label={td.fields.typePersonne}>
-              {t.typePersonneLabels[lead.type_personne] ?? lead.type_personne}
-            </Row>
+            <>
+              <DescriptionTerm>{td.fields.typePersonne}</DescriptionTerm>
+              <DescriptionDetails>
+                {t.typePersonneLabels[lead.type_personne] ?? lead.type_personne}
+              </DescriptionDetails>
+            </>
           )}
-          {lead.consent_at && <Row label={td.fields.consentAt}>{dateFr(lead.consent_at)}</Row>}
-          {lead.notes && <Row label={td.fields.notes}>{lead.notes}</Row>}
-          {lead.updated_at && <Row label={td.fields.updatedAt}>{dateFr(lead.updated_at)}</Row>}
-        </dl>
+          {lead.consent_at && (
+            <>
+              <DescriptionTerm>{td.fields.consentAt}</DescriptionTerm>
+              <DescriptionDetails>{dateFr(lead.consent_at)}</DescriptionDetails>
+            </>
+          )}
+          {lead.notes && (
+            <>
+              <DescriptionTerm>{td.fields.notes}</DescriptionTerm>
+              <DescriptionDetails>{lead.notes}</DescriptionDetails>
+            </>
+          )}
+          {lead.updated_at && (
+            <>
+              <DescriptionTerm>{td.fields.updatedAt}</DescriptionTerm>
+              <DescriptionDetails>{dateFr(lead.updated_at)}</DescriptionDetails>
+            </>
+          )}
+        </DescriptionList>
       </DetailCard>
 
       {/* ── Budget ── */}
       <DetailCard title={td.cardBudget}>
         {lead.budget_min != null || lead.budget_max != null ? (
-          <dl className="divide-y divide-white/5">
+          <DescriptionList>
             {lead.budget_min != null && (
-              <Row label={td.budgetMin}>
-                <span className="font-semibold tabular-nums text-slate-100">{eur(lead.budget_min)}</span>
-              </Row>
+              <>
+                <DescriptionTerm>{td.budgetMin}</DescriptionTerm>
+                <DescriptionDetails className="font-semibold tabular-nums">
+                  {eur(lead.budget_min)}
+                </DescriptionDetails>
+              </>
             )}
             {lead.budget_max != null && (
-              <Row label={td.budgetMax}>
-                <span className="font-semibold tabular-nums text-slate-100">{eur(lead.budget_max)}</span>
-              </Row>
+              <>
+                <DescriptionTerm>{td.budgetMax}</DescriptionTerm>
+                <DescriptionDetails className="font-semibold tabular-nums">
+                  {eur(lead.budget_max)}
+                </DescriptionDetails>
+              </>
             )}
-          </dl>
+          </DescriptionList>
         ) : (
-          <p className="text-sm text-slate-500">{td.emptyBudget}</p>
+          <Text>{td.emptyBudget}</Text>
         )}
       </DetailCard>
 
       {/* ── Critères de recherche ── */}
       <DetailCard title={td.cardCriteres}>
         {criteres.length > 0 ? (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
             {criteres.map((c) => (
               <li key={c.id} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
                 <div className="min-w-0 flex-1">
                   {c.nom && (
-                    <span className="text-sm font-medium text-slate-100">{c.nom}</span>
+                    <span className="text-sm font-medium text-zinc-950 dark:text-white">{c.nom}</span>
                   )}
                   <dl className="mt-1 grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1.5">
                     {c.type_bien && c.type_bien.length > 0 && (
                       <>
-                        <dt className="text-xs font-medium text-slate-500">{td.criteres.typeBien}</dt>
-                        <dd className="text-sm text-slate-200">{c.type_bien.join(", ")}</dd>
+                        <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{td.criteres.typeBien}</dt>
+                        <dd className="text-sm text-zinc-950 dark:text-zinc-200">{c.type_bien.join(", ")}</dd>
                       </>
                     )}
                     {(c.budget_min != null || c.budget_max != null) && (
                       <>
-                        <dt className="text-xs font-medium text-slate-500">{td.criteres.budget}</dt>
-                        <dd className="text-sm text-slate-200">
+                        <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{td.criteres.budget}</dt>
+                        <dd className="text-sm text-zinc-950 dark:text-zinc-200">
                           {c.budget_min != null ? eur(c.budget_min) : "—"}
                           {c.budget_min != null && c.budget_max != null ? " – " : ""}
                           {c.budget_max != null ? eur(c.budget_max) : ""}
@@ -323,8 +350,8 @@ export default async function LeadDetailPage({
                     )}
                     {(c.surface_min != null || c.surface_max != null) && (
                       <>
-                        <dt className="text-xs font-medium text-slate-500">{td.criteres.surface}</dt>
-                        <dd className="text-sm text-slate-200">
+                        <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{td.criteres.surface}</dt>
+                        <dd className="text-sm text-zinc-950 dark:text-zinc-200">
                           {c.surface_min != null && c.surface_max != null
                             ? td.criteres.surfaceRange(c.surface_min, c.surface_max)
                             : c.surface_min != null
@@ -335,8 +362,8 @@ export default async function LeadDetailPage({
                     )}
                     {(c.pieces_min != null || c.pieces_max != null) && (
                       <>
-                        <dt className="text-xs font-medium text-slate-500">{td.criteres.pieces}</dt>
-                        <dd className="text-sm text-slate-200">
+                        <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{td.criteres.pieces}</dt>
+                        <dd className="text-sm text-zinc-950 dark:text-zinc-200">
                           {c.pieces_min != null && c.pieces_max != null
                             ? td.criteres.piecesRange(c.pieces_min, c.pieces_max)
                             : c.pieces_min != null
@@ -347,61 +374,63 @@ export default async function LeadDetailPage({
                     )}
                     {c.zones != null && (
                       <>
-                        <dt className="text-xs font-medium text-slate-500">{td.criteres.zones}</dt>
-                        <dd className="text-sm text-slate-200">{formatZones(c.zones)}</dd>
+                        <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{td.criteres.zones}</dt>
+                        <dd className="text-sm text-zinc-950 dark:text-zinc-200">{formatZones(c.zones)}</dd>
                       </>
                     )}
                     {c.dpe_max && (
                       <>
-                        <dt className="text-xs font-medium text-slate-500">{td.criteres.dpeMax}</dt>
-                        <dd className="text-sm text-slate-200">{c.dpe_max}</dd>
+                        <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{td.criteres.dpeMax}</dt>
+                        <dd className="text-sm text-zinc-950 dark:text-zinc-200">{c.dpe_max}</dd>
                       </>
                     )}
                   </dl>
                   {/* Équipements souhaités */}
                   {(c.terrasse || c.parking || c.ascenseur || c.jardin || c.piscine) && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      {c.terrasse && <Badge>{td.criteres.terrasse}</Badge>}
-                      {c.parking && <Badge>{td.criteres.parking}</Badge>}
-                      {c.ascenseur && <Badge>{td.criteres.ascenseur}</Badge>}
-                      {c.jardin && <Badge>{td.criteres.jardin}</Badge>}
-                      {c.piscine && <Badge>{td.criteres.piscine}</Badge>}
+                      {c.terrasse && <Badge color="zinc">{td.criteres.terrasse}</Badge>}
+                      {c.parking && <Badge color="zinc">{td.criteres.parking}</Badge>}
+                      {c.ascenseur && <Badge color="zinc">{td.criteres.ascenseur}</Badge>}
+                      {c.jardin && <Badge color="zinc">{td.criteres.jardin}</Badge>}
+                      {c.piscine && <Badge color="zinc">{td.criteres.piscine}</Badge>}
                     </div>
                   )}
                 </div>
                 {c.actif != null && (
-                  <Badge>{c.actif ? td.criteres.actif : "Inactif"}</Badge>
+                  <Badge color={c.actif ? "lime" : "zinc"}>
+                    {c.actif ? td.criteres.actif : "Inactif"}
+                  </Badge>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-500">{td.emptyCriteres}</p>
+          <Text>{td.emptyCriteres}</Text>
         )}
       </DetailCard>
 
       {/* ── Visites liées ── */}
       <DetailCard title={td.cardVisites}>
         {visits.length > 0 ? (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
             {visits.map((v) => (
               <li key={v.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">
-                <span className="text-sm font-medium text-slate-100">{dateTimeFr(v.scheduled_at)}</span>
+                <span className="text-sm font-medium text-zinc-950 dark:text-white">{dateTimeFr(v.scheduled_at)}</span>
                 {v.properties?.title && (
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400">
                     {v.properties.title}
                     {v.properties.city ? ` — ${v.properties.city}` : ""}
                   </span>
                 )}
-                <Badge>{tVisits.statusLabels[v.status] ?? v.status}</Badge>
+                <Badge color="zinc">{tVisits.statusLabels[v.status] ?? v.status}</Badge>
                 {v.duration_min != null && v.duration_min > 0 && (
-                  <span className="text-sm text-slate-400">{v.duration_min} min</span>
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400">{v.duration_min} min</span>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-500">{td.emptyVisites}</p>
+          <Text>{td.emptyVisites}</Text>
         )}
       </DetailCard>
 
@@ -409,34 +438,48 @@ export default async function LeadDetailPage({
       <DetailCard title={td.cardBienLie}>
         {linkedProperty ? (
           <>
-            <dl className="divide-y divide-white/5">
+            <DescriptionList>
               {linkedProperty.title && (
-                <Row label={UI.leads.detail.fields.title}>{linkedProperty.title}</Row>
+                <>
+                  <DescriptionTerm>{UI.leads.detail.fields.title}</DescriptionTerm>
+                  <DescriptionDetails>{linkedProperty.title}</DescriptionDetails>
+                </>
               )}
-              {linkedProperty.city && <Row label={td.bienLie.city}>{linkedProperty.city}</Row>}
+              {linkedProperty.city && (
+                <>
+                  <DescriptionTerm>{td.bienLie.city}</DescriptionTerm>
+                  <DescriptionDetails>{linkedProperty.city}</DescriptionDetails>
+                </>
+              )}
               {linkedProperty.property_type && (
-                <Row label={td.bienLie.type}>
-                  {UI.properties.typeLabels[linkedProperty.property_type] ??
-                    linkedProperty.property_type}
-                </Row>
+                <>
+                  <DescriptionTerm>{td.bienLie.type}</DescriptionTerm>
+                  <DescriptionDetails>
+                    {UI.properties.typeLabels[linkedProperty.property_type] ??
+                      linkedProperty.property_type}
+                  </DescriptionDetails>
+                </>
               )}
               {linkedProperty.asking_price != null && (
-                <Row label={td.bienLie.price}>
-                  <span className="font-semibold tabular-nums text-slate-100">{eur(linkedProperty.asking_price)}</span>
-                </Row>
+                <>
+                  <DescriptionTerm>{td.bienLie.price}</DescriptionTerm>
+                  <DescriptionDetails className="font-semibold tabular-nums">
+                    {eur(linkedProperty.asking_price)}
+                  </DescriptionDetails>
+                </>
               )}
-            </dl>
-            <div className="mt-4 border-t border-white/10 pt-3">
+            </DescriptionList>
+            <div className="mt-4 border-t border-zinc-950/10 pt-3 dark:border-white/10">
               <Link
                 href={`/properties/${linkedProperty.id}`}
-                className="text-sm font-medium text-indigo-300 hover:text-indigo-200"
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
               >
                 {td.bienLie.seeProperty}
               </Link>
             </div>
           </>
         ) : (
-          <p className="text-sm text-slate-500">{td.emptyBienLie}</p>
+          <Text>{td.emptyBienLie}</Text>
         )}
       </DetailCard>
 
@@ -446,21 +489,21 @@ export default async function LeadDetailPage({
         if (canEnrich) {
           return (
             <DetailCard title={td.enrich.cardTitle}>
-              <p className="text-sm text-slate-400">{td.enrich.intro}</p>
+              <Text>{td.enrich.intro}</Text>
               <LeadEnrichButton leadId={lead.id} hasData={lead.enriched_data != null} />
               {lead.enriched_data != null && (
                 <>
                   {lead.enriched_at && (
-                    <p className="text-sm text-slate-400">
+                    <Text className="mt-3">
                       {td.fields.enrichedAt} {dateFr(lead.enriched_at)}
                       {lead.enriched_source ? ` · ${lead.enriched_source}` : ""}
-                    </p>
+                    </Text>
                   )}
                   <dl className="mt-3 grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
                     {Object.entries(lead.enriched_data).map(([key, val]) => (
-                      <span key={key}>
-                        <dt className="text-xs font-medium text-slate-500">{key}</dt>
-                        <dd className="text-sm text-slate-200">
+                      <span key={key} className="contents">
+                        <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{key}</dt>
+                        <dd className="text-sm text-zinc-950 dark:text-zinc-200">
                           {typeof val === "object" && val !== null
                             ? JSON.stringify(val)
                             : String(val ?? "—")}
@@ -477,16 +520,16 @@ export default async function LeadDetailPage({
           return (
             <DetailCard title={td.cardEnrichissement}>
               {lead.enriched_at && (
-                <p className="text-sm text-slate-400">
+                <Text>
                   {td.fields.enrichedAt} {dateFr(lead.enriched_at)}
                   {lead.enriched_source ? ` · ${lead.enriched_source}` : ""}
-                </p>
+                </Text>
               )}
               <dl className="mt-3 grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
                 {Object.entries(lead.enriched_data).map(([key, val]) => (
-                  <span key={key}>
-                    <dt className="text-xs font-medium text-slate-500">{key}</dt>
-                    <dd className="text-sm text-slate-200">
+                  <span key={key} className="contents">
+                    <dt className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{key}</dt>
+                    <dd className="text-sm text-zinc-950 dark:text-zinc-200">
                       {typeof val === "object" && val !== null
                         ? JSON.stringify(val)
                         : String(val ?? "—")}

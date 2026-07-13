@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { PageHeader, PageStack } from "@/components/cockpit/primitives";
 import { UI } from "@/lib/ui-strings";
 import RunReport from "@/components/swarms/RunReport";
+import { Text, TextLink } from "@/components/ui/text";
 
 export default function RunDetailPage({
   params,
@@ -18,7 +18,7 @@ export default function RunDetailPage({
   }, [params]);
 
   if (!ids) {
-    return <div className="py-8 text-center text-sm text-slate-500">{UI.common.loading}</div>;
+    return <Text className="py-8 text-center">{UI.common.loading}</Text>;
   }
 
   return (
@@ -26,13 +26,9 @@ export default function RunDetailPage({
       <PageHeader
         kicker={
           <>
-            <Link href="/swarms" className="text-indigo-300 hover:text-indigo-200">
-              {UI.nav.swarms}
-            </Link>
+            <TextLink href="/swarms">{UI.nav.swarms}</TextLink>
             {" / "}
-            <Link href={`/swarms/${ids.id}`} className="text-indigo-300 hover:text-indigo-200">
-              {UI.swarms.backToSwarm}
-            </Link>
+            <TextLink href={`/swarms/${ids.id}`}>{UI.swarms.backToSwarm}</TextLink>
             {" / "}
             {UI.swarms.runBreadcrumb}
           </>

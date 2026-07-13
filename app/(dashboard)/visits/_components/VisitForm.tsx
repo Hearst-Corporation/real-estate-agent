@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOpenFromQuery } from "@/lib/hooks/useOpenFromQuery";
-import {
-  CockpitForm,
-  Field,
-  TextInput,
-  Select,
-} from "@/components/cockpit/form";
+import { Dialog, DialogTitle, DialogBody } from "@/components/ui/dialog";
+import { Fieldset, FieldGroup, Field, Label, ErrorMessage } from "@/components/ui/fieldset";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
 
@@ -68,89 +67,84 @@ export default function VisitForm({ cta }: { cta: string }) {
     }
   }
 
-  if (!open) {
-    return (
-      <button
-        className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400"
-        onClick={() => setOpen(true)}
-      >
-        {cta}
-      </button>
-    );
-  }
-
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-sm">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
-        {t.title}
-      </div>
-      <CockpitForm onSubmit={handleSubmit}>
-        <Field label={t.property} htmlFor="visit-property" required>
-          <Select
-            id="visit-property"
-            value={propertyId}
-            onChange={(e) => setPropertyId(e.target.value)}
-            required
-            options={[
-              { value: "", label: "—" },
-              ...properties.map((p) => ({
-                value: p.id,
-                label: p.title ?? p.city ?? p.id,
-              })),
-            ]}
-          />
-        </Field>
+    <>
+      <Button color="indigo" type="button" onClick={() => setOpen(true)}>
+        {cta}
+      </Button>
 
-        <Field label={t.scheduledAt} htmlFor="visit-scheduled-at" required>
-          <TextInput
-            id="visit-scheduled-at"
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={(e) => setScheduledAt(e.target.value)}
-            required
-          />
-        </Field>
+      <Dialog open={open} onClose={setOpen}>
+        <DialogTitle>{t.title}</DialogTitle>
+        <DialogBody>
+          <form onSubmit={handleSubmit}>
+            <Fieldset>
+              <FieldGroup>
+                <Field>
+                  <Label>{t.property}</Label>
+                  <Select
+                    name="property_id"
+                    value={propertyId}
+                    onChange={(e) => setPropertyId(e.target.value)}
+                    required
+                  >
+                    <option value="">—</option>
+                    {properties.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.title ?? p.city ?? p.id}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
 
-        <Field label={t.duration} htmlFor="visit-duration">
-          <TextInput
-            id="visit-duration"
-            type="number"
-            min={FORM_LIMITS.visitDurationMin}
-            max={FORM_LIMITS.visitDurationMax}
-            step={FORM_LIMITS.visitDurationStep}
-            value={duration}
-            onChange={(e) => setDuration(Number(e.target.value))}
-          />
-        </Field>
+                <Field>
+                  <Label>{t.scheduledAt}</Label>
+                  <Input
+                    name="scheduled_at"
+                    type="datetime-local"
+                    value={scheduledAt}
+                    onChange={(e) => setScheduledAt(e.target.value)}
+                    required
+                  />
+                </Field>
 
-        <Field label={t.notes} htmlFor="visit-notes">
-          <TextInput
-            id="visit-notes"
-            type="text"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </Field>
+                <Field>
+                  <Label>{t.duration}</Label>
+                  <Input
+                    name="duration_min"
+                    type="number"
+                    min={FORM_LIMITS.visitDurationMin}
+                    max={FORM_LIMITS.visitDurationMax}
+                    step={FORM_LIMITS.visitDurationStep}
+                    value={duration}
+                    onChange={(e) => setDuration(Number(e.target.value))}
+                  />
+                </Field>
 
-        {error && <p className="text-sm text-red-400">{error}</p>}
+                <Field>
+                  <Label>{t.notes}</Label>
+                  <Input
+                    name="notes"
+                    type="text"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </Field>
 
-        <div className="flex items-center gap-2 pt-2">
-          <button
-            className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
-            type="submit"
-            disabled={loading}
-          >
-            {t.save}
-          </button>
-          <button
-            className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08]"
-            type="button"
-            onClick={() => setOpen(false)}
-          >
-            {t.cancel}
-          </button>
-        </div>
-      </CockpitForm>
-    </div>
+                {error && <ErrorMessage>{error}</ErrorMessage>}
+
+                <div className="flex items-center gap-3 pt-2">
+                  <Button color="indigo" type="submit" disabled={loading}>
+                    {t.save}
+                  </Button>
+                  <Button plain type="button" onClick={() => setOpen(false)}>
+                    {t.cancel}
+                  </Button>
+                </div>
+              </FieldGroup>
+            </Fieldset>
+          </form>
+        </DialogBody>
+      </Dialog>
+    </>
   );
 }

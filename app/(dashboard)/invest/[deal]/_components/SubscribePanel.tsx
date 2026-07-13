@@ -25,16 +25,13 @@
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { Stepper, Banner, Gate, StatusPill, Toast, eur } from "@/components/invest";
+import { Button } from "@/components/ui/button";
+import { Field, Label } from "@/components/ui/fieldset";
+import { Input } from "@/components/ui/input";
 import { UI } from "@/lib/ui-strings";
 import { TICKET_STEP } from "@/lib/invest/constants";
 
 const t = UI.invest.subscribe;
-
-/** Styles partagés des CTA du panneau (bouton plein indigo / bouton ghost). */
-const BTN_PRIMARY =
-  "inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50";
-const BTN_GHOST =
-  "inline-flex items-center justify-center rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50";
 
 /** Statuts de souscription exposés à l'UI (miroir machine serveur). */
 type SubStatus =
@@ -253,9 +250,9 @@ export function SubscribePanel(props: SubscribePanelProps) {
           locked
           message={t.kycGateMessage}
           cta={
-            <Link href="/invest/onboarding" className={BTN_PRIMARY}>
+            <Button href="/invest/onboarding" color="indigo">
               {t.kycCta}
-            </Link>
+            </Button>
           }
         >
           <div className="h-24" />
@@ -305,24 +302,23 @@ export function SubscribePanel(props: SubscribePanelProps) {
       {/* ── Étape 1 — Montant (avant toute réservation) ── */}
       {step === 0 ? (
         <>
-          <label className="text-sm font-medium text-slate-300" htmlFor="sub-amount">
-            {t.amountLabel}
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              id="sub-amount"
-              className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-400/60"
-              type="number"
-              inputMode="numeric"
-              min={ticketMinEur}
-              max={ticketMaxEur}
-              step={TICKET_STEP}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              aria-describedby="sub-amount-hint"
-            />
-            <span className="text-sm text-slate-400">{settlementCurrency}</span>
-          </div>
+          <Field>
+            <Label>{t.amountLabel}</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="sub-amount"
+                type="number"
+                inputMode="numeric"
+                min={ticketMinEur}
+                max={ticketMaxEur}
+                step={TICKET_STEP}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                aria-describedby="sub-amount-hint"
+              />
+              <span className="text-sm text-slate-400">{settlementCurrency}</span>
+            </div>
+          </Field>
           <p id="sub-amount-hint" className="text-xs text-slate-500">
             {t.amountHint(eur(ticketMinEur), eur(ticketMaxEur), settlementCurrency)}
           </p>
@@ -331,14 +327,15 @@ export function SubscribePanel(props: SubscribePanelProps) {
               {t.amountInvalid(eur(ticketMinEur), eur(ticketMaxEur))}
             </Banner>
           ) : null}
-          <button
-            className={BTN_PRIMARY}
+          <Button
+            className="w-full"
+            color="indigo"
             type="button"
             disabled={!amountValid || busy || !props.dealOpen}
             onClick={reserve}
           >
             {busy ? t.reserveBusy : t.reserveBtn}
-          </button>
+          </Button>
           <p className="text-xs text-slate-500">{t.reserveNote}</p>
         </>
       ) : null}
@@ -347,12 +344,12 @@ export function SubscribePanel(props: SubscribePanelProps) {
       {step === 2 && sub?.status === "reserved" ? (
         <>
           <p className="text-xs text-slate-500">{t.reservedNote}</p>
-          <button className={BTN_PRIMARY} type="button" disabled={busy} onClick={sign}>
+          <Button className="w-full" color="indigo" type="button" disabled={busy} onClick={sign}>
             {busy ? t.signBusy : t.signBtn}
-          </button>
-          <button className={BTN_GHOST} type="button" disabled={busy} onClick={cancel}>
+          </Button>
+          <Button className="w-full" outline type="button" disabled={busy} onClick={cancel}>
             {t.cancelReservation}
-          </button>
+          </Button>
         </>
       ) : null}
 
@@ -365,9 +362,9 @@ export function SubscribePanel(props: SubscribePanelProps) {
           </p>
 
           {sub.status === "signed" ? (
-            <button className={BTN_PRIMARY} type="button" disabled={busy} onClick={fund}>
+            <Button className="w-full" color="indigo" type="button" disabled={busy} onClick={fund}>
               {busy ? t.fundBusy : t.fundBtn}
-            </button>
+            </Button>
           ) : null}
 
           {sub.status === "funded" ? (
@@ -378,9 +375,9 @@ export function SubscribePanel(props: SubscribePanelProps) {
           ) : null}
 
           {(sub.status === "signed" || (sub.status === "funded" && sub.withinCoolingOff)) ? (
-            <button className={BTN_GHOST} type="button" disabled={busy} onClick={cancel}>
+            <Button className="w-full" outline type="button" disabled={busy} onClick={cancel}>
               {sub.status === "funded" ? t.withdrawBtn : t.cancelSubBtn}
-            </button>
+            </Button>
           ) : null}
         </>
       ) : null}

@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AccessibleModal } from "@/components/cockpit/AccessibleModal";
-import { CockpitForm, Field, TextInput, Select, MoneyInput } from "@/components/cockpit/form";
+import { Dialog, DialogActions, DialogBody, DialogTitle } from "@/components/ui/dialog";
+import { ErrorMessage, Field, FieldGroup, Fieldset, Label } from "@/components/ui/fieldset";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { UI } from "@/lib/ui-strings";
 import { FORM_LIMITS } from "@/lib/crm/format";
 
@@ -13,7 +16,7 @@ type PropertyOption = {
   city: string | null;
 };
 
-function MandateForm({ onClose }: { onClose?: () => void }) {
+function MandateForm({ onClose }: { onClose: () => void }) {
   const t = UI.mandates;
   const router = useRouter();
 
@@ -65,7 +68,7 @@ function MandateForm({ onClose }: { onClose?: () => void }) {
       }
 
       router.refresh();
-      onClose?.();
+      onClose();
     } catch {
       setError(UI.common.networkError);
     } finally {
@@ -74,128 +77,120 @@ function MandateForm({ onClose }: { onClose?: () => void }) {
   }
 
   return (
-    <CockpitForm onSubmit={handleSubmit}>
-      <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-        {t.form.title}
-      </div>
+    <form onSubmit={handleSubmit}>
+      <DialogTitle>{t.form.title}</DialogTitle>
+      <DialogBody>
+        <Fieldset>
+          <FieldGroup>
+            <Field>
+              <Label>{t.form.property}</Label>
+              <Select
+                value={propertyId}
+                onChange={(e) => setPropertyId(e.target.value)}
+                required
+              >
+                <option value="">—</option>
+                {properties.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title ?? p.city ?? p.id}
+                  </option>
+                ))}
+              </Select>
+            </Field>
 
-      <Field label={t.form.property} htmlFor="mandate-property" required>
-        <Select
-          id="mandate-property"
-          options={[
-            { value: "", label: "—" },
-            ...properties.map((p) => ({
-              value: p.id,
-              label: p.title ?? p.city ?? p.id,
-            })),
-          ]}
-          value={propertyId}
-          onChange={(e) => setPropertyId(e.target.value)}
-          required
-        />
-      </Field>
+            <Field>
+              <Label>{t.form.kind}</Label>
+              <Select value={kind} onChange={(e) => setKind(e.target.value)}>
+                {Object.entries(t.kindLabels).map(([k, label]) => (
+                  <option key={k} value={k}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
 
-      <Field label={t.form.kind} htmlFor="mandate-kind">
-        <Select
-          id="mandate-kind"
-          options={Object.entries(t.kindLabels).map(([k, label]) => ({
-            value: k,
-            label,
-          }))}
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-        />
-      </Field>
+            <Field>
+              <Label>{t.form.reference}</Label>
+              <Input
+                type="text"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                placeholder={t.form.reference}
+              />
+            </Field>
 
-      <Field label={t.form.reference} htmlFor="mandate-reference">
-        <TextInput
-          id="mandate-reference"
-          type="text"
-          value={reference}
-          onChange={(e) => setReference(e.target.value)}
-          placeholder={t.form.reference}
-        />
-      </Field>
+            <Field>
+              <Label>{t.form.askingPrice}</Label>
+              <Input
+                type="number"
+                min={FORM_LIMITS.priceMin}
+                value={askingPrice}
+                onChange={(e) => setAskingPrice(e.target.value)}
+              />
+            </Field>
 
-      <Field label={t.form.askingPrice} htmlFor="mandate-asking-price">
-        <MoneyInput
-          id="mandate-asking-price"
-          min={FORM_LIMITS.priceMin}
-          value={askingPrice}
-          onChange={(e) => setAskingPrice(e.target.value)}
-        />
-      </Field>
+            <Field>
+              <Label>{t.form.commissionPct}</Label>
+              <Input
+                type="number"
+                min={FORM_LIMITS.commissionMin}
+                max={FORM_LIMITS.commissionMax}
+                step={FORM_LIMITS.commissionStep}
+                value={commissionPct}
+                onChange={(e) => setCommissionPct(e.target.value)}
+              />
+            </Field>
 
-      <Field label={t.form.commissionPct} htmlFor="mandate-commission-pct">
-        <TextInput
-          id="mandate-commission-pct"
-          type="number"
-          min={FORM_LIMITS.commissionMin}
-          max={FORM_LIMITS.commissionMax}
-          step={FORM_LIMITS.commissionStep}
-          value={commissionPct}
-          onChange={(e) => setCommissionPct(e.target.value)}
-        />
-      </Field>
+            <Field>
+              <Label>{t.form.signedAt}</Label>
+              <Input
+                type="date"
+                value={signedAt}
+                onChange={(e) => setSignedAt(e.target.value)}
+              />
+            </Field>
 
-      <Field label={t.form.signedAt} htmlFor="mandate-signed-at">
-        <TextInput
-          id="mandate-signed-at"
-          type="date"
-          value={signedAt}
-          onChange={(e) => setSignedAt(e.target.value)}
-        />
-      </Field>
+            <Field>
+              <Label>{t.form.expiresAt}</Label>
+              <Input
+                type="date"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+              />
+            </Field>
+          </FieldGroup>
+        </Fieldset>
 
-      <Field label={t.form.expiresAt} htmlFor="mandate-expires-at">
-        <TextInput
-          id="mandate-expires-at"
-          type="date"
-          value={expiresAt}
-          onChange={(e) => setExpiresAt(e.target.value)}
-        />
-      </Field>
+        {error && <ErrorMessage className="mt-4">{error}</ErrorMessage>}
+      </DialogBody>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
-
-      <div className="flex items-center gap-2 pt-2">
-        <button
+      <DialogActions>
+        <Button plain type="button" onClick={onClose} disabled={loading}>
+          {t.form.cancel}
+        </Button>
+        <Button
+          color="indigo"
           type="submit"
-          className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={loading || !propertyId}
         >
           {t.form.save}
-        </button>
-        <button
-          type="button"
-          className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
-          onClick={() => onClose?.()}
-          disabled={loading}
-        >
-          {t.form.cancel}
-        </button>
-      </div>
-    </CockpitForm>
+        </Button>
+      </DialogActions>
+    </form>
   );
 }
 
 export default function MandateFormModal({ cta }: { cta: string }) {
   const [open, setOpen] = useState(false);
 
-  if (!open) {
-    return (
-      <button
-        className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400"
-        onClick={() => setOpen(true)}
-      >
-        {cta}
-      </button>
-    );
-  }
-
   return (
-    <AccessibleModal title={UI.mandates.form.title} onClose={() => setOpen(false)}>
-      <MandateForm onClose={() => setOpen(false)} />
-    </AccessibleModal>
+    <>
+      <Button color="indigo" onClick={() => setOpen(true)}>
+        {cta}
+      </Button>
+      <Dialog open={open} onClose={setOpen}>
+        <MandateForm onClose={() => setOpen(false)} />
+      </Dialog>
+    </>
   );
 }

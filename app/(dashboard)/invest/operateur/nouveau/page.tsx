@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { PageStack } from "@/components/cockpit/primitives";
 import { Banner } from "@/components/invest";
+import { Heading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
 import { UI } from "@/lib/ui-strings";
 import { fetchOperatorDeals } from "../../_data/server";
 import { CreateDealWizard } from "./CreateDealWizard";
@@ -29,8 +31,8 @@ export default async function NouveauDealPage() {
       {/* Page heading — TW+ headings__page-headings/03-with-meta-and-actions (adapté sombre) */}
       <div className="min-w-0 flex-1">
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-300">{n.eyebrow}</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">{n.title}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">{n.sub}</p>
+        <Heading className="mt-1">{n.title}</Heading>
+        <Text className="mt-2 max-w-2xl">{n.sub}</Text>
       </div>
 
       {!configured ? (

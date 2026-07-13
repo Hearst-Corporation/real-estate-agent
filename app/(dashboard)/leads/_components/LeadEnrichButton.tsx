@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 import { UI } from "@/lib/ui-strings";
 
 type Props = {
@@ -46,16 +48,11 @@ export function LeadEnrichButton({ leadId, hasData = false }: Props) {
   }
 
   return (
-    <div>
-      <button
-        type="button"
-        className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
-        onClick={handleEnrich}
-        disabled={busy}
-      >
+    <div className="mt-3">
+      <Button outline type="button" onClick={handleEnrich} disabled={busy}>
         {busy ? te.busy : hasData ? te.reenrich : te.button}
-      </button>
-      {error && <p className="mt-2 text-sm text-slate-500">{error}</p>}
+      </Button>
+      {error && <Text className="mt-2">{error}</Text>}
     </div>
   );
 }

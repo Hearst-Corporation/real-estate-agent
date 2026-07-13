@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 
 /** Déclenche une passe d'ingestion d'annonces à la demande. */
 export function ScrapeButton({ disabled = false }: { disabled?: boolean }) {
@@ -37,15 +39,10 @@ export function ScrapeButton({ disabled = false }: { disabled?: boolean }) {
 
   return (
     <div className="flex items-center gap-3">
-      <button
-        type="button"
-        className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
-        onClick={handleScrape}
-        disabled={busy || disabled}
-      >
+      <Button color="indigo" onClick={handleScrape} disabled={busy || disabled}>
         {busy ? t.launching : t.launch}
-      </button>
-      {msg && <span className="text-sm text-slate-500">{msg}</span>}
+      </Button>
+      {msg && <Text>{msg}</Text>}
     </div>
   );
 }

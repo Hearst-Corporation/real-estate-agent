@@ -18,6 +18,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { PageStack } from "@/components/cockpit/primitives";
 import { Banner, StatusPill, type StatusTone } from "@/components/invest";
+import { Heading, Subheading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
+import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "@/components/ui/table";
 import { UI } from "@/lib/ui-strings";
 import { fetchClosingState } from "../../../_data/server";
 import { ClosingLauncher } from "./ClosingLauncher";
@@ -39,8 +42,8 @@ function ClosingHeading({ kicker, title, meta }: { kicker: ReactNode; title: Rea
   return (
     <div className="min-w-0 flex-1">
       <p className="text-xs font-semibold uppercase tracking-widest text-indigo-300">{kicker}</p>
-      <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">{title}</h1>
-      {meta ? <p className="mt-2 max-w-2xl text-sm text-slate-400">{meta}</p> : null}
+      <Heading className="mt-1">{title}</Heading>
+      {meta ? <Text className="mt-2 max-w-2xl">{meta}</Text> : null}
     </div>
   );
 }
@@ -50,7 +53,7 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
   return (
     <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
       <div className="border-b border-white/10 px-5 py-4">
-        <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+        <Subheading>{title}</Subheading>
       </div>
       <div className="px-5 py-4">{children}</div>
     </section>
@@ -144,30 +147,28 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
         {state.conditions.length === 0 ? (
           <p className="text-sm text-slate-500">{c.conditionsEmpty}</p>
         ) : (
-          <div className="-mx-5 overflow-x-auto">
-            <table className="min-w-full divide-y divide-white/10 text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th scope="col" className="px-5 py-2 font-medium">{c.conditionsColCode}</th>
-                  <th scope="col" className="px-5 py-2 font-medium">{c.conditionsColLabel}</th>
-                  <th scope="col" className="px-5 py-2 text-right font-medium">{c.conditionsColState}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {state.conditions.map((cond) => (
-                  <tr key={cond.code} className="text-slate-300">
-                    <td className="px-5 py-2.5 font-mono text-xs text-slate-400">{cond.code}</td>
-                    <td className="px-5 py-2.5">{cond.label}</td>
-                    <td className="px-5 py-2.5 text-right">
-                      <StatusPill tone={cond.isMet ? "open" : "soon"}>
-                        {cond.isMet ? c.conditionMet : c.conditionPending}
-                      </StatusPill>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table dense>
+            <TableHead>
+              <TableRow>
+                <TableHeader>{c.conditionsColCode}</TableHeader>
+                <TableHeader>{c.conditionsColLabel}</TableHeader>
+                <TableHeader className="text-right">{c.conditionsColState}</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {state.conditions.map((cond) => (
+                <TableRow key={cond.code}>
+                  <TableCell className="font-mono text-xs text-slate-400">{cond.code}</TableCell>
+                  <TableCell>{cond.label}</TableCell>
+                  <TableCell className="text-right">
+                    <StatusPill tone={cond.isMet ? "open" : "soon"}>
+                      {cond.isMet ? c.conditionMet : c.conditionPending}
+                    </StatusPill>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </SectionCard>
 
@@ -199,24 +200,22 @@ export default async function ClosingPage({ params }: { params: Promise<{ id: st
         {state.holdings.length === 0 ? (
           <p className="text-sm text-slate-500">{c.deepEmpty}</p>
         ) : (
-          <div className="-mx-5 overflow-x-auto">
-            <table className="min-w-full divide-y divide-white/10 text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th scope="col" className="px-5 py-2 font-medium">{c.deepColHolder}</th>
-                  <th scope="col" className="px-5 py-2 text-right font-medium">{c.deepColUnits}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {state.holdings.map((h) => (
-                  <tr key={h.walletAddress} className="text-slate-300">
-                    <td className="px-5 py-2.5 font-mono text-xs">{h.walletAddress}</td>
-                    <td className="px-5 py-2.5 text-right tabular-nums">{h.units}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table dense>
+            <TableHead>
+              <TableRow>
+                <TableHeader>{c.deepColHolder}</TableHeader>
+                <TableHeader className="text-right">{c.deepColUnits}</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {state.holdings.map((h) => (
+                <TableRow key={h.walletAddress}>
+                  <TableCell className="font-mono text-xs">{h.walletAddress}</TableCell>
+                  <TableCell className="text-right tabular-nums">{h.units}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </SectionCard>
     </PageStack>

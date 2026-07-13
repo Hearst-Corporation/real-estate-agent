@@ -1,94 +1,89 @@
 "use client";
 
-import React, { useState } from "react";
-import { DataTable, type Column } from "@/components/cockpit/DataTable";
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeader,
+  TableCell,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Text } from "@/components/ui/text";
 import { PropertyKanban } from "@/components/cockpit/PropertyKanban";
 import { PropertiesCockpit, type CockpitProperty } from "./PropertiesCockpit";
 import { eur, sqm } from "@/lib/crm/format";
 import { statusTone, type StatusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
-import Link from "next/link";
-import { DeleteButton } from "@/components/cockpit/DeleteButton";
 
 type Property = CockpitProperty & {
   surface: number | null;
   cover_photo_url?: string | null;
 };
 
-/** Classes Tailwind du badge de statut par tonalité métier (`statusTone`). */
-const STATUS_TONE_CLASSES: Record<StatusTone, string> = {
-  "is-positive": "border-emerald-400/30 bg-emerald-500/10 text-emerald-300",
-  "is-negative": "border-red-400/30 bg-red-500/10 text-red-300",
-  "is-pending": "border-amber-400/30 bg-amber-500/10 text-amber-300",
+/** Tonalité métier (`statusTone`) → couleur de Badge Catalyst (état). */
+const STATUS_TONE_COLOR: Record<StatusTone, "lime" | "red" | "amber"> = {
+  "is-positive": "lime",
+  "is-negative": "red",
+  "is-pending": "amber",
 };
+
+/** Bouton de suppression inline (confirm + DELETE + refresh). */
+function DeleteAction({ id, label }: { id: string; label: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+
+  async function handle() {
+    if (!confirm(label)) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/properties/${id}`, { method: "DELETE" });
+      if (res.ok) router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Button plain onClick={handle} disabled={busy} aria-label={label}>
+      {label}
+    </Button>
+  );
+}
 
 export function PropertiesViewToggle({ properties }: { properties: Property[] }) {
   // Vue COCKPIT par défaut (métier) ; kanban + liste restent accessibles.
   const [view, setView] = useState<"cockpit" | "kanban" | "list">("cockpit");
   const t = UI.properties;
 
-  const columns: Column<Property>[] = [
-    {
-      key: "title",
-      header: t.table.title,
-      render: (p) => (
-        <Link href={`/properties/${p.id}`} className="text-indigo-300 hover:text-indigo-200">
-          {p.title ?? t.fallbackTitle}
-        </Link>
-      ),
-    },
-    { key: "type", header: t.table.type, render: (p) => t.typeLabels[p.property_type ?? ""] ?? p.property_type ?? "—" },
-    { key: "city", header: t.table.city, render: (p) => p.city ?? "—" },
-    { key: "surface", header: t.table.surface, align: "right", render: (p) => sqm(p.surface) },
-    { key: "price", header: t.table.price, align: "right", render: (p) => eur(p.asking_price) },
-    {
-      key: "status",
-      header: t.table.status,
-      render: (p) => (
-        <span
-          className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${STATUS_TONE_CLASSES[statusTone("property", p.status)]}`}
-        >
-          {t.statusLabels[p.status] ?? p.status}
-        </span>
-      ),
-    },
-    {
-      key: "action",
-      header: t.table.action,
-      align: "right",
-      render: (p) => (
-        <div className="flex items-center justify-end gap-2">
-          <Link
-            href={`/properties/${p.id}`}
-            className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:bg-white/[0.08]"
-          >
-            {t.open}
-          </Link>
-          <DeleteButton endpoint={`/api/properties/${p.id}`} label={t.delete} confirmMessage={t.delete} />
-        </div>
-      ),
-    },
+  const views: { key: typeof view; label: string }[] = [
+    { key: "cockpit", label: t.cockpit.tabCockpit },
+    { key: "kanban", label: t.cockpit.tabKanban },
+    { key: "list", label: t.cockpit.tabList },
   ];
-
-  const segBtn = (active: boolean) =>
-    `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-      active ? "bg-indigo-500/15 text-indigo-300" : "text-slate-400 hover:text-slate-100"
-    }`;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm font-semibold text-slate-100">{t.cockpit.panelTitle}</div>
-        <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
-          <button className={segBtn(view === "cockpit")} onClick={() => setView("cockpit")}>
-            {t.cockpit.tabCockpit}
-          </button>
-          <button className={segBtn(view === "kanban")} onClick={() => setView("kanban")}>
-            {t.cockpit.tabKanban}
-          </button>
-          <button className={segBtn(view === "list")} onClick={() => setView("list")}>
-            {t.cockpit.tabList}
-          </button>
+        <Text className="font-semibold !text-zinc-950 dark:!text-white">
+          {t.cockpit.panelTitle}
+        </Text>
+        <div className="flex items-center gap-1 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-1 dark:border-white/10 dark:bg-white/[0.03]">
+          {views.map((v) =>
+            view === v.key ? (
+              <Button key={v.key} color="indigo" onClick={() => setView(v.key)}>
+                {v.label}
+              </Button>
+            ) : (
+              <Button key={v.key} plain onClick={() => setView(v.key)}>
+                {v.label}
+              </Button>
+            )
+          )}
         </div>
       </div>
 
@@ -96,8 +91,55 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
         <PropertiesCockpit properties={properties} />
       ) : view === "kanban" ? (
         <PropertyKanban properties={properties} />
+      ) : properties.length === 0 ? (
+        <div className="rounded-xl border border-zinc-950/10 p-8 text-center dark:border-white/10">
+          <Text>{t.empty}</Text>
+        </div>
       ) : (
-        <DataTable columns={columns} rows={properties} emptyLabel={t.empty} getKey={(p) => p.id} />
+        <Table striped>
+          <TableHead>
+            <TableRow>
+              <TableHeader>{t.table.title}</TableHeader>
+              <TableHeader>{t.table.type}</TableHeader>
+              <TableHeader>{t.table.city}</TableHeader>
+              <TableHeader className="text-right">{t.table.surface}</TableHeader>
+              <TableHeader className="text-right">{t.table.price}</TableHeader>
+              <TableHeader>{t.table.status}</TableHeader>
+              <TableHeader className="text-right">{t.table.action}</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {properties.map((p) => (
+              <TableRow key={p.id}>
+                <TableCell>
+                  <Link
+                    href={`/properties/${p.id}`}
+                    className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  >
+                    {p.title ?? t.fallbackTitle}
+                  </Link>
+                </TableCell>
+                <TableCell>{t.typeLabels[p.property_type ?? ""] ?? p.property_type ?? "—"}</TableCell>
+                <TableCell>{p.city ?? "—"}</TableCell>
+                <TableCell className="text-right">{sqm(p.surface)}</TableCell>
+                <TableCell className="text-right">{eur(p.asking_price)}</TableCell>
+                <TableCell>
+                  <Badge color={STATUS_TONE_COLOR[statusTone("property", p.status)]}>
+                    {t.statusLabels[p.status] ?? p.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button outline href={`/properties/${p.id}`}>
+                      {t.open}
+                    </Button>
+                    <DeleteAction id={p.id} label={t.delete} />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
     </div>
   );

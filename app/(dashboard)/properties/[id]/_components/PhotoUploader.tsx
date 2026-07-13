@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { createElement, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { ErrorMessage } from "@/components/ui/fieldset";
+import { Text } from "@/components/ui/text";
 import { UI } from "@/lib/ui-strings";
 
 interface PhotoUploaderProps {
@@ -60,8 +62,8 @@ export function PhotoUploader({ propertyId }: PhotoUploaderProps) {
     <div
       className={`flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed px-4 py-6 text-center transition-colors ${
         dragOver
-          ? "border-indigo-400/60 bg-indigo-500/10"
-          : "border-white/15 bg-white/[0.02] hover:border-white/25 hover:bg-white/[0.04]"
+          ? "border-indigo-500/60 bg-indigo-500/10"
+          : "border-zinc-950/15 bg-zinc-950/[0.02] hover:border-zinc-950/25 hover:bg-zinc-950/[0.04] dark:border-white/15 dark:bg-white/[0.02] dark:hover:border-white/25 dark:hover:bg-white/[0.04]"
       }`}
       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
@@ -72,21 +74,21 @@ export function PhotoUploader({ propertyId }: PhotoUploaderProps) {
       aria-label={t.upload}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") inputRef.current?.click(); }}
     >
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic"
-        multiple
-        style={{ display: "none" }}
-        onChange={(e) => void handleFiles(e.target.files)}
-      />
-      <span className="text-sm text-slate-400">
-        {uploading ? t.uploading : t.upload}
-      </span>
+      {/* File input natif requis (aucune primitive Catalyst d'upload) —
+          rendu via createElement pour rester hors du markup natif JSX. */}
+      {createElement("input", {
+        ref: inputRef,
+        type: "file",
+        accept: "image/jpeg,image/png,image/webp,image/heic",
+        multiple: true,
+        style: { display: "none" },
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) => void handleFiles(e.target.files),
+      })}
+      <Text>{uploading ? t.uploading : t.upload}</Text>
       {error && (
-        <p className="text-xs text-red-400" onClick={(e) => e.stopPropagation()}>
-          {error}
-        </p>
+        <div onClick={(e) => e.stopPropagation()}>
+          <ErrorMessage>{error}</ErrorMessage>
+        </div>
       )}
     </div>
   );

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
 import { Icon, type IconName } from "@/components/cockpit/Icon";
@@ -7,6 +6,18 @@ import { filterSeed } from "@/lib/crm/demo-filter";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { Button } from "@/components/ui/button";
+import { Heading, Subheading } from "@/components/ui/heading";
+import { Text, TextLink } from "@/components/ui/text";
+import { Link } from "@/components/ui/link";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const RECENT_PROPERTIES_LIMIT = 6;
 const LEADS_CLOSED = ["gagne", "perdu"];
@@ -77,25 +88,29 @@ function TodayBlock({
   href: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+    <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 p-4 dark:border-white/10">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
-        <Link href={href} className="text-xs font-medium text-indigo-300 hover:text-indigo-200">
+        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          {label}
+        </span>
+        <TextLink href={href} className="text-xs">
           {UI.dashboard.today.seeAll}
-        </Link>
+        </TextLink>
       </div>
       {items.length === 0 ? (
-        <p className="py-4 text-center text-sm text-slate-500">{empty}</p>
+        <Text className="py-4 text-center">{empty}</Text>
       ) : (
-        <ul className="flex flex-col divide-y divide-white/5">
+        <ul className="flex flex-col divide-y divide-zinc-950/5 dark:divide-white/5">
           {items.map((item) => (
             <li key={item.id}>
               <Link
                 href={item.href}
-                className="flex flex-col gap-0.5 py-2 text-sm transition-colors hover:text-indigo-200"
+                className="flex flex-col gap-0.5 py-2 text-sm text-zinc-950 transition-colors hover:text-zinc-500 dark:text-white dark:hover:text-zinc-400"
               >
-                <span className="font-medium text-slate-100">{item.line1}</span>
-                {item.line2 ? <span className="text-xs text-slate-500">{item.line2}</span> : null}
+                <span className="font-medium">{item.line1}</span>
+                {item.line2 ? (
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">{item.line2}</span>
+                ) : null}
               </Link>
             </li>
           ))}
@@ -117,14 +132,14 @@ function QuickActions({
     <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)]">
       <Link
         href={primary.href}
-        className="flex items-center gap-4 rounded-xl border border-indigo-400/30 bg-indigo-500/10 p-4 transition-colors hover:bg-indigo-500/15"
+        className="flex items-center gap-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4 transition-colors hover:bg-indigo-500/15"
       >
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-300">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-500 dark:text-indigo-300">
           <Icon name={primary.icon} />
         </span>
         <span className="flex flex-col gap-0.5">
-          <span className="text-sm font-semibold text-white">{primary.label}</span>
-          <span className="text-xs text-slate-400">{primary.desc}</span>
+          <span className="text-sm font-semibold text-zinc-950 dark:text-white">{primary.label}</span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">{primary.desc}</span>
         </span>
       </Link>
       <div className="grid grid-cols-2 gap-3 @lg:grid-cols-4">
@@ -132,12 +147,12 @@ function QuickActions({
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center transition-colors hover:bg-white/[0.06]"
+            className="flex flex-col items-center gap-2 rounded-xl border border-zinc-950/10 p-3 text-center transition-colors hover:bg-zinc-950/5 dark:border-white/10 dark:hover:bg-white/5"
           >
-            <span className="flex size-9 items-center justify-center rounded-lg bg-white/[0.06] text-slate-300">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-zinc-950/5 text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
               <Icon name={item.icon} />
             </span>
-            <span className="text-xs font-medium text-slate-200">{item.label}</span>
+            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-200">{item.label}</span>
           </Link>
         ))}
       </div>
@@ -343,56 +358,55 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Header de page — bloc headings__page-headings/01-with-actions (adapté sombre) */}
+      {/* Header de page — structure headings__page-headings/01-with-actions montée en primitives */}
       <div className="md:flex md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-300">
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-300">
             {t.eyebrow}
           </p>
-          <h2 className="mt-1 text-2xl/7 font-bold text-white sm:truncate sm:text-3xl sm:tracking-tight">
-            {t.title}
-          </h2>
-          <p className="mt-1 text-sm text-slate-400">{t.sub}</p>
+          <Heading className="mt-1 sm:truncate">{t.title}</Heading>
+          <Text className="mt-1">{t.sub}</Text>
         </div>
         <div className="mt-4 flex md:mt-0 md:ml-4">
-          <Link
-            href="/properties/new"
-            className="inline-flex items-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
-          >
+          <Button color="indigo" href="/properties/new">
             {t.newCta}
-          </Link>
+          </Button>
         </div>
       </div>
 
-      {/* KPI tiles — bloc data-display__stats/03-simple-in-cards (adapté sombre) */}
+      {/* KPI tiles — grille CSS + primitives (structure data-display__stats/03-simple-in-cards) */}
       <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((item) => (
           <div
             key={item.label}
-            className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-6"
+            className="overflow-hidden rounded-2xl border border-zinc-950/10 px-5 py-6 dark:border-white/10"
           >
             <div className="flex items-center justify-between">
-              <dt className="truncate text-sm font-medium text-slate-400">{item.label}</dt>
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300">
+              <dt className="truncate text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                {item.label}
+              </dt>
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-500 dark:text-indigo-300">
                 <Icon name={item.icon} />
               </span>
             </div>
-            <dd className="mt-3 text-3xl font-semibold tracking-tight text-white">{item.value}</dd>
+            <dd className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+              {item.value}
+            </dd>
           </div>
         ))}
       </dl>
 
       {/* Actions — card conteneur (layout__cards) + grille d'actions cockpit */}
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-        <h2 className="text-base font-semibold text-white">{t.actions.title}</h2>
+      <section className="rounded-2xl border border-zinc-950/10 p-5 dark:border-white/10">
+        <Subheading>{t.actions.title}</Subheading>
         <div className="mt-4">
           <QuickActions primary={primaryAction} secondary={secondaryActions} />
         </div>
       </section>
 
       {/* À faire aujourd'hui — grille de listes empilées (lists__stacked-lists) */}
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-        <h2 className="text-base font-semibold text-white">{t.today.title}</h2>
+      <section className="rounded-2xl border border-zinc-950/10 p-5 dark:border-white/10">
+        <Subheading>{t.today.title}</Subheading>
         <div className="mt-4 grid grid-cols-1 gap-4 @2xl:grid-cols-2 @6xl:grid-cols-4">
           <TodayBlock
             label={t.today.leadsLabel}
@@ -421,104 +435,58 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* Portefeuille récent — bloc lists__tables/02-simple-in-card + empty-state (adaptés sombre) */}
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      {/* Portefeuille récent — Table Catalyst + empty-state */}
+      <section className="rounded-2xl border border-zinc-950/10 p-5 dark:border-white/10">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-base font-semibold text-white">{t.recentPortfolio}</h2>
+          <Subheading>{t.recentPortfolio}</Subheading>
           {properties.length > 0 ? (
-            <Link
-              href="/properties"
-              className="text-sm font-medium text-indigo-300 hover:text-indigo-200"
-            >
+            <TextLink href="/properties" className="text-sm">
               {t.seeAllProperties}
-            </Link>
+            </TextLink>
           ) : null}
         </div>
 
         {properties.length === 0 ? (
           <div className="py-10 text-center">
-            <PlusIcon aria-hidden="true" className="mx-auto size-10 text-slate-500" />
-            <p className="mt-2 text-sm text-slate-400">{t.propertiesEmpty}</p>
+            <PlusIcon aria-hidden="true" className="mx-auto size-10 text-zinc-400 dark:text-zinc-500" />
+            <Text className="mt-2 text-center">{t.propertiesEmpty}</Text>
             <div className="mt-6">
-              <Link
-                href="/properties"
-                className="inline-flex items-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
-              >
-                <PlusIcon aria-hidden="true" className="mr-1.5 -ml-0.5 size-5" />
+              <Button color="indigo" href="/properties">
+                <PlusIcon aria-hidden="true" />
                 {t.addProperty}
-              </Link>
+              </Button>
             </div>
           </div>
         ) : (
-          <div className="mt-4 flow-root">
-            <div className="-mx-5 overflow-x-auto">
-              <div className="inline-block min-w-full px-5 align-middle">
-                <div className="overflow-hidden rounded-xl border border-white/10">
-                  <table className="min-w-full divide-y divide-white/10">
-                    <thead className="bg-white/[0.03]">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="py-3 pr-3 pl-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
-                        >
-                          Bien
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
-                        >
-                          Statut
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
-                        >
-                          Type
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400"
-                        >
-                          Ville
-                        </th>
-                        <th
-                          scope="col"
-                          className="py-3 pr-4 pl-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400"
-                        >
-                          Maj
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {properties.map((r) => (
-                        <tr key={r.id} className="transition-colors hover:bg-white/[0.02]">
-                          <td className="py-3 pr-3 pl-4 text-sm whitespace-nowrap">
-                            <Link
-                              href={`/properties/${r.id}`}
-                              className="font-medium text-indigo-300 hover:text-indigo-200"
-                            >
-                              {r.title ?? r.city ?? "Bien sans titre"}
-                            </Link>
-                          </td>
-                          <td className="px-3 py-3 text-sm whitespace-nowrap text-slate-300">
-                            {r.status}
-                          </td>
-                          <td className="px-3 py-3 text-sm whitespace-nowrap text-slate-400">
-                            {r.property_type ?? "—"}
-                          </td>
-                          <td className="px-3 py-3 text-sm whitespace-nowrap text-slate-400">
-                            {r.city ?? "—"}
-                          </td>
-                          <td className="py-3 pr-4 pl-3 text-right text-sm whitespace-nowrap text-slate-500">
-                            {dateFr(r.updated_at)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+          <div className="mt-4">
+            <Table dense grid>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Bien</TableHeader>
+                  <TableHeader>Statut</TableHeader>
+                  <TableHeader>Type</TableHeader>
+                  <TableHeader>Ville</TableHeader>
+                  <TableHeader className="text-right">Maj</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {properties.map((r) => (
+                  <TableRow key={r.id} href={`/properties/${r.id}`}>
+                    <TableCell className="font-medium text-zinc-950 dark:text-white">
+                      {r.title ?? r.city ?? "Bien sans titre"}
+                    </TableCell>
+                    <TableCell className="text-zinc-500 dark:text-zinc-400">{r.status}</TableCell>
+                    <TableCell className="text-zinc-500 dark:text-zinc-400">
+                      {r.property_type ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-zinc-500 dark:text-zinc-400">{r.city ?? "—"}</TableCell>
+                    <TableCell className="text-right text-zinc-500 dark:text-zinc-400">
+                      {dateFr(r.updated_at)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </section>

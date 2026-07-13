@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 import { eur, dateFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { usePropertyLive } from "@/lib/hooks/usePropertyLive";
@@ -23,15 +26,15 @@ const TO_COMPLETE = new Set(["prospect", "estimation"]);
 /** Statuts terminés. */
 const CLOSED = new Set(["vendu", "archive"]);
 
-/** Classes Tailwind du badge de statut selon la tonalité métier du bien. */
-function statusToneProp(status: string): string {
+/** Couleur de Badge (état) selon la tonalité métier du bien. */
+function statusColorProp(status: string): "lime" | "amber" | "zinc" {
   if (status === "en_vente" || status === "sous_offre" || status === "mandat") {
-    return "border-emerald-400/30 bg-emerald-500/10 text-emerald-300";
+    return "lime";
   }
   if (status === "prospect" || status === "estimation") {
-    return "border-amber-400/30 bg-amber-500/10 text-amber-300";
+    return "amber";
   }
-  return "border-white/10 bg-white/[0.06] text-slate-300";
+  return "zinc";
 }
 
 function priceLabel(price: number | null): string {
@@ -59,15 +62,13 @@ function Zone({
 }) {
   const tp = UI.properties;
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</span>
-        <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-medium text-slate-300">
-          {count}
-        </span>
+        <Badge color="zinc">{count}</Badge>
       </div>
       {properties.length === 0 ? (
-        <p className="py-2 text-xs text-slate-500">{emptyLabel}</p>
+        <Text className="py-2 text-xs">{emptyLabel}</Text>
       ) : (
         <ul className="flex flex-col gap-1.5">
           {properties.slice(0, 3).map((p) => (
@@ -86,11 +87,9 @@ function Zone({
                   <span className="text-xs text-slate-500">{dateFr(p.created_at ?? null)}</span>
                 )}
                 {showStatus && (
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-xs font-medium ${statusToneProp(p.status)}`}
-                  >
+                  <Badge color={statusColorProp(p.status)}>
                     {tp.statusLabels[p.status] ?? p.status}
-                  </span>
+                  </Badge>
                 )}
               </span>
             </li>
@@ -109,30 +108,23 @@ function HealthBlock({ properties }: { properties: CockpitProperty[] }) {
   const noType = properties.filter((p) => !p.property_type).length;
 
   const signals = [
-    { label: t.healthNoPrix, count: noPrix, warn: noPrix > 0 },
-    { label: t.healthNoCity, count: noCity, warn: noCity > 0 },
-    { label: t.healthNoType, count: noType, warn: noType > 0 },
+    { label: t.healthNoPrix, count: noPrix },
+    { label: t.healthNoCity, count: noCity },
+    { label: t.healthNoType, count: noType },
   ].filter((s) => s.count > 0);
 
   if (signals.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-amber-400/20 bg-amber-500/[0.04] p-4">
+    <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
       <div>
         <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t.healthTitle}</span>
       </div>
       <div className="flex flex-wrap gap-2">
         {signals.map((s) => (
-          <span
-            key={s.label}
-            className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
-              s.warn
-                ? "border-amber-400/30 bg-amber-500/10 text-amber-300"
-                : "border-white/10 bg-white/[0.06] text-slate-300"
-            }`}
-          >
+          <Badge key={s.label} color="amber">
             {s.count} {s.label}
-          </span>
+          </Badge>
         ))}
       </div>
     </div>
@@ -144,26 +136,13 @@ function LiveBadge() {
   const { connected, lastEventAt, pendingRefresh } = usePropertyLive();
   const t = UI.properties.cockpit;
   if (!connected) return null;
-  const base = "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium";
   if (pendingRefresh) {
-    return (
-      <span className={`${base} border-indigo-400/30 bg-indigo-500/10 text-indigo-300`} title={t.liveHint}>
-        {t.liveRefreshing}
-      </span>
-    );
+    return <Badge color="indigo" title={t.liveHint}>{t.liveRefreshing}</Badge>;
   }
   if (lastEventAt) {
-    return (
-      <span className={`${base} border-emerald-400/30 bg-emerald-500/10 text-emerald-300`} title={t.liveHint}>
-        {t.liveUpdated}
-      </span>
-    );
+    return <Badge color="lime" title={t.liveHint}>{t.liveUpdated}</Badge>;
   }
-  return (
-    <span className={`${base} border-white/10 bg-white/[0.06] text-slate-400`} title={t.liveHint}>
-      {t.live}
-    </span>
-  );
+  return <Badge color="zinc" title={t.liveHint}>{t.live}</Badge>;
 }
 
 /**
@@ -224,14 +203,14 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
 
       <HealthBlock properties={properties} />
 
-      <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+      <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.03]">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
           {t.recentActivity}
         </div>
         {byRecent.length === 0 ? (
-          <p className="py-2 text-xs text-slate-500">{t.zoneEmpty}</p>
+          <Text className="py-2 text-xs">{t.zoneEmpty}</Text>
         ) : (
-          <ul className="flex flex-col divide-y divide-white/5">
+          <ul className="flex flex-col divide-y divide-zinc-950/5 dark:divide-white/5">
             {byRecent.slice(0, 5).map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-2 py-2">
                 <Link
@@ -241,11 +220,9 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
                   {p.title ?? tp.fallbackTitle}
                 </Link>
                 <span className="flex shrink-0 items-center gap-2">
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-xs font-medium ${statusToneProp(p.status)}`}
-                  >
+                  <Badge color={statusColorProp(p.status)}>
                     {tp.statusLabels[p.status] ?? p.status}
-                  </span>
+                  </Badge>
                   {p.city && (
                     <span className="text-xs text-slate-500">{p.city}</span>
                   )}
@@ -260,18 +237,12 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Link
-          href="/mandates"
-          className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm text-slate-200 transition-colors hover:bg-white/[0.08]"
-        >
+        <Button outline href="/mandates">
           {t.seeMandates}
-        </Link>
-        <Link
-          href="/estimations"
-          className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm text-slate-200 transition-colors hover:bg-white/[0.08]"
-        >
+        </Button>
+        <Button outline href="/estimations">
           {t.seeEstimations}
-        </Link>
+        </Button>
       </div>
     </div>
   );

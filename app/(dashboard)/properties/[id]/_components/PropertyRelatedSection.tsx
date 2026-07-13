@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
-import { Card, Badge } from "@/components/cockpit/primitives";
+import { Card } from "@/components/cockpit/primitives";
+import { Badge } from "@/components/ui/badge";
 import { UI } from "@/lib/ui-strings";
 import { eur, dateTimeFr } from "@/lib/crm/format";
 

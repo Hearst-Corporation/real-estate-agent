@@ -4098,6 +4098,10 @@ export type Database = {
     Functions: {
       current_tenant_id: { Args: never; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      verify_login: {
+        Args: { p_email: string; p_password: string }
+        Returns: { user_id: string; tenant_id: string; role: string }[]
+      }
       inv_append_audit_log: {
         Args: {
           p_action: string

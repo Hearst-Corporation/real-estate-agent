@@ -39,10 +39,10 @@ export function WizardStepper({ coverage, nextLabel, canGenerate }: Props) {
         })}
       </div>
       <div className="flex items-center gap-2 text-xs">
-        <span className="font-semibold text-slate-200">
+        <span className="font-semibold text-zinc-700 dark:text-zinc-200">
           {UI.estimations.keyInfoProgress(Math.min(collected, total), total)}
         </span>
-        <span className="text-slate-500">{focus}</span>
+        <span className="text-zinc-500">{focus}</span>
       </div>
     </div>
   );

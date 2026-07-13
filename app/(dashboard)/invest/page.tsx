@@ -10,6 +10,8 @@
 import { DealCard, Banner, type DealCardData } from "@/components/invest";
 import { eur } from "@/components/invest";
 import { UI } from "@/lib/ui-strings";
+import { Heading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
 import { DEMO_DEALS } from "./_data/demo";
 import { fetchOpenDeals, toDealCardData } from "./_data/server";
 
@@ -57,11 +59,11 @@ export default async function MarketplacePage() {
       {/* En-tête — page-headings/01-with-actions (adapté sombre) */}
       <div className="flex flex-col gap-1 @lg:flex-row @lg:items-start @lg:justify-between @lg:gap-4">
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-300">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-300">
             {m.eyebrow}
           </p>
-          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{m.title}</h1>
-          <p className="mt-1 text-sm text-slate-400">{m.sub}</p>
+          <Heading>{m.title}</Heading>
+          <Text className="mt-1">{m.sub}</Text>
         </div>
       </div>
 
@@ -73,14 +75,16 @@ export default async function MarketplacePage() {
         {stats.map((item) => (
           <div
             key={item.name}
-            className={`overflow-hidden rounded-2xl border px-4 py-5 sm:p-6 ${
-              item.accent ? "border-indigo-400/40 bg-indigo-500/10" : "border-white/10 bg-white/[0.03]"
+            className={`overflow-hidden rounded-2xl border px-4 py-5 shadow-sm sm:p-6 ${
+              item.accent
+                ? "border-indigo-400/40 bg-indigo-500/10"
+                : "border-zinc-950/10 bg-white dark:border-white/10 dark:bg-white/[0.03]"
             }`}
           >
-            <dt className="truncate text-xs font-medium uppercase tracking-wide text-slate-500">
+            <dt className="truncate text-xs font-medium uppercase tracking-wide text-zinc-500">
               {item.name}
             </dt>
-            <dd className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <dd className="mt-1 text-2xl font-bold tracking-tight text-zinc-950 sm:text-3xl dark:text-white">
               {item.value}
             </dd>
           </div>
@@ -93,7 +97,7 @@ export default async function MarketplacePage() {
           {m.filters.map((f) => (
             <span
               key={f}
-              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-300"
+              className="rounded-full border border-zinc-950/10 bg-white px-3 py-1 text-xs text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300"
             >
               {f}
             </span>
@@ -105,8 +109,8 @@ export default async function MarketplacePage() {
               key={t}
               className={`rounded-full border px-3 py-1 text-xs ${
                 i === 0
-                  ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-200"
-                  : "border-white/10 bg-white/[0.03] text-slate-300"
+                  ? "border-indigo-400/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-200"
+                  : "border-zinc-950/10 bg-white text-zinc-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300"
               }`}
             >
               {t}
@@ -127,7 +131,7 @@ export default async function MarketplacePage() {
         ))}
       </ul>
 
-      <p className="text-xs text-slate-500">{m.fineprint}</p>
+      <Text>{m.fineprint}</Text>
     </div>
   );
 }

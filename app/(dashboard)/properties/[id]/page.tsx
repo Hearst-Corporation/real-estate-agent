@@ -1,7 +1,8 @@
-import { Suspense, type ReactNode } from "react";
+import { Fragment, Suspense, type ReactNode } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PageHeader, Card } from "@/components/cockpit/primitives";
+import { DescriptionList, DescriptionTerm, DescriptionDetails } from "@/components/ui/description-list";
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateFr, daysSince } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
@@ -319,25 +320,17 @@ export default async function PropertyDetailPage({
       </Suspense>
 
       {/* ── Caractéristiques ─────────────────────────────────────────────── */}
-      {/* Bloc TW+ data-display__description-lists/02-left-aligned-in-card,
-          adapté au thème sombre : <dl> divisée, label (dt) / valeur (dd). */}
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur-sm">
-        <div className="px-5 py-4">
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-            {td.cardCaracteristiques}
-          </h3>
-        </div>
-        <div className="border-t border-white/10">
-          <dl className="divide-y divide-white/10">
-            {caracteristiques.map((c) => (
-              <div key={c.key} className="px-5 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-slate-400">{c.label}</dt>
-                <dd className="mt-1 text-sm text-slate-100 sm:col-span-2 sm:mt-0">{c.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </div>
+      {/* Description-list Catalyst (data-display__description-lists) : term/detail. */}
+      <Card title={td.cardCaracteristiques}>
+        <DescriptionList>
+          {caracteristiques.map((c) => (
+            <Fragment key={c.key}>
+              <DescriptionTerm>{c.label}</DescriptionTerm>
+              <DescriptionDetails>{c.value}</DescriptionDetails>
+            </Fragment>
+          ))}
+        </DescriptionList>
+      </Card>
 
       {/* ── Équipements ──────────────────────────────────────────────────── */}
       {equipItems.length > 0 && (

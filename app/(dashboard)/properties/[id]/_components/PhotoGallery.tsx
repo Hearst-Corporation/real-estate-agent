@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Text } from "@/components/ui/text";
 import { UI } from "@/lib/ui-strings";
 
 type Photo = {
@@ -46,8 +49,8 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
 
   if (photos.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.02] py-12">
-        <span className="text-sm text-slate-500">{t.empty}</span>
+      <div className="flex items-center justify-center rounded-xl border border-dashed border-zinc-950/10 bg-zinc-950/[0.02] py-12 dark:border-white/10 dark:bg-white/[0.02]">
+        <Text>{t.empty}</Text>
       </div>
     );
   }
@@ -55,7 +58,7 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
   return (
     <div className="flex flex-col gap-3">
       {/* Visionneuse principale */}
-      <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/20">
+      <div className="relative overflow-hidden rounded-xl border border-zinc-950/10 bg-black/20 dark:border-white/10">
         {selected && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -65,8 +68,8 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
               className="h-80 w-full object-cover"
             />
             {selected.is_cover && (
-              <span className="absolute left-3 top-3 rounded-full bg-indigo-500/90 px-2.5 py-1 text-xs font-semibold text-white shadow-lg">
-                {t.cover}
+              <span className="absolute left-3 top-3">
+                <Badge color="indigo">{t.cover}</Badge>
               </span>
             )}
           </>
@@ -80,36 +83,37 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
               key={photo.id}
               className={`group relative size-16 shrink-0 cursor-pointer overflow-hidden rounded-lg border transition-colors ${
                 selected?.id === photo.id
-                  ? "border-indigo-400/60"
-                  : "border-white/10 hover:border-white/30"
+                  ? "border-indigo-500/60"
+                  : "border-zinc-950/10 hover:border-zinc-950/30 dark:border-white/10 dark:hover:border-white/30"
               }`}
               onClick={() => setSelected(photo)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photo.url} alt="" className="size-full object-cover" />
-              <button
-                type="button"
-                className="absolute right-0.5 top-0.5 flex size-4 items-center justify-center rounded-full bg-black/70 text-xs leading-none text-white opacity-0 transition-opacity hover:bg-red-500/90 group-hover:opacity-100 disabled:opacity-50"
+              <Button
+                color="red"
+                className="absolute! right-0.5 top-0.5 size-4! px-0! py-0! text-xs! opacity-0 group-hover:opacity-100"
                 onClick={(e) => { e.stopPropagation(); void handleDelete(photo); }}
                 disabled={deleting === photo.id}
                 aria-label={t.delete}
               >
                 ×
-              </button>
+              </Button>
             </div>
           ))}
         </div>
       )}
       {/* Bouton supprimer photo principale si 1 seule */}
       {photos.length === 1 && selected && (
-        <button
-          type="button"
-          className="self-start rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 transition-colors hover:bg-red-500/20 disabled:opacity-50"
-          onClick={() => void handleDelete(selected)}
-          disabled={deleting === selected.id}
-        >
-          {t.delete}
-        </button>
+        <div className="self-start">
+          <Button
+            color="red"
+            onClick={() => void handleDelete(selected)}
+            disabled={deleting === selected.id}
+          >
+            {t.delete}
+          </Button>
+        </div>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Badge } from "@/components/cockpit/primitives";
+import { Badge } from "@/components/ui/badge";
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from "@/components/ui/description-list";
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateFr, dateTimeFr } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
@@ -46,16 +47,6 @@ function daysUntil(d: string | null | undefined): number | null {
   if (!d) return null;
   const MS_PER_DAY = 86_400_000;
   return Math.round((new Date(d).getTime() - Date.now()) / MS_PER_DAY);
-}
-
-/** Ligne de description-list — TW+ data-display/description-lists (thème sombre). */
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-1 gap-1 py-3 first:pt-0 last:pb-0 @sm:grid-cols-3 @sm:gap-4">
-      <dt className="text-sm font-medium text-slate-400">{label}</dt>
-      <dd className="text-sm text-slate-200 @sm:col-span-2">{children}</dd>
-    </div>
-  );
 }
 
 /** Card conteneur — TW+ layout__cards/03-card-with-header (thème sombre). */
@@ -196,48 +187,72 @@ export default async function MandateDetailPage({
 
       {/* ── Détail du mandat — description-list ──────────────────────────── */}
       <DetailCard title={td.cardMandat}>
-        <dl className="divide-y divide-white/5">
-          <Row label={td.fields.kind}>{t.kindLabels[mandate.kind] ?? mandate.kind}</Row>
+        <DescriptionList>
+          <DescriptionTerm>{td.fields.kind}</DescriptionTerm>
+          <DescriptionDetails>{t.kindLabels[mandate.kind] ?? mandate.kind}</DescriptionDetails>
 
-          {mandate.reference && <Row label={td.fields.reference}>{mandate.reference}</Row>}
+          {mandate.reference && (
+            <>
+              <DescriptionTerm>{td.fields.reference}</DescriptionTerm>
+              <DescriptionDetails>{mandate.reference}</DescriptionDetails>
+            </>
+          )}
 
           {mandate.asking_price != null && (
-            <Row label={td.fields.askingPrice}>{eur(mandate.asking_price)}</Row>
+            <>
+              <DescriptionTerm>{td.fields.askingPrice}</DescriptionTerm>
+              <DescriptionDetails>{eur(mandate.asking_price)}</DescriptionDetails>
+            </>
           )}
 
           {mandate.commission_pct != null && (
-            <Row label={td.fields.commissionPct}>
-              {mandate.commission_pct}
-              {t.commissionUnit}
-            </Row>
+            <>
+              <DescriptionTerm>{td.fields.commissionPct}</DescriptionTerm>
+              <DescriptionDetails>
+                {mandate.commission_pct}
+                {t.commissionUnit}
+              </DescriptionDetails>
+            </>
           )}
 
           {commissionAmount != null && (
-            <Row label={td.fields.commissionAmount}>{eur(commissionAmount)}</Row>
+            <>
+              <DescriptionTerm>{td.fields.commissionAmount}</DescriptionTerm>
+              <DescriptionDetails>{eur(commissionAmount)}</DescriptionDetails>
+            </>
           )}
 
-          {mandate.signed_at && <Row label={td.fields.signedAt}>{dateFr(mandate.signed_at)}</Row>}
+          {mandate.signed_at && (
+            <>
+              <DescriptionTerm>{td.fields.signedAt}</DescriptionTerm>
+              <DescriptionDetails>{dateFr(mandate.signed_at)}</DescriptionDetails>
+            </>
+          )}
 
           {mandate.expires_at && (
-            <Row label={td.fields.expiresAt}>
-              <span className="flex flex-wrap items-center gap-2">
-                {dateFr(mandate.expires_at)}
-                {isExpiringSoon && daysLeft !== null && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-300">
-                    {td.expiringWarning} — {td.fields.daysLeft(daysLeft)}
-                  </span>
-                )}
-                {isExpired && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-red-400/30 bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-300">
-                    {td.fields.daysExpired}
-                  </span>
-                )}
-              </span>
-            </Row>
+            <>
+              <DescriptionTerm>{td.fields.expiresAt}</DescriptionTerm>
+              <DescriptionDetails>
+                <span className="flex flex-wrap items-center gap-2">
+                  {dateFr(mandate.expires_at)}
+                  {isExpiringSoon && daysLeft !== null && (
+                    <Badge color="amber">
+                      {td.expiringWarning} — {td.fields.daysLeft(daysLeft)}
+                    </Badge>
+                  )}
+                  {isExpired && <Badge color="red">{td.fields.daysExpired}</Badge>}
+                </span>
+              </DescriptionDetails>
+            </>
           )}
 
-          {mandate.updated_at && <Row label={td.fields.updatedAt}>{dateFr(mandate.updated_at)}</Row>}
-        </dl>
+          {mandate.updated_at && (
+            <>
+              <DescriptionTerm>{td.fields.updatedAt}</DescriptionTerm>
+              <DescriptionDetails>{dateFr(mandate.updated_at)}</DescriptionDetails>
+            </>
+          )}
+        </DescriptionList>
 
         {mandate.notes && (
           <div className="mt-4 border-t border-white/5 pt-4">
@@ -253,21 +268,38 @@ export default async function MandateDetailPage({
       <DetailCard title={td.cardBien}>
         {property ? (
           <div>
-            <dl className="divide-y divide-white/5">
+            <DescriptionList>
               {property.property_type && (
-                <Row label={td.wellType}>
-                  {UI.properties.typeLabels[property.property_type] ?? property.property_type}
-                </Row>
+                <>
+                  <DescriptionTerm>{td.wellType}</DescriptionTerm>
+                  <DescriptionDetails>
+                    {UI.properties.typeLabels[property.property_type] ?? property.property_type}
+                  </DescriptionDetails>
+                </>
               )}
-              {property.city && <Row label={td.wellCity}>{property.city}</Row>}
-              {property.surface != null && <Row label={td.wellSurface}>{sqm(property.surface)}</Row>}
+              {property.city && (
+                <>
+                  <DescriptionTerm>{td.wellCity}</DescriptionTerm>
+                  <DescriptionDetails>{property.city}</DescriptionDetails>
+                </>
+              )}
+              {property.surface != null && (
+                <>
+                  <DescriptionTerm>{td.wellSurface}</DescriptionTerm>
+                  <DescriptionDetails>{sqm(property.surface)}</DescriptionDetails>
+                </>
+              )}
               {property.asking_price != null && (
-                <Row label={td.wellPrice}>{eur(property.asking_price)}</Row>
+                <>
+                  <DescriptionTerm>{td.wellPrice}</DescriptionTerm>
+                  <DescriptionDetails>{eur(property.asking_price)}</DescriptionDetails>
+                </>
               )}
-              <Row label={td.wellStatus}>
+              <DescriptionTerm>{td.wellStatus}</DescriptionTerm>
+              <DescriptionDetails>
                 <Badge>{UI.properties.statusLabels[property.status] ?? property.status}</Badge>
-              </Row>
-            </dl>
+              </DescriptionDetails>
+            </DescriptionList>
             <div className="mt-4 border-t border-white/5 pt-4">
               <Link
                 href={`/properties/${property.id}` as import("@/config/nav").AppRoute}

@@ -1,5 +1,7 @@
 "use client";
 
+import { Heading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
 import { UI } from "@/lib/ui-strings";
 
 type Props = {
@@ -24,13 +26,11 @@ export function GeneratingScreen({ currentStep }: Props) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-xl font-bold tracking-tight text-white">
-            {UI.estimations.generatingTitle}
-          </h2>
-          <p className="text-sm text-slate-400">{UI.estimations.generatingSub}</p>
+          <Heading>{UI.estimations.generatingTitle}</Heading>
+          <Text>{UI.estimations.generatingSub}</Text>
         </div>
 
-        <div className="flex w-full flex-col gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left">
+        <div className="flex w-full flex-col gap-2 rounded-xl border border-zinc-950/10 bg-white/[0.03] p-4 text-left dark:border-white/10">
           {steps.map((step, i) => {
             const done = i < currentIdx;
             const active = i === currentIdx;
@@ -38,16 +38,20 @@ export function GeneratingScreen({ currentStep }: Props) {
               <div
                 key={step}
                 className={`flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm ${
-                  active ? "bg-indigo-500/10 text-indigo-200" : done ? "text-slate-300" : "text-slate-500"
+                  active
+                    ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
+                    : done
+                      ? "text-zinc-700 dark:text-zinc-300"
+                      : "text-zinc-500"
                 }`}
               >
                 <span
                   className={`flex size-5 shrink-0 items-center justify-center rounded-full text-xs ${
                     done
-                      ? "bg-emerald-500/20 text-emerald-300"
+                      ? "bg-indigo-500/20 text-indigo-600 dark:text-indigo-300"
                       : active
-                        ? "bg-indigo-500/20 text-indigo-300"
-                        : "bg-white/[0.06] text-slate-500"
+                        ? "bg-indigo-500/20 text-indigo-600 dark:text-indigo-300"
+                        : "bg-white/[0.06] text-zinc-500"
                   }`}
                   aria-hidden="true"
                 >
@@ -66,7 +70,7 @@ export function GeneratingScreen({ currentStep }: Props) {
         </div>
 
         {currentStep && (
-          <p className="text-xs text-slate-500" aria-live="polite">{currentStep}</p>
+          <p className="text-xs text-zinc-500" aria-live="polite">{currentStep}</p>
         )}
       </div>
     </div>

@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PROPERTY_STATUSES, type PropertyStatus } from "@/lib/crm/format";
+import { Select } from "@/components/ui/select";
+import { ErrorMessage } from "@/components/ui/fieldset";
 import { UI } from "@/lib/ui-strings";
 
 interface PropertyStatusControlProps {
@@ -44,9 +46,9 @@ export function PropertyStatusControl({
   }
 
   return (
-    <>
-      <select
-        className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 focus:border-indigo-400/50 focus:outline-none disabled:opacity-50"
+    <div className="flex items-center gap-2">
+      <Select
+        className="w-auto"
         value={currentStatus}
         onChange={handleChange}
         disabled={busy}
@@ -57,8 +59,8 @@ export function PropertyStatusControl({
             {statusLabels[s] ?? s}
           </option>
         ))}
-      </select>
-      {error ? <span className="ml-2 text-xs text-red-400">{error}</span> : null}
-    </>
+      </Select>
+      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+    </div>
   );
 }

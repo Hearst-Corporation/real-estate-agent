@@ -15,8 +15,8 @@ export function CenterPanel({
 }) {
   return (
     <main
-      className={`relative z-10 flex h-full flex-col pl-[104px] transition-[padding] duration-200 ${
-        chatOpen ? "pr-[420px]" : "pr-10"
+      className={`relative z-10 flex h-full flex-col pl-rail-left transition-[padding] duration-200 ${
+        chatOpen ? "pr-rail-right" : "pr-10"
       }`}
     >
       <div className="ct-page-area scrollbar-thin flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden px-8 py-8 @container">
