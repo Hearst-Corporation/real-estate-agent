@@ -67,13 +67,27 @@ export function normalizeScrapeParams(raw: unknown): ScrapeCustomParams {
       ? body.motsCles.split(",").map((m) => m.trim().toLowerCase()).filter(Boolean)
       : [];
 
+  const budgetMin = num(body.budgetMin);
+  const budgetMax = num(body.budgetMax);
+  const surfaceMin = num(body.surfaceMin);
+  const surfaceMax = num(body.surfaceMax);
+
+  // Bornes croisées : un min > max est un input incohérent → rejet explicite
+  // (400 côté route). num() a déjà écarté NaN/négatifs (→ null = pas de contrainte).
+  if (budgetMin != null && budgetMax != null && budgetMin > budgetMax) {
+    throw new Error("budget_range_invalid");
+  }
+  if (surfaceMin != null && surfaceMax != null && surfaceMin > surfaceMax) {
+    throw new Error("surface_range_invalid");
+  }
+
   return {
     zone,
     typeBien,
-    budgetMin: num(body.budgetMin),
-    budgetMax: num(body.budgetMax),
-    surfaceMin: num(body.surfaceMin),
-    surfaceMax: num(body.surfaceMax),
+    budgetMin,
+    budgetMax,
+    surfaceMin,
+    surfaceMax,
     piecesMin: num(body.piecesMin),
     motsCles,
   };
@@ -133,7 +147,7 @@ export async function scrapeCustomAndMatch(
       .from("prosp_annonces")
       .select("*")
       .eq("tenant_id", tenantId)
-      .gte("date_collecte", new Date(Date.now() - 60 * 60 * 1000).toISOString())
+      .gte("created_at", new Date(Date.now() - 60 * 60 * 1000).toISOString())
       .limit(500);
 
     const annonces = (annoncesRaw ?? []).map((r) => dbRowToAnnonce(r as Record<string, unknown>));

@@ -148,7 +148,7 @@ export const prospScoring = inngest.createFunction(
         .from("prosp_annonces")
         .select("*")
         .eq("tenant_id", DEFAULT_TENANT_ID)
-        .gte("date_collecte", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
         .limit(500);
       const annonces = (annoncesRaw ?? []) as ProspAnnonceRow[];
 

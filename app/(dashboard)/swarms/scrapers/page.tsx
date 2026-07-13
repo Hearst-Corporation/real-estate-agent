@@ -18,12 +18,12 @@ export const dynamic = "force-dynamic";
 
 type AnnonceRow = {
   id: string;
-  commune: string | null;
+  ville: string | null;
   type_bien: string | null;
   prix: number | null;
-  surface_m2: number | null;
-  source_platform: string;
-  date_collecte: string;
+  surface: number | null;
+  source: string;
+  updated_at: string;
 };
 
 export default async function ScrapersPage() {
@@ -52,11 +52,11 @@ export default async function ScrapersPage() {
     const { data, count } = await sb
       .from("prosp_annonces")
       .select(
-        "id, commune, type_bien, prix, surface_m2, source_platform, date_collecte",
+        "id, ville, type_bien, prix, surface, source, updated_at",
         { count: "exact" },
       )
       .eq("tenant_id", DEFAULT_TENANT_ID)
-      .order("date_collecte", { ascending: false })
+      .order("updated_at", { ascending: false })
       .limit(30);
     annonces = (data ?? []) as AnnonceRow[];
     total = count ?? 0;
@@ -108,14 +108,14 @@ export default async function ScrapersPage() {
             <TableBody>
               {annonces.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="text-zinc-950 dark:text-white">{r.commune ?? "—"}</TableCell>
+                  <TableCell className="text-zinc-950 dark:text-white">{r.ville ?? "—"}</TableCell>
                   <TableCell className="text-zinc-500 dark:text-zinc-400">{r.type_bien ?? "—"}</TableCell>
                   <TableCell className="text-right text-zinc-500 dark:text-zinc-400">{eur(r.prix)}</TableCell>
-                  <TableCell className="text-right text-zinc-500 dark:text-zinc-400">{sqm(r.surface_m2)}</TableCell>
+                  <TableCell className="text-right text-zinc-500 dark:text-zinc-400">{sqm(r.surface)}</TableCell>
                   <TableCell>
-                    <Badge>{r.source_platform}</Badge>
+                    <Badge>{r.source}</Badge>
                   </TableCell>
-                  <TableCell className="text-right text-zinc-500 dark:text-zinc-400">{dateFr(r.date_collecte)}</TableCell>
+                  <TableCell className="text-right text-zinc-500 dark:text-zinc-400">{dateFr(r.updated_at)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

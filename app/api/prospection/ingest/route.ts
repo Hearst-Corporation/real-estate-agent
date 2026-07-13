@@ -7,7 +7,17 @@ import {
   searchListingsApify,
   apifyProspectionIsConfigured,
 } from "@/lib/prospection/apify-source";
-import { upsertAnnonces } from "@/lib/prospection/ingest";
+import {
+  upsertAnnonces,
+  startIngestionRun,
+  finishIngestionRun,
+  bodyHash,
+  lookupIdempotent,
+  reserveIdempotent,
+  completeIdempotent,
+} from "@/lib/prospection/ingest";
+import type { IngestStats } from "@/lib/prospection/types";
+import type { Json } from "@/lib/supabase/database.types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +31,14 @@ const MAX_ZONES = 5;
  * DEMANDE (le cron `prosp-ingestion` fait la même chose toutes les heures).
  * Exécution INLINE pour un retour immédiat, indépendamment d'Inngest.
  * Écrit sous DEFAULT_TENANT_ID (même bucket que le cron → visible par le matching).
+ *
+ * Chaque passe :
+ *   - crée une ligne `prosp_ingestion_runs` (status=running) au démarrage,
+ *     mise à jour à la fin (completed/failed + compteurs + error_detail) ;
+ *   - accepte une `Idempotency-Key` (header ou body) → une passe déjà exécutée
+ *     avec la même clé renvoie sa réponse mémorisée sans relancer d'ingestion ;
+ *   - dégrade proprement : un provider en échec n'impute que `errors`, jamais un
+ *     crash du run entier.
  */
 export async function POST(req: Request) {
   const claims = await getSession();
@@ -39,9 +57,36 @@ export async function POST(req: Request) {
   }
   const provider = useMoteurImmo ? "moteurimmo" : "apify_lbc";
 
+  const body = (await req.json().catch(() => null)) as
+    | { zones?: unknown; idempotency_key?: unknown }
+    | null;
+
+  // Idempotence : header prioritaire, sinon body.
+  const idemKey =
+    req.headers.get("Idempotency-Key") ||
+    (typeof body?.idempotency_key === "string" ? body.idempotency_key : null);
+
+  if (idemKey) {
+    const cached = await lookupIdempotent(DEFAULT_TENANT_ID, idemKey);
+    if (cached !== null) {
+      return NextResponse.json(cached, { headers: { "Idempotent-Replay": "true" } });
+    }
+    // Pose le verrou. false ⇒ clé déjà réservée (course / rejeu concurrent).
+    const reserved = await reserveIdempotent(
+      DEFAULT_TENANT_ID,
+      idemKey,
+      bodyHash({ zones: body?.zones ?? null, provider }),
+    );
+    if (!reserved) {
+      return NextResponse.json(
+        { error: "ingestion_in_progress" },
+        { status: 409, headers: { "Idempotent-Replay": "pending" } },
+      );
+    }
+  }
+
   // Zones : body > prosp_config > défaut.
   let zones: string[] = [];
-  const body = (await req.json().catch(() => null)) as { zones?: unknown } | null;
   if (Array.isArray(body?.zones)) {
     zones = body.zones.filter((z): z is string => typeof z === "string");
   }
@@ -55,29 +100,50 @@ export async function POST(req: Request) {
   }
   zones = zones.slice(0, MAX_ZONES);
 
-  let inserted = 0;
-  let duplicates = 0;
-  let errors = 0;
+  const run = await startIngestionRun(DEFAULT_TENANT_ID, provider, zones);
+  const totals: IngestStats = { inserted: 0, updated: 0, duplicates: 0, errors: 0 };
+  const errorDetails: string[] = [];
+
   for (const zone of zones) {
     try {
       const listings = useMoteurImmo
         ? await searchListings({ codePostal: zone, perPage: 50 })
         : await searchListingsApify(zone);
       const stats = await upsertAnnonces(DEFAULT_TENANT_ID, listings, provider);
-      inserted += stats.inserted;
-      duplicates += stats.duplicates;
-      errors += stats.errors;
-    } catch {
-      errors++;
+      totals.inserted += stats.inserted;
+      totals.updated += stats.updated;
+      totals.duplicates += stats.duplicates;
+      totals.errors += stats.errors;
+    } catch (e) {
+      totals.errors += 1;
+      errorDetails.push(`${zone}: ${e instanceof Error ? e.message : "error"}`);
     }
   }
 
-  return NextResponse.json({
-    ok: true,
+  const status = totals.errors > 0 && totals.inserted + totals.updated === 0 ? "failed" : "completed";
+  if (run) {
+    await finishIngestionRun(
+      run,
+      status === "failed" ? "failed" : "completed",
+      totals,
+      errorDetails.length > 0 ? errorDetails.join(" | ") : null,
+    );
+  }
+
+  const responseBody = {
+    ok: status !== "failed",
     provider,
     zones: zones.length,
-    inserted,
-    duplicates,
-    errors,
-  });
+    run_id: run?.id ?? null,
+    inserted: totals.inserted,
+    updated: totals.updated,
+    duplicates: totals.duplicates,
+    errors: totals.errors,
+  };
+
+  if (idemKey) {
+    await completeIdempotent(DEFAULT_TENANT_ID, idemKey, responseBody as unknown as Json);
+  }
+
+  return NextResponse.json(responseBody);
 }

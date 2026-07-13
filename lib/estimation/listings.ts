@@ -163,14 +163,19 @@ function buildApifyInput(q: ListingsQuery): Record<string, unknown> {
 async function fetchViaApifyRaw(q: ListingsQuery): Promise<{ raw: number; filtered: ListingComparable[] }> {
   if (!q.ville) return { raw: 0, filtered: [] };
   try {
+    // Token en header Authorization (jamais en query string : évite de le
+    // fuiter dans les logs d'URL). L'API Apify accepte `Bearer <token>`.
     const url =
       `https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items` +
-      `?token=${APIFY_TOKEN}&maxItems=${MAX_LISTINGS}`;
+      `?maxItems=${MAX_LISTINGS}`;
     const res = await timedFetch(
       url,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${APIFY_TOKEN}`,
+        },
         body: JSON.stringify(buildApifyInput(q)),
       },
       APIFY_TIMEOUT_MS,
