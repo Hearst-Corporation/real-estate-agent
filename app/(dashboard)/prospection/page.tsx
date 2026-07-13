@@ -280,6 +280,11 @@ export default function ProspectionPage() {
   // Détail annonce (ouvert depuis une card annonce OU une ligne de match).
   const [detailAnnonce, setDetailAnnonce] = useState<Annonce | null>(null);
   const [detailMatch, setDetailMatch] = useState<Match | undefined>(undefined);
+  // État du formulaire de création de critère, remonté au parent : les CTA de création
+  // (« Nouvel acquéreur », empty states) basculent sur l'onglet Critères ET ouvrent
+  // directement le formulaire — au lieu de juste changer d'onglet en laissant
+  // l'utilisateur re-cliquer « + Nouveau critère ».
+  const [criteresFormOpen, setCriteresFormOpen] = useState(false);
 
   function openAnnonceDetail(a: Annonce, m?: Match) {
     setDetailAnnonce(a);
@@ -351,6 +356,12 @@ export default function ProspectionPage() {
     if (nextTab === "annonces" && annonces.length === 0) void loadAnnonces();
     if (nextTab === "matching" && matchs.length === 0) void loadMatchs();
     if ((nextTab === "acquereurs" || nextTab === "criteres") && criteres.length === 0) void loadCriteres();
+  }
+
+  // CTA « créer » : va sur l'onglet Critères ET ouvre directement le formulaire.
+  function openNewCritere() {
+    setCriteresFormOpen(true);
+    selectTab("criteres");
   }
 
   useEffect(() => {
@@ -427,7 +438,7 @@ export default function ProspectionPage() {
                 void loadMatchs();
               }}
             />
-            <Button color="indigo" onClick={() => selectTab("criteres")}>
+            <Button color="indigo" onClick={openNewCritere}>
               {UI.prospection.newAcquereurBtn}
             </Button>
           </div>
@@ -483,7 +494,7 @@ export default function ProspectionPage() {
                   UI.prospection.emptyCriteresStep3,
                 ]}
                 action={
-                  <Button color="indigo" className="mt-2" onClick={() => selectTab("criteres")}>
+                  <Button color="indigo" className="mt-2" onClick={openNewCritere}>
                     {UI.prospection.newCritere}
                   </Button>
                 }
@@ -603,7 +614,7 @@ export default function ProspectionPage() {
                   UI.prospection.emptyMatchsStep3,
                 ]}
                 action={
-                  <Button color="indigo" className="mt-2" onClick={() => selectTab("criteres")}>
+                  <Button color="indigo" className="mt-2" onClick={openNewCritere}>
                     {UI.prospection.newCritere}
                   </Button>
                 }
@@ -619,7 +630,13 @@ export default function ProspectionPage() {
         )}
 
         {/* ── Onglet critères ── */}
-        {tab === "criteres" && <CriteresPanel onChanged={loadCriteres} />}
+        {tab === "criteres" && (
+          <CriteresPanel
+            onChanged={loadCriteres}
+            formOpen={criteresFormOpen}
+            onFormOpenChange={setCriteresFormOpen}
+          />
+        )}
       </section>
 
       {/* ── Détail annonce enrichi + actions CRM/contact/optout ── */}
@@ -717,9 +734,16 @@ function MatchList({
 
 // ─── Panel critères ───────────────────────────────────────────────────────────
 
-function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
+function CriteresPanel({
+  onChanged,
+  formOpen,
+  onFormOpenChange,
+}: {
+  onChanged: () => Promise<void>;
+  formOpen: boolean;
+  onFormOpenChange: (open: boolean) => void;
+}) {
   const [criteres, setCriteres] = useState<Critere[]>([]);
-  const [showForm, setShowForm] = useState(false);
   const [nom, setNom] = useState("");
   const [zones, setZones] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
@@ -797,7 +821,7 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
       }
       await loadCriteres();
       await onChanged();
-      setShowForm(false);
+      onFormOpenChange(false);
       setNom("");
       setZones("");
       setBudgetMax("");
@@ -834,13 +858,13 @@ function CriteresPanel({ onChanged }: { onChanged: () => Promise<void> }) {
           <Button outline onClick={loadCriteres}>
             {UI.prospection.refresh}
           </Button>
-          <Button color="indigo" onClick={() => setShowForm((v) => !v)}>
+          <Button color="indigo" onClick={() => onFormOpenChange(!formOpen)}>
             {UI.prospection.newCritere}
           </Button>
         </div>
       </div>
 
-      {showForm && (
+      {formOpen && (
         <div className="surface mb-4 p-4">
           <FieldGroup>
             <Field>
