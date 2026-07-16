@@ -18,7 +18,7 @@ const PREF = z.enum(["indifferent", "requis", "exclu"]);
 const UUID = z.string().uuid();
 
 // Une zone géographique optionnellement géolocalisée : label + coords + rayon.
-const ZoneSchema = z
+const ZoneObjectSchema = z
   .object({
     label: z.string().trim().min(1).optional(),
     cp: z.string().trim().min(1).optional(),
@@ -35,6 +35,17 @@ const ZoneSchema = z
   .refine((z) => (z.lat === undefined) === (z.lng === undefined), {
     message: "coords_invalid",
   });
+
+// Le formulaire envoie des zones en texte libre (ex: "Nice, 06000") ; on les
+// normalise en objet { label } pour rejoindre le même contrat de stockage.
+const ZoneSchema = z.union([
+  ZoneObjectSchema,
+  z
+    .string()
+    .trim()
+    .min(1)
+    .transform((label) => ({ label })),
+]);
 
 const PosNum = z.number().finite().nonnegative();
 const PosInt = z.number().int().finite().nonnegative();
@@ -167,7 +178,8 @@ export async function POST(req: NextRequest) {
   const raw = await req.json().catch(() => null);
   const parsed = CreateCritereSchema.safeParse(raw ?? {});
   if (!parsed.success) {
-    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+    const detail = parsed.error.issues[0]?.message ?? "invalid_body";
+    return NextResponse.json({ error: "invalid_body", detail }, { status: 400 });
   }
   const c = parsed.data;
   const typeBien = c.type_bien == null ? null : Array.isArray(c.type_bien) ? c.type_bien : [c.type_bien];

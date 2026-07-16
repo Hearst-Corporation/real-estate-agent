@@ -45,7 +45,8 @@ export default async function PropertiesPage() {
       )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      .limit(200);
 
     const rawProperties = (data ?? []) as unknown as Array<{
       id: string;

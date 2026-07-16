@@ -25,23 +25,29 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
   const router = useRouter();
   const [selected, setSelected] = useState<Photo | null>(photos[0] ?? null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleDelete(photo: Photo) {
     if (!confirm(t.delete + " ?")) return;
     setDeleting(photo.id);
+    setError(null);
     try {
       const res = await fetch(`/api/properties/${propertyId}/photos/${photo.id}`, {
         method: "DELETE",
       });
-      if (res.ok) {
-        onDelete?.(photo.id);
-        if (selected?.id === photo.id) {
-          const remaining = photos.filter(p => p.id !== photo.id);
-          setSelected(remaining[0] ?? null);
-        }
-        // Re-fetch côté serveur : reflète la suppression + la cover réassignée.
-        router.refresh();
+      if (!res.ok) {
+        setError(UI.common.httpError(res.status));
+        return;
       }
+      onDelete?.(photo.id);
+      if (selected?.id === photo.id) {
+        const remaining = photos.filter(p => p.id !== photo.id);
+        setSelected(remaining[0] ?? null);
+      }
+      // Re-fetch côté serveur : reflète la suppression + la cover réassignée.
+      router.refresh();
+    } catch {
+      setError(UI.common.networkError);
     } finally {
       setDeleting(null);
     }
@@ -57,6 +63,7 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
 
   return (
     <div className="flex flex-col gap-3">
+      {error ? <Text className="text-red-400">{error}</Text> : null}
       {/* Visionneuse principale */}
       <div className="surface relative overflow-hidden">
         {selected && (
@@ -81,12 +88,20 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
           {photos.map((photo) => (
             <div
               key={photo.id}
+              role="button"
+              tabIndex={0}
               className={`group relative size-16 shrink-0 cursor-pointer overflow-hidden rounded-lg border transition-colors ${
                 selected?.id === photo.id
                   ? "border-accent-500/60"
                   : "border-zinc-950/10 hover:border-zinc-950/30 dark:border-white/10 dark:hover:border-white/30"
               }`}
               onClick={() => setSelected(photo)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelected(photo);
+                }
+              }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photo.url} alt="" className="size-full object-cover" />

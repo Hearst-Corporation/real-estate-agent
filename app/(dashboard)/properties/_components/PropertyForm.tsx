@@ -139,29 +139,33 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
     const url = isEdit ? `/api/properties/${id}` : "/api/properties";
     const method = isEdit ? "PATCH" : "POST";
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
-    setLoading(false);
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setError((json as { error?: string }).error ?? UI.common.networkError);
+        return;
+      }
 
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      setError((json as { error?: string }).error ?? UI.common.networkError);
-      return;
-    }
+      emitPropertyChanged();
 
-    emitPropertyChanged();
-
-    if (onClose) {
-      router.refresh();
-      onClose();
-    } else {
-      const json = await res.json().catch(() => ({}));
-      const newId = (json as { id?: string }).id;
-      router.push(newId ? `/properties/${newId}` : "/properties");
+      if (onClose) {
+        router.refresh();
+        onClose();
+      } else {
+        const json = await res.json().catch(() => ({}));
+        const newId = (json as { id?: string }).id;
+        router.push(newId ? `/properties/${newId}` : "/properties");
+      }
+    } catch {
+      setError(UI.common.networkError);
+    } finally {
+      setLoading(false);
     }
   }
 

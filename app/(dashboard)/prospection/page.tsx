@@ -59,7 +59,12 @@ function tabLabel(t: Tab): string {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function zonesLabel(zones: unknown): string {
-  if (Array.isArray(zones)) return zones.join(", ");
+  if (Array.isArray(zones)) {
+    return zones
+      .map((z) => (typeof z === "string" ? z : (z as { label?: string; ville?: string; cp?: string })?.label ?? (z as { ville?: string })?.ville ?? (z as { cp?: string })?.cp ?? ""))
+      .filter(Boolean)
+      .join(", ") || "—";
+  }
   if (typeof zones === "string") return zones;
   return "—";
 }
@@ -816,7 +821,7 @@ function CriteresPanel({
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(json.error ?? `Erreur HTTP ${res.status}`);
+        setError(json.detail ?? json.error ?? `Erreur HTTP ${res.status}`);
         return;
       }
       await loadCriteres();

@@ -45,7 +45,8 @@ export default async function VisitsPage() {
       .select("id, status, scheduled_at, duration_min, property_id, properties(title, city)")
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
-      .order("scheduled_at", { ascending: true });
+      .order("scheduled_at", { ascending: true })
+      .limit(200);
     visits = (data ?? []) as VisitRow[];
   }
 

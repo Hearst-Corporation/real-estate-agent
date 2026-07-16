@@ -46,7 +46,8 @@ export default async function LeadsPage() {
       )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      .limit(200);
     leads = filterSeed((data ?? []) as Lead[], (l) => [l.full_name]);
   }
 

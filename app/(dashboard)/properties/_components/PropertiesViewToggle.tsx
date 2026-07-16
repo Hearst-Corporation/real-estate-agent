@@ -36,22 +36,33 @@ const STATUS_TONE_COLOR: Record<StatusTone, "lime" | "red" | "amber"> = {
 function DeleteAction({ id, label }: { id: string; label: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handle() {
     if (!confirm(label)) return;
     setBusy(true);
+    setError(null);
     try {
       const res = await fetch(`/api/properties/${id}`, { method: "DELETE" });
-      if (res.ok) router.refresh();
+      if (!res.ok) {
+        setError(UI.common.httpError(res.status));
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError(UI.common.networkError);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Button plain onClick={handle} disabled={busy} aria-label={label}>
-      {label}
-    </Button>
+    <span className="inline-flex items-center gap-2">
+      <Button plain onClick={handle} disabled={busy} aria-label={label}>
+        {label}
+      </Button>
+      {error ? <span className="text-xs text-red-400">{error}</span> : null}
+    </span>
   );
 }
 

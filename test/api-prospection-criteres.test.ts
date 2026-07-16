@@ -55,7 +55,8 @@ describe("POST /api/prospection/criteres — auth & validation", () => {
     getSupabaseAdmin.mockReturnValue({});
     const res = await POST(postReq({ budget_min: 100 }) as never);
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "invalid_body" });
+    const body = await res.json();
+    expect(body.error).toBe("invalid_body");
   });
 
   it("400 si budget_min > budget_max", async () => {
@@ -107,6 +108,14 @@ describe("POST /api/prospection/criteres — auth & validation", () => {
     getSupabaseAdmin.mockReturnValue({});
     const res = await POST(postReq({ nom: "Jean", zones: [{ rayon_km: 10 }] }) as never);
     expect(res.status).toBe(400);
+  });
+
+  it("201 sur zones en texte libre (contrat envoyé par le formulaire prospection)", async () => {
+    getSession.mockResolvedValue(CLAIMS);
+    const { client } = makeInsert({ id: CRIT_UUID, nom: "Jean", zones: [{ label: "Nice" }, { label: "06000" }] });
+    getSupabaseAdmin.mockReturnValue(client);
+    const res = await POST(postReq({ nom: "Jean", zones: ["Nice", "06000"] }) as never);
+    expect(res.status).toBe(201);
   });
 
   it("400 sur préférence hors enum indifferent|requis|exclu", async () => {

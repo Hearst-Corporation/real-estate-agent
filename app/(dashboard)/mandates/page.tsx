@@ -48,7 +48,8 @@ export default async function MandatesPage() {
       )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      .limit(200);
     mandates = (data ?? []) as MandateRow[];
   }
 

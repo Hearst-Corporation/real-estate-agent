@@ -54,7 +54,8 @@ export default async function EstimationsPage() {
       .select("id, status, city, property_type, market_value, updated_at")
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      .limit(200);
     estimations = (data ?? []) as EstRow[];
   }
 
