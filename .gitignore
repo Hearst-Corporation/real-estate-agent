@@ -79,3 +79,4 @@ test-layout.html
 playwright-report/
 *.log
 .sweep/
+*.code-workspace
