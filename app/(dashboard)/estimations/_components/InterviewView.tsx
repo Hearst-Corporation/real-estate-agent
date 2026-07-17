@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { EstimationWizard } from "./EstimationWizard";
 import { GeneratingScreen } from "./GeneratingScreen";
 import { ValuationHero } from "./ValuationHero";
 import { SidePanel } from "./SidePanel";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/cockpit/Icon";
 import { UI } from "@/lib/ui-strings";
 import type { Coverage } from "@/lib/estimation/spec";
 import type {
@@ -178,23 +179,35 @@ export function InterviewView({
 
   // ── Phase 3 : Ready ───────────────────────────────────────────────────────
   return (
-    <div className="pb-12">
-      <div className="flex flex-col gap-6">
-        {backToPropertyHref && (
-          <Link
-            href={backToPropertyHref}
-            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-accent-600 hover:text-accent-500"
-          >
-            <span aria-hidden="true">←</span>
-            {UI.estimations.backToProperty}
-          </Link>
-        )}
-        {valuation ? (
-          <ValuationHero id={id} valuation={valuation} />
-        ) : (
-          <p className="text-sm text-zinc-500">{UI.common.error}</p>
-        )}
-        {valuation ? (
+    <div className="flex flex-col gap-6 pb-12">
+      {valuation ? (
+        <>
+          {/* Résultat d'abord — la valeur domine avant toute explication. */}
+          <ValuationHero
+            id={id}
+            valuation={valuation}
+            property={property}
+            market={market}
+          />
+
+          {/* Continuité — uniquement des routes réelles (pas de fausse action). */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs font-semibold uppercase tracking-widest text-zinc-500">
+              {UI.estimations.nextStepsTitle}
+            </span>
+            <Button outline href={backToPropertyHref ?? "/properties/new"}>
+              <Icon name="properties" data-slot="icon" />
+              {backToPropertyHref
+                ? UI.estimations.openProperty
+                : UI.estimations.createProperty}
+            </Button>
+            <Button outline href="/mandates">
+              <Icon name="mandates" data-slot="icon" />
+              {UI.estimations.prepareMandate}
+            </Button>
+          </div>
+
+          {/* Preuve & détail au 2ᵉ niveau. */}
           <SidePanel
             id={id}
             valuation={valuation}
@@ -203,8 +216,10 @@ export function InterviewView({
             fieldStatus={fieldStatus}
             coverage={coverage}
           />
-        ) : null}
-      </div>
+        </>
+      ) : (
+        <p className="text-sm text-zinc-500">{UI.common.error}</p>
+      )}
     </div>
   );
 }

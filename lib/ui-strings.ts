@@ -283,9 +283,9 @@ export const UI = {
       bienici: "Bienici",
     } as Record<string, string>,
     listingFetchSourceLabels: {
-      apify: "Apify (LeBonCoin)",
-      myswarms: "MySwarms (Bienici) — fallback",
-      none: "Aucune source configurée",
+      apify: "LeBonCoin",
+      myswarms: "Bienici",
+      none: "Marché local",
     } as Record<string, string>,
     listingFetchSourcePrefix: "Source annonces :",
     confidenceLabels: {
@@ -300,6 +300,60 @@ export const UI = {
     } as Record<string, string>,
     comparablesDvf: (n: number) => `${n} comparable${n > 1 ? "s" : ""} DVF`,
     recoPriceLabel: "Conseillé",
+    // ── Identité du bien (hero résultat) ──
+    typeLabels: {
+      appartement: "Appartement",
+      maison: "Maison",
+      immeuble: "Immeuble",
+      local_commercial: "Local commercial",
+      terrain: "Terrain",
+      autre: "Bien",
+    } as Record<string, string>,
+    rangeLabel: "Fourchette d'estimation",
+    dpeBadge: (c: string) => `DPE ${c}`,
+    // ── Provenance & fiabilité (défendable face au vendeur) ──
+    provenanceTitle: "Base de l'estimation",
+    basedOnComparables: (n: number) =>
+      `Fondé sur ${n} comparable${n > 1 ? "s" : ""} de vente réelle`,
+    dataStatusLabels: {
+      complete: "Données complètes",
+      partial: "Données partielles",
+      degraded: "Données limitées",
+    } as Record<string, string>,
+    dataStatusTooltips: {
+      complete: "Comparables nombreux, proches et récents — socle solide.",
+      partial: "Comparables suffisants mais dispersés ou plus anciens.",
+      degraded: "Peu de comparables exploitables — fourchette élargie.",
+    } as Record<string, string>,
+    medianPriceLabel: "Prix médian secteur",
+    trendLabel: "Tendance",
+    trendLabels: {
+      hausse: "En hausse",
+      stable: "Stable",
+      baisse: "En repli",
+    } as Record<string, string>,
+    radiusLabel: (km: number) =>
+      `Rayon moyen ${km.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km`,
+    recencyLabel: (mois: number) => `Récence ${Math.round(mois)} mois`,
+    dispersionLabel: (pct: number) => `Dispersion ${Math.round(pct)} %`,
+    transactions12m: (n: number) => `${n} vente${n > 1 ? "s" : ""} / 12 mois`,
+    // ── Comparables DVF (ventes réelles, socle du calcul) ──
+    dvfTitle: "Ventes réelles comparables",
+    dvfSubtitle: "Transactions officielles du secteur — socle de l'estimation.",
+    dvfColDate: "Date",
+    dvfColType: "Type",
+    dvfColSurface: "Surface",
+    dvfColPrice: "Prix",
+    dvfColPerM2: "€ / m²",
+    dvfEmpty: "Aucune vente comparable disponible pour ce secteur.",
+    dvfSourceNote: (n: number) =>
+      `${n} transaction${n > 1 ? "s" : ""} analysée${n > 1 ? "s" : ""} · DVF Etalab · géolocalisées`,
+    dvfPieces: (n: number) => `${n} p.`,
+    // ── Continuité (actions post-estimation, routes vérifiées) ──
+    nextStepsTitle: "Poursuivre",
+    createProperty: "Créer la fiche du bien",
+    openProperty: "Ouvrir la fiche du bien",
+    prepareMandate: "Préparer un mandat",
     generatingTitle: "Analyse en cours…",
     generatingSub: "Nous interrogeons les bases DVF, DPE et les annonces du marché.",
     generatingSteps: [

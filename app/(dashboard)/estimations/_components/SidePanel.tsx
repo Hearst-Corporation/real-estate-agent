@@ -17,7 +17,7 @@ import { UI } from "@/lib/ui-strings";
 import { RECAP_FIELDS } from "@/lib/estimation/spec";
 import { buildStaticMap } from "@/lib/estimation/staticmap";
 import type { Coverage } from "@/lib/estimation/spec";
-import type { Valuation, MarketAnalysis, ListingsFetchSource, PropertyData, FieldStatusMap } from "@/lib/estimation/types";
+import type { Valuation, MarketAnalysis, ListingsFetchSource, PropertyData, FieldStatusMap, DvfComparable } from "@/lib/estimation/types";
 
 type Props = {
   id: string;
@@ -34,7 +34,19 @@ const fmt = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 0,
 });
 
+const dvfDateFmt = new Intl.DateTimeFormat("fr-FR", {
+  month: "2-digit",
+  year: "numeric",
+});
+
+/** Date de mutation DVF → « MM/AAAA » (fallback : brut si non parsable). */
+function dvfDate(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : dvfDateFmt.format(d);
+}
+
 const LISTING_TITLE_MAX_CHARS = 40;
+const DVF_ROWS_MAX = 8;
 
 type MarketContextData = {
   summary: string | null;
@@ -65,8 +77,14 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
   const [marketLoading, setMarketLoading] = useState(false);
   const [marketLoaded, setMarketLoaded] = useState(false);
   const [market, setMarket] = useState<MarketContextData | null>(null);
-  const [ficheOpen, setFicheOpen] = useState(true);
+  const [ficheOpen, setFicheOpen] = useState(false);
 
+  const dvfComparables: DvfComparable[] = (marketProp?.dvf_comparables ?? []).slice(
+    0,
+    DVF_ROWS_MAX
+  );
+  // Défensif : `adjustments` peut manquer sur d'anciennes valorisations stockées.
+  const adjustments = valuation.adjustments ?? [];
   const listings = marketProp?.listing_comparables ?? [];
   const listingFetchSource = (marketProp?.listing_source?.source ?? null) as ListingsFetchSource | null;
   const listingFallbackUsed = marketProp?.listing_source?.fallbackUsed ?? false;
@@ -153,11 +171,11 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
       </div>
 
       {/* ── Ajustements ── */}
-      {valuation.adjustments.length > 0 && (
+      {adjustments.length > 0 && (
         <div className="surface p-4">
           <Subheading className="font-titre">{UI.estimations.adjustmentsTitle}</Subheading>
           <ul className="mt-3 flex flex-col gap-3">
-            {valuation.adjustments.map((adj, i) => (
+            {adjustments.map((adj, i) => (
               <li key={i} className="flex items-start gap-3">
                 <Badge color={adj.type === "premium" ? "lime" : "red"} className="shrink-0 tabular-nums">
                   {adj.type === "premium" ? UI.estimations.premiumSign : UI.estimations.discountSign}
@@ -216,16 +234,63 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
         </div>
       </div>
 
+      {/* ── Ventes réelles comparables (DVF) — socle du calcul ── */}
+      {marketProp != null && (
+        <div className="surface col-span-full p-4">
+          <Subheading className="font-titre">{UI.estimations.dvfTitle}</Subheading>
+          <Text className="mt-1 !text-xs">{UI.estimations.dvfSubtitle}</Text>
+          <div className="mt-3">
+            {dvfComparables.length === 0 ? (
+              <Text className="py-4">{UI.estimations.dvfEmpty}</Text>
+            ) : (
+              <>
+                <Table dense>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>{UI.estimations.dvfColDate}</TableHeader>
+                      <TableHeader>{UI.estimations.dvfColType}</TableHeader>
+                      <TableHeader className="text-right">{UI.estimations.dvfColSurface}</TableHeader>
+                      <TableHeader className="text-right">{UI.estimations.dvfColPrice}</TableHeader>
+                      <TableHeader className="text-right">{UI.estimations.dvfColPerM2}</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {dvfComparables.map((c) => (
+                      <TableRow key={c.id}>
+                        <TableCell className="tabular-nums text-zinc-500">{dvfDate(c.date_mutation)}</TableCell>
+                        <TableCell className="text-zinc-700">
+                          {c.nombre_pieces != null ? UI.estimations.dvfPieces(c.nombre_pieces) : c.type_local}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums text-zinc-700">
+                          {c.surface_reelle_bati != null ? `${c.surface_reelle_bati}${UI.estimations.surfaceUnit}` : "—"}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums text-zinc-700">{fmt.format(c.valeur_fonciere)}</TableCell>
+                        <TableCell className="text-right font-medium tabular-nums text-zinc-950">{fmt.format(c.prix_m2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {marketProp.nb_transactions_12m > 0 && (
+                  <p className="mt-3 text-xs text-zinc-500">
+                    {UI.estimations.dvfSourceNote(marketProp.nb_transactions_12m)}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Annonces comparables ── */}
       {marketProp != null && (
         <div className="surface col-span-full p-4">
           <Subheading className="font-titre">{UI.estimations.listingComparablesTitle}</Subheading>
           <div className="mt-3">
-            {listingFetchSource != null && (
+            {listings.length > 0 && listingFetchSource != null && listingFetchSource !== "none" && (
               <p className="mb-3 text-xs text-zinc-500">
                 {UI.estimations.listingFetchSourcePrefix}{" "}
                 <strong className="font-semibold text-zinc-700">
-                  {listingFallbackUsed && listingFetchSource !== "none"
+                  {listingFallbackUsed
                     ? UI.estimations.listingFetchSourceLabels["myswarms"]
                     : (UI.estimations.listingFetchSourceLabels[listingFetchSource] ?? listingFetchSource)}
                 </strong>
