@@ -206,7 +206,7 @@ export default async function PropertyDetailPage({
         kicker={t.eyebrow}
         title={property.title ?? t.fallbackTitle}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button href={`/estimations/new?property=${id}`}>
               {t.estimateThisProperty}
             </Button>

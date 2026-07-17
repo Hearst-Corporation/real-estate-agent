@@ -88,8 +88,9 @@ const styles = {
       '[--btn-icon:var(--color-zinc-400)] data-active:[--btn-icon:var(--color-zinc-300)] data-hover:[--btn-icon:var(--color-zinc-300)]',
     ],
     indigo: [
-      'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-accent-500)] [--btn-border:var(--color-accent-600)]/90',
-      '[--btn-icon:var(--color-accent-300)] data-active:[--btn-icon:var(--color-accent-200)] data-hover:[--btn-icon:var(--color-accent-200)]',
+      // Accent "Pierre Blonde" (or) : fond clair → texte foncé pour contraste AA (zinc-950 sur or ≈ 9.6:1, vs blanc ≈ 2.1:1).
+      'text-zinc-950 [--btn-hover-overlay:var(--color-zinc-950)]/10 [--btn-bg:var(--color-accent-500)] [--btn-border:var(--color-accent-600)]/90',
+      '[--btn-icon:var(--color-accent-950)]/70 data-active:[--btn-icon:var(--color-accent-950)] data-hover:[--btn-icon:var(--color-accent-950)]',
     ],
     cyan: [
       'text-cyan-950 [--btn-bg:var(--color-cyan-300)] [--btn-border:var(--color-cyan-400)]/80 [--btn-hover-overlay:var(--color-white)]/25',
