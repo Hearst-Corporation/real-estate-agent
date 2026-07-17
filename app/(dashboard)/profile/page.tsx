@@ -3,6 +3,7 @@ import { getSession } from "@/lib/server/session";
 import { LogoutButton } from "@/components/cockpit/LogoutButton";
 import { IntegrationsPanel } from "./_components/IntegrationsPanel";
 import { MfaPanel } from "./_components/MfaPanel";
+import { AigentPanel } from "@/components/aigent/AigentPanel";
 import { UI } from "@/lib/ui-strings";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text, Code } from "@/components/ui/text";
@@ -114,6 +115,15 @@ export default async function ProfilePage() {
         <Subheading level={2}>{t.integrationsTitle}</Subheading>
         <Text className="mt-1 mb-4">{t.integrationsHint}</Text>
         <IntegrationsPanel />
+      </section>
+
+      <Divider />
+
+      {/* Copilotes IA (Aigent) — frontière consommateur, état réel (honnête) */}
+      <section>
+        <Subheading level={2}>{UI.aigent.sectionTitle}</Subheading>
+        <Text className="mt-1 mb-4">{UI.aigent.sectionHint}</Text>
+        <AigentPanel />
       </section>
     </div>
   );

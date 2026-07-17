@@ -1476,6 +1476,72 @@ export const UI = {
     },
     empty: "—",
   },
+  /**
+   * Frontière consommateur Aigent — libellés HONNÊTES. Aucun texte ne prétend
+   * qu'un agent tourne : quand Aigent n'est pas branché, tout est présenté comme
+   * « en spécification / indisponible ».
+   */
+  aigent: {
+    sectionTitle: "Copilotes IA (Aigent)",
+    sectionHint:
+      "Les agents métier sont conçus et déployés depuis la plateforme Aigent, puis reçus ici. Ce panneau montre l'état réel du raccordement — il ne fabrique aucun agent.",
+    statusTitle: "Raccordement",
+    statusUnavailable: "Non connecté",
+    statusChecking: "Vérification…",
+    unavailableHeadline: "Aigent non connecté — capacités en spécification",
+    reasons: {
+      not_configured:
+        "Aucune configuration Aigent détectée sur ce serveur. Les copilotes apparaîtront ici dès qu'Aigent sera raccordé.",
+      unreachable:
+        "Configuration Aigent présente, mais le canal de contrat n'est pas encore établi. Rien n'est exécuté tant que la liaison n'est pas vérifiée.",
+      unauthorized:
+        "Le jeton Aigent a été refusé. Aucune donnée n'est chargée tant que l'accès n'est pas rétabli.",
+      error: "Aigent injoignable pour le moment. Aucune donnée n'est inventée.",
+    } as Record<string, string>,
+    plannedTitle: "Capacités prévues",
+    plannedHint:
+      "Ce que cette frontière permettra une fois Aigent raccordé. Consultation et lancement uniquement — jamais de création ou de modification d'agent depuis ce workspace.",
+    unavailableTag: "Indisponible",
+    planned: {
+      list_agents: {
+        label: "Voir les copilotes du projet",
+        description: "Lister les agents métier déployés depuis Aigent, avec leur rôle et leur version.",
+      },
+      launch_capability: {
+        label: "Lancer une capacité autorisée",
+        description: "Déclencher une action que l'agent expose (qualification, analyse), sans jamais toucher à sa construction.",
+      },
+      observe_run: {
+        label: "Voir l'état réel d'un run",
+        description: "Suivre l'avancement d'une exécution en cours, tel que rapporté par l'agent — sans faux statut.",
+      },
+      sourced_results: {
+        label: "Résultats sourcés",
+        description: "Chaque résultat cite sa provenance et ses sources vérifiables. Aucun résultat non sourcé n'est présenté comme fiable.",
+      },
+      human_validation: {
+        label: "Validation humaine",
+        description: "Les actions à effet réel attendent votre confirmation avant de s'appliquer (contrôle humain).",
+      },
+      resume_or_refuse: {
+        label: "Reprendre ou refuser",
+        description: "Sur une exécution en attente, reprendre après validation ou refuser — la décision reste humaine.",
+      },
+      history: {
+        label: "Historique",
+        description: "Retrouver les exécutions passées et leurs résultats sourcés.",
+      },
+    },
+    boundaryTitle: "Ce que ce workspace ne fait pas",
+    boundaryItems: [
+      "Créer ou éditer un agent",
+      "Modifier un graph ou choisir des nodes",
+      "Déployer, promouvoir ou versionner un agent en automatique",
+      "Reconstruire un runtime d'agent en local",
+    ],
+    boundaryNote:
+      "Ce workspace est un consommateur : il reçoit et exploite les agents (consultation / lancement). Leur conception et leur promotion vivent dans Aigent.",
+  },
   login: {
     eyebrow: "Connexion",
     title: APP_NAME,
