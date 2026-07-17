@@ -54,6 +54,74 @@ export const UI = {
   dashboard: {
     eyebrow: "Cockpit",
     title: "Aujourd'hui",
+    /** Centre d'actions — « Que faire maintenant, pour qui, pourquoi ? ». */
+    center: {
+      title: "À traiter maintenant",
+      subtitle: (n: number) =>
+        n === 0
+          ? "Rien en attente — tout est à jour."
+          : `${n} action${n > 1 ? "s" : ""} prioritaire${n > 1 ? "s" : ""}, la plus urgente en premier.`,
+      filterAll: "Tout",
+      empty: "Rien à traiter pour l'instant.",
+      emptyHint: "Les relances, RDV et opportunités apparaîtront ici dès qu'il y en a.",
+      /** Libellés de catégorie (clés = ActionCategory). */
+      groups: {
+        overdue: "En retard",
+        today: "Aujourd'hui",
+        task: "Mes tâches",
+        validation: "À valider",
+        rdv: "Rendez-vous",
+        relance: "Relances",
+        proprietaire: "Propriétaires",
+        mandat: "Mandats à saisir",
+        estimation: "Estimations à reprendre",
+        acquereur: "Acquéreurs à servir",
+        match: "Matchs à examiner",
+      } as Record<string, string>,
+      /** Actions rapides. */
+      quick: {
+        call: "Appeler",
+        message: "Message",
+        schedule: "Planifier",
+        open: "Ouvrir",
+        done: "Traité",
+        snooze: "Reporter",
+        validate: "Valider",
+      },
+      /** Raisons métier (POURQUOI), injectées dans la dérivation. */
+      reasons: {
+        staleFor: (days: number) => `Non recontacté depuis ${days} j`,
+        visitWith: (who: string) => `Visite avec ${who}`,
+        rdvOn: "Rendez-vous à venir",
+        estimationResume: "Estimation à finaliser",
+        acquereurNoProposal: "Acquéreur sans proposition récente",
+        matchToReview: (score: number) => `Match à examiner · score ${score}`,
+        proprietaireToCall: "Propriétaire à rappeler",
+        mandateDraft: "Mandat en brouillon à finaliser",
+        taskDue: "Tâche du jour",
+        taskOverdue: "Tâche en retard",
+        taskOpen: "À faire",
+        validationNeeded: "Validation demandée",
+      },
+      fallback: {
+        lead: "Contact sans nom",
+        property: "Bien non renseigné",
+        estimation: "Estimation",
+        mandate: "Mandat",
+        critere: "Recherche acquéreur",
+      },
+      /** Titres/notes des tâches créées par une action rapide. */
+      messageTaskTitle: (who: string) => `Message à envoyer à ${who}`,
+      messageTaskNote: "Brouillon à rédiger — aucun envoi automatique (à faire manuellement).",
+      validationTaskTitle: (who: string) => `Validation à obtenir — ${who}`,
+      /** Retours après action (statut). */
+      notices: {
+        done: "Marqué comme traité.",
+        snoozed: "Reporté à demain.",
+        messageDrafted: "Tâche « message à envoyer » créée (brouillon, non envoyé).",
+        validationRequested: "Demande de validation enregistrée.",
+      },
+    },
     kpis: {
       properties: "Biens",
       activeLeads: "Leads actifs",
@@ -170,6 +238,8 @@ export const UI = {
       property: "Bien",
       status: "Statut",
       value: "Valeur",
+      type: "Type",
+      city: "Ville",
       updated: "Maj",
       action: "",
     },
@@ -1339,6 +1409,10 @@ export const UI = {
       toConfirm: "À confirmer",
     },
     locationSeparator: " — ",
+    noProperty: "Bien non renseigné",
+    noContact: "Contact non renseigné",
+    openProperty: "Voir le bien",
+    openContact: "Voir le contact",
   },
   profile: {
     eyebrow: "Compte",

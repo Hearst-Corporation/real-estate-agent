@@ -7,6 +7,8 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { Text } from "@/components/ui/text";
 import { Link } from "@/components/ui/link";
+import { ActionCenter } from "@/components/cockpit/ActionCenter";
+import { buildActionCenter, type DeriveInput, type DeriveLabels } from "@/lib/actions/derive";
 import {
   Table,
   TableBody,
@@ -18,27 +20,11 @@ import {
 
 const RECENT_PROPERTIES_LIMIT = 6;
 const LEADS_CLOSED = ["gagne", "perdu"];
-const TODAY_PREVIEW = 3;
-
-const HOURS_48_MS = 48 * 3600 * 1000;
-const DAYS_30_MS = 30 * 24 * 3600 * 1000;
-const DAYS_7_MS = 7 * 24 * 3600 * 1000;
+const FETCH_LIMIT = 200;
 
 /** CTA principal unique — or plein, texte foncé (contraste AA sur l'accent). */
 const PRIMARY_CTA =
   "group inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 shadow-[var(--shadow-card)] transition-[background-color,box-shadow] duration-200 hover:bg-accent-400 hover:shadow-[var(--shadow-card-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-700";
-
-// Fenêtres temporelles partagent le même instant (un seul Date.now()) pour éviter
-// des fenêtres incohérentes si plusieurs appels se décalent de quelques ms.
-function computeTimeWindows() {
-  const nowMs = Date.now();
-  return {
-    now: new Date(nowMs).toISOString(),
-    in48h: new Date(nowMs + HOURS_48_MS).toISOString(),
-    in30d: new Date(nowMs + DAYS_30_MS).toISOString(),
-    sevenDaysAgo: new Date(nowMs - DAYS_7_MS).toISOString(),
-  };
-}
 
 type PropertyRow = {
   id: string;
@@ -49,99 +35,35 @@ type PropertyRow = {
   updated_at: string;
 };
 
-type LeadRow = {
-  id: string;
-  full_name: string | null;
-  status: string;
-  updated_at: string;
-};
+/** Instant courant (isolé dans une fonction pour rester hors du corps de rendu). */
+function currentInstant(): { ms: number; iso: string } {
+  const ms = Date.now();
+  return { ms, iso: new Date(ms).toISOString() };
+}
 
-type VisitRow = {
-  id: string;
-  scheduled_at: string;
-  properties: { title: string | null; city: string | null } | null;
-};
-
-type MandateRow = {
-  id: string;
-  reference: string | null;
-  expires_at: string;
-  properties: { title: string | null; city: string | null } | null;
-};
-
-type EstimationRow = {
-  id: string;
-  city: string | null;
-  property_type: string | null;
-  status: string;
-  updated_at: string;
-};
-
-type ListItem = { id: string; line1: string; line2?: string; href: string };
-
-/** Liste actionnable d'un panneau (visites, mandats, estimations, leads). */
-function TaskList({
-  label,
-  hint,
-  items,
-  empty,
-  href,
-}: {
-  label: string;
-  hint?: string;
-  items: ListItem[];
-  empty: string;
-  href: string;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col">
-      <div className="flex items-baseline justify-between gap-3 border-b border-zinc-950/8 pb-2">
-        <span className="flex min-w-0 items-baseline gap-2">
-          <span className="truncate text-xs font-semibold uppercase tracking-widest text-zinc-500">
-            {label}
-          </span>
-          {hint ? (
-            <span className="hidden shrink-0 text-[11px] font-medium text-accent-600 @sm:inline">
-              {hint}
-            </span>
-          ) : null}
-        </span>
-        <Link
-          href={href}
-          className="shrink-0 rounded-sm text-xs font-medium text-accent-700 transition-colors hover:text-accent-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-        >
-          {UI.dashboard.today.seeAll}
-        </Link>
-      </div>
-      {items.length === 0 ? (
-        <p className="py-6 text-sm text-zinc-400">{empty}</p>
-      ) : (
-        <ul className="mt-1 flex flex-col">
-          {items.map((item) => (
-            <li key={item.id}>
-              <Link
-                href={item.href}
-                className="group -mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-accent-500/6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-zinc-900 transition-colors group-hover:text-accent-800">
-                    {item.line1}
-                  </span>
-                  {item.line2 ? (
-                    <span className="block truncate text-xs text-zinc-500">{item.line2}</span>
-                  ) : null}
-                </span>
-                <Icon
-                  name="chevron-right"
-                  className="size-4 shrink-0 text-zinc-300 transition-colors group-hover:text-accent-500"
-                />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+/** Construit les libellés de dérivation depuis UI.* (aucun texte en dur dans derive.ts). */
+function deriveLabels(): DeriveLabels {
+  const c = UI.dashboard.center;
+  return {
+    staleFor: c.reasons.staleFor,
+    visitWith: c.reasons.visitWith,
+    today: c.groups.today,
+    rdvOn: () => c.reasons.rdvOn,
+    estimationResume: c.reasons.estimationResume,
+    acquereurNoProposal: c.reasons.acquereurNoProposal,
+    matchToReview: c.reasons.matchToReview,
+    proprietaireToCall: c.reasons.proprietaireToCall,
+    mandateDraft: c.reasons.mandateDraft,
+    taskDue: c.reasons.taskDue,
+    taskOverdue: c.reasons.taskOverdue,
+    taskOpen: c.reasons.taskOpen,
+    validationNeeded: c.reasons.validationNeeded,
+    fallbackLead: c.fallback.lead,
+    fallbackProperty: c.fallback.property,
+    fallbackEstimation: c.fallback.estimation,
+    fallbackMandate: c.fallback.mandate,
+    fallbackCritere: c.fallback.critere,
+  };
 }
 
 /** Ligne d'actions secondaires compactes (l'action principale vit dans le header). */
@@ -180,15 +102,24 @@ export default async function DashboardPage() {
   let nbMandatsActifs = 0;
   let nbProperties = 0;
 
-  let leadsToFollow: LeadRow[] = [];
-  let upcomingVisits: VisitRow[] = [];
-  let expiringMandates: MandateRow[] = [];
-  let inProgressEstimations: EstimationRow[] = [];
+  const { ms: nowMs, iso: nowIso } = currentInstant();
+
+  // Entrées de dérivation du centre d'actions (toutes LIVE, owner-scopées).
+  const derive: DeriveInput = {
+    tasks: [],
+    leads: [],
+    visits: [],
+    estimations: [],
+    mandates: [],
+    criteres: [],
+    matchs: [],
+  };
 
   if (claims && sb) {
     const uid = claims.sub;
     const tid = tenantOf(claims);
-    const { now, in48h, in30d, sevenDaysAgo } = computeTimeWindows();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sbAny = sb as any;
 
     const [
       propertiesRes,
@@ -196,10 +127,13 @@ export default async function DashboardPage() {
       leadsCountRes,
       visitsCountRes,
       mandatesCountRes,
-      leadsFollowRes,
-      upcomingVisitsRes,
-      expiringMandatesRes,
-      inProgressEstimationsRes,
+      tasksRes,
+      leadsRes,
+      visitsRes,
+      estimationsRes,
+      mandatesRes,
+      criteresRes,
+      matchsRes,
     ] = await Promise.all([
       // Portefeuille récent
       sb
@@ -209,30 +143,26 @@ export default async function DashboardPage() {
         .eq("tenant_id", tid)
         .order("updated_at", { ascending: false })
         .limit(RECENT_PROPERTIES_LIMIT),
-
       // KPI : total biens
       sb
         .from("properties")
         .select("id", { count: "exact", head: true })
         .eq("user_id", uid)
         .eq("tenant_id", tid),
-
       // KPI : leads actifs
       sb
         .from("leads")
-        .select("id, status", { count: "exact" })
+        .select("id, status", { count: "exact", head: true })
         .eq("user_id", uid)
         .eq("tenant_id", tid)
         .not("status", "in", `(${LEADS_CLOSED.join(",")})`),
-
       // KPI : visites à venir
       sb
         .from("visits")
         .select("id", { count: "exact", head: true })
         .eq("user_id", uid)
         .eq("tenant_id", tid)
-        .gte("scheduled_at", now),
-
+        .gte("scheduled_at", nowIso),
       // KPI : mandats actifs
       sb
         .from("mandates")
@@ -240,75 +170,92 @@ export default async function DashboardPage() {
         .eq("user_id", uid)
         .eq("tenant_id", tid)
         .eq("status", "actif"),
-
-      // À faire : leads à relancer (pas touchés depuis 7j)
+      // Centre d'actions : tâches persistées ouvertes / reportées
+      sbAny
+        .from("rea_tasks")
+        .select("id, entity_type, entity_id, kind, title, priority, due_at, status, snoozed_until, notes")
+        .eq("user_id", uid)
+        .eq("tenant_id", tid)
+        .in("status", ["open", "snoozed"])
+        .limit(FETCH_LIMIT),
+      // Centre d'actions : leads (relances + propriétaires)
       sb
         .from("leads")
-        .select("id, full_name, status, updated_at")
+        .select("id, full_name, kind, status, phone, updated_at")
         .eq("user_id", uid)
         .eq("tenant_id", tid)
-        .not("status", "in", `(${LEADS_CLOSED.join(",")})`)
-        .lt("updated_at", sevenDaysAgo)
         .order("updated_at", { ascending: true })
-        .limit(TODAY_PREVIEW + 1),
-
-      // À faire : visites dans 48h
+        .limit(FETCH_LIMIT),
+      // Centre d'actions : visites (RDV du jour + à venir) avec liens entités
       sb
         .from("visits")
-        .select("id, scheduled_at, properties(title, city)")
+        .select("id, scheduled_at, status, property_id, lead_id, properties(title, city), leads(full_name)")
         .eq("user_id", uid)
         .eq("tenant_id", tid)
-        .gte("scheduled_at", now)
-        .lte("scheduled_at", in48h)
+        .gte("scheduled_at", nowIso)
         .order("scheduled_at", { ascending: true })
-        .limit(TODAY_PREVIEW + 1),
-
-      // À faire : mandats expirant dans 30j
-      sb
-        .from("mandates")
-        .select("id, reference, expires_at, properties(title, city)")
-        .eq("user_id", uid)
-        .eq("tenant_id", tid)
-        .eq("status", "actif")
-        .gte("expires_at", now)
-        .lte("expires_at", in30d)
-        .order("expires_at", { ascending: true })
-        .limit(TODAY_PREVIEW + 1),
-
-      // À faire : estimations en cours
+        .limit(FETCH_LIMIT),
+      // Centre d'actions : estimations à reprendre
       sb
         .from("estimations")
         .select("id, city, property_type, status, updated_at")
         .eq("user_id", uid)
         .eq("tenant_id", tid)
-        .in("status", ["draft", "interviewing", "recap", "valuating"])
         .order("updated_at", { ascending: false })
-        .limit(TODAY_PREVIEW + 1),
+        .limit(FETCH_LIMIT),
+      // Centre d'actions : mandats brouillon (opportunités)
+      sb
+        .from("mandates")
+        .select("id, reference, status, expires_at, properties(title, city)")
+        .eq("user_id", uid)
+        .eq("tenant_id", tid)
+        .eq("status", "brouillon")
+        .limit(FETCH_LIMIT),
+      // Centre d'actions : critères acquéreur actifs
+      sbAny
+        .from("prosp_criteres_acquereur")
+        .select("id, nom, lead_id, actif, updated_at")
+        .eq("user_id", uid)
+        .eq("tenant_id", tid)
+        .eq("actif", true)
+        .limit(FETCH_LIMIT),
+      // Centre d'actions : matchs récents (score desc)
+      sbAny
+        .from("prosp_matchs")
+        .select("id, score_match, critere_id, created_at")
+        .eq("user_id", uid)
+        .eq("tenant_id", tid)
+        .order("created_at", { ascending: false })
+        .limit(FETCH_LIMIT),
     ]);
 
     properties = filterSeed((propertiesRes.data ?? []) as PropertyRow[], (p) => [p.title, p.city]);
     nbProperties = propertiesTotalRes.count ?? 0;
-    nbLeadsActifs = leadsCountRes.count ?? (leadsCountRes.data?.length ?? 0);
+    nbLeadsActifs = leadsCountRes.count ?? 0;
     nbVisitesAVenir = visitsCountRes.count ?? 0;
     nbMandatsActifs = mandatesCountRes.count ?? 0;
 
-    leadsToFollow = filterSeed((leadsFollowRes.data ?? []) as LeadRow[], (l) => [l.full_name]).slice(
-      0,
-      TODAY_PREVIEW
+    // On masque les données de SEED des relances/propriétaires (comme les listes).
+    derive.tasks = (tasksRes.data ?? []) as DeriveInput["tasks"];
+    derive.leads = filterSeed(
+      (leadsRes.data ?? []) as DeriveInput["leads"],
+      (l) => [l.full_name],
     );
-    upcomingVisits = ((upcomingVisitsRes.data ?? []) as unknown as VisitRow[]).slice(
-      0,
-      TODAY_PREVIEW
+    derive.visits = (visitsRes.data ?? []) as unknown as DeriveInput["visits"];
+    derive.estimations = filterSeed(
+      (estimationsRes.data ?? []) as DeriveInput["estimations"],
+      (e) => [e.city],
     );
-    expiringMandates = (
-      (expiringMandatesRes.data ?? []) as unknown as MandateRow[]
-    ).slice(0, TODAY_PREVIEW);
-    inProgressEstimations = (
-      (inProgressEstimationsRes.data ?? []) as EstimationRow[]
-    ).slice(0, TODAY_PREVIEW);
+    derive.mandates = (mandatesRes.data ?? []) as unknown as DeriveInput["mandates"];
+    derive.criteres = filterSeed(
+      (criteresRes.data ?? []) as DeriveInput["criteres"],
+      (c) => [c.nom],
+    );
+    derive.matchs = (matchsRes.data ?? []) as DeriveInput["matchs"];
   }
 
   const t = UI.dashboard;
+  const { items: actionItems } = buildActionCenter(derive, nowMs, deriveLabels());
 
   const secondaryActions: { href: string; label: string; icon: IconName }[] = [
     { href: "/properties?new=1", label: t.actions.newProperty, icon: "properties" },
@@ -316,42 +263,6 @@ export default async function DashboardPage() {
     { href: "/visits?new=1", label: t.actions.newVisit, icon: "visits" },
     { href: "/prospection", label: t.actions.launchPros, icon: "search" },
   ];
-
-  // leads / visits / mandates n'ont pas de page détail [id] (édition via drawer
-  // inline dans la liste) — on pointe vers la liste, pas vers une route 404.
-  const leadItems: ListItem[] = leadsToFollow.map((l) => ({
-    id: l.id,
-    line1: l.full_name ?? "Lead sans nom",
-    line2: `Statut : ${l.status} · ${dateFr(l.updated_at)}`,
-    href: "/leads",
-  }));
-
-  const visitItems: ListItem[] = upcomingVisits.map((v) => {
-    const prop = v.properties;
-    return {
-      id: v.id,
-      line1: prop?.title ?? prop?.city ?? "Bien non renseigné",
-      line2: dateFr(v.scheduled_at),
-      href: "/visits",
-    };
-  });
-
-  const mandateItems: ListItem[] = expiringMandates.map((m) => {
-    const prop = m.properties;
-    return {
-      id: m.id,
-      line1: prop?.title ?? m.reference ?? "Mandat",
-      line2: `Expire le ${dateFr(m.expires_at)}`,
-      href: "/mandates",
-    };
-  });
-
-  const estimationItems: ListItem[] = inProgressEstimations.map((e) => ({
-    id: e.id,
-    line1: e.city ?? "Estimation",
-    line2: `${e.property_type ?? "—"} · ${e.status} · ${dateFr(e.updated_at)}`,
-    href: `/estimations/${e.id}`,
-  }));
 
   const kpis = [
     { label: t.kpis.properties, value: String(nbProperties), icon: "properties" as IconName },
@@ -399,69 +310,16 @@ export default async function DashboardPage() {
         ))}
       </dl>
 
-      {/* (a) À FAIRE MAINTENANT — bloc dominant : hero or, urgences opérationnelles */}
-      <section className="surface border-t-2 border-t-accent-500/50 bg-gradient-to-br from-accent-500/10 via-white to-white p-6 shadow-[var(--shadow-hero)] @2xl:p-7">
-        <div className="mb-5 flex items-center gap-3">
-          <span
-            aria-hidden="true"
-            className="flex size-9 items-center justify-center rounded-xl bg-accent-500/15 text-accent-700"
-          >
-            <Icon name="agenda" className="size-5" />
-          </span>
-          <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.today.title}</h2>
-        </div>
-        <div className="grid grid-cols-1 gap-x-10 gap-y-6 @2xl:grid-cols-2">
-          <TaskList
-            label={t.today.visitsLabel}
-            items={visitItems}
-            empty={t.today.emptyVisits}
-            href="/visits"
-          />
-          <TaskList
-            label={t.today.mandatesLabel}
-            items={mandateItems}
-            empty={t.today.emptyMandates}
-            href="/mandates"
-          />
-        </div>
-      </section>
+      {/* (a) CENTRE D'ACTIONS — bloc dominant : quoi faire, pour qui, pourquoi */}
+      <ActionCenter items={actionItems} />
 
-      {/* (b) OPPORTUNITÉS — reframe des données chaudes réelles (pas de fabrication) */}
-      <section>
-        <div className="mb-4 flex items-center gap-3">
-          <span
-            aria-hidden="true"
-            className="flex size-8 items-center justify-center rounded-lg bg-accent-500/10 text-accent-600"
-          >
-            <Icon name="estimate" className="size-4" />
-          </span>
-          <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.opportunities.title}</h2>
-        </div>
-        <div className="grid grid-cols-1 gap-x-10 gap-y-6 rounded-2xl border border-accent-500/10 bg-white/60 p-6 @2xl:grid-cols-2">
-          <TaskList
-            label={t.opportunities.estimationsLabel}
-            hint={t.opportunities.estimationsHint}
-            items={estimationItems}
-            empty={t.opportunities.emptyEstimations}
-            href="/estimations"
-          />
-          <TaskList
-            label={t.opportunities.leadsLabel}
-            hint={t.opportunities.leadsHint}
-            items={leadItems}
-            empty={t.opportunities.emptyLeads}
-            href="/leads"
-          />
-        </div>
-      </section>
-
-      {/* (c) ACTIONS RAPIDES — secondaires (l'action principale est dans le header) */}
+      {/* (b) ACTIONS RAPIDES — créer une entité (l'action principale est dans le header) */}
       <section>
         <h2 className="mb-4 font-titre text-xl font-semibold text-zinc-900">{t.actions.title}</h2>
         <ActionTiles items={secondaryActions} />
       </section>
 
-      {/* (d) ACTIVITÉ RÉCENTE — portefeuille récent */}
+      {/* (c) PORTEFEUILLE RÉCENT */}
       <section>
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.recentPortfolio}</h2>
@@ -494,22 +352,22 @@ export default async function DashboardPage() {
             <Table dense grid>
               <TableHead>
                 <TableRow>
-                  <TableHeader>Bien</TableHeader>
-                  <TableHeader>Statut</TableHeader>
-                  <TableHeader>Type</TableHeader>
-                  <TableHeader>Ville</TableHeader>
-                  <TableHeader className="text-right">Maj</TableHeader>
+                  <TableHeader>{UI.dashboard.table.property}</TableHeader>
+                  <TableHeader>{UI.dashboard.table.status}</TableHeader>
+                  <TableHeader>{UI.dashboard.table.type}</TableHeader>
+                  <TableHeader>{UI.dashboard.table.city}</TableHeader>
+                  <TableHeader className="text-right">{UI.dashboard.table.updated}</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {properties.map((r) => (
                   <TableRow key={r.id} href={`/properties/${r.id}`}>
                     <TableCell className="font-medium text-zinc-950">
-                      {r.title ?? r.city ?? "Bien sans titre"}
+                      {r.title ?? r.city ?? UI.dashboard.center.fallback.property}
                     </TableCell>
                     <TableCell className="text-zinc-500">{r.status}</TableCell>
-                    <TableCell className="text-zinc-500">{r.property_type ?? "—"}</TableCell>
-                    <TableCell className="text-zinc-500">{r.city ?? "—"}</TableCell>
+                    <TableCell className="text-zinc-500">{r.property_type ?? UI.common.empty}</TableCell>
+                    <TableCell className="text-zinc-500">{r.city ?? UI.common.empty}</TableCell>
                     <TableCell className="text-right text-zinc-500">{dateFr(r.updated_at)}</TableCell>
                   </TableRow>
                 ))}

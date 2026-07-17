@@ -1,4 +1,5 @@
 import { CalendarIcon, MapPinIcon, UserIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { dateFr, timeFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
@@ -14,6 +15,8 @@ type VisitRow = {
   scheduled_at: string;
   duration_min: number;
   status: string;
+  property_id: string | null;
+  lead_id: string | null;
   properties: { title: string | null; city: string | null } | null;
   leads: { full_name: string } | null;
 };
@@ -48,7 +51,9 @@ export default async function AgendaPage() {
     const now = new Date().toISOString();
     const { data } = await sb
       .from("visits")
-      .select("id, scheduled_at, duration_min, status, properties(title, city), leads(full_name)")
+      .select(
+        "id, scheduled_at, duration_min, status, property_id, lead_id, properties(title, city), leads(full_name)",
+      )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
       .gte("scheduled_at", now)
@@ -111,16 +116,55 @@ export default async function AgendaPage() {
                     <CalendarIcon aria-hidden="true" className="size-6" />
                   </div>
                   <div className="min-w-0 flex-auto">
-                    <p className="text-sm font-semibold text-zinc-950 dark:text-white">
-                      {v.properties?.title ?? v.properties?.city ?? "—"}
-                    </p>
+                    {/* Bien lié → fiche bien */}
+                    {v.property_id ? (
+                      <Link
+                        href={`/properties/${v.property_id}`}
+                        className="rounded-sm text-sm font-semibold text-zinc-950 hover:text-accent-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 dark:text-white"
+                      >
+                        {v.properties?.title ?? v.properties?.city ?? t.noProperty}
+                      </Link>
+                    ) : (
+                      <p className="text-sm font-semibold text-zinc-950 dark:text-white">
+                        {v.properties?.title ?? v.properties?.city ?? t.noProperty}
+                      </p>
+                    )}
+                    {/* Contact lié → fiche lead */}
                     <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-zinc-500 dark:text-zinc-400">
                       <UserIcon
                         aria-hidden="true"
                         className="size-4 text-zinc-400 dark:text-zinc-500"
                       />
-                      {v.leads?.full_name ?? "—"}
+                      {v.lead_id ? (
+                        <Link
+                          href={`/leads/${v.lead_id}`}
+                          className="rounded-sm hover:text-accent-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+                        >
+                          {v.leads?.full_name ?? t.noContact}
+                        </Link>
+                      ) : (
+                        (v.leads?.full_name ?? t.noContact)
+                      )}
                     </p>
+                    {/* Navigation dossier */}
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                      {v.property_id ? (
+                        <Link
+                          href={`/properties/${v.property_id}`}
+                          className="rounded-sm text-xs font-medium text-accent-700 hover:text-accent-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+                        >
+                          {t.openProperty}
+                        </Link>
+                      ) : null}
+                      {v.lead_id ? (
+                        <Link
+                          href={`/leads/${v.lead_id}`}
+                          className="rounded-sm text-xs font-medium text-accent-700 hover:text-accent-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+                        >
+                          {t.openContact}
+                        </Link>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
                 <div className="flex shrink-0 flex-col items-end justify-center gap-1">
