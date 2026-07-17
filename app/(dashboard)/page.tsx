@@ -1,4 +1,3 @@
-import { PlusIcon } from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
 import { Icon, type IconName } from "@/components/cockpit/Icon";
 import { dateFr } from "@/lib/crm/format";
@@ -6,8 +5,7 @@ import { filterSeed } from "@/lib/crm/demo-filter";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
-import { Button } from "@/components/ui/button";
-import { Text, TextLink } from "@/components/ui/text";
+import { Text } from "@/components/ui/text";
 import { Link } from "@/components/ui/link";
 import {
   Table,
@@ -25,6 +23,10 @@ const TODAY_PREVIEW = 3;
 const HOURS_48_MS = 48 * 3600 * 1000;
 const DAYS_30_MS = 30 * 24 * 3600 * 1000;
 const DAYS_7_MS = 7 * 24 * 3600 * 1000;
+
+/** CTA principal unique — or plein, texte foncé (contraste AA sur l'accent). */
+const PRIMARY_CTA =
+  "group inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 shadow-[var(--shadow-card)] transition-[background-color,box-shadow] duration-200 hover:bg-accent-400 hover:shadow-[var(--shadow-card-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-700";
 
 // Fenêtres temporelles partagent le même instant (un seul Date.now()) pour éviter
 // des fenêtres incohérentes si plusieurs appels se décalent de quelques ms.
@@ -75,41 +77,64 @@ type EstimationRow = {
   updated_at: string;
 };
 
-function TodayBlock({
+type ListItem = { id: string; line1: string; line2?: string; href: string };
+
+/** Liste actionnable d'un panneau (visites, mandats, estimations, leads). */
+function TaskList({
   label,
+  hint,
   items,
   empty,
   href,
 }: {
   label: string;
-  items: { id: string; line1: string; line2?: string; href: string }[];
+  hint?: string;
+  items: ListItem[];
   empty: string;
   href: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-accent-500/10 bg-lin-brut/50 p-4 transition-colors hover:border-accent-500/25">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-          {label}
+    <div className="flex min-w-0 flex-col">
+      <div className="flex items-baseline justify-between gap-3 border-b border-zinc-950/8 pb-2">
+        <span className="flex min-w-0 items-baseline gap-2">
+          <span className="truncate text-xs font-semibold uppercase tracking-widest text-zinc-500">
+            {label}
+          </span>
+          {hint ? (
+            <span className="hidden shrink-0 text-[11px] font-medium text-accent-600 @sm:inline">
+              {hint}
+            </span>
+          ) : null}
         </span>
-        <TextLink href={href} className="text-xs">
+        <Link
+          href={href}
+          className="shrink-0 rounded-sm text-xs font-medium text-accent-700 transition-colors hover:text-accent-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+        >
           {UI.dashboard.today.seeAll}
-        </TextLink>
+        </Link>
       </div>
       {items.length === 0 ? (
-        <Text className="py-4 text-center">{empty}</Text>
+        <p className="py-6 text-sm text-zinc-400">{empty}</p>
       ) : (
-        <ul className="flex flex-col divide-y divide-zinc-950/5 dark:divide-white/5">
+        <ul className="mt-1 flex flex-col">
           {items.map((item) => (
             <li key={item.id}>
               <Link
                 href={item.href}
-                className="flex flex-col gap-0.5 py-2 text-sm text-zinc-950 transition-colors hover:text-accent-700"
+                className="group -mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-accent-500/6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
               >
-                <span className="font-medium">{item.line1}</span>
-                {item.line2 ? (
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">{item.line2}</span>
-                ) : null}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-zinc-900 transition-colors group-hover:text-accent-800">
+                    {item.line1}
+                  </span>
+                  {item.line2 ? (
+                    <span className="block truncate text-xs text-zinc-500">{item.line2}</span>
+                  ) : null}
+                </span>
+                <Icon
+                  name="chevron-right"
+                  className="size-4 shrink-0 text-zinc-300 transition-colors group-hover:text-accent-500"
+                />
               </Link>
             </li>
           ))}
@@ -119,44 +144,28 @@ function TodayBlock({
   );
 }
 
-/** Bloc d'actions cockpit : une action principale forte + 4 secondaires compactes. */
-function QuickActions({
-  primary,
-  secondary,
+/** Ligne d'actions secondaires compactes (l'action principale vit dans le header). */
+function ActionTiles({
+  items,
 }: {
-  primary: { href: string; label: string; desc: string; icon: IconName };
-  secondary: { href: string; label: string; icon: IconName }[];
+  items: { href: string; label: string; icon: IconName }[];
 }) {
   return (
-    <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)]">
-      <Link
-        href={primary.href}
-        className="flex items-center gap-4 rounded-xl border border-accent-500/20 border-t-2 border-t-accent-500/50 bg-gradient-to-br from-accent-500/12 via-white to-white p-5 shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)]"
-      >
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent-500/15 text-accent-600">
-          <Icon name={primary.icon} />
-        </span>
-        <span className="flex flex-col gap-0.5">
-          <span className="text-sm font-semibold text-zinc-950">{primary.label}</span>
-          <span className="text-xs text-zinc-500">{primary.desc}</span>
-        </span>
-      </Link>
-      <div className="grid grid-cols-2 gap-3 @lg:grid-cols-4">
-        {secondary.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="group flex flex-col items-center gap-2 rounded-xl border border-accent-500/10 bg-white p-4 text-center shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)]"
-          >
-            <span className="flex size-10 items-center justify-center rounded-xl bg-accent-500/10 text-accent-600 transition-colors group-hover:bg-accent-500/15">
-              <Icon name={item.icon} />
-            </span>
-            <span className="text-xs font-medium text-zinc-700 transition-colors group-hover:text-accent-700">
-              {item.label}
-            </span>
-          </Link>
-        ))}
-      </div>
+    <div className="grid grid-cols-2 gap-3 @xl:grid-cols-4">
+      {items.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className="group flex items-center gap-3 rounded-xl border border-accent-500/12 bg-white px-4 py-3 shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent-500/10 text-accent-600 transition-colors group-hover:bg-accent-500/15">
+            <Icon name={item.icon} className="size-5" />
+          </span>
+          <span className="min-w-0 truncate text-sm font-medium text-zinc-800 transition-colors group-hover:text-accent-800">
+            {item.label}
+          </span>
+        </Link>
+      ))}
     </div>
   );
 }
@@ -301,12 +310,6 @@ export default async function DashboardPage() {
 
   const t = UI.dashboard;
 
-  const primaryAction = {
-    href: "/estimations/new",
-    label: t.actions.newEstimation,
-    desc: t.actions.newEstimationDesc,
-    icon: "estimate" as IconName,
-  };
   const secondaryActions: { href: string; label: string; icon: IconName }[] = [
     { href: "/properties?new=1", label: t.actions.newProperty, icon: "properties" },
     { href: "/leads?new=1", label: t.actions.newClient, icon: "leads" },
@@ -316,14 +319,14 @@ export default async function DashboardPage() {
 
   // leads / visits / mandates n'ont pas de page détail [id] (édition via drawer
   // inline dans la liste) — on pointe vers la liste, pas vers une route 404.
-  const leadItems = leadsToFollow.map((l) => ({
+  const leadItems: ListItem[] = leadsToFollow.map((l) => ({
     id: l.id,
     line1: l.full_name ?? "Lead sans nom",
     line2: `Statut : ${l.status} · ${dateFr(l.updated_at)}`,
     href: "/leads",
   }));
 
-  const visitItems = upcomingVisits.map((v) => {
+  const visitItems: ListItem[] = upcomingVisits.map((v) => {
     const prop = v.properties;
     return {
       id: v.id,
@@ -333,7 +336,7 @@ export default async function DashboardPage() {
     };
   });
 
-  const mandateItems = expiringMandates.map((m) => {
+  const mandateItems: ListItem[] = expiringMandates.map((m) => {
     const prop = m.properties;
     return {
       id: m.id,
@@ -343,7 +346,7 @@ export default async function DashboardPage() {
     };
   });
 
-  const estimationItems = inProgressEstimations.map((e) => ({
+  const estimationItems: ListItem[] = inProgressEstimations.map((e) => ({
     id: e.id,
     line1: e.city ?? "Estimation",
     line2: `${e.property_type ?? "—"} · ${e.status} · ${dateFr(e.updated_at)}`,
@@ -358,111 +361,136 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Header de page — structure headings__page-headings/01-with-actions montée en primitives */}
-      <div className="md:flex md:items-center md:justify-between">
-        <div className="min-w-0 flex-1">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
+      {/* Header — eyebrow + titre court + action principale UNIQUE (or) */}
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-600">
             <span aria-hidden className="h-px w-6 bg-accent-500/70" />
             {t.eyebrow}
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:truncate">
+          <h1 className="mt-2 font-titre text-3xl font-semibold tracking-tight text-zinc-900">
             {t.title}
           </h1>
-          <Text className="mt-1.5">{t.sub}</Text>
         </div>
-        <div className="mt-4 flex md:mt-0 md:ml-4">
-          <Button color="indigo" href="/properties/new">
-            {t.newCta}
-          </Button>
-        </div>
-      </div>
+        <Link href="/estimations/new" className={PRIMARY_CTA}>
+          <Icon name="estimate" className="size-5" />
+          {t.actions.newEstimation}
+        </Link>
+      </header>
 
-      {/* KPI tiles — cartes flottantes blanc pur, chiffre or serif (data-display__stats) */}
-      <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* KPI — bandeau léger à filets or (pas 4 cartes encagées) */}
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-accent-500/12 bg-accent-500/15 shadow-[var(--shadow-card)] @xl:grid-cols-4">
         {kpis.map((item) => (
-          <div
-            key={item.label}
-            className="group overflow-hidden rounded-2xl border border-accent-500/10 border-t-2 border-t-accent-500/40 bg-white px-6 py-6 shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)]"
-          >
-            <div className="flex items-center justify-between">
-              <dt className="truncate text-xs font-semibold uppercase tracking-widest text-zinc-500">
-                {item.label}
-              </dt>
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-500/10 text-accent-600 transition-colors group-hover:bg-accent-500/15">
-                <Icon name={item.icon} />
-              </span>
+          <div key={item.label} className="flex items-center gap-3 bg-white px-5 py-4">
+            <span
+              aria-hidden="true"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent-500/10 text-accent-600"
+            >
+              <Icon name={item.icon} className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <dd className="text-2xl font-semibold leading-none tracking-tight text-accent-700 tabular-nums">
+                {item.value}
+              </dd>
+              <dt className="mt-1.5 truncate text-xs font-medium text-zinc-500">{item.label}</dt>
             </div>
-            <dd className="mt-3 text-3xl font-semibold tracking-tight text-accent-700 tabular-nums">
-              {item.value}
-            </dd>
           </div>
         ))}
       </dl>
 
-      {/* Actions — card conteneur flottante (layout__cards) + grille d'actions cockpit */}
-      <section className="rounded-2xl border border-accent-500/10 bg-white p-6 shadow-[var(--shadow-card)]">
-        <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.actions.title}</h2>
-        <div className="mt-5">
-          <QuickActions primary={primaryAction} secondary={secondaryActions} />
+      {/* (a) À FAIRE MAINTENANT — bloc dominant : hero or, urgences opérationnelles */}
+      <section className="surface border-t-2 border-t-accent-500/50 bg-gradient-to-br from-accent-500/10 via-white to-white p-6 shadow-[var(--shadow-hero)] @2xl:p-7">
+        <div className="mb-5 flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="flex size-9 items-center justify-center rounded-xl bg-accent-500/15 text-accent-700"
+          >
+            <Icon name="agenda" className="size-5" />
+          </span>
+          <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.today.title}</h2>
         </div>
-      </section>
-
-      {/* À faire aujourd'hui — card flottante + grille de listes empilées (lists__stacked-lists) */}
-      <section className="rounded-2xl border border-accent-500/10 bg-white p-6 shadow-[var(--shadow-card)]">
-        <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.today.title}</h2>
-        <div className="mt-5 grid grid-cols-1 gap-4 @2xl:grid-cols-2 @6xl:grid-cols-4">
-          <TodayBlock
-            label={t.today.leadsLabel}
-            items={leadItems}
-            empty={t.today.emptyLeads}
-            href="/leads"
-          />
-          <TodayBlock
+        <div className="grid grid-cols-1 gap-x-10 gap-y-6 @2xl:grid-cols-2">
+          <TaskList
             label={t.today.visitsLabel}
             items={visitItems}
             empty={t.today.emptyVisits}
             href="/visits"
           />
-          <TodayBlock
+          <TaskList
             label={t.today.mandatesLabel}
             items={mandateItems}
             empty={t.today.emptyMandates}
             href="/mandates"
           />
-          <TodayBlock
-            label={t.today.estimationsLabel}
+        </div>
+      </section>
+
+      {/* (b) OPPORTUNITÉS — reframe des données chaudes réelles (pas de fabrication) */}
+      <section>
+        <div className="mb-4 flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="flex size-8 items-center justify-center rounded-lg bg-accent-500/10 text-accent-600"
+          >
+            <Icon name="estimate" className="size-4" />
+          </span>
+          <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.opportunities.title}</h2>
+        </div>
+        <div className="grid grid-cols-1 gap-x-10 gap-y-6 rounded-2xl border border-accent-500/10 bg-white/60 p-6 @2xl:grid-cols-2">
+          <TaskList
+            label={t.opportunities.estimationsLabel}
+            hint={t.opportunities.estimationsHint}
             items={estimationItems}
-            empty={t.today.emptyEstimations}
+            empty={t.opportunities.emptyEstimations}
             href="/estimations"
+          />
+          <TaskList
+            label={t.opportunities.leadsLabel}
+            hint={t.opportunities.leadsHint}
+            items={leadItems}
+            empty={t.opportunities.emptyLeads}
+            href="/leads"
           />
         </div>
       </section>
 
-      {/* Portefeuille récent — card flottante + Table Catalyst + empty-state */}
-      <section className="rounded-2xl border border-accent-500/10 bg-white p-6 shadow-[var(--shadow-card)]">
-        <div className="flex items-center justify-between gap-4">
+      {/* (c) ACTIONS RAPIDES — secondaires (l'action principale est dans le header) */}
+      <section>
+        <h2 className="mb-4 font-titre text-xl font-semibold text-zinc-900">{t.actions.title}</h2>
+        <ActionTiles items={secondaryActions} />
+      </section>
+
+      {/* (d) ACTIVITÉ RÉCENTE — portefeuille récent */}
+      <section>
+        <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.recentPortfolio}</h2>
           {properties.length > 0 ? (
-            <TextLink href="/properties" className="text-sm">
+            <Link
+              href="/properties"
+              className="shrink-0 rounded-sm text-sm font-medium text-accent-700 transition-colors hover:text-accent-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+            >
               {t.seeAllProperties}
-            </TextLink>
+            </Link>
           ) : null}
         </div>
 
         {properties.length === 0 ? (
-          <div className="py-10 text-center">
-            <PlusIcon aria-hidden="true" className="mx-auto size-10 text-zinc-400 dark:text-zinc-500" />
-            <Text className="mt-2 text-center">{t.propertiesEmpty}</Text>
-            <div className="mt-6">
-              <Button color="indigo" href="/properties">
-                <PlusIcon aria-hidden="true" />
-                {t.addProperty}
-              </Button>
-            </div>
+          <div className="surface flex flex-col items-center gap-4 px-6 py-12 text-center">
+            <span
+              aria-hidden="true"
+              className="flex size-12 items-center justify-center rounded-2xl bg-accent-500/10 text-accent-600"
+            >
+              <Icon name="properties" className="size-6" />
+            </span>
+            <Text>{t.propertiesEmpty}</Text>
+            <Link href="/properties?new=1" className={PRIMARY_CTA}>
+              <Icon name="plus" className="size-5" />
+              {t.addProperty}
+            </Link>
           </div>
         ) : (
-          <div className="mt-4">
+          <div className="surface overflow-hidden px-5 py-2">
             <Table dense grid>
               <TableHead>
                 <TableRow>
@@ -476,17 +504,13 @@ export default async function DashboardPage() {
               <TableBody>
                 {properties.map((r) => (
                   <TableRow key={r.id} href={`/properties/${r.id}`}>
-                    <TableCell className="font-medium text-zinc-950 dark:text-white">
+                    <TableCell className="font-medium text-zinc-950">
                       {r.title ?? r.city ?? "Bien sans titre"}
                     </TableCell>
-                    <TableCell className="text-zinc-500 dark:text-zinc-400">{r.status}</TableCell>
-                    <TableCell className="text-zinc-500 dark:text-zinc-400">
-                      {r.property_type ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-zinc-500 dark:text-zinc-400">{r.city ?? "—"}</TableCell>
-                    <TableCell className="text-right text-zinc-500 dark:text-zinc-400">
-                      {dateFr(r.updated_at)}
-                    </TableCell>
+                    <TableCell className="text-zinc-500">{r.status}</TableCell>
+                    <TableCell className="text-zinc-500">{r.property_type ?? "—"}</TableCell>
+                    <TableCell className="text-zinc-500">{r.city ?? "—"}</TableCell>
+                    <TableCell className="text-right text-zinc-500">{dateFr(r.updated_at)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
