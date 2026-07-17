@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { LeadKanban } from "@/components/cockpit/LeadKanban";
 import { StatusSelect } from "@/components/cockpit/StatusSelect";
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "@/components/ui/table";
@@ -96,8 +97,13 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
           <TableBody>
             {leads.map((l) => (
               <TableRow key={l.id}>
-                <TableCell className="font-medium text-zinc-950 dark:text-white">
-                  {l.full_name}
+                <TableCell className="font-medium">
+                  <Link
+                    href={`/leads/${l.id}`}
+                    className="text-accent-600 hover:text-accent-500 dark:text-accent-400 dark:hover:text-accent-300"
+                  >
+                    {l.full_name}
+                  </Link>
                 </TableCell>
                 <TableCell>
                   {l.kind ? <Badge color="zinc">{t.kindLabels[l.kind] ?? l.kind}</Badge> : "—"}

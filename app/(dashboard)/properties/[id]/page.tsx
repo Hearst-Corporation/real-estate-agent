@@ -155,7 +155,7 @@ export default async function PropertyDetailPage({
           value: (
             <Link
               href={`/estimations/${property.estimation_id}`}
-              className="font-semibold text-accent-300 hover:text-accent-200"
+              className="font-semibold text-accent-600 hover:text-accent-500"
             >
               {t.seeEstimation}
             </Link>
@@ -370,7 +370,7 @@ export default async function PropertyDetailPage({
                 href={`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-accent-300 hover:text-accent-200"
+                className="mt-1 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-accent-600 hover:text-accent-500"
               >
                 <span aria-hidden="true">{"📍"}</span>
                 {td.locMapsLink}

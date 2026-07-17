@@ -340,7 +340,7 @@ export function PropertyForm({ id, defaultValues = {}, onClose }: PropertyFormPr
       {error && <ErrorMessage>{error}</ErrorMessage>}
 
       <div className="flex items-center gap-2">
-        <Button type="submit" color="indigo" disabled={loading} aria-busy={loading}>
+        <Button type="submit" color="indigo" className="!text-zinc-950" disabled={loading} aria-busy={loading}>
           {loading ? UI.common.saving : t.form.save}
         </Button>
         {onClose && (
@@ -368,7 +368,7 @@ export default function PropertyFormModal({ id, defaultValues, triggerLabel }: P
 
   return (
     <>
-      <Button color="indigo" onClick={() => setOpen(true)}>
+      <Button color="indigo" className="!text-zinc-950" onClick={() => setOpen(true)}>
         {triggerLabel ?? t.newCta}
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} size="2xl">

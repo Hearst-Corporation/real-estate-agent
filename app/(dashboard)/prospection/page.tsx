@@ -6,11 +6,12 @@ import {
   SparklesIcon,
   BuildingOffice2Icon,
   ArrowTopRightOnSquareIcon,
+  HandThumbUpIcon,
+  HandThumbDownIcon,
 } from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
 import { Field, Label, FieldGroup } from "@/components/ui/fieldset";
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
@@ -169,7 +170,7 @@ function EmptyState({
           {steps.map((s, i) => (
             <li key={i} className="flex items-center gap-2.5 text-sm text-zinc-600 dark:text-zinc-300">
               <span
-                className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-xs font-semibold text-accent-500 dark:text-accent-300"
+                className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-xs font-semibold text-accent-700 dark:text-accent-300"
                 aria-hidden="true"
               >
                 {i + 1}
@@ -259,7 +260,7 @@ function AnnonceCard({
                 href={annonce.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-500 hover:text-accent-400 dark:text-accent-400 dark:hover:text-accent-300"
+                className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400 dark:hover:text-accent-300"
               >
                 {UI.prospection.annonceVoir}
                 <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-3.5" />
@@ -281,7 +282,6 @@ export default function ProspectionPage() {
   const [criteres, setCriteres] = useState<Critere[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterEligible, setFilterEligible] = useState(false);
   // Détail annonce (ouvert depuis une card annonce OU une ligne de match).
   const [detailAnnonce, setDetailAnnonce] = useState<Annonce | null>(null);
   const [detailMatch, setDetailMatch] = useState<Match | undefined>(undefined);
@@ -300,12 +300,11 @@ export default function ProspectionPage() {
     setDetailMatch(undefined);
   }
 
-  async function loadAnnonces(nextFilterEligible = filterEligible) {
+  async function loadAnnonces() {
     setLoading(true);
     setError(null);
     try {
-      const qs = nextFilterEligible ? "?eligible=1" : "";
-      const res = await fetch(`/api/prospection/annonces${qs}`);
+      const res = await fetch(`/api/prospection/annonces`);
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(json.error ?? `Erreur HTTP ${res.status}`);
@@ -443,7 +442,7 @@ export default function ProspectionPage() {
                 void loadMatchs();
               }}
             />
-            <Button color="indigo" onClick={openNewCritere}>
+            <Button outline onClick={openNewCritere}>
               {UI.prospection.newAcquereurBtn}
             </Button>
           </div>
@@ -499,7 +498,7 @@ export default function ProspectionPage() {
                   UI.prospection.emptyCriteresStep3,
                 ]}
                 action={
-                  <Button color="indigo" className="mt-2" onClick={openNewCritere}>
+                  <Button color="indigo" className="mt-2 !text-zinc-950" onClick={openNewCritere}>
                     {UI.prospection.newCritere}
                   </Button>
                 }
@@ -550,17 +549,7 @@ export default function ProspectionPage() {
         {/* ── Onglet annonces ── */}
         {tab === "annonces" && (
           <div>
-            <div className="mb-4 flex flex-wrap items-center gap-4">
-              <CheckboxField>
-                <Checkbox
-                  checked={filterEligible}
-                  onChange={(checked) => {
-                    setFilterEligible(checked);
-                    void loadAnnonces(checked);
-                  }}
-                />
-                <Label>{UI.prospection.eligibleOnly}</Label>
-              </CheckboxField>
+            <div className="mb-4 flex flex-wrap items-center gap-3">
               <Text>{UI.prospection.annonceCount(annonces.length)}</Text>
               <Button outline className="ml-auto" onClick={() => loadAnnonces()}>
                 {UI.prospection.refresh}
@@ -619,7 +608,7 @@ export default function ProspectionPage() {
                   UI.prospection.emptyMatchsStep3,
                 ]}
                 action={
-                  <Button color="indigo" className="mt-2" onClick={openNewCritere}>
+                  <Button color="indigo" className="mt-2 !text-zinc-950" onClick={openNewCritere}>
                     {UI.prospection.newCritere}
                   </Button>
                 }
@@ -700,35 +689,42 @@ function MatchList({
         if (a.prix) metaParts.push(UI.prospection.annoncePrix(a.prix));
 
         return (
-          <li key={m.id} className="flex flex-wrap items-start gap-4 py-4">
+          <li key={m.id} className="flex flex-wrap items-start gap-4 py-5 sm:flex-nowrap">
             <ScoreRing score={m.score_match} />
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <Strong>{annonceTitle(a)}</Strong>
+                <Strong className="text-base">{annonceTitle(a)}</Strong>
                 <RecoBadge match={m} />
                 {isGood && <Badge color="indigo">{UI.prospection.matchGoodLabel}</Badge>}
               </div>
-              {metaParts.length > 0 && <Text>{metaParts.join(" · ")}</Text>}
+              {metaParts.length > 0 && <Text className="mt-0.5">{metaParts.join(" · ")}</Text>}
               {/* Pourquoi ce match : facteurs de score + explain (si dispo). */}
-              <div className="mt-2">
-                <Text>{UI.prospection.reasonsWhy}</Text>
-                <div className="mt-1">
+              <div className="mt-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  {UI.prospection.reasonsWhy}
+                </p>
+                <div className="mt-1.5">
                   <MatchReasons match={m} />
                 </div>
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-              <Button plain aria-label={UI.prospection.feedbackLikeAria} onClick={() => onFeedback(m.id, "up")}>
-                👍
-              </Button>
-              <Button plain aria-label={UI.prospection.feedbackDislikeAria} onClick={() => onFeedback(m.id, "down")}>
-                👎
-              </Button>
-              <Button color="indigo" onClick={() => onOpenDetail(a, m)}>
+            <div className="flex shrink-0 flex-col items-stretch gap-2 sm:w-44">
+              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                {UI.prospection.matchNextAction}
+              </span>
+              <Button color="indigo" className="!text-zinc-950" onClick={() => onOpenDetail(a, m)}>
                 {UI.prospection.detailOpen}
               </Button>
+              <div className="flex items-center gap-1">
+                <Button plain aria-label={UI.prospection.feedbackLikeAria} onClick={() => onFeedback(m.id, "up")}>
+                  <HandThumbUpIcon aria-hidden="true" className="size-5" />
+                </Button>
+                <Button plain aria-label={UI.prospection.feedbackDislikeAria} onClick={() => onFeedback(m.id, "down")}>
+                  <HandThumbDownIcon aria-hidden="true" className="size-5" />
+                </Button>
+              </div>
             </div>
           </li>
         );
@@ -863,7 +859,7 @@ function CriteresPanel({
           <Button outline onClick={loadCriteres}>
             {UI.prospection.refresh}
           </Button>
-          <Button color="indigo" onClick={() => onFormOpenChange(!formOpen)}>
+          <Button color="indigo" className="!text-zinc-950" onClick={() => onFormOpenChange(!formOpen)}>
             {UI.prospection.newCritere}
           </Button>
         </div>
@@ -896,7 +892,7 @@ function CriteresPanel({
               <Label>{UI.prospection.surfaceMinPlaceholder}</Label>
               <Input type="number" value={surfaceMin} onChange={(e) => setSurfaceMin(e.target.value)} />
             </Field>
-            <Button color="indigo" className="w-fit" onClick={save} disabled={saving}>
+            <Button color="indigo" className="w-fit !text-zinc-950" onClick={save} disabled={saving}>
               {saving ? UI.prospection.saving : UI.prospection.save}
             </Button>
           </FieldGroup>

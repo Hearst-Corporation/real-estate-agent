@@ -193,7 +193,7 @@ export function LeadForm({
           {error && <ErrorMessage>{error}</ErrorMessage>}
 
           <div className="flex items-center gap-3 pt-2">
-            <Button color="indigo" type="submit" disabled={loading}>
+            <Button color="indigo" className="!text-zinc-950" type="submit" disabled={loading}>
               {t.save}
             </Button>
             {onClose && (
@@ -215,7 +215,7 @@ export default function LeadFormModal({ cta }: { cta: string }) {
 
   return (
     <>
-      <Button color="indigo" type="button" onClick={() => setOpen(true)}>
+      <Button color="indigo" className="!text-zinc-950" type="button" onClick={() => setOpen(true)}>
         {cta}
       </Button>
       <Dialog open={open} onClose={setOpen}>

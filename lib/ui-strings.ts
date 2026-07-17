@@ -807,7 +807,7 @@ export const UI = {
   prospection: {
     // ── Navigation & header
     title: "Prospection",
-    kicker: "BienCible import",
+    kicker: "Veille marché",
     eyebrow: "Prospection",
     tabAcquereurs: "Acquéreurs",
     acquereurs: "Acquéreurs",
@@ -840,17 +840,18 @@ export const UI = {
     annonceNoPhoto: "Aucune photo",
     annonceNoTitle: "Annonce sans titre",
     // ── Toolbar matching
-    matchingHint: "Matchs générés par le moteur selon vos critères. Les alertes nécessitent une configuration provider.",
+    matchingHint: "Chaque annonce est confrontée aux critères de vos acquéreurs. Score, raisons et points bloquants sont détaillés pour décider vite.",
     matchGoodLabel: "Bon match",
+    matchNextAction: "Prochaine action",
     matchContactBtn: "Contacter",
     contactSoon: "Action « Contacter » bientôt disponible.",
     // ── Empty states annonces
     emptyAnnonces: "Aucune annonce disponible.",
-    emptyAnnoncesTitle: "Aucune annonce scrappée",
-    emptyAnnoncesText: "Les annonces sont importées automatiquement via les providers configurés (MoteurImmo, Apify…). Vérifiez les clés API dans les réglages.",
-    emptyAnnoncesStep1: "Configurer les clés MoteurImmo / Apify",
-    emptyAnnoncesStep2: "Lancer une mission « scraping annonces » dans l'onglet Swarms",
-    emptyAnnoncesStep3: "Les nouvelles annonces apparaissent ici automatiquement",
+    emptyAnnoncesTitle: "Aucune annonce pour l'instant",
+    emptyAnnoncesText: "Les annonces proviennent de vos recherches de prospection. Lancez une recherche pour importer les biens d'une zone et les confronter à vos acquéreurs.",
+    emptyAnnoncesStep1: "Cliquer sur « Lancer une prospection »",
+    emptyAnnoncesStep2: "Renseigner une zone (ville ou code postal) et vos critères",
+    emptyAnnoncesStep3: "Les annonces trouvées s'affichent ici, prêtes à être qualifiées",
     // ── Empty states matchs
     emptyMatchs: "Aucun match. Créez des critères acquéreur dans l'onglet Critères.",
     emptyMatchsTitle: "Aucun match calculé",
@@ -918,7 +919,7 @@ export const UI = {
     scrapeSubmitting: "Recherche en cours…",
     scrapeCancel: "Fermer",
     scrapeVilleRequired: "Ville ou code postal requis.",
-    scrapeNoProvider: "Aucun fournisseur d'annonces configuré (Apify/MoteurImmo). Ajoutez une clé pour lancer une recherche.",
+    scrapeNoProvider: "Aucun fournisseur d'annonces configuré. Ajoutez une clé Apify pour lancer une recherche.",
     scrapeError: "La recherche a échoué. Réessayez.",
     scrapeResultTitle: "Résultats de la recherche",
     scrapeResultSummary: (scraped: number, kept: number, inserted: number) =>
@@ -990,6 +991,10 @@ export const UI = {
     crmPropertyLinked: "Bien rattaché",
     crmEstimationLinked: "Estimation rattachée",
     crmNothingLinked: "Aucun rattachement CRM pour le moment.",
+    // ── Liens de continuité vers les fiches créées (routes vérifiées existantes)
+    crmOpenLead: "Ouvrir la fiche client",
+    crmOpenProperty: "Ouvrir la fiche bien",
+    crmOpenEstimation: "Ouvrir l'estimation",
     // ── Actions annonce
     actionLinkCrm: "Créer lead + bien",
     actionLinkCrmDoing: "Création…",
