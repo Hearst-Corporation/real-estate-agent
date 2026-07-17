@@ -5,10 +5,13 @@ import { EstimationWizard } from "./EstimationWizard";
 import { GeneratingScreen } from "./GeneratingScreen";
 import { ValuationHero } from "./ValuationHero";
 import { SidePanel } from "./SidePanel";
-import { Button } from "@/components/ui/button";
-import { Icon } from "@/components/cockpit/Icon";
+import { ContinuityPanel } from "./ContinuityPanel";
 import { UI } from "@/lib/ui-strings";
 import type { Coverage } from "@/lib/estimation/spec";
+import {
+  emptyContinuity,
+  type ContinuityState,
+} from "@/lib/estimation/continuity";
 import type {
   PropertyData,
   FieldStatusMap,
@@ -39,6 +42,8 @@ type Props = {
   initialMarket?: MarketAnalysis | null;
   /** Lien retour vers le bien CRM source, si l'estimation en provient. */
   backToPropertyHref?: string | null;
+  /** État de continuité commerciale (propriétaire / opportunité / décision). */
+  initialContinuity?: ContinuityState | null;
 };
 
 export function InterviewView({
@@ -53,7 +58,7 @@ export function InterviewView({
   initialStatus,
   initialValuation,
   initialMarket,
-  backToPropertyHref,
+  initialContinuity,
 }: Props) {
   const [phase, setPhase] = useState<Phase>(resolvePhase(initialStatus));
   const [property, setProperty] = useState<PropertyData>(initialProperty);
@@ -190,22 +195,14 @@ export function InterviewView({
             market={market}
           />
 
-          {/* Continuité — uniquement des routes réelles (pas de fausse action). */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-xs font-semibold uppercase tracking-widest text-zinc-500">
-              {UI.estimations.nextStepsTitle}
-            </span>
-            <Button outline href={backToPropertyHref ?? "/properties/new"}>
-              <Icon name="properties" data-slot="icon" />
-              {backToPropertyHref
-                ? UI.estimations.openProperty
-                : UI.estimations.createProperty}
-            </Button>
-            <Button outline href="/mandates">
-              <Icon name="mandates" data-slot="icon" />
-              {UI.estimations.prepareMandate}
-            </Button>
-          </div>
+          {/* Continuité commerciale — parcours réel persisté (0043), pas de fausse action. */}
+          <ContinuityPanel
+            id={id}
+            initialContinuity={initialContinuity ?? emptyContinuity()}
+            valuation={valuation}
+            property={property}
+            fieldStatus={fieldStatus}
+          />
 
           {/* Preuve & détail au 2ᵉ niveau. */}
           <SidePanel

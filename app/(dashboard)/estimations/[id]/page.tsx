@@ -11,6 +11,7 @@ import {
   SUGGESTIONS_MAX,
 } from "@/lib/estimation/spec";
 import { InterviewView } from "@/app/(dashboard)/estimations/_components/InterviewView";
+import { loadContinuity } from "@/lib/estimation/continuity";
 import type {
   PropertyData,
   FieldStatusMap,
@@ -88,6 +89,14 @@ export default async function EstimationDetailPage({
     ? `/properties/${estimation.property_id}`
     : null;
 
+  // Couche continuité (propriétaire / opportunité / décision / ajustements manuels) — LIVE.
+  const initialContinuity = await loadContinuity(
+    sb,
+    id,
+    claims.sub,
+    tenantOf(claims)
+  );
+
   return (
     <InterviewView
       id={id}
@@ -102,6 +111,7 @@ export default async function EstimationDetailPage({
       initialValuation={initialValuation}
       initialMarket={initialMarket}
       backToPropertyHref={backToPropertyHref}
+      initialContinuity={initialContinuity}
     />
   );
 }
