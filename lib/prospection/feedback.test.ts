@@ -1,40 +1,46 @@
 import { describe, it, expect } from "vitest";
-import { normalizeVerdict } from "./feedback";
+import { normalizeSignal, signalOutcome } from "./feedback";
 
-describe("normalizeVerdict", () => {
-  it("accepte up/down directement (valeurs DB canoniques)", () => {
-    expect(normalizeVerdict("up")).toBe("up");
-    expect(normalizeVerdict("down")).toBe("down");
+describe("normalizeSignal", () => {
+  it("mappe 👍 (up/like) → like et 👎 (down/dislike) → dislike (valeurs DB réelles)", () => {
+    expect(normalizeSignal("up")).toBe("like");
+    expect(normalizeSignal("like")).toBe("like");
+    expect(normalizeSignal("down")).toBe("dislike");
+    expect(normalizeSignal("dislike")).toBe("dislike");
   });
 
-  it("convertit le legacy like→up et dislike→down", () => {
-    expect(normalizeVerdict("like")).toBe("up");
-    expect(normalizeVerdict("dislike")).toBe("down");
-  });
-
-  it("contact/visite → noop (reconnu mais PAS écrit en DB)", () => {
-    expect(normalizeVerdict("contact")).toBe("noop");
-    expect(normalizeVerdict("visite")).toBe("noop");
+  it("contact/visite sont des signaux DB valides (historique des propositions)", () => {
+    expect(normalizeSignal("contact")).toBe("contact");
+    expect(normalizeSignal("visite")).toBe("visite");
   });
 
   it("insensible à la casse et aux espaces", () => {
-    expect(normalizeVerdict(" UP ")).toBe("up");
-    expect(normalizeVerdict("LIKE")).toBe("up");
-    expect(normalizeVerdict("Contact")).toBe("noop");
+    expect(normalizeSignal(" UP ")).toBe("like");
+    expect(normalizeSignal("LIKE")).toBe("like");
+    expect(normalizeSignal("Contact")).toBe("contact");
   });
 
-  it("verdict inconnu ou non-string → null (→ 400 côté route)", () => {
-    expect(normalizeVerdict("up_vote")).toBeNull();
-    expect(normalizeVerdict("")).toBeNull();
-    expect(normalizeVerdict(null)).toBeNull();
-    expect(normalizeVerdict(undefined)).toBeNull();
-    expect(normalizeVerdict(42)).toBeNull();
+  it("signal inconnu ou non-string → null (→ 400 côté route)", () => {
+    expect(normalizeSignal("up_vote")).toBeNull();
+    expect(normalizeSignal("")).toBeNull();
+    expect(normalizeSignal(null)).toBeNull();
+    expect(normalizeSignal(undefined)).toBeNull();
+    expect(normalizeSignal(42)).toBeNull();
   });
 
-  it("ne renvoie JAMAIS like/dislike/contact/visite (jamais écrit en DB tel quel)", () => {
-    const outcomes = ["up", "down", "like", "dislike", "contact", "visite", "x"].map(normalizeVerdict);
+  it("ne renvoie JAMAIS 'up'/'down'/'verdict' (jamais écrit en DB tel quel — CHECK like|dislike|contact|visite)", () => {
+    const outcomes = ["up", "down", "like", "dislike", "contact", "visite", "x"].map(normalizeSignal);
     for (const o of outcomes) {
-      expect(["up", "down", "noop", null]).toContain(o);
+      expect(["like", "dislike", "contact", "visite", null]).toContain(o);
     }
+  });
+});
+
+describe("signalOutcome", () => {
+  it("traduit le signal DB en sens produit", () => {
+    expect(signalOutcome("like")).toBe("retenue");
+    expect(signalOutcome("dislike")).toBe("refusee");
+    expect(signalOutcome("contact")).toBe("contactee");
+    expect(signalOutcome("visite")).toBe("visitee");
   });
 });
