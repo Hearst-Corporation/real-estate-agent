@@ -1,6 +1,6 @@
 # LAST_REPORT — REA-PLATFORM-002 · Cockpit immobilier augmenté, CRM & automatisations
 
-> Orchestrateur. Squad parallèle A1/A2/A3 + A4. Règle de vérité respectée (LIVE/SNAPSHOT/DEMO/CONFIG/UNAVAILABLE). _Sections `‹A4›`/`‹CAPTURES›` à finaliser._
+> Orchestrateur. Squad parallèle A1/A2/A3 + A4. Règle de vérité respectée (LIVE/SNAPSHOT/DEMO/CONFIG/UNAVAILABLE).
 
 ## 1. Verdict
 **RÉUSSI**. Parcours métier réellement augmentés et **persistés LIVE** (migration additive 0043 appliquée gpu1) : acquéreurs multi-profils + matching expliqué + alertes honnêtes ; estimation → propriétaire → mandat ; centre d'actions dérivé + tâches. Intégration Aigent = **frontière propre en état UNAVAILABLE** (Aigent non connecté — jamais de faux agent). **Gate définitive verte** (check + 312 tests + build), branche poussée, **12 captures WebP anonymisées** + captures PII publiques remplacées. **Non « production ready »** (build vert ≠ prod ready ; réserves §12 — auth à durcir, preview data-limitée, alertes/messages sans transport).
@@ -69,7 +69,7 @@ Aigent (où sont créés les agents métier) **n'est PAS connecté** à ce repo 
 - Migration 0043 = **additive/idempotente** (aucune opération destructive). Aucun secret Vercel modifié.
 
 ## 11. Commits & branche
-- `33e6076` migration 0043 · `e91a41f` prospection (A1) · `b66b7f0` estimation (A2) · `347a50c` CRM (A3) · `97fc025` Aigent/QA (A4) · `‹chore(qa)›` captures + report.
+- `33e6076` migration 0043 · `e91a41f` prospection (A1) · `b66b7f0` estimation (A2) · `347a50c` CRM (A3) · `97fc025` Aigent/QA (A4) · `ab1d8b6` captures + report (ce commit).
 - Branche **`feature/rea-platform-augmented-002`** **poussée** sur origin. **Pas de merge dans `main`.**
 
 ### Preview Vercel
