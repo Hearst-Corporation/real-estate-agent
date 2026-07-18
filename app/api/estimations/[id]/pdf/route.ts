@@ -17,7 +17,7 @@
 
 import { createHash } from "node:crypto";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import { r2IsConfigured, getObject } from "@/lib/storage/r2";
@@ -75,9 +75,9 @@ export async function GET(
   }
 
   // ── Supabase ──────────────────────────────────────────────────────────────
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) {
-    return Response.json({ error: "supabase_not_configured" }, { status: 503 });
+    return Response.json({ error: "database_not_configured" }, { status: 503 });
   }
 
   const userId = claims.sub;

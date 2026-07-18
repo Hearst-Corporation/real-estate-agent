@@ -13,7 +13,7 @@
 
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/server/session';
-import { getSupabaseAdmin } from '@/lib/server/supabase';
+import { getGpu1Admin } from '@/lib/gpu1';
 import { tenantOf } from '@/lib/tenant';
 import { loadOwnedEstimation } from '@/lib/estimation/owned';
 import { rateLimit } from '@/lib/ratelimit';
@@ -31,7 +31,7 @@ import { buildSourcesSnapshot } from '@/lib/estimation/snapshot';
 import { buildProvenance } from '@/lib/estimation/provenance';
 import { ENGINE_VERSION } from '@/lib/estimation/valuation';
 import type { PropertyData, MarketAnalysis } from '@/lib/estimation/types';
-import type { Json } from '@/lib/supabase/database.types';
+import type { Json } from '@/lib/gpu1/database.types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -67,9 +67,9 @@ export async function POST(
   }
 
   // ── Supabase ────────────────────────────────────────────────────────────
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) {
-    return NextResponse.json({ error: 'supabase_not_configured' }, { status: 503 });
+    return NextResponse.json({ error: 'database_not_configured' }, { status: 503 });
   }
 
   const userId = claims.sub;

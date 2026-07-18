@@ -11,7 +11,7 @@
  */
 
 import { verifyShareToken } from "@/lib/estimation/share";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { r2IsConfigured, getObject } from "@/lib/storage/r2";
 import type {
   Estimation,
@@ -40,9 +40,9 @@ export async function GET(
   const { estimationId } = verified;
 
   // ── Supabase (service-role — pas de filtre user) ──────────────────────────
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) {
-    return Response.json({ error: "supabase_not_configured" }, { status: 503 });
+    return Response.json({ error: "database_not_configured" }, { status: 503 });
   }
 
   const { data: row, error } = await sb

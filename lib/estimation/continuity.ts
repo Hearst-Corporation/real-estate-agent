@@ -13,8 +13,8 @@
  * avant d'arriver ici. Aucune donnée inventée.
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Json, TablesUpdate } from "@/lib/supabase/database.types";
+import type { Gpu1Client } from "@/lib/gpu1";
+import type { Database, Json, TablesUpdate } from "@/lib/gpu1/database.types";
 
 // ─── Enums (miroir des CHECK DB de la migration 0043) ───────────────────────────
 
@@ -122,7 +122,7 @@ function parseDecision(raw: unknown): Decision | null {
  * Owner-check systématique (user_id + tenant_id) sur chaque requête.
  */
 export async function loadContinuity(
-  sb: SupabaseClient<Database>,
+  sb: Gpu1Client<Database>,
   estimationId: string,
   userId: string,
   tenant: string
@@ -186,7 +186,7 @@ export async function loadContinuity(
 
 /** Patch des colonnes 0043 de continuité. Retourne false sur erreur DB. */
 export async function updateContinuityColumns(
-  sb: SupabaseClient<Database>,
+  sb: Gpu1Client<Database>,
   estimationId: string,
   userId: string,
   tenant: string,

@@ -17,7 +17,7 @@ import { statusTone, type StatusTone } from "@/lib/crm/statusTone";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { HomeModernIcon } from "@heroicons/react/24/outline";
 
@@ -44,7 +44,7 @@ type EstRow = {
 export default async function EstimationsPage() {
   const t = UI.estimations;
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let estimations: EstRow[] = [];
 

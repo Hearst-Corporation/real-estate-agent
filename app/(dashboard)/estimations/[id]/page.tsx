@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import {
@@ -31,7 +31,7 @@ export default async function EstimationDetailPage({
   const claims = await getSession();
   if (!claims) notFound();
 
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) notFound();
 
   const estimation = await loadOwnedEstimation(

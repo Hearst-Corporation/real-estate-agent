@@ -16,7 +16,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import { updateContinuityColumns, loadContinuity } from "@/lib/estimation/continuity";
@@ -57,9 +57,9 @@ export async function GET(
   if (!claims) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) {
-    return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+    return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
   }
   const userId = claims.sub;
   const tenant = tenantOf(claims);
@@ -99,9 +99,9 @@ export async function POST(
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) {
-    return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+    return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
   }
 
   const userId = claims.sub;
