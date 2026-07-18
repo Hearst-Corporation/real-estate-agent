@@ -3,7 +3,6 @@ import { getSession } from "@/lib/server/session";
 import { LogoutButton } from "@/components/cockpit/LogoutButton";
 import { IntegrationsPanel } from "./_components/IntegrationsPanel";
 import { MfaPanel } from "./_components/MfaPanel";
-import { AigentPanel } from "@/components/aigent/AigentPanel";
 import { UI } from "@/lib/ui-strings";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text, Code } from "@/components/ui/text";
@@ -119,11 +118,18 @@ export default async function ProfilePage() {
 
       <Divider />
 
-      {/* Copilotes IA (Aigent) — frontière consommateur, état réel (honnête) */}
-      <section>
-        <Subheading level={2}>{UI.aigent.sectionTitle}</Subheading>
-        <Text className="mt-1 mb-4">{UI.aigent.sectionHint}</Text>
-        <AigentPanel />
+      {/* Copilotes IA (Aigent) — renvoi vers le cockpit d'exploitation /agents.
+          Le panneau verbeux a été retiré : la page /agents est la surface unique. */}
+      <section className="surface flex flex-wrap items-center justify-between gap-3 p-5">
+        <div className="min-w-0">
+          <Subheading level={3} className="font-titre">
+            {UI.aigent.sectionTitle}
+          </Subheading>
+          <Text className="mt-1">{UI.profile.aigentLink}</Text>
+        </div>
+        <Button href="/agents" color="indigo">
+          {UI.nav.agents}
+        </Button>
       </section>
     </div>
   );

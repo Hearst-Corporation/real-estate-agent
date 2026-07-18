@@ -22,6 +22,7 @@ export const UI = {
     portefeuille: "Portefeuille",
     clients: "Clients",
     crm: "CRM",
+    agents: "Agents",
     profile: "Profil",
     admin: "Admin",
   },
@@ -1423,6 +1424,7 @@ export const UI = {
     sessionTitle: "Session",
     sessionHint: "Fermer la session sur cet appareil.",
     integrationsTitle: "Intégrations",
+    aigentLink: "Consulter et lancer les agents publiés, suivre leurs exécutions et valider les interruptions.",
     mfa: {
       title: "Double authentification (2FA)",
       titleEnabled: "Double authentification (2FA) — activée",
@@ -1477,70 +1479,98 @@ export const UI = {
     empty: "—",
   },
   /**
-   * Frontière consommateur Aigent — libellés HONNÊTES. Aucun texte ne prétend
-   * qu'un agent tourne : quand Aigent n'est pas branché, tout est présenté comme
-   * « en spécification / indisponible ».
+   * Frontière consommateur Aigent — libellé de section (renvoi Profil → /agents).
+   * Le panneau verbeux a été retiré : la page /agents (UI.agentsPage) est la
+   * surface unique d'exploitation. On ne garde ici que le titre de section.
    */
   aigent: {
     sectionTitle: "Copilotes IA (Aigent)",
-    sectionHint:
-      "Les agents métier sont conçus et déployés depuis la plateforme Aigent, puis reçus ici. Ce panneau montre l'état réel du raccordement — il ne fabrique aucun agent.",
-    statusTitle: "Raccordement",
+  },
+  agentsPage: {
+    // En-tête
+    kicker: "Aigent",
+    title: "Agents",
+    metaConnected: "Registre raccordé",
+    metaUnavailable: "Registre non connecté",
+    kpiPublished: "Publiés",
+    kpiRunnable: "Exécutables",
+    kpiWaiting: "En attente",
+    refresh: "Actualiser",
+    refreshing: "Actualisation…",
+    // États de raccordement (honnêtes)
+    statusLive: "Connecté",
     statusUnavailable: "Non connecté",
-    statusChecking: "Vérification…",
-    unavailableHeadline: "Aigent non connecté — capacités en spécification",
-    reasons: {
+    // Registre vide
+    emptyTitle: "Aucun agent déployé pour ce projet",
+    emptyBody:
+      "Les agents métier sont conçus, testés et publiés depuis Aigent. Dès qu'un agent est déployé pour ce projet, il apparaît ici — prêt à être lancé et suivi.",
+    // Indisponible (vars absentes / injoignable)
+    unavailableTitle: "Aigent non connecté",
+    unavailableReasons: {
       not_configured:
-        "Aucune configuration Aigent détectée sur ce serveur. Les copilotes apparaîtront ici dès qu'Aigent sera raccordé.",
+        "Aucune configuration Aigent détectée sur ce serveur. Les agents publiés apparaîtront ici dès que la liaison sera établie.",
       unreachable:
-        "Configuration Aigent présente, mais le canal de contrat n'est pas encore établi. Rien n'est exécuté tant que la liaison n'est pas vérifiée.",
+        "Aigent ne répond pas pour le moment. Aucune donnée n'est chargée tant que la liaison n'est pas rétablie.",
       unauthorized:
-        "Le jeton Aigent a été refusé. Aucune donnée n'est chargée tant que l'accès n'est pas rétabli.",
+        "L'accès au registre Aigent a été refusé. Aucune donnée n'est chargée tant que l'accès n'est pas rétabli.",
+      not_provisioned:
+        "Le registre Aigent est configuré mais pas encore branché pour ce projet. Rien n'est exécuté tant que la liaison n'est pas active.",
       error: "Aigent injoignable pour le moment. Aucune donnée n'est inventée.",
     } as Record<string, string>,
-    plannedTitle: "Capacités prévues",
-    plannedHint:
-      "Ce que cette frontière permettra une fois Aigent raccordé. Consultation et lancement uniquement — jamais de création ou de modification d'agent depuis ce workspace.",
-    unavailableTag: "Indisponible",
-    planned: {
-      list_agents: {
-        label: "Voir les copilotes du projet",
-        description: "Lister les agents métier déployés depuis Aigent, avec leur rôle et leur version.",
-      },
-      launch_capability: {
-        label: "Lancer une capacité autorisée",
-        description: "Déclencher une action que l'agent expose (qualification, analyse), sans jamais toucher à sa construction.",
-      },
-      observe_run: {
-        label: "Voir l'état réel d'un run",
-        description: "Suivre l'avancement d'une exécution en cours, tel que rapporté par l'agent — sans faux statut.",
-      },
-      sourced_results: {
-        label: "Résultats sourcés",
-        description: "Chaque résultat cite sa provenance et ses sources vérifiables. Aucun résultat non sourcé n'est présenté comme fiable.",
-      },
-      human_validation: {
-        label: "Validation humaine",
-        description: "Les actions à effet réel attendent votre confirmation avant de s'appliquer (contrôle humain).",
-      },
-      resume_or_refuse: {
-        label: "Reprendre ou refuser",
-        description: "Sur une exécution en attente, reprendre après validation ou refuser — la décision reste humaine.",
-      },
-      history: {
-        label: "Historique",
-        description: "Retrouver les exécutions passées et leurs résultats sourcés.",
-      },
-    },
-    boundaryTitle: "Ce que ce workspace ne fait pas",
-    boundaryItems: [
-      "Créer ou éditer un agent",
-      "Modifier un graph ou choisir des nodes",
-      "Déployer, promouvoir ou versionner un agent en automatique",
-      "Reconstruire un runtime d'agent en local",
-    ],
-    boundaryNote:
-      "Ce workspace est un consommateur : il reçoit et exploite les agents (consultation / lancement). Leur conception et leur promotion vivent dans Aigent.",
+    // Chargement / erreur
+    loadError: "Impossible de charger les agents.",
+    retry: "Réessayer",
+    // Statuts de version d'agent (contrat §5)
+    agentStatus: {
+      specification: "Spécification",
+      draft: "Brouillon",
+      testing: "En test",
+      production: "En production",
+      paused: "En pause",
+      unavailable: "Indisponible",
+    } as Record<string, string>,
+    versionLabel: "Version",
+    capabilitiesLabel: "Capacités",
+    hitlBadge: "Validation humaine",
+    // Lancement
+    launch: "Lancer",
+    launching: "Lancement…",
+    launchDisabledHint: "Lancement indisponible tant qu'aucun agent n'est déployé.",
+    launchBlockedStatus: "Cet agent n'est pas exécutable dans son état actuel.",
+    runStarted: "Run lancé",
+    runStartFailed: "Le lancement a échoué.",
+    // Suivi de run
+    runsTitle: "Exécutions",
+    runsEmpty: "Aucune exécution pour le moment.",
+    close: "Fermer",
+    runStatus: {
+      queued: "En file",
+      running: "En cours",
+      waiting_on_input: "Attente de validation",
+      completed: "Terminé",
+      failed: "Échec",
+    } as Record<string, string>,
+    eventsTitle: "Événements",
+    eventsEmpty: "Aucun événement.",
+    resultTitle: "Résultat",
+    provenanceLabel: "Provenance",
+    sourcesLabel: "Sources",
+    noSources: "Aucune source citée.",
+    // HITL (approuver / modifier / refuser)
+    hitlTitle: "Validation requise",
+    hitlBody: "Cette exécution attend votre décision avant de poursuivre.",
+    approve: "Approuver",
+    reject: "Refuser",
+    deciding: "Envoi…",
+    decisionSent: "Décision transmise",
+    decisionFailed: "La décision n'a pas pu être transmise.",
+    notWaiting: "Cette exécution n'attend plus de décision.",
+    // Historique
+    historyTitle: "Historique",
+    // Frontières (ce que la page ne fait pas)
+    boundaryTitle: "Cockpit d'exploitation",
+    boundaryBody:
+      "Cette page pilote des agents déjà publiés — les consulter, les lancer, suivre leurs exécutions et valider les interruptions. La conception, le prompt, le graphe, le déploiement et la promotion des agents vivent exclusivement dans Aigent.",
   },
   login: {
     eyebrow: "Connexion",
