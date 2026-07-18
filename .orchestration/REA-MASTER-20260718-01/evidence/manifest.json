@@ -1,8 +1,232 @@
 {
-  "runId": "REA-MASTER-20260718-01",
-  "kind": "evidence-manifest",
-  "createdBy": "prepare",
-  "note": "Manifest des preuves consolidees. Rempli par la mission 14 (QA) lors de l'execution. Toutes les captures doivent etre anonymisees (aucune PII, aucun secret).",
-  "anonymizationPolicy": "no-PII, no-secrets, no-real-identifying-data",
-  "evidence": []
+  "mission": "REA-M04-14",
+  "titre": "E2E, accessibilité et preuves consolidées",
+  "passe": "relance contre la release candidate",
+  "branche_testee": "feature/rea-master-004",
+  "commit_base": "358ed46",
+  "date": "2026-07-18",
+  "environnement": {
+    "base_url": "http://localhost:3002",
+    "serveur": "next dev --webpack (node_modules symlinké → Turbopack panique)",
+    "auth_dev_bypass": true,
+    "note_bypass": "AUTH_DEV_BYPASS=true authentifie d'office un anonyme sur les routes de PAGE (proxy.ts, non-prod). Les routes API restent fermées (401). Un test de garde est skippé explicitement pour cette raison, jamais maquillé en succès.",
+    "db": "Postgres gpu1 via PostgREST (données réelles du tenant de dev)"
+  },
+
+  "resume": {
+    "total": 69,
+    "passed": 68,
+    "failed": 0,
+    "skipped": 1,
+    "duree_s": 32.2,
+    "commande": "node_modules/.bin/playwright test e2e",
+    "typecheck": "node_modules/.bin/tsc --noEmit → exit 0"
+  },
+
+  "correctif_structurel": {
+    "probleme": "Chaque test se connectait via /api/auth/login. Le produit rate-limite ce endpoint (20/60s par IP, 8/60s par email — anti-bruteforce voulu et CORRECT). La suite saturait la barrière : cascade de HTTP 429 que les helpers traduisaient en test.skip() silencieux — donc en FAUX VERT (16 skips lors de la 1re exécution).",
+    "correctif": "e2e/global-setup.ts effectue UNE seule authentification, sérialisée en storageState ; tous les tests la rejouent. Aucun produit modifié.",
+    "storage_state": "test-results/e2e-auth-state.json (gitignoré — contient un cookie de session, jamais tracké)",
+    "resultat": "16 skips silencieux → 1 skip explicite et justifié."
+  },
+
+  "preuves": [
+    {
+      "id": "P01",
+      "parcours": "Auth — login, credentials invalides, body invalide, cookie de session",
+      "spec": "e2e/smoke.spec.ts",
+      "resultat": "pass",
+      "tests": { "passed": 7, "skipped": 1 },
+      "statut": "LIVE",
+      "capture": "docs/qa/rc-auth-login.webp",
+      "detail": "401 invalid_credentials, 400 invalid_body, 200 + cookie real_estate_agent_token. Le test de garde 'anonyme → /auth/login' est SKIPPÉ : AUTH_DEV_BYPASS actif désactive cette garde par conception. Contre-preuve ajoutée : sous bypass, /api/estimations anonyme renvoie bien 401."
+    },
+    {
+      "id": "P02",
+      "parcours": "MFA (2FA TOTP) — garde du 2e facteur, statut honnête",
+      "spec": "e2e/auth-mfa.spec.ts",
+      "resultat": "pass",
+      "tests": { "passed": 7, "skipped": 0 },
+      "statut": "LIVE",
+      "capture": null,
+      "detail": "verify-login sans cookie pending → 401 mfa_pending_expired, aucune session émise. /api/auth/mfa/status et /setup → 401 sans session. AUCUN code TOTP n'est forgé : un 2e facteur qui 'passe' ne peut pas être simulé sans le secret, le simuler serait un faux vert."
+    },
+    {
+      "id": "P03",
+      "parcours": "CRM — properties, leads, visits, mandates (CRUD + owner-check + enrichissement)",
+      "spec": "e2e/crm.spec.ts",
+      "resultat": "pass",
+      "tests": { "passed": 24, "skipped": 0 },
+      "statut": "LIVE",
+      "capture": null,
+      "detail": "201 sur création, 404 sur id inconnu (owner-check user_id+tenant_id), 400 sur statut invalide (leads/visits/mandates), 403 forbidden_particulier sur enrichissement. Fixtures marquées [E2E], nettoyées en afterAll via service-role. Contient 1 défaut produit documenté (voir defauts_produit D01)."
+    },
+    {
+      "id": "P04",
+      "parcours": "Estimation — API + rendu de page",
+      "spec": "e2e/estimation-prospection.spec.ts",
+      "resultat": "pass",
+      "tests": { "passed": 14, "skipped": 0 },
+      "statut": "LIVE",
+      "capture": null,
+      "detail": "GET /api/estimations 401 sans session / 200 + tableau avec session. POST sans property_id → 201 brouillon. property_id inconnu → 404 not_found (owner-check). property_id non-UUID → 400 invalid_body. Estimations créées nettoyées en afterAll."
+    },
+    {
+      "id": "P05",
+      "parcours": "Prospection — annonces, critères acquéreur, matchs",
+      "spec": "e2e/estimation-prospection.spec.ts",
+      "resultat": "pass",
+      "tests": { "inclus_dans": "P04" },
+      "statut": "LIVE",
+      "capture": null,
+      "detail": "GET annonces 401 sans session, 200 + data[] avec session, pagination invalide bornée sans crash. POST critères sans nom → 400 invalid_body + detail. POST matchs verdict invalide → 400 ; match inconnu → 404 match_not_found."
+    },
+    {
+      "id": "P06",
+      "parcours": "/agents — état UNAVAILABLE honnête (registre Aigent vide)",
+      "spec": "e2e/agents.spec.ts",
+      "resultat": "pass",
+      "tests": { "passed": 6, "skipped": 0 },
+      "statut": "UNAVAILABLE (honnête, vérifié)",
+      "capture": "docs/qa/rc-agents-unavailable.webp",
+      "detail": "GET /api/aigent/agents sans session → 401 ; avec session → 200 {ok:false, unavailable:{reason:'not_configured'}}. POST création de run → JAMAIS de run fabriqué (assertion explicite: pas de propriété 'run'). La page affiche 'Aigent non connecté' + 'Registre non connecté' + la note de frontière, et ZÉRO agent. Le bouton Actualiser re-vérifie sans rien inventer. Capture visuelle jointe.",
+      "nuance_vs_brief": "Le brief annonçait 'création de run → 404'. Le comportement RÉEL observé est 200 {ok:false, unavailable:'not_configured'} : rien n'est configuré, donc le contrat répond 'non configuré' (plus honnête qu'un 404). La spec asserte le comportement réel et tolère 404/401/503 comme alternatives honnêtes."
+    },
+    {
+      "id": "P07",
+      "parcours": "Accessibilité — 8 écrans + focus clavier",
+      "spec": "e2e/a11y.spec.ts",
+      "resultat": "pass",
+      "tests": { "passed": 10, "skipped": 0 },
+      "statut": "LIVE",
+      "capture": null,
+      "detail": "Voir bloc a11y ci-dessous."
+    }
+  ],
+
+  "a11y": {
+    "methode": "Assertions structurelles robustes (pas de couplage au texte éditorial des titres, pas de count===1 strict sur h1 — les titres viennent de sous-composants de page header).",
+    "criteres": [
+      "au moins un <h1> visible",
+      "landmark main présent et visible",
+      "landmark navigation présent et visible",
+      "0 <img> sans attribut alt",
+      "0 input/textarea/select sans nom accessible (label[for] | wrapping label | aria-label | aria-labelledby | placeholder)",
+      "0 scroll horizontal du body à 1440 puis à 375"
+    ],
+    "ecrans": [
+      { "route": "/",            "h1": "ok", "landmarks": "ok", "alt": "ok", "labels": "ok", "hscroll_1440": "aucun", "hscroll_375": "aucun", "resultat": "pass" },
+      { "route": "/leads",       "h1": "ok", "landmarks": "ok", "alt": "ok", "labels": "ok", "hscroll_1440": "aucun", "hscroll_375": "aucun", "resultat": "pass" },
+      { "route": "/properties",  "h1": "ok", "landmarks": "ok", "alt": "ok", "labels": "ok", "hscroll_1440": "aucun", "hscroll_375": "aucun", "resultat": "pass" },
+      { "route": "/estimations", "h1": "ok", "landmarks": "ok", "alt": "ok", "labels": "ok", "hscroll_1440": "aucun", "hscroll_375": "aucun", "resultat": "pass" },
+      { "route": "/prospection", "h1": "ok", "landmarks": "ok", "alt": "ok", "labels": "ok", "hscroll_1440": "aucun", "hscroll_375": "aucun", "resultat": "pass" },
+      { "route": "/agenda",      "h1": "ok", "landmarks": "ok", "alt": "ok", "labels": "ok", "hscroll_1440": "aucun", "hscroll_375": "aucun", "resultat": "pass" },
+      { "route": "/agents",      "h1": "ok", "landmarks": "ok", "alt": "ok", "labels": "ok", "hscroll_1440": "aucun", "hscroll_375": "aucun", "resultat": "pass" },
+      { "route": "/profile",     "h1": "ok", "landmarks": "ok", "alt": "ok", "labels": "ok", "hscroll_1440": "aucun", "hscroll_375": "aucun", "resultat": "pass" }
+    ],
+    "focus_clavier": [
+      { "cas": "/auth/login — champ email", "resultat": "pass", "detail": "document.activeElement === input[type=email] + indicateur de focus calculé présent" },
+      { "cas": "/agents — bouton Actualiser", "resultat": "pass", "detail": "atteignable au clavier, devient l'élément actif" }
+    ],
+    "limite_connue": "L'assertion 'indicateur de focus' accepte outline OU box-shadow OU borderColor non vide. C'est une preuve FAIBLE (borderColor est quasi toujours non vide) : elle prouve l'atteignabilité au clavier, pas la visibilité AA du halo. Une vraie mesure de contraste du halo n'est pas couverte."
+  },
+
+  "captures": [
+    {
+      "fichier": "docs/qa/rc-auth-login.webp",
+      "route": "/auth/login",
+      "viewport": "1440x900",
+      "format": "WebP q88",
+      "pii": "aucune — formulaire vierge, aucun email/nom/téléphone/adresse, aucun token",
+      "verifiee_visuellement": true
+    },
+    {
+      "fichier": "docs/qa/rc-agents-unavailable.webp",
+      "route": "/agents",
+      "viewport": "1440x900",
+      "format": "WebP q88",
+      "pii": "aucune — registre vide, aucune donnée métier rendue ; seules les initiales 'AD' du compte admin de dev apparaissent dans l'avatar (non identifiantes, compte de démo)",
+      "verifiee_visuellement": true
+    }
+  ],
+  "captures_non_produites": {
+    "ecrans_concernes": ["/leads", "/properties", "/estimations", "/prospection", "/agenda", "/"],
+    "raison": "Ces écrans rendent les données RÉELLES du tenant de dev (noms, adresses, téléphones de leads). Une capture y contiendrait de la PII inévitable → conformément aux conditions STOP de la mission, AUCUNE capture n'a été produite pour ces routes. Leur validation repose sur les assertions E2E/a11y, qui ne persistent aucune donnée."
+  },
+
+  "defauts_produit": [
+    {
+      "id": "D01",
+      "severite": "P2",
+      "route": "PATCH /api/properties/[id]",
+      "fichier": "app/api/properties/[id]/route.ts",
+      "constat": "L'enum `status` n'est PAS validé côté applicatif. Une valeur invalide est transmise en base ; la contrainte CHECK properties.status (supabase/migrations/0008_crm.sql:14) la rejette, et la route mappe l'erreur en 500 `update_failed`.",
+      "impact": "Intégrité des données SAUVE (rien n'est persisté, vérifié par relecture après coup). Mais le code HTTP ment : une faute d'entrée client est rapportée comme une panne serveur. Diverge des routes soeurs (leads/visits/mandates) qui renvoient bien 400.",
+      "correctif_attendu": "Valider `status` par un schéma Zod miroir de la CHECK DB → 400 `invalid_status`.",
+      "action_qa": "NON corrigé (hors ownership QA — le produit n'est pas modifié). La spec asserte le comportement réel et documente l'écart."
+    }
+  ],
+
+  "assertions_corrigees": [
+    {
+      "spec": "e2e/crm.spec.ts",
+      "cas": "POST /api/prospection/criteres sans nom",
+      "avant": "error: 'nom requis'",
+      "apres": "error: 'invalid_body' + detail:string",
+      "raison": "Assertion périmée (antérieure au passage de la route à Zod). C'est le test qui avait tort, pas le produit."
+    },
+    {
+      "spec": "e2e/crm.spec.ts",
+      "cas": "POST /api/prospection/matchs feedback invalide",
+      "avant": "error: 'match_id + verdict requis'",
+      "apres": "error: 'invalid_body'",
+      "raison": "Idem — validation Zod."
+    },
+    {
+      "spec": "e2e/estimation-prospection.spec.ts",
+      "cas": "POST /api/prospection/criteres sans nom",
+      "avant": "error: 'nom requis'",
+      "apres": "error: 'invalid_body' + detail:string",
+      "raison": "Assertion rédigée à tort lors de la 1re passe."
+    },
+    {
+      "spec": "e2e/a11y.spec.ts",
+      "cas": "structure des titres",
+      "avant": "heading nommé 'Aujourd'hui' + count === 1 sur h1",
+      "apres": "au moins un h1 visible, sans couplage au texte",
+      "raison": "Trop fragile : les pages utilisent peu de <Heading> direct et la home n'a pas de clé UI.home. La structure a11y est le vrai point, pas le contenu éditorial."
+    }
+  ],
+
+  "garanties": {
+    "aucun_secret_tracke": "storageState en test-results/ (gitignoré, vérifié via git check-ignore) ; credentials lus depuis docs/credentials.local.txt (gitignoré), jamais copiés dans le repo.",
+    "aucune_pii_committee": "2 captures produites, toutes deux inspectées visuellement ; les écrans porteurs de PII n'ont volontairement PAS été capturés.",
+    "aucun_faux_vert": "Aucun test 'vert' sans exécution réelle. Le seul skip est explicite et motivé. Les 429 qui produisaient des skips silencieux ont été éliminés à la racine.",
+    "aucun_faux_agent": "Aucun agent/run/résultat Aigent fabriqué — l'état UNAVAILABLE est asserté ET capturé.",
+    "aucun_envoi_reel": "Aucun envoi externe (email/SMS/webhook) déclenché.",
+    "produit_non_modifie": "Aucun fichier sous app/**, lib/**, components/**, routes API ou migrations n'a été touché."
+  },
+
+  "fichiers_livres": [
+    { "chemin": "e2e/global-setup.ts", "etat": "nouveau", "role": "authentification unique partagée (supprime la cascade de 429)" },
+    { "chemin": "e2e/_helpers.ts", "etat": "nouveau", "role": "helpers partagés : rejeu de session, détection dev-bypass, scroll horizontal" },
+    { "chemin": "e2e/a11y.spec.ts", "etat": "nouveau", "role": "a11y sur 8 écrans + focus clavier" },
+    { "chemin": "e2e/agents.spec.ts", "etat": "nouveau", "role": "/agents UNAVAILABLE honnête" },
+    { "chemin": "e2e/auth-mfa.spec.ts", "etat": "nouveau", "role": "auth + garde MFA" },
+    { "chemin": "e2e/estimation-prospection.spec.ts", "etat": "nouveau", "role": "estimation + prospection" },
+    { "chemin": "e2e/smoke.spec.ts", "etat": "modifié", "role": "smoke auth + nav réelle de la RC" },
+    { "chemin": "e2e/crm.spec.ts", "etat": "modifié", "role": "session partagée + 3 assertions périmées corrigées" },
+    { "chemin": "playwright.config.ts", "etat": "modifié", "role": "globalSetup + webServer webpack" },
+    { "chemin": "docs/qa/rc-auth-login.webp", "etat": "nouveau", "role": "capture anonymisée" },
+    { "chemin": "docs/qa/rc-agents-unavailable.webp", "etat": "nouveau", "role": "capture anonymisée de l'état UNAVAILABLE" },
+    { "chemin": ".orchestration/REA-MASTER-20260718-01/evidence/manifest.json", "etat": "nouveau", "role": "ce manifest" }
+  ],
+
+  "limites": [
+    "Les specs tournent contre la DB de dev réelle : les tests de liste ('liste non vide') dépendent de données présentes. Sur une base vierge, certains échoueraient — ce n'est pas un environnement hermétique.",
+    "AUTH_DEV_BYPASS=true masque la garde de redirection des pages. La couverture de cette garde est donc partielle (l'équivalent API est couvert).",
+    "Le 2e facteur MFA n'est vérifié que côté GARDE (rejets). Le chemin nominal 'TOTP valide → session' n'est pas couvert, faute de secret TOTP — délibérément non simulé.",
+    "L'assertion de focus visible prouve l'atteignabilité clavier, pas le contraste AA du halo.",
+    "Aucun test de performance, de charge, ni de compatibilité navigateur (Chromium uniquement)."
+  ]
 }

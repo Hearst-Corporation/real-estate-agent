@@ -1,14 +1,37 @@
 {
   "runId": "REA-MASTER-20260718-01",
-  "phase": "prepared",
+  "phase": "completed",
+  "completedAt": "2026-07-18",
   "coordinationBranch": "orchestration/REA-MASTER-20260718-01",
   "baseBranch": "feature/rea-platform-003",
   "baseHead": "b2d85403419d2007cb106c9e85abc1d9341685f0",
   "integrationBranch": "feature/rea-master-004",
+  "integrationHead": "a9e4f28",
+  "commitsSinceBase": 28,
   "remote": "https://github.com/Hearst-Corporation/real-estate-agent.git",
   "packageManager": "pnpm",
   "gate": "pnpm check (concurrently: lint:secrets, lint, lint:nav, lint:strings, gen-cockpit-manifest --check, typecheck, lint:biome, check:catalyst)",
   "extraChecks": ["pnpm test", "pnpm build", "scripts/test-migrations-coherence.mjs", "pnpm test:e2e", "pnpm electron:test"],
+  "gateExecution": {
+    "method": "binaires invoques directement (node_modules/.bin/*), PAS via `pnpm <script>`",
+    "reason": "Dans les worktrees isoles, node_modules est un symlink vers le repo principal. `pnpm <script>` declenche un deps-status-check qui TENTE DE PURGER le repertoire node_modules ; il a avorte de lui-meme (no TTY) et le node_modules principal a ete verifie intact. Le contournement (CI=true / confirmModulesPurge=false) a ete volontairement REFUSE car il aurait autorise la purge. Les commandes executees sont strictement equivalentes au contenu des scripts npm.",
+    "results": {
+      "lint:secrets": 0,
+      "lint (eslint)": 0,
+      "lint:nav": 0,
+      "lint:strings": 0,
+      "gen-cockpit-manifest --check": 0,
+      "typecheck (tsc --noEmit)": 0,
+      "lint:biome": 0,
+      "check:catalyst": 0,
+      "test (vitest)": "0 — 62 fichiers, 616 tests passes",
+      "test-migrations-coherence": 0,
+      "build (next build --webpack)": 0,
+      "test:e2e (playwright)": "0 — 68 passes, 1 skip explicite, unexpected:0, flaky:0",
+      "electron:test (playwright electron)": "0 — 3 passes"
+    },
+    "buildCaveat": "`next build` avec le bundler PAR DEFAUT (Turbopack, Next 16) ECHOUE dans ce worktree : 'Symlink [project]/node_modules is invalid, it points out of the filesystem root'. C'est une limite d'ENVIRONNEMENT du worktree symlinke, pas une regression du code — la meme cause impose deja `next dev --webpack` aux workers. Le build passe avec `--webpack` (exit 0, table de routes complete). Sur Vercel/CI (node_modules reel, sans symlink) le build Turbopack n'est pas concerne."
+  },
   "sharedFilesReservedToIntegrator": [
     "lib/supabase/database.types.ts",
     "package.json",
@@ -20,22 +43,58 @@
     "components/cockpit/primitives.tsx",
     "LAST_REPORT.md"
   ],
-  "missions": [
-    { "id": "REA-M04-01", "prompt": "prompts/01-auth-admin.md", "branch": "feature/rea-m04-auth-admin", "title": "Auth, MFA et isolation admin", "status": "pending" },
-    { "id": "REA-M04-02", "prompt": "prompts/02-gateway.md", "branch": "feature/rea-m04-gateway", "title": "Gateway Aigent, identite, idempotence et HITL", "status": "pending" },
-    { "id": "REA-M04-03", "prompt": "prompts/03-rls.md", "branch": "feature/rea-m04-rls", "title": "RLS et matrice d'acces prospection", "status": "pending" },
-    { "id": "REA-M04-04", "prompt": "prompts/04-aigent.md", "branch": "feature/rea-m04-aigent", "title": "Contrat runtime Aigent strict", "status": "pending" },
-    { "id": "REA-M04-05", "prompt": "prompts/05-prod-gates.md", "branch": "feature/rea-m04-prod-gates", "title": "Boot, health, CI et contrat de deploiement", "status": "pending" },
-    { "id": "REA-M04-06", "prompt": "prompts/06-buyer-finance.md", "branch": "feature/rea-m04-buyer-finance", "title": "Financement acquereur", "status": "pending" },
-    { "id": "REA-M04-07", "prompt": "prompts/07-shell.md", "branch": "feature/rea-m04-shell", "title": "Shell responsive et Assistant contextuel", "status": "pending" },
-    { "id": "REA-M04-08", "prompt": "prompts/08-daily-cockpit.md", "branch": "feature/rea-m04-daily-cockpit", "title": "Cockpit quotidien et Agenda", "status": "pending" },
-    { "id": "REA-M04-09", "prompt": "prompts/09-prospection-ui.md", "branch": "feature/rea-m04-prospection-ui", "title": "Prospection haute densite (UI)", "status": "pending" },
-    { "id": "REA-M04-10", "prompt": "prompts/10-estimation-ui.md", "branch": "feature/rea-m04-estimation-ui", "title": "Estimation mobile et continuite commerciale (UI)", "status": "pending" },
-    { "id": "REA-M04-11", "prompt": "prompts/11-crm-ui.md", "branch": "feature/rea-m04-crm-ui", "title": "CRM et portefeuille denses (UI)", "status": "pending" },
-    { "id": "REA-M04-12", "prompt": "prompts/12-estimation-trust.md", "branch": "feature/rea-m04-estimation-trust", "title": "Estimation, providers et partage de confiance", "status": "pending" },
-    { "id": "REA-M04-13", "prompt": "prompts/13-electron.md", "branch": "feature/rea-m04-electron", "title": "Electron production et parite web", "status": "pending" },
-    { "id": "REA-M04-14", "prompt": "prompts/14-qa.md", "branch": "feature/rea-m04-qa", "title": "E2E, accessibilite et preuves consolidees", "status": "pending", "rerunAgainstReleaseCandidate": true }
+  "integratorResolutions": [
+    {
+      "type": "collision-migration",
+      "detail": "M01 et M02 avaient tous deux pris le numero 0046. Renumerotation : 0046_auth_credentials_tenant_index (M01, conserve) / 0047_rls_prospection (M03) / 0048_agent_alert_approvals_trigger_idempotent (M02, renomme). lib/agent-gateway/migration-triggers.test.ts realigne sur 0048.",
+      "commit": "358ed46"
+    },
+    {
+      "type": "fichier-partage",
+      "detail": "lib/admin/overview.ts — fuite cross-tenant P0 signalee par M01 : buildAdminOverview() comptait estimations/leads SANS filtre tenant. Ajout du parametre tenantId + .eq('tenant_id', tenantId) sur les 3 requetes de comptage, et alignement des DEUX appelants (app/api/admin/route.ts et app/(dashboard)/admin/page.tsx).",
+      "commit": "358ed46"
+    },
+    {
+      "type": "fichier-partage",
+      "detail": "package.json — besoin signale par M13 : le script electron:test ne rebuildait pas dist-electron et utilisait la config Playwright racine (webServer Turbopack). Remplace par `tsc -p electron && cp electron/splash.html dist-electron/splash.html && playwright test --config electron/playwright.electron.config.ts`, aligne sur electron:start / electron:build.",
+      "commit": "295b6af"
+    }
   ],
+  "mergeConflicts": 0,
+  "missions": [
+    { "id": "REA-M04-01", "prompt": "prompts/01-auth-admin.md", "branch": "feature/rea-m04-auth-admin", "head": "48e3ff4", "title": "Auth, MFA et isolation admin", "status": "completed", "integrated": true, "highlight": "2 fuites cross-tenant P0 fermees (admin audit-log + mfa-reset) + rate-limit login + migration 0046" },
+    { "id": "REA-M04-02", "prompt": "prompts/02-gateway.md", "branch": "feature/rea-m04-gateway", "head": "0ac6d46", "title": "Gateway Aigent, identite, idempotence et HITL", "status": "completed", "integrated": true, "highlight": "defauts d'idempotence + fuite de timer corriges ; trigger 0045 rendu idempotent (migration 0048)" },
+    { "id": "REA-M04-03", "prompt": "prompts/03-rls.md", "branch": "feature/rea-m04-rls", "head": "6d4508a", "title": "RLS et matrice d'acces prospection", "status": "completed", "integrated": true, "highlight": "tables prospection sans RLS (fuite PII) fermees + realignement sur current_tenant_id (migration 0047)" },
+    { "id": "REA-M04-04", "prompt": "prompts/04-aigent.md", "branch": "feature/rea-m04-aigent", "head": "4084f44", "title": "Contrat runtime Aigent strict", "status": "completed", "integrated": true, "highlight": "cast `as T` supprime au profit de Zod — il produisait des runs vides/faux silencieux" },
+    { "id": "REA-M04-05", "prompt": "prompts/05-prod-gates.md", "branch": "feature/rea-m04-prod-gates", "head": "a3fcb27", "title": "Boot, health, CI et contrat de deploiement", "status": "completed", "integrated": true, "highlight": "lib/env.ts etait mort : l'app ne validait JAMAIS son env au boot. env-check + CSP report-only + CI test/build/e2e" },
+    { "id": "REA-M04-06", "prompt": "prompts/06-buyer-finance.md", "branch": "feature/rea-m04-buyer-finance", "head": "ed40f71", "title": "Financement acquereur", "status": "completed", "integrated": true, "highlight": "leads.financement cable LIVE de bout en bout (form, API, detail)" },
+    { "id": "REA-M04-07", "prompt": "prompts/07-shell.md", "branch": "feature/rea-m04-shell", "head": "4499760", "title": "Shell responsive et Assistant contextuel", "status": "completed", "integrated": true, "highlight": "l'Assistant etait INOUVRABLE en dessous de 1024px — MobileAssistant ajoute" },
+    { "id": "REA-M04-08", "prompt": "prompts/08-daily-cockpit.md", "branch": "feature/rea-m04-daily-cockpit", "head": "a21f0f6", "title": "Cockpit quotidien et Agenda", "status": "completed", "integrated": true, "highlight": "centre d'actions en bandes temporelles (urgent/aujourd'hui/a venir) + agenda par jour" },
+    { "id": "REA-M04-09", "prompt": "prompts/09-prospection-ui.md", "branch": "feature/rea-m04-prospection-ui", "head": "569ec7c", "title": "Prospection haute densite (UI)", "status": "completed", "integrated": true, "highlight": "bande KPI compacte, onglets segmentes, cartes profil densifiees" },
+    { "id": "REA-M04-10", "prompt": "prompts/10-estimation-ui.md", "branch": "feature/rea-m04-estimation-ui", "head": "9c1ff7a", "title": "Estimation mobile et continuite commerciale (UI)", "status": "completed", "integrated": true, "highlight": "bugs de rognage mobile corriges (carte secteur, pipeline de continuite)" },
+    { "id": "REA-M04-11", "prompt": "prompts/11-crm-ui.md", "branch": "feature/rea-m04-crm-ui", "head": "108cf53", "title": "CRM et portefeuille denses (UI)", "status": "completed", "integrated": true, "highlight": "alignement des grilles de charts + fiche bien en PageStack" },
+    { "id": "REA-M04-12", "prompt": "prompts/12-estimation-trust.md", "branch": "feature/rea-m04-estimation-trust", "head": "71c6bd4", "title": "Estimation, providers et partage de confiance", "status": "completed", "integrated": true, "highlight": "provenance honnete des providers propagee jusqu'au PDF et au lien de partage" },
+    { "id": "REA-M04-13", "prompt": "prompts/13-electron.md", "branch": "feature/rea-m04-electron", "head": "87629c3", "title": "Electron production et parite web", "status": "completed", "integrated": true, "highlight": "sandbox+contextIsolation sur les 2 fenetres, will-navigate fail-closed, entitlements reduits ; cause racine ELECTRON_RUN_AS_NODE trouvee" },
+    { "id": "REA-M04-14", "prompt": "prompts/14-qa.md", "branch": "feature/rea-m04-qa", "head": "0143998", "title": "E2E, accessibilite et preuves consolidees", "status": "completed", "integrated": true, "rerunAgainstReleaseCandidate": true, "rerunDone": true, "highlight": "FAUX VERT demasque : les 429 du rate-limit login etaient traduits en test.skip() silencieux. 68 passes / 1 skip motive apres correctif harness" }
+  ],
+  "productDefectsReported": [
+    {
+      "id": "D01",
+      "severity": "P2",
+      "status": "signale-non-corrige",
+      "file": "app/api/properties/[id]/route.ts",
+      "detail": "PATCH ne valide pas l'enum `status` cote applicatif. La valeur part en base, la CHECK properties.status (0008_crm.sql:14) la rejette, et la route mappe l'echec en 500 update_failed au lieu de 400 invalid_status. Integrite des donnees SAUVE (rien n'est persiste), mais le code HTTP ment : une faute client est rapportee comme panne serveur. Diverge des routes soeurs (leads/visits/mandates) qui renvoient bien 400. Hors ownership de la mission QA — a traiter dans une vague ulterieure."
+    }
+  ],
+  "migrations": {
+    "versionedNotApplied": [
+      "0046_auth_credentials_tenant_index.sql",
+      "0047_rls_prospection.sql",
+      "0048_agent_alert_approvals_trigger_idempotent.sql"
+    ],
+    "appliedToGpu1": false,
+    "note": "Les 3 migrations sont VERSIONNEES dans supabase/migrations/ et AUCUNE n'a ete appliquee sur gpu1 (garde-fou noGpu1Migration respecte). Coherence statique prouvee par scripts/test-migrations-coherence.mjs."
+  },
   "guardrails": {
     "noMergeToMain": true,
     "noDeploy": true,
@@ -45,5 +104,12 @@
     "noGitForWorkers": true,
     "noInternalSwarmsEngine": true,
     "aigentLanggraphExternal": true
-  }
+  },
+  "guardrailIncidents": [
+    {
+      "mission": "REA-M04-07",
+      "detail": "5 captures PNG Playwright avaient ete committees sur la branche de mission. Corrigees par un commit AVANT (git rm, 4499760) puis push en fast-forward — aucune reecriture d'historique, aucun force-push. Le filtre de staging a ete durci pour toutes les missions suivantes.",
+      "resolved": true
+    }
+  ]
 }
