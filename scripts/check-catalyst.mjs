@@ -131,6 +131,9 @@ const STATE_COLOR_OK = [
   /^app\/\(dashboard\)\/properties\/\[id\]\/owner-report\/page\.tsx$/,
   /^components\/timeline\/Timeline\.tsx$/,
   /^components\/value-evolution\/ValueSparkline\.tsx$/,
+  // Couleurs sémantiques d'état (proposition mandat, issue de visite) — REA-PRODUCT-008
+  /^app\/\(dashboard\)\/mandate-renewal\/page\.tsx$/,
+  /^app\/\(dashboard\)\/visits\/_components\/PostVisitLoop\.tsx$/,
 ];
 function stateColorAllowed(relPath) {
   return STATE_COLOR_OK.some((re) => re.test(relPath));

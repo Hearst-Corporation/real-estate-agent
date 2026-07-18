@@ -31,6 +31,7 @@ export const UI = {
     reactivation: "Réactivation",
     conversion: "Conversion",
     renewal: "Renouvellements",
+    assistant: "Assistant",
     profile: "Profil",
     admin: "Admin",
   },

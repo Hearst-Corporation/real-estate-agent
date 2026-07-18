@@ -49,6 +49,7 @@ export const NAV = [
   { href: "/visits",      label: UI.nav.visits,       icon: "visits",     group: "main", tabs: "clients" },
   { href: "/agenda",      label: UI.nav.agenda,       icon: "agenda",     group: "main" },
   { href: "/action-center", label: UI.nav.actionCenter, icon: "agenda",   group: "main" },
+  { href: "/assistant",   label: UI.nav.assistant,     icon: "agents",    group: "main" },
   { href: "/conversion",  label: UI.nav.conversion,    icon: "estimate",  group: "main" },
   { href: "/mandate-renewal", label: UI.nav.renewal,   icon: "mandates",  group: "main" },
   { href: "/reactivation", label: UI.nav.reactivation, icon: "leads",     group: "main" },
