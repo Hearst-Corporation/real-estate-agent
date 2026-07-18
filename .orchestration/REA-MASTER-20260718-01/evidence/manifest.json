@@ -1,0 +1,8 @@
+{
+  "runId": "REA-MASTER-20260718-01",
+  "kind": "evidence-manifest",
+  "createdBy": "prepare",
+  "note": "Manifest des preuves consolidees. Rempli par la mission 14 (QA) lors de l'execution. Toutes les captures doivent etre anonymisees (aucune PII, aucun secret).",
+  "anonymizationPolicy": "no-PII, no-secrets, no-real-identifying-data",
+  "evidence": []
+}

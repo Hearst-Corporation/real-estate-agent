@@ -1,0 +1,49 @@
+{
+  "runId": "REA-MASTER-20260718-01",
+  "phase": "prepared",
+  "coordinationBranch": "orchestration/REA-MASTER-20260718-01",
+  "baseBranch": "feature/rea-platform-003",
+  "baseHead": "b2d85403419d2007cb106c9e85abc1d9341685f0",
+  "integrationBranch": "feature/rea-master-004",
+  "remote": "https://github.com/Hearst-Corporation/real-estate-agent.git",
+  "packageManager": "pnpm",
+  "gate": "pnpm check (concurrently: lint:secrets, lint, lint:nav, lint:strings, gen-cockpit-manifest --check, typecheck, lint:biome, check:catalyst)",
+  "extraChecks": ["pnpm test", "pnpm build", "scripts/test-migrations-coherence.mjs", "pnpm test:e2e", "pnpm electron:test"],
+  "sharedFilesReservedToIntegrator": [
+    "lib/supabase/database.types.ts",
+    "package.json",
+    "pnpm-lock.yaml",
+    "config/nav.ts",
+    "lib/ui-strings.ts",
+    "app/globals.css",
+    "components/ui/*",
+    "components/cockpit/primitives.tsx",
+    "LAST_REPORT.md"
+  ],
+  "missions": [
+    { "id": "REA-M04-01", "prompt": "prompts/01-auth-admin.md", "branch": "feature/rea-m04-auth-admin", "title": "Auth, MFA et isolation admin", "status": "pending" },
+    { "id": "REA-M04-02", "prompt": "prompts/02-gateway.md", "branch": "feature/rea-m04-gateway", "title": "Gateway Aigent, identite, idempotence et HITL", "status": "pending" },
+    { "id": "REA-M04-03", "prompt": "prompts/03-rls.md", "branch": "feature/rea-m04-rls", "title": "RLS et matrice d'acces prospection", "status": "pending" },
+    { "id": "REA-M04-04", "prompt": "prompts/04-aigent.md", "branch": "feature/rea-m04-aigent", "title": "Contrat runtime Aigent strict", "status": "pending" },
+    { "id": "REA-M04-05", "prompt": "prompts/05-prod-gates.md", "branch": "feature/rea-m04-prod-gates", "title": "Boot, health, CI et contrat de deploiement", "status": "pending" },
+    { "id": "REA-M04-06", "prompt": "prompts/06-buyer-finance.md", "branch": "feature/rea-m04-buyer-finance", "title": "Financement acquereur", "status": "pending" },
+    { "id": "REA-M04-07", "prompt": "prompts/07-shell.md", "branch": "feature/rea-m04-shell", "title": "Shell responsive et Assistant contextuel", "status": "pending" },
+    { "id": "REA-M04-08", "prompt": "prompts/08-daily-cockpit.md", "branch": "feature/rea-m04-daily-cockpit", "title": "Cockpit quotidien et Agenda", "status": "pending" },
+    { "id": "REA-M04-09", "prompt": "prompts/09-prospection-ui.md", "branch": "feature/rea-m04-prospection-ui", "title": "Prospection haute densite (UI)", "status": "pending" },
+    { "id": "REA-M04-10", "prompt": "prompts/10-estimation-ui.md", "branch": "feature/rea-m04-estimation-ui", "title": "Estimation mobile et continuite commerciale (UI)", "status": "pending" },
+    { "id": "REA-M04-11", "prompt": "prompts/11-crm-ui.md", "branch": "feature/rea-m04-crm-ui", "title": "CRM et portefeuille denses (UI)", "status": "pending" },
+    { "id": "REA-M04-12", "prompt": "prompts/12-estimation-trust.md", "branch": "feature/rea-m04-estimation-trust", "title": "Estimation, providers et partage de confiance", "status": "pending" },
+    { "id": "REA-M04-13", "prompt": "prompts/13-electron.md", "branch": "feature/rea-m04-electron", "title": "Electron production et parite web", "status": "pending" },
+    { "id": "REA-M04-14", "prompt": "prompts/14-qa.md", "branch": "feature/rea-m04-qa", "title": "E2E, accessibilite et preuves consolidees", "status": "pending", "rerunAgainstReleaseCandidate": true }
+  ],
+  "guardrails": {
+    "noMergeToMain": true,
+    "noDeploy": true,
+    "noGpu1Migration": true,
+    "noVercelSecretChange": true,
+    "noForcePush": true,
+    "noGitForWorkers": true,
+    "noInternalSwarmsEngine": true,
+    "aigentLanggraphExternal": true
+  }
+}
