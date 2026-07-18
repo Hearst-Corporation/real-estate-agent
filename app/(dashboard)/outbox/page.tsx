@@ -14,6 +14,7 @@ import { getSession } from "@/lib/server/session";
 import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { listDrafts } from "@/lib/outbox";
+import { allTransportStatuses } from "@/lib/outbox/transport";
 import { OutboxBoard, type DraftView } from "./_components/OutboxBoard";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export default async function OutboxPage() {
         </p>
       </div>
 
-      <OutboxBoard initial={drafts} unavailable={unavailable} />
+      <OutboxBoard initial={drafts} unavailable={unavailable} transports={allTransportStatuses()} />
     </div>
   );
 }

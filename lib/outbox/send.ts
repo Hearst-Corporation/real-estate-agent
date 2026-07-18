@@ -18,10 +18,9 @@
  * Ils sont injectables pour tester la garde sans réseau ni env.
  */
 
-import { resendIsConfigured } from "@/lib/providers/resend-email";
-import { twilioIsConfigured } from "@/lib/providers/twilio";
 import { sendEmail } from "@/lib/providers/resend-email";
 import { sendSms, sendWhatsApp } from "@/lib/providers/twilio";
+import { transportStatus } from "@/lib/outbox/transport";
 import type { OutboxChannel } from "@/lib/outbox/types";
 
 /** Résultat d'un envoi provider unifié (id/sid → ref, dry → dégradé). */
@@ -30,10 +29,17 @@ export interface ProviderResult {
   dry?: boolean;
 }
 
-/** Dépendances injectables (tests sans réseau). */
+/**
+ * Dépendances injectables (tests sans réseau).
+ *
+ * `isChannelConfigured` est PAR CANAL — et non un booléen global par provider :
+ * SMS et WhatsApp ont des expéditeurs Twilio distincts (TWILIO_SMS_FROM vs
+ * TWILIO_WHATSAPP_FROM). Un unique `isSmsConfigured` déclarait le SMS
+ * « configuré » alors que son expéditeur manquait, ce qui provoquait un aller-
+ * retour réseau voué à l'échec au lieu d'un CONFIG honnête.
+ */
 export interface SendDeps {
-  isEmailConfigured: () => boolean;
-  isSmsConfigured: () => boolean;
+  isChannelConfigured: (channel: OutboxChannel) => boolean;
   sendEmail: (opts: { to: string; subject: string; html: string }) => Promise<ProviderResult>;
   sendSms: (to: string, body: string) => Promise<ProviderResult>;
   sendWhatsApp: (to: string, body: string) => Promise<ProviderResult>;
@@ -41,8 +47,7 @@ export interface SendDeps {
 
 /** Dépendances réelles (production) — providers lib/providers. */
 export const realSendDeps: SendDeps = {
-  isEmailConfigured: resendIsConfigured,
-  isSmsConfigured: twilioIsConfigured,
+  isChannelConfigured: (channel) => transportStatus(channel).state === "LIVE",
   sendEmail: async (opts) => {
     const r = await sendEmail(opts);
     return { ref: r.id ?? null, dry: r.dry };
@@ -57,17 +62,9 @@ export const realSendDeps: SendDeps = {
   },
 };
 
-/** Le provider du canal est-il réellement configuré ? */
+/** Le transport du canal est-il réellement configuré (toutes variables présentes) ? */
 export function channelConfigured(channel: OutboxChannel, deps: SendDeps = realSendDeps): boolean {
-  switch (channel) {
-    case "email":
-      return deps.isEmailConfigured();
-    case "sms":
-    case "whatsapp":
-      return deps.isSmsConfigured();
-    default:
-      return false;
-  }
+  return deps.isChannelConfigured(channel);
 }
 
 /** Nom du provider par canal (journalisé, jamais un secret). */
@@ -80,9 +77,10 @@ export function providerFor(channel: OutboxChannel): "resend" | "twilio" {
  * ne renvoie 'sent' QUE si un envoi réel a eu lieu (ref non nulle, pas de dry).
  */
 export type SendOutcome =
-  | { status: "sent"; provider: string; ref: string | null; sentAt: string }
-  | { status: "approved"; provider: string; reason: "provider_not_configured" }
-  | { status: "approved"; provider: string; reason: "provider_dry_run" }
+  /** `ref` est NON NULLABLE : sans identifiant fournisseur, pas de 'sent'. */
+  | { status: "sent"; provider: string; ref: string; sentAt: string }
+  | { status: "approved"; provider: string; reason: "provider_not_configured"; missing: string[] }
+  | { status: "approved"; provider: string; reason: "provider_dry_run"; missing?: string[] }
   | { status: "failed"; provider: string; error: string };
 
 export interface SendContext {
@@ -105,9 +103,14 @@ export async function attemptSend(
 ): Promise<SendOutcome> {
   const provider = providerFor(ctx.channel);
 
-  // 1. Provider configuré ? Non → on ne tente rien. CONFIG honnête.
+  // 1. Transport configuré ? Non → on ne tente rien, et on NOMME ce qui manque.
   if (!channelConfigured(ctx.channel, deps)) {
-    return { status: "approved", provider, reason: "provider_not_configured" };
+    return {
+      status: "approved",
+      provider,
+      reason: "provider_not_configured",
+      missing: transportStatus(ctx.channel).missing,
+    };
   }
 
   // 2. Envoi réel. Toute erreur → 'failed', jamais 'sent'.
@@ -133,11 +136,14 @@ export async function attemptSend(
     return { status: "approved", provider, reason: "provider_dry_run" };
   }
 
-  // Seule une référence provider réelle prouve l'envoi.
-  return {
-    status: "sent",
-    provider,
-    ref: result.ref ?? null,
-    sentAt: new Date().toISOString(),
-  };
+  // 4. SEUL un identifiant fournisseur réel (id Resend / sid Twilio) prouve
+  //    l'envoi. Une réponse acceptée mais sans référence n'est PAS une preuve :
+  //    on ne peut ni tracer, ni auditer, ni rejouer le message. On refuse donc
+  //    de mentir et on marque 'failed' — jamais 'sent' sur une référence vide.
+  const ref = result.ref?.trim();
+  if (!ref) {
+    return { status: "failed", provider, error: "provider_no_reference" };
+  }
+
+  return { status: "sent", provider, ref, sentAt: new Date().toISOString() };
 }

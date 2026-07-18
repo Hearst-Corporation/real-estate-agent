@@ -48,6 +48,14 @@ const CHANNEL_LABEL: Record<DraftView["channel"], string> = {
   whatsapp: "WhatsApp",
 };
 
+/** État réel d'un transport, calculé côté serveur (noms de variables uniquement). */
+export type TransportStatusView = {
+  channel: DraftView["channel"];
+  provider: string;
+  state: "LIVE" | "CONFIG";
+  missing: string[];
+};
+
 /** Message d'état lisible quand un envoi n'a pas eu lieu (CONFIG honnête). */
 function reasonLabel(error: string | null): string | null {
   if (!error) return null;
@@ -56,6 +64,8 @@ function reasonLabel(error: string | null): string | null {
       return "Canal non configuré — aucun envoi, à traiter manuellement";
     case "provider_dry_run":
       return "Provider en mode dry-run — aucun envoi";
+    case "provider_no_reference":
+      return "Aucun identifiant fournisseur reçu — envoi NON confirmé";
     case "send_failed":
       return "Échec d'envoi";
     default:
@@ -66,9 +76,11 @@ function reasonLabel(error: string | null): string | null {
 export function OutboxBoard({
   initial,
   unavailable,
+  transports = [],
 }: {
   initial: DraftView[];
   unavailable: boolean;
+  transports?: TransportStatusView[];
 }) {
   const [drafts, setDrafts] = useState<DraftView[]>(initial);
   const [tab, setTab] = useState<StatusTab>("draft");
@@ -169,14 +181,16 @@ export function OutboxBoard({
     setBusyId(null);
   }
 
+  // La table outbox_drafts est déployée (migration 0050). Cet état ne se déclenche
+  // donc plus qu'en cas de panne réelle : base injoignable ou schéma cassé.
   if (unavailable) {
     return (
       <div className="surface flex flex-col items-start gap-2 p-6">
-        <Badge color="amber">Indisponible</Badge>
+        <Badge color="red">Base indisponible</Badge>
         <Text>
-          La table outbox n&apos;est pas encore déployée sur la base. La migration{" "}
-          <code className="font-mono text-xs">0049_outbox.sql</code> doit être appliquée avant
-          d&apos;utiliser les brouillons. Aucun message n&apos;est perdu.
+          Les brouillons ne peuvent pas être lus : la base est injoignable ou le schéma outbox est
+          inaccessible. Aucun message n&apos;est perdu, aucun envoi n&apos;a eu lieu. Réessayez —
+          si le problème persiste, vérifiez la connexion à la base.
         </Text>
       </div>
     );
@@ -184,6 +198,40 @@ export function OutboxBoard({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Vérité des transports : LIVE = envoi réel possible, CONFIG = variable manquante. */}
+      {transports.length > 0 && (
+        <section
+          aria-label="État des canaux d'envoi"
+          className="surface flex flex-col gap-2 p-4"
+        >
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+            Canaux d&apos;envoi
+          </p>
+          <ul className="flex flex-col gap-1.5">
+            {transports.map((t) => (
+              <li key={t.channel} className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge color={t.state === "LIVE" ? "emerald" : "amber"}>
+                  {t.state === "LIVE" ? "LIVE" : "CONFIG"}
+                </Badge>
+                <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                  {CHANNEL_LABEL[t.channel]}
+                </span>
+                <span className="text-zinc-500">
+                  {t.state === "LIVE" ? (
+                    <>envoi réel actif via {t.provider}</>
+                  ) : (
+                    <>
+                      aucun envoi possible — variable(s) manquante(s) :{" "}
+                      <code className="font-mono text-xs">{t.missing.join(", ")}</code>
+                    </>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {flash && (
         <div
           role="status"
@@ -234,6 +282,10 @@ export function OutboxBoard({
             const editing = editId === d.id;
             const busy = busyId === d.id;
             const reason = reasonLabel(d.error);
+            // Canal non configuré → l'envoi est impossible : on ne propose pas
+            // un bouton qui ne peut produire qu'un échec silencieux.
+            const transport = transports.find((t) => t.channel === d.channel);
+            const sendable = !transport || transport.state === "LIVE";
             return (
               <li key={d.id} className="surface flex flex-col gap-3 p-5">
                 <div className="flex flex-wrap items-center gap-2">
@@ -299,14 +351,29 @@ export function OutboxBoard({
                       </Button>
                     )}
                     {d.status === "approved" && (
-                      <Button color="indigo" disabled={busy} onClick={() => send(d.id)}>
+                      <Button
+                        color="indigo"
+                        disabled={busy || !sendable}
+                        title={sendable ? undefined : "Canal non configuré — envoi impossible"}
+                        onClick={() => send(d.id)}
+                      >
                         {busy ? "Envoi…" : "Envoyer"}
                       </Button>
                     )}
                     {d.status === "failed" && (
-                      <Button color="indigo" disabled={busy} onClick={() => send(d.id)}>
+                      <Button
+                        color="indigo"
+                        disabled={busy || !sendable}
+                        title={sendable ? undefined : "Canal non configuré — envoi impossible"}
+                        onClick={() => send(d.id)}
+                      >
                         {busy ? "…" : "Réessayer"}
                       </Button>
+                    )}
+                    {!sendable && (d.status === "approved" || d.status === "failed") && (
+                      <span className="self-center text-xs text-amber-700 dark:text-amber-400">
+                        {CHANNEL_LABEL[d.channel]} non configuré — à envoyer manuellement
+                      </span>
                     )}
                     {(d.status === "draft" || d.status === "approved") && (
                       <Button plain disabled={busy} onClick={() => cancel(d.id)}>

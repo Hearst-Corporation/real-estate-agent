@@ -8,8 +8,7 @@ import { attemptSend, channelConfigured, providerFor, type SendDeps } from "./se
 
 function deps(over: Partial<SendDeps> = {}): SendDeps {
   return {
-    isEmailConfigured: () => true,
-    isSmsConfigured: () => true,
+    isChannelConfigured: () => true,
     sendEmail: vi.fn(async () => ({ ref: "email-real-id" })),
     sendSms: vi.fn(async () => ({ ref: "sms-real-sid" })),
     sendWhatsApp: vi.fn(async () => ({ ref: "wa-real-sid" })),
@@ -20,11 +19,12 @@ function deps(over: Partial<SendDeps> = {}): SendDeps {
 const ctx = { to: "dest@example.com", subject: "Objet", body: "Bonjour" };
 
 describe("channelConfigured", () => {
-  it("email suit Resend, sms/whatsapp suivent Twilio", () => {
-    const d = deps({ isEmailConfigured: () => false, isSmsConfigured: () => true });
+  it("délègue l'état PAR CANAL (sms et whatsapp sont indépendants)", () => {
+    const d = deps({ isChannelConfigured: (c) => c === "sms" });
     expect(channelConfigured("email", d)).toBe(false);
     expect(channelConfigured("sms", d)).toBe(true);
-    expect(channelConfigured("whatsapp", d)).toBe(true);
+    // WhatsApp a son propre expéditeur Twilio : il ne suit PAS le SMS.
+    expect(channelConfigured("whatsapp", d)).toBe(false);
   });
 });
 
@@ -38,7 +38,7 @@ describe("providerFor", () => {
 
 describe("attemptSend — JAMAIS de faux 'sent'", () => {
   it("provider NON configuré → 'approved' + CONFIG, ZÉRO appel réseau", async () => {
-    const d = deps({ isEmailConfigured: () => false });
+    const d = deps({ isChannelConfigured: () => false });
     const out = await attemptSend({ ...ctx, channel: "email" }, d);
     expect(out.status).toBe("approved");
     if (out.status === "approved") expect(out.reason).toBe("provider_not_configured");
@@ -81,12 +81,41 @@ describe("attemptSend — JAMAIS de faux 'sent'", () => {
     }
   });
 
-  it("ref nulle sans dry (cas limite provider) → 'sent' avec ref=null, jamais faux positif inverse", async () => {
-    // Un provider qui renvoie ni dry ni ref : on considère l'envoi accepté (200 provider)
-    // mais sans référence — statut 'sent', ref null. C'est un envoi réel côté provider.
+  it("ref NULLE sans dry → 'failed', JAMAIS 'sent' (pas d'id fournisseur = pas de preuve)", async () => {
+    // Un provider qui renvoie ni dry ni référence ne PROUVE aucun envoi : sans id
+    // Resend / sid Twilio, le message n'est ni traçable ni auditable. On refuse
+    // de le marquer 'sent' — c'est exactement le faux positif à empêcher.
     const d = deps({ sendEmail: vi.fn(async () => ({ ref: null })) });
     const out = await attemptSend({ ...ctx, channel: "email" }, d);
-    expect(out.status).toBe("sent");
-    if (out.status === "sent") expect(out.ref).toBeNull();
+    expect(out.status).toBe("failed");
+    if (out.status === "failed") expect(out.error).toBe("provider_no_reference");
+  });
+
+  it("ref vide/espaces → 'failed', jamais 'sent'", async () => {
+    const d = deps({ sendSms: vi.fn(async () => ({ ref: "   " })) });
+    const out = await attemptSend({ ...ctx, channel: "sms" }, d);
+    expect(out.status).toBe("failed");
+  });
+
+  it("INVARIANT — tout outcome 'sent' porte une référence non vide", async () => {
+    const cases: Array<Partial<SendDeps>> = [
+      {},
+      { isChannelConfigured: () => false },
+      { sendEmail: vi.fn(async () => ({ dry: true })) },
+      { sendEmail: vi.fn(async () => ({ ref: null })) },
+      { sendEmail: vi.fn(async () => ({ ref: "" })) },
+      {
+        sendEmail: vi.fn(async () => {
+          throw new Error("boom");
+        }),
+      },
+    ];
+    for (const over of cases) {
+      const out = await attemptSend({ ...ctx, channel: "email" }, deps(over));
+      if (out.status === "sent") {
+        expect(out.ref).toBeTruthy();
+        expect(out.ref.trim().length).toBeGreaterThan(0);
+      }
+    }
   });
 });

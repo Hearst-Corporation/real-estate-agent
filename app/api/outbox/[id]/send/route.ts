@@ -142,8 +142,10 @@ export async function POST(
     return NextResponse.json({ draft: data, sent: false, error: "send_failed" }, { status: 502 });
   }
 
-  // status === "approved" : provider non configuré OU dry-run → CONFIG honnête.
-  // On NE marque JAMAIS 'sent'. Le draft reste 'approved', on journalise la raison.
+  // status === "approved" : transport non configuré OU dry-run → CONFIG honnête.
+  // On NE marque JAMAIS 'sent'. Le draft reste 'approved', on journalise la raison
+  // ET les variables manquantes (noms seuls — jamais de valeur).
+  const missing = outcome.missing ?? [];
   const { data } = await from("outbox_drafts")
     .update({ status: "approved", provider, error: outcome.reason })
     .eq("tenant_id", tenantId)
@@ -157,9 +159,10 @@ export async function POST(
       sent: false,
       degraded: true,
       reason: outcome.reason,
+      missing,
       info:
         outcome.reason === "provider_not_configured"
-          ? `canal ${draft.channel} non configuré — aucun envoi effectué, message à envoyer manuellement`
+          ? `canal ${draft.channel} non configuré — aucun envoi effectué. Variable(s) manquante(s) : ${missing.join(", ")}`
           : "provider en mode dry-run — aucun envoi effectué",
     },
     { status: 200 },
