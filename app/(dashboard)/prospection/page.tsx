@@ -345,12 +345,12 @@ export default function ProspectionPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 pb-12 @container">
-      {/* ── Header ── */}
-      <div className="flex flex-col gap-4 pb-2">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">{UI.prospection.kicker}</p>
+    <div className="flex flex-col gap-4 pb-12 @container">
+      {/* ── Header : titre + actions + KPI compacts sur une bande dense ── */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent-600 dark:text-accent-400">{UI.prospection.kicker}</p>
             <Heading className="font-titre">{UI.prospection.title}</Heading>
           </div>
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
@@ -373,30 +373,43 @@ export default function ProspectionPage() {
           </div>
         </div>
 
-        <nav className="flex flex-wrap items-center gap-1 border-b border-zinc-950/10 pb-2 dark:border-white/10" aria-label={UI.prospection.tabProfils}>
-          {TABS.map((tItem) => (
+        {/* KPI compacts : bande dense (value + label). 2 col sur mobile (labels
+            au large), 4 col dès que la largeur le permet. */}
+        <dl className="surface grid grid-cols-2 divide-x divide-y divide-zinc-950/8 @md:grid-cols-4 @md:divide-y-0 dark:divide-white/10">
+          {stats.map((item) => (
+            <div key={item.name} className="flex items-baseline gap-2 px-3 py-2.5">
+              <dd className="text-lg font-semibold tracking-tight tabular-nums text-zinc-950 dark:text-white @md:text-xl">{item.value}</dd>
+              <dt className="truncate text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{item.name}</dt>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      {/* ── Onglets : contrôle segmenté, actif clair (pilule accent), scrollable mobile ── */}
+      <nav
+        className="scrollbar-thin -mx-1 flex items-center gap-0.5 overflow-x-auto px-1 pb-0.5"
+        aria-label={UI.prospection.tabProfils}
+      >
+        {TABS.map((tItem) => {
+          const isActive = tab === tItem;
+          return (
             <Button
               key={tItem}
               plain
               onClick={() => selectTab(tItem)}
-              aria-current={tab === tItem ? "page" : undefined}
-              className={tab === tItem ? "!text-accent-500 dark:!text-accent-400" : undefined}
+              aria-current={isActive ? "page" : undefined}
+              className={
+                "shrink-0 whitespace-nowrap !text-sm " +
+                (isActive
+                  ? "!bg-accent-500/15 !text-accent-700 dark:!bg-accent-500/20 dark:!text-accent-300"
+                  : "!text-zinc-600 dark:!text-zinc-400")
+              }
             >
               {tabLabel(tItem)}
             </Button>
-          ))}
-        </nav>
-      </div>
-
-      {/* ── Stats KPI ── */}
-      <dl className="grid grid-cols-2 gap-4 @2xl:grid-cols-4">
-        {stats.map((item) => (
-          <div key={item.name} className="surface p-4">
-            <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{item.name}</dt>
-            <dd className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">{item.value}</dd>
-          </div>
-        ))}
-      </dl>
+          );
+        })}
+      </nav>
 
       {/* ── Onglet profils de recherche (acquéreurs regroupés) ── */}
       {tab === "acquereurs" && (
