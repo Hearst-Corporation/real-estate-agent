@@ -17,6 +17,6 @@ export async function GET() {
   if (claims.role !== "admin") return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const sb = getSupabaseAdmin();
-  const overview = await buildAdminOverview(sb);
+  const overview = await buildAdminOverview(sb, claims.tenant_id);
   return NextResponse.json(overview, { headers: { "Cache-Control": "no-store" } });
 }

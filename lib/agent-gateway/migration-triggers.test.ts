@@ -8,7 +8,7 @@
  * sur la même relation, sinon un rejeu échoue sur « trigger already exists ».
  *
  * 0044 et 0043 respectent ce pattern ; 0045 (create trigger nu) ne le respectait
- * PAS → 0046 le réaligne. Ce test lit le SQL versionné et prouve que, POUR CHAQUE
+ * PAS → 0048 le réaligne. Ce test lit le SQL versionné et prouve que, POUR CHAQUE
  * `create trigger` d'une migration du domaine, un `drop trigger if exists` de même
  * nom+relation le précède quelque part dans le corpus des migrations appliquables.
  * Il aurait attrapé le défaut 0045 et empêche toute régression future.
@@ -23,7 +23,7 @@ const MIGRATIONS_DIR = path.resolve(__dirname, "../../supabase/migrations");
 const DOMAIN_MIGRATIONS = [
   "0044_agent_gateway.sql",
   "0045_alert_approvals.sql",
-  "0046_agent_alert_approvals_trigger_idempotent.sql",
+  "0048_agent_alert_approvals_trigger_idempotent.sql",
 ];
 
 function read(file: string): string {
@@ -74,8 +74,8 @@ describe("migrations gateway/approbations — triggers rejouables (idempotence)"
     });
   }
 
-  it("0046 réaligne bien le trigger d'approbation en drop+create idempotent", () => {
-    const sql = read("0046_agent_alert_approvals_trigger_idempotent.sql");
+  it("0048 réaligne bien le trigger d'approbation en drop+create idempotent", () => {
+    const sql = read("0048_agent_alert_approvals_trigger_idempotent.sql");
     expect(sql).toMatch(
       /drop\s+trigger\s+if\s+exists\s+trg_agent_alert_approval_updated_at\s+on\s+public\.agent_alert_approvals/i,
     );
@@ -84,8 +84,8 @@ describe("migrations gateway/approbations — triggers rejouables (idempotence)"
     );
   });
 
-  it("0046 est purement additif : il ne DROP ni ne modifie aucune table/donnée", () => {
-    const sql = read("0046_agent_alert_approvals_trigger_idempotent.sql").toLowerCase();
+  it("0048 est purement additif : il ne DROP ni ne modifie aucune table/donnée", () => {
+    const sql = read("0048_agent_alert_approvals_trigger_idempotent.sql").toLowerCase();
     // Seul un `drop trigger if exists` est autorisé (pas de drop table/column, pas
     // de delete/truncate/alter destructif) hors commentaires de rollback.
     const executable = sql

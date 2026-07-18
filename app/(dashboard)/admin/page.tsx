@@ -27,7 +27,7 @@ export default async function AdminPage() {
   if (!claims || claims.role !== "admin") notFound();
 
   const sb = getSupabaseAdmin();
-  const { providers, counts } = await buildAdminOverview(sb);
+  const { providers, counts } = await buildAdminOverview(sb, claims.tenant_id);
   const providerEntries = Object.entries(providers);
   const configuredCount = providerEntries.filter(([, ok]) => ok).length;
 

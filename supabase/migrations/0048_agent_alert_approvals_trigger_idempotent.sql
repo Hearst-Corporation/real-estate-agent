@@ -1,4 +1,4 @@
--- 0046_agent_alert_approvals_trigger_idempotent — rend le trigger de 0045 rejouable.
+-- 0048_agent_alert_approvals_trigger_idempotent — rend le trigger de 0045 rejouable.
 --
 -- Durcissement REA-M04-02. La migration 0045 crée `trg_agent_alert_approval_updated_at`
 -- avec un `create trigger` NU (ligne 45). Or Postgres n'accepte pas `create trigger
