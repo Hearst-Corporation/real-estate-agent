@@ -3,7 +3,7 @@ import Link from "next/link";
 import { timeFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,7 +73,7 @@ export default async function AgendaPage() {
   const tv = UI.visits;
 
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let visits: VisitRow[] = [];
 
@@ -88,7 +88,9 @@ export default async function AgendaPage() {
       .eq("tenant_id", tenantOf(claims))
       .gte("scheduled_at", now)
       .order("scheduled_at", { ascending: true });
-    visits = (data as VisitRow[]) ?? [];
+    // La projection embarque des tables liées (properties/leads) : la Row inférée
+    // du client ne les décrit pas → cast via `unknown` vers la forme de vue attendue.
+    visits = (data as unknown as VisitRow[]) ?? [];
   }
 
   const thisWeek = countThisWeek(visits);

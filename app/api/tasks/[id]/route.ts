@@ -13,10 +13,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
-import type { Database, TablesUpdate } from "@/lib/supabase/database.types";
+import { getGpu1Admin, type Gpu1Client } from "@/lib/gpu1";
+import type { Database, TablesUpdate } from "@/lib/gpu1/database.types";
 import { tenantOf } from "@/lib/tenant";
 
 export const runtime = "nodejs";
@@ -32,7 +31,7 @@ const PatchSchema = z
     path: ["snoozed_until"],
   });
 
-type Db = SupabaseClient<Database>;
+type Db = Gpu1Client<Database>;
 
 async function ownsTask(
   sb: Db,
@@ -57,8 +56,8 @@ async function ownsTask(
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "no_db" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await ctx.params;
   const idCheck = z.string().uuid().safeParse(id);
@@ -116,8 +115,8 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "no_db" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await ctx.params;
   const idCheck = z.string().uuid().safeParse(id);

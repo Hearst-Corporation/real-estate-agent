@@ -3,7 +3,7 @@ import { Icon, type IconName } from "@/components/cockpit/Icon";
 import { dateFr } from "@/lib/crm/format";
 import { filterSeed } from "@/lib/crm/demo-filter";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { Text } from "@/components/ui/text";
 import { Link } from "@/components/ui/link";
@@ -68,7 +68,7 @@ function deriveLabels(): DeriveLabels {
 
 export default async function DashboardPage() {
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let properties: PropertyRow[] = [];
   let nbLeadsActifs = 0;

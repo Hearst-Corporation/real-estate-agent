@@ -18,10 +18,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
-import type { Database } from "@/lib/supabase/database.types";
+import { getGpu1Admin, type Gpu1Client } from "@/lib/gpu1";
+import type { Database } from "@/lib/gpu1/database.types";
 import { tenantOf } from "@/lib/tenant";
 
 export const runtime = "nodejs";
@@ -72,7 +71,7 @@ const CreateSchema = z.object({
   notes: z.string().trim().max(2000).nullable().optional(),
 });
 
-type Db = SupabaseClient<Database>;
+type Db = Gpu1Client<Database>;
 
 /**
  * Vérifie qu'une entité rattachée appartient bien à user+tenant.
@@ -92,7 +91,7 @@ async function entityBelongsToUser(
   const scopeByUser = table !== "prosp_annonces";
   // Nom de table dynamique (issu d'ENTITY_TABLE, allowlist constante) : le client
   // typé exige un littéral → cast local minimal sur ce seul `.from(table)`.
-  let q = (sb as SupabaseClient)
+  let q = (sb as Gpu1Client)
     .from(table)
     .select("id")
     .eq("id", entityId)
@@ -109,8 +108,8 @@ async function entityBelongsToUser(
 export async function GET(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "no_db" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const userId = claims.sub;
   const tenantId = tenantOf(claims);
@@ -144,8 +143,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "no_db" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const raw = await req.json().catch(() => null);
   const parsed = CreateSchema.safeParse(raw);
