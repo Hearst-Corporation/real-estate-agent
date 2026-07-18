@@ -7,14 +7,13 @@
  * doit donc faire précéder chaque `create trigger` d'un `drop trigger if exists`
  * sur la même relation, sinon un rejeu échoue sur « trigger already exists ».
  *
- * 0044 et 0043 respectent ce pattern ; 0045 (create trigger nu) ne le respectait
- * PAS → 0048 le réaligne. Ce test lit le SQL versionné et prouve que, POUR CHAQUE
- * `create trigger` d'une migration du domaine, un `drop trigger if exists` de même
- * nom+relation le précède quelque part dans le corpus des migrations appliquables.
- * Il aurait attrapé le défaut 0045 et empêche toute régression future.
+ * Ce test lit le SQL versionné et prouve que, POUR CHAQUE `create trigger` d'une
+ * migration du domaine, un `drop trigger if exists` de même nom+relation le précède
+ * DANS LE MÊME FICHIER. Une migration postérieure ne peut pas réparer le fait qu'un
+ * rejeu séquentiel échoue avant de l'atteindre.
  */
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 const MIGRATIONS_DIR = path.resolve(__dirname, "../../supabase/migrations");
@@ -30,44 +29,35 @@ function read(file: string): string {
   return readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
 }
 
-/** SQL de TOUTES les migrations (le drop peut vivre dans une migration voisine). */
-function allMigrationsSql(): string {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .map((f) => read(f))
-    .join("\n");
-}
-
 /** Extrait les `create trigger <nom> ... on <relation>` (nom + relation). */
-function createdTriggers(sql: string): Array<{ name: string; relation: string }> {
-  const out: Array<{ name: string; relation: string }> = [];
+function createdTriggers(sql: string): Array<{ name: string; relation: string; index: number }> {
+  const out: Array<{ name: string; relation: string; index: number }> = [];
   const re =
     /create\s+trigger\s+([a-z0-9_]+)\s+(?:before|after|instead\s+of)\b[\s\S]*?\bon\s+([a-z0-9_.]+)/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(sql)) !== null) {
-    out.push({ name: m[1].toLowerCase(), relation: m[2].toLowerCase() });
+    out.push({ name: m[1].toLowerCase(), relation: m[2].toLowerCase(), index: m.index });
   }
   return out;
 }
 
-function hasDropIfExists(corpus: string, name: string, relation: string): boolean {
+function hasPrecedingDropIfExists(sql: string, name: string, relation: string, createIndex: number): boolean {
   // `drop trigger if exists <name> on <relation>` (tolère espaces/casse).
   const re = new RegExp(
     `drop\\s+trigger\\s+if\\s+exists\\s+${name}\\s+on\\s+${relation.replace(".", "\\.")}\\b`,
     "i",
   );
-  return re.test(corpus);
+  return re.test(sql.slice(0, createIndex));
 }
 
 describe("migrations gateway/approbations — triggers rejouables (idempotence)", () => {
-  const corpus = allMigrationsSql();
-
   for (const file of DOMAIN_MIGRATIONS) {
     it(`${file} : chaque create trigger est précédé d'un drop trigger if exists`, () => {
-      const triggers = createdTriggers(read(file));
+      const sql = read(file);
+      const triggers = createdTriggers(sql);
       for (const t of triggers) {
         expect(
-          hasDropIfExists(corpus, t.name, t.relation),
+          hasPrecedingDropIfExists(sql, t.name, t.relation, t.index),
           `create trigger ${t.name} on ${t.relation} (dans ${file}) sans drop trigger if exists correspondant — un rejeu de migration échouerait`,
         ).toBe(true);
       }

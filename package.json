@@ -20,6 +20,8 @@
     "check": "concurrently --kill-others-on-fail -n secrets,lint,nav,strings,manifest,types,biome,catalyst \"npm:lint:secrets\" \"npm:lint\" \"npm:lint:nav\" \"npm:lint:strings\" \"node scripts/gen-cockpit-manifest.mjs --check\" \"npm:typecheck\" \"npm:lint:biome\" \"npm:check:catalyst\"",
     "prepare": "husky",
     "test": "vitest run",
+    "test:migrations": "node scripts/test-migrations-coherence.mjs",
+    "verify:release": "pnpm run check && pnpm run test && pnpm run test:migrations && pnpm run build",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:3002 && npm run electron:start\"",

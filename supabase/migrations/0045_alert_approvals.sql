@@ -42,6 +42,7 @@ create unique index if not exists uq_agent_alert_approval_active
 create index if not exists idx_agent_alert_approval_lookup
   on public.agent_alert_approvals (tenant_id, agent_id, match_id, status);
 
+drop trigger if exists trg_agent_alert_approval_updated_at on public.agent_alert_approvals;
 create trigger trg_agent_alert_approval_updated_at
   before update on public.agent_alert_approvals
   for each row execute function public.set_updated_at();

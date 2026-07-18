@@ -42,7 +42,7 @@ jobs:
         run: pnpm run test
 
       - name: Migrations coherence (static, no DB)
-        run: node scripts/test-migrations-coherence.mjs
+        run: pnpm run test:migrations
 
       - name: Build (next build)
         # Placeholders NON secrets : suffisent au build client. Le boot runtime
@@ -69,14 +69,17 @@ jobs:
       - name: Verify E2E secrets present
         id: guard
         env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           JWT: ${{ secrets.JWT_SECRET }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
-          if [ -n "$SERVICE_ROLE" ] && [ -n "$JWT" ]; then
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SERVICE_ROLE" ] && [ -n "$JWT" ] && [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Secrets DB (SUPABASE_SERVICE_ROLE_KEY / JWT_SECRET) absents — E2E ignoré."
+            echo "::notice::Configuration DB E2E incomplète — E2E NOT RUN."
           fi
 
       - name: Setup pnpm
@@ -112,3 +115,28 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm run test:e2e
+
+  electron-smoke:
+    runs-on: ubuntu-latest
+    needs: check
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Electron smoke
+        run: xvfb-run -a pnpm run electron:test
