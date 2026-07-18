@@ -16,6 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/cockpit/primitives";
+import { useTourActive } from "@/components/onboarding";
+import { OFFMARKET_ANCHORS } from "@/lib/onboarding/tours/offmarket";
 
 export type PortfolioProperty = {
   id: string;
@@ -68,6 +70,10 @@ export function OffmarketExplorer({ properties }: { properties: PortfolioPropert
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
+  // LOT 10 — pendant une visite guidée, la création du lien PUBLIC est refusée :
+  // la visite explique le bouton, elle ne le déclenche jamais.
+  const tourActive = useTourActive();
+
   const loadMatches = useCallback(async (p: PortfolioProperty) => {
     setSelectedProperty(p);
     setMatches(null);
@@ -102,6 +108,8 @@ export function OffmarketExplorer({ properties }: { properties: PortfolioPropert
   }, []);
 
   const createSelection = useCallback(async () => {
+    // Garde-fou dur : aucune page publique n'est créée pendant une visite.
+    if (tourActive) return;
     if (!selectedCritere || chosenPropertyIds.size === 0) return;
     setCreating(true);
     setError(null);
@@ -132,7 +140,7 @@ export function OffmarketExplorer({ properties }: { properties: PortfolioPropert
     } finally {
       setCreating(false);
     }
-  }, [selectedCritere, chosenPropertyIds]);
+  }, [selectedCritere, chosenPropertyIds, tourActive]);
 
   if (properties.length === 0) {
     return (
@@ -148,7 +156,7 @@ export function OffmarketExplorer({ properties }: { properties: PortfolioPropert
     <div className="grid gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
       {/* Colonne biens du portefeuille */}
       <Card title="Portefeuille" titleAs="label">
-        <ul className="flex flex-col gap-2">
+        <ul data-tour-id={OFFMARKET_ANCHORS.properties} className="flex flex-col gap-2">
           {properties.map((p) => {
             const active = selectedProperty?.id === p.id;
             return (
@@ -200,7 +208,7 @@ export function OffmarketExplorer({ properties }: { properties: PortfolioPropert
           ) : matches && matches.length === 0 ? (
             <p className="text-sm text-zinc-500">Aucun acquéreur ne correspond à ce bien.</p>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul data-tour-id={OFFMARKET_ANCHORS.matches} className="flex flex-col gap-3">
               {(matches ?? []).map((m) => {
                 const isTarget = selectedCritere?.critereId === m.critereId;
                 return (
@@ -263,8 +271,9 @@ export function OffmarketExplorer({ properties }: { properties: PortfolioPropert
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <Button
+                data-tour-id={OFFMARKET_ANCHORS.selection}
                 color="indigo"
-                disabled={creating || chosenPropertyIds.size === 0}
+                disabled={creating || chosenPropertyIds.size === 0 || tourActive}
                 onClick={createSelection}
               >
                 {creating ? "Génération…" : "Générer le lien partageable"}

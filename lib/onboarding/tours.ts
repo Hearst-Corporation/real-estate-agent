@@ -45,6 +45,9 @@
 import { UI } from "@/lib/ui-strings";
 import { validateTour } from "./progress";
 import type { TourDefinition, TourKey, TourRegistry } from "./types";
+import { prospectionTour } from "./tours/prospection";
+import { radarTour } from "./tours/radar";
+import { offmarketTour } from "./tours/offmarket";
 
 /**
  * Fabrique une définition de tour et vérifie sa cohérence (ids uniques, textes
@@ -140,13 +143,13 @@ export const coreCockpitTour: TourDefinition = defineTour({
  */
 export const TOUR_REGISTRY: TourRegistry = {
   "core-cockpit": coreCockpitTour,
-  prospection: null, // W2 → lib/onboarding/tours/prospection.ts
+  prospection: prospectionTour, // W4 → lib/onboarding/tours/prospection.ts
   crm: null, // W3
-  estimations: null, // W4
-  offmarket: null, // W5
-  "communications-hitl": null, // W6
-  agents: null, // W6
-  radar: null, // W5
+  estimations: null, // W3
+  offmarket: offmarketTour, // W4 → lib/onboarding/tours/offmarket.ts
+  "communications-hitl": null, // W5
+  agents: null, // W5
+  radar: radarTour, // W4 → lib/onboarding/tours/radar.ts
 };
 
 /** Définition d'une visite, ou `null` si le slot n'est pas encore rempli. */

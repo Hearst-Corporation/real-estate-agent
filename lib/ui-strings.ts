@@ -1671,6 +1671,100 @@ export const UI = {
           },
         },
       },
+
+      /* ── W4 — prospection / radar / off-market ─────────────────────── */
+
+      prospection: {
+        title: "Faire tourner la prospection",
+        description:
+          "Des critères acquéreur aux annonces rapprochées, avec le score réel et ses raisons.",
+        steps: {
+          onglets: {
+            title: "Les cinq onglets",
+            body: "Acquéreurs, matching, annonces, historique et alertes : chaque onglet est une étape du flux de prospection.",
+          },
+          criteres: {
+            title: "Les critères acquéreur",
+            body: "Un profil décrit ce que cherche un acquéreur : secteur, budget, surface, pièces. C'est la base de tout rapprochement.",
+            consequence:
+              "La visite ne modifie aucun critère : le formulaire refuse d'enregistrer tant qu'elle est ouverte.",
+          },
+          annonces: {
+            title: "Les annonces collectées",
+            body: "L'onglet Annonces liste les biens remontés par la collecte : prix, prix au m², DPE, ancienneté et vendeur particulier ou professionnel.",
+          },
+          matching: {
+            title: "Le matching et son score",
+            body: "Chaque rapprochement affiche un score calculé par le moteur de prospection, jamais estimé à l'œil. Sous chaque ligne, les critères satisfaits, tolérés et bloquants expliquent le chiffre.",
+            consequence:
+              "Score et raisons viennent de tes données réelles ; la visite ne relance aucun calcul.",
+          },
+          feedback: {
+            title: "Ton retour et les alertes",
+            body: "Les pouces sur chaque rapprochement apprennent tes préférences et repondèrent les critères suivants. L'onglet Alertes prévient au-delà d'un score que tu choisis.",
+            consequence:
+              "Pendant la visite, les pouces n'enregistrent rien : aucun signal n'est envoyé au moteur.",
+          },
+        },
+      },
+
+      radar: {
+        title: "Lire le radar vendeurs",
+        description:
+          "Les trois signaux d'opportunité et comment ouvrir l'annonce ou le mandat derrière chacun.",
+        steps: {
+          baisses: {
+            title: "Les baisses de prix",
+            body: "Chaque ligne compare l'ancien et le nouveau prix d'une annonce suivie, avec l'écart en euros, en pourcentage et la date du relevé.",
+            consequence:
+              "« Voir l'annonce » ouvre l'annonce d'origine dans un nouvel onglet, pour vérifier avant d'appeler.",
+          },
+          dormantes: {
+            title: "Les annonces dormantes",
+            body: "Un bien en ligne depuis longtemps sans mise à jour signale souvent un vendeur prêt à discuter d'un nouveau mandat.",
+            consequence:
+              "« Voir l'annonce » ouvre l'annonce d'origine pour confirmer qu'elle est toujours active.",
+          },
+          mandats: {
+            title: "Les mandats qui expirent",
+            body: "Tes propres mandats classés par jours restants. Passée l'échéance, le bien redevient disponible pour un confrère.",
+            consequence:
+              "« Ouvrir » t'emmène sur la liste des mandats, d'où tu lances le renouvellement.",
+          },
+        },
+      },
+
+      offmarket: {
+        title: "Rapprocher un bien de tes acquéreurs",
+        description:
+          "Du bien du portefeuille au lien partageable, en comprenant chaque score.",
+        steps: {
+          bien: {
+            title: "Choisis un bien réel",
+            body: "La colonne de gauche liste les biens de ton portefeuille. Cliquer sur un bien interroge le moteur de matching pour trouver les acquéreurs de ta base qui lui correspondent.",
+          },
+          inclure: {
+            title: "Coche les biens à inclure",
+            body: "La case devant chaque bien décide de ce qui figurera dans la sélection envoyée à l'acquéreur. Tu peux en cocher plusieurs.",
+          },
+          acquereurs: {
+            title: "Les acquéreurs correspondants",
+            body: "Chaque ligne est un profil de recherche de ta base, avec sa recommandation : priorité haute, à revoir, priorité basse ou rejeté.",
+          },
+          score: {
+            title: "Le score et ses raisons",
+            body: "Le score vient du moteur de matching de la prospection, jamais d'un calcul local. La ligne sous le nom détaille les critères satisfaits et les écarts qui restent.",
+            consequence:
+              "« Cibler » désigne l'acquéreur destinataire de la sélection, sans rien envoyer.",
+          },
+          lien: {
+            title: "Le lien partageable",
+            body: "Une fois un acquéreur ciblé, « Générer le lien partageable » crée une page publique où il note chaque bien du lot et te renvoie son avis.",
+            consequence:
+              "La visite explique ce bouton sans l'actionner : aucun lien public n'est créé pendant la visite.",
+          },
+        },
+      },
     },
   },
   common: {

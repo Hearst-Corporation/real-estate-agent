@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
+import { useTourActive } from "@/components/onboarding";
 import type { Critere, Urgence, AlerteFrequence } from "./types";
 
 const t = UI.prospection;
@@ -64,8 +65,12 @@ export function CritereForm({
   const [frequence, setFrequence] = useState<AlerteFrequence>(critere?.alerte_frequence ?? "off");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const tourActive = useTourActive();
 
   async function save() {
+    // LOT 10 — la visite guidée montre le formulaire, elle n'enregistre jamais
+    // de critère à la place de l'agent.
+    if (tourActive) return;
     if (!nom.trim()) {
       setError(t.critereNameRequired);
       return;

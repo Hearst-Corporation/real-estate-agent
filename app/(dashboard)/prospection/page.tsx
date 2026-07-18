@@ -23,6 +23,8 @@ import { AlertsPanel } from "./_components/AlertsPanel";
 import { matchReco } from "./_components/reco";
 import type { Annonce, Match, Critere } from "./_components/types";
 import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
+import { PROSPECTION_ANCHORS } from "@/lib/onboarding/tours/prospection";
+import { useTourActive } from "@/components/onboarding";
 
 type Tab = "acquereurs" | "matching" | "annonces" | "historique" | "alertes";
 
@@ -215,6 +217,8 @@ function AnnonceCard({ annonce, onOpenDetail }: { annonce: Annonce; onOpenDetail
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function ProspectionPage() {
+  // LOT 10 — pendant une visite guidée, aucune écriture métier ne part.
+  const tourActive = useTourActive();
   const [tab, setTab] = useState<Tab>("acquereurs");
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
   const [matchs, setMatchs] = useState<Match[]>([]);
@@ -317,6 +321,8 @@ export default function ProspectionPage() {
   }, []);
 
   async function sendFeedback(matchId: string, signal: "up" | "down") {
+    // La visite montre le geste ; elle n'envoie aucun signal au moteur.
+    if (tourActive) return;
     setError(null);
     try {
       const res = await fetch("/api/prospection/matchs", {
@@ -387,6 +393,7 @@ export default function ProspectionPage() {
 
       {/* ── Onglets : contrôle segmenté, actif clair (pilule accent), scrollable mobile ── */}
       <nav
+        data-tour-id={PROSPECTION_ANCHORS.tabs}
         className="scrollbar-thin -mx-1 flex items-center gap-0.5 overflow-x-auto px-1 pb-0.5"
         aria-label={UI.prospection.tabProfils}
       >
@@ -513,7 +520,12 @@ export default function ProspectionPage() {
               }
             />
           ) : (
-            <MatchList matchs={matchs} onFeedback={sendFeedback} onOpenDetail={(a, m) => openAnnonceDetail(a, m)} />
+            <MatchList
+              matchs={matchs}
+              onFeedback={sendFeedback}
+              feedbackDisabled={tourActive}
+              onOpenDetail={(a, m) => openAnnonceDetail(a, m)}
+            />
           )}
         </section>
       )}
@@ -569,16 +581,22 @@ function ErrorLine({ msg }: { msg: string }) {
 function MatchList({
   matchs,
   onFeedback,
+  feedbackDisabled,
   onOpenDetail,
 }: {
   matchs: Match[];
   onFeedback: (id: string, signal: "up" | "down") => Promise<void>;
+  /** LOT 10 — vrai pendant une visite : les pouces sont montrés, jamais actifs. */
+  feedbackDisabled: boolean;
   onOpenDetail: (a: Annonce, m: Match) => void;
 }) {
   const sorted = [...matchs].sort((a, b) => b.score_match - a.score_match);
 
   return (
-    <ul className="divide-y divide-zinc-950/5 dark:divide-white/5">
+    <ul
+      data-tour-id={PROSPECTION_ANCHORS.matching}
+      className="divide-y divide-zinc-950/5 dark:divide-white/5"
+    >
       {sorted.map((m) => {
         const a = m.annonce;
         const isGood = m.score_match >= MATCH_SCORE_ALERT;
@@ -614,10 +632,20 @@ function MatchList({
                 {UI.prospection.detailOpen}
               </Button>
               <div className="flex items-center gap-1">
-                <Button plain aria-label={UI.prospection.feedbackLikeAria} onClick={() => onFeedback(m.id, "up")}>
+                <Button
+                  plain
+                  disabled={feedbackDisabled}
+                  aria-label={UI.prospection.feedbackLikeAria}
+                  onClick={() => onFeedback(m.id, "up")}
+                >
                   <HandThumbUpIcon aria-hidden="true" className="size-5" />
                 </Button>
-                <Button plain aria-label={UI.prospection.feedbackDislikeAria} onClick={() => onFeedback(m.id, "down")}>
+                <Button
+                  plain
+                  disabled={feedbackDisabled}
+                  aria-label={UI.prospection.feedbackDislikeAria}
+                  onClick={() => onFeedback(m.id, "down")}
+                >
                   <HandThumbDownIcon aria-hidden="true" className="size-5" />
                 </Button>
               </div>

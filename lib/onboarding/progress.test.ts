@@ -269,6 +269,13 @@ describe("registre LOT 11", () => {
   it("listTours ignore les slots non livrés", () => {
     expect(listTours().every((t) => t !== null)).toBe(true);
     expect(listTours()).toContain(coreCockpitTour);
-    expect(getTour("radar")).toBeNull();
+    // Indépendant de l'avancement des workers : tout slot encore vide au
+    // registre renvoie bien `null`, et seuls les slots remplis sont listés.
+    for (const key of TOUR_KEYS) {
+      if (TOUR_REGISTRY[key] === null) expect(getTour(key)).toBeNull();
+    }
+    expect(listTours().length).toBe(
+      TOUR_KEYS.filter((k) => TOUR_REGISTRY[k] !== null).length,
+    );
   });
 });
