@@ -11,6 +11,13 @@
  *     (rejeu idempotent légitime, aucun second effet).
  *   - même clé + même hash, `running` (course concurrente) → UNAVAILABLE
  *     (`idempotency_in_progress`), jamais un doublon.
+ *
+ * Scellement SÉLECTIF de la clé : SEUL un résultat AVAILABLE (effet réel produit)
+ * est mémorisé `completed`. Un échec (UNAVAILABLE/DENIED/TIMEOUT) n'a produit AUCUN
+ * effet → on RELÂCHE la réservation (releaseGatewayIdempotent) pour qu'un rejeu
+ * LÉGITIME de la même clé puisse réessayer. Sans ça, un échec transitoire (ex.
+ * `send_failed`, `insert_failed`) figerait la clé sur son échec et bloquerait tout
+ * réessai. La garantie "aucun second effet" est préservée : seul le succès est scellé.
  */
 import "server-only";
 import type { Json } from "@/lib/supabase/database.types";
@@ -19,6 +26,7 @@ import {
   lookupGatewayRecord,
   reserveGatewayIdempotent,
   completeGatewayIdempotent,
+  releaseGatewayIdempotent,
 } from "./idempotency";
 import type { GatewayHandlerResult } from "./handler";
 
@@ -53,6 +61,13 @@ export async function runIdempotentWrite<TData extends Record<string, unknown>>(
   }
 
   const result = await write();
-  await completeGatewayIdempotent(tenantId, interfaceName, idemKey, result as unknown as Json);
+
+  // Ne scelle QUE le succès. Un échec (aucun effet) relâche la réservation pour
+  // permettre un rejeu ; le succès est mémorisé pour rejeu idempotent sans doublon.
+  if (result.status === "AVAILABLE") {
+    await completeGatewayIdempotent(tenantId, interfaceName, idemKey, result as unknown as Json);
+  } else {
+    await releaseGatewayIdempotent(tenantId, interfaceName, idemKey);
+  }
   return result;
 }

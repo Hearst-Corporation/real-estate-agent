@@ -57,7 +57,7 @@ export class FakeQuery {
   private gtFilters: Array<[string, unknown]> = [];
   private inFilter: [string, unknown[]] | null = null;
   private orRaw: string | null = null;
-  private op: "select" | "insert" | "upsert" | "update" | null = null;
+  private op: "select" | "insert" | "upsert" | "update" | "delete" | null = null;
   private payload: Row | Row[] | null = null;
   private conflict: string[] | null = null;
   private limitN: number | null = null;
@@ -65,7 +65,7 @@ export class FakeQuery {
   private wantCount = false;
 
   constructor(
-    private table: string,
+    _table: string, // conservé pour la signature from(table) ; non lu (query opère sur rows)
     private rows: Row[],
     private unique: UniqueSpec | undefined,
   ) {}
@@ -120,6 +120,10 @@ export class FakeQuery {
   update(payload: Row) {
     this.op = "update";
     this.payload = payload;
+    return this;
+  }
+  delete() {
+    this.op = "delete";
     return this;
   }
 
@@ -193,6 +197,15 @@ export class FakeQuery {
         }
       }
       return { data: out, error: null };
+    }
+    if (this.op === "delete") {
+      // Supprime en place les lignes filtrées du tableau partagé (mute la même
+      // référence que le seed), renvoie les lignes supprimées (comme Supabase).
+      const removed: Row[] = [];
+      for (let i = this.rows.length - 1; i >= 0; i--) {
+        if (this.match(this.rows[i])) removed.push(...this.rows.splice(i, 1));
+      }
+      return { data: removed, error: null };
     }
     // select
     const matched = this.rows.filter((r) => this.match(r));

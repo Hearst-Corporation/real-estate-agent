@@ -51,11 +51,20 @@ interface DefineGatewayRouteOptions<TInput, TData extends Record<string, unknown
   handler: (input: TInput, ctx: GatewayHandlerCtx) => Promise<GatewayHandlerResult<TData>>;
 }
 
+/**
+ * Race le handler contre un budget temps. Le timer est TOUJOURS libéré une fois la
+ * course tranchée (clearTimeout dans finally) : sans ça, un handler qui gagne la
+ * course laisserait un setTimeout pendant, gardant l'event loop éveillé et fuyant
+ * un timer par appel gateway. Dépassement → "TIMEOUT", jamais un retry silencieux.
+ */
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | "TIMEOUT"> {
-  return Promise.race([
-    promise,
-    new Promise<"TIMEOUT">((resolve) => setTimeout(() => resolve("TIMEOUT"), ms)),
-  ]);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<"TIMEOUT">((resolve) => {
+    timer = setTimeout(() => resolve("TIMEOUT"), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
 }
 
 export function defineGatewayRoute<

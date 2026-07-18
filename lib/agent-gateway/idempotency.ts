@@ -104,3 +104,34 @@ export async function completeGatewayIdempotent(
     // best-effort
   }
 }
+
+/**
+ * Relâche un verrou `running` posé par reserveGatewayIdempotent quand l'écriture
+ * n'a produit AUCUN effet (échec transitoire : UNAVAILABLE/DENIED/TIMEOUT). Sans
+ * ça, la clé resterait figée `completed` sur un échec et un rejeu LÉGITIME avec la
+ * même clé recevrait éternellement l'échec mémorisé — impossible de réessayer.
+ *
+ * Suppression CONDITIONNÉE à status='running' : jamais une ligne `completed` (un
+ * effet réel déjà scellé ne doit jamais être effacé). Best-effort — si le release
+ * échoue, la clé reste `running` et un rejeu tombera sur `idempotency_in_progress`
+ * (fail-closed : au pire on refuse un rejeu, jamais on ne double un effet).
+ */
+export async function releaseGatewayIdempotent(
+  tenantId: string,
+  interfaceName: string,
+  idemKey: string,
+): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db) return;
+  try {
+    await db
+      .from("agent_gateway_idempotency_keys")
+      .delete()
+      .eq("tenant_id", tenantId)
+      .eq("interface", interfaceName)
+      .eq("idem_key", idemKey)
+      .eq("status", "running");
+  } catch {
+    // best-effort
+  }
+}
