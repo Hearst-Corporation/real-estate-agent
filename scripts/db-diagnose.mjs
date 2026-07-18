@@ -1,10 +1,17 @@
 #!/usr/bin/env node
-// scripts/db-diagnose.mjs — Diagnostic du DB privé (Supabase self-hosté gpu1).
+// scripts/db-diagnose.mjs — Diagnostic du DB privé (Postgres self-hosté gpu1, PostgREST).
 //
-// Zéro dépendance : lit .env.local, interroge PostgREST via fetch avec la clé
-// service-role, compare le schéma réel aux tables créées par toutes les migrations
-// versionnées jusqu'à 0048, sonde la RPC verify_login, GoTrue et le comportement RLS anon vs
-// service-role. Ne masque RIEN des résultats mais N'IMPRIME AUCUN secret.
+// Zéro dépendance : lit .env.local, interroge PostgREST via fetch avec le token
+// admin (service-role, bypass RLS), compare le schéma réel aux tables créées par
+// toutes les migrations versionnées jusqu'à 0048, sonde la RPC verify_login,
+// vérifie l'absence de GoTrue/Storage/Realtime (montage PostgREST-only) et le
+// comportement RLS anon vs service-role. Ne masque RIEN des résultats mais
+// N'IMPRIME AUCUN secret.
+//
+// Variables canoniques (post-migration GPU1) :
+//   GPU1_POSTGREST_URL         base PostgREST, ex. https://…/rest/v1  [REQUIS]
+//   GPU1_POSTGREST_ADMIN_TOKEN JWT service-role (bypass RLS)          [REQUIS]
+//   GPU1_POSTGREST_ANON_TOKEN  JWT anon (probe RLS)                   [OPTIONNEL]
 //
 // Usage : node scripts/db-diagnose.mjs
 import { readFileSync, readdirSync } from "node:fs";
@@ -34,14 +41,18 @@ function loadEnv() {
       /* try next */
     }
   }
-  if (process.env.SUPABASE_SERVICE_ROLE_KEY) return { env: process.env, path: "process.env" };
+  if (process.env.GPU1_POSTGREST_ADMIN_TOKEN) return { env: process.env, path: "process.env" };
   throw new Error("Aucun .env.local trouvé");
 }
 
 const { env, path: envPath } = loadEnv();
-const URL_BASE = (env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/$/, "");
-const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || "";
-const ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+// GPU1_POSTGREST_URL inclut déjà `/rest/v1` (cf. .env.example). On dérive :
+//   PGRST_BASE : racine PostgREST (…/rest/v1) — tables + RPC
+//   HOST_BASE  : racine du domaine — probes GoTrue/Storage/Realtime (attendus ABSENTS)
+const PGRST_BASE = (env.GPU1_POSTGREST_URL || "").replace(/\/$/, "");
+const HOST_BASE = PGRST_BASE.replace(/\/rest\/v1$/, "");
+const SERVICE_KEY = env.GPU1_POSTGREST_ADMIN_TOKEN || "";
+const ANON_KEY = env.GPU1_POSTGREST_ANON_TOKEN || "";
 
 function expectedTablesFromMigrations() {
   const directory = resolve(ROOT, "supabase", "migrations");
@@ -91,15 +102,17 @@ function mask(s) {
   return `${s.slice(0, 4)}…[len ${s.length}]`;
 }
 
-async function http(path, { key, method = "GET", body, headers = {} } = {}) {
+// PostgREST self-host gpu1 : authentification par Bearer uniquement (pas d'entête
+// `apikey`, propre à la passerelle Supabase Cloud absente ici). `base` permet de
+// viser la racine PostgREST (défaut) ou la racine du domaine (probes GoTrue/etc.).
+async function http(path, { key, method = "GET", body, headers = {}, base = PGRST_BASE } = {}) {
   const h = { ...headers };
   if (key) {
-    h["apikey"] = key;
     h["Authorization"] = `Bearer ${key}`;
   }
   if (body) h["Content-Type"] = "application/json";
   try {
-    const res = await fetch(`${URL_BASE}${path}`, {
+    const res = await fetch(`${base}${path}`, {
       method,
       headers: h,
       body: body ? JSON.stringify(body) : undefined,
@@ -113,18 +126,18 @@ async function http(path, { key, method = "GET", body, headers = {} } = {}) {
 
 async function main() {
   console.log("═══════════════════════════════════════════════════════════════");
-  console.log(" DIAGNOSTIC DB PRIVÉ — Supabase self-hosté");
+  console.log(" DIAGNOSTIC DB PRIVÉ — Postgres self-hosté gpu1 (PostgREST)");
   console.log("═══════════════════════════════════════════════════════════════");
   console.log(`env source        : ${envPath}`);
-  console.log(`URL base          : ${URL_BASE}`);
-  console.log(`service-role key  : ${mask(SERVICE_KEY)}`);
-  console.log(`anon key          : ${mask(ANON_KEY)}`);
+  console.log(`PostgREST base    : ${PGRST_BASE}`);
+  console.log(`admin token       : ${mask(SERVICE_KEY)}`);
+  console.log(`anon token        : ${mask(ANON_KEY)}`);
   console.log("");
 
   // ── 1. Ping PostgREST + récupération OpenAPI (liste des tables exposées) ────
   console.log("── 1. PostgREST OpenAPI (schéma public exposé) ─────────────────");
-  const root = await http("/rest/v1/", { key: SERVICE_KEY });
-  console.log(`GET /rest/v1/  →  HTTP ${root.status}`);
+  const root = await http("/", { key: SERVICE_KEY });
+  console.log(`GET ${PGRST_BASE}/  →  HTTP ${root.status}`);
   let presentTables = [];
   if (root.ok) {
     try {
@@ -157,7 +170,7 @@ async function main() {
   console.log("── 3. Tables critiques (présence + lecture service-role) ──────");
   for (const t of CRITICAL) {
     const inSpec = presentSet.has(t);
-    const r = await http(`/rest/v1/${t}?select=*&limit=1`, { key: SERVICE_KEY });
+    const r = await http(`/${t}?select=*&limit=1`, { key: SERVICE_KEY });
     console.log(
       `  ${t.padEnd(18)} openapi=${inSpec ? "oui" : "NON"}  service-role GET → HTTP ${r.status}` +
         (r.status >= 400 ? `  (${r.text.slice(0, 80)})` : ""),
@@ -167,38 +180,38 @@ async function main() {
 
   // ── 4. RPC verify_login ─────────────────────────────────────────────────────
   console.log("── 4. RPC verify_login (auth self-host) ────────────────────────");
-  const rpc = await http("/rest/v1/rpc/verify_login", {
+  const rpc = await http("/rpc/verify_login", {
     key: SERVICE_KEY,
     method: "POST",
     body: { p_email: "diagnostic-nonexistent@example.invalid", p_password: "x" },
   });
-  console.log(`POST /rest/v1/rpc/verify_login  →  HTTP ${rpc.status}`);
+  console.log(`POST ${PGRST_BASE}/rpc/verify_login  →  HTTP ${rpc.status}`);
   console.log(`  réponse : ${rpc.text.slice(0, 160)}`);
   const rpcExists = rpc.status !== 404 && !/could not find|does not exist|PGRST202/i.test(rpc.text);
   console.log(`  → verify_login ${rpcExists ? "PRÉSENTE" : "ABSENTE / introuvable"}`);
   console.log("");
 
-  // ── 5. GoTrue présent ? ─────────────────────────────────────────────────────
-  console.log("── 5. GoTrue / Auth Supabase natif ────────────────────────────");
-  const gotrue = await http("/auth/v1/health");
+  // ── 5. GoTrue présent ? (attendu ABSENT sur montage PostgREST-only) ─────────
+  console.log("── 5. GoTrue / Auth natif (attendu ABSENT — auth = verify_login) ─");
+  const gotrue = await http("/auth/v1/health", { base: HOST_BASE });
   console.log(`GET /auth/v1/health  →  HTTP ${gotrue.status}`);
   console.log(`  réponse : ${gotrue.text.slice(0, 120)}`);
-  console.log(`  → GoTrue ${gotrue.status === 200 ? "PRÉSENT" : "ABSENT"}`);
+  console.log(`  → GoTrue ${gotrue.status === 200 ? "PRÉSENT (inattendu)" : "ABSENT (attendu)"}`);
   console.log("");
 
-  // ── 6. Storage / Realtime ───────────────────────────────────────────────────
-  console.log("── 6. Storage / Realtime ──────────────────────────────────────");
-  const storage = await http("/storage/v1/bucket", { key: SERVICE_KEY });
+  // ── 6. Storage / Realtime (attendus ABSENTS — storage = Cloudflare R2) ──────
+  console.log("── 6. Storage / Realtime (attendus ABSENTS) ───────────────────");
+  const storage = await http("/storage/v1/bucket", { key: SERVICE_KEY, base: HOST_BASE });
   console.log(`GET /storage/v1/bucket  →  HTTP ${storage.status}  (${storage.text.slice(0, 80)})`);
-  const rt = await http("/realtime/v1/");
+  const rt = await http("/realtime/v1/", { base: HOST_BASE });
   console.log(`GET /realtime/v1/  →  HTTP ${rt.status}`);
   console.log("");
 
   // ── 7. RLS : anon vs service-role sans afficher aucune ligne ────────────────
   console.log("── 7. RLS anon vs service-role (objets critiques/release) ─────");
   for (const t of ["users", "leads", ...RELEASE_OBJECTS]) {
-    const anon = await http(`/rest/v1/${t}?select=id&limit=1`, { key: ANON_KEY });
-    const svc = await http(`/rest/v1/${t}?select=id&limit=1`, { key: SERVICE_KEY });
+    const anon = await http(`/${t}?select=id&limit=1`, { key: ANON_KEY });
+    const svc = await http(`/${t}?select=id&limit=1`, { key: SERVICE_KEY });
     let anonRows = "?";
     try {
       anonRows = String(JSON.parse(anon.text).length);

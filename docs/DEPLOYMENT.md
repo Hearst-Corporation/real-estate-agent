@@ -30,8 +30,8 @@
 - **Prod (Vercel)** : renseigner les vars de [`.env.production.example`](../.env.production.example) dans *Project Settings → Environment Variables* (Production + Preview).
 
 **Requises au boot** (validées par `lib/env-check.ts` — zod, **throw au démarrage** si manquantes) :
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`
-(+ au moins une URL DB serveur : `SUPABASE_URL` **ou** `NEXT_PUBLIC_SUPABASE_URL`).
+`GPU1_POSTGREST_URL`, `GPU1_POSTGREST_ADMIN_TOKEN`, `JWT_SECRET`, `ANTHROPIC_API_KEY`.
+La DB (Postgres self-hosté gpu1 via PostgREST) est **100 % serveur** : aucune variable `NEXT_PUBLIC_*` DB.
 
 **Validation d'environnement au boot** : `instrumentation.ts#register()` appelle `assertBootEnv()`
 (`lib/env-check.ts`) au **démarrage du runtime serveur** (nodejs/edge). Si une var requise manque,
@@ -67,8 +67,10 @@ npm run electron:build           # .dmg signé/notarisé (voir /release-mac)
 
 ## 4. Migrations DB
 
-Les migrations vivent dans `supabase/migrations/NNNN_nom.sql` (**49 fichiers, `0001`→`0045`** ; dernières :
-`0043_platform_augmented_002`, `0044_agent_gateway`, `0045_alert_approvals`).
+Les migrations vivent dans `supabase/migrations/NNNN_nom.sql` (**52 fichiers, `0001`→`0048`** ; dernières :
+`0046_auth_credentials_tenant_index`, `0047_rls_prospection`, `0048_agent_alert_approvals_trigger_idempotent`).
+Le nom du dossier `supabase/` est une **convention de chemin historique**, pas une dépendance runtime :
+le SQL est du Postgres standard rejoué sur gpu1 (aucun outil Supabase Cloud).
 La base gpu1 a été **montée en reconstruisant le schéma depuis ces migrations** (via `/cloud-adrien`, mode `install`). Il n'y a **pas** de `supabase db push` (interactif, banni). Deux scripts reproductibles existent :
 `scripts/db-diagnose.mjs` (diagnostic DB **live** — voir §Diagnostic ci-dessous) et
 `scripts/test-migrations-coherence.mjs` (**cohérence STATIQUE des migrations**, aucune connexion DB — exécuté en CI).
@@ -130,11 +132,10 @@ Pipeline GitHub Actions : `.github/workflows/ci.yml` (sur `push`/`pull_request` 
    le boot runtime revalide l'env réel via `assertBootEnv`).
 
 **Job `e2e`** (Playwright smoke, `needs: check`) : ne s'exécute **que si** les secrets DB
-(`SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`) sont configurés sur le repo (GitHub → *Settings → Secrets
+(`GPU1_POSTGREST_ADMIN_TOKEN`, `JWT_SECRET`) sont configurés sur le repo (GitHub → *Settings → Secrets
 and variables → Actions*). Sur un fork ou un repo non configuré, le job se **skippe proprement** (pas
 d'échec rouge trompeur, message `::notice::`). Les secrets ne sont exposés qu'au runtime, **jamais imprimés**.
-Secrets attendus : `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `NEXT_PUBLIC_SUPABASE_URL`,
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+Secrets attendus : `GPU1_POSTGREST_URL`, `GPU1_POSTGREST_ADMIN_TOKEN`, `JWT_SECRET`, `ANTHROPIC_API_KEY`.
 
 > `scripts/db-diagnose.mjs` n'est **pas** en CI (il exige une DB live + `.env.local`) — c'est un outil
 > de diagnostic manuel (§4).

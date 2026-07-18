@@ -133,9 +133,9 @@ if (collisions.length > 0) {
 
 const pageTpl = `import { CockpitResourcePage } from "@/components/cockpit/ResourcePage";
 import { DataTable, type Column } from "@/components/cockpit/DataTable";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Gpu1Client } from "@/lib/gpu1";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { UI } from "@/lib/ui-strings";
 import ${Resource}Form from "./_components/${Resource}Form";
@@ -149,10 +149,10 @@ type ${Resource}Row = {
 export default async function ${Resource}Page() {
   const t = UI.${resource};
   const claims = await getSession();
-  // La table « ${resource} » n'est dans les types Supabase qu'APRÈS migration + génération
+  // La table « ${resource} » n'est dans les types gpu1 qu'APRÈS migration + génération
   // des types. En attendant, on requête via un client non typé.
-  // TODO: retirer le cast une fois lib/supabase/database.types.ts régénéré.
-  const sb = getSupabaseAdmin() as unknown as SupabaseClient | null;
+  // TODO: retirer le cast une fois lib/gpu1/database.types.ts régénéré.
+  const sb = getGpu1Admin() as unknown as Gpu1Client | null;
 
   let rows: ${Resource}Row[] = [];
   if (claims && sb) {
@@ -260,9 +260,9 @@ export default function ${Resource}Form({ cta }: { cta: string }) {
 `;
 
 const apiListTpl = `import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Gpu1Client } from "@/lib/gpu1";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 
 export const runtime = "nodejs";
@@ -270,10 +270,10 @@ export const dynamic = "force-dynamic";
 
 const DEFAULT_LIMIT = 200;
 
-// La table « ${resource} » n'est dans les types Supabase qu'après migration + génération.
-// TODO: supprimer adminDb() et utiliser getSupabaseAdmin() directement une fois les types régénérés.
+// La table « ${resource} » n'est dans les types gpu1 qu'après migration + génération.
+// TODO: supprimer adminDb() et utiliser getGpu1Admin() directement une fois les types régénérés.
 function adminDb() {
-  return getSupabaseAdmin() as unknown as SupabaseClient | null;
+  return getGpu1Admin() as unknown as Gpu1Client | null;
 }
 
 // ─── GET /api/${resource} — liste de l'utilisateur ───────────────────────────
@@ -283,7 +283,7 @@ export async function GET() {
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const sb = adminDb();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { data, error } = await sb
     .from("${resource}")
@@ -307,7 +307,7 @@ export async function POST(req: Request) {
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const sb = adminDb();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   let body: Record<string, unknown>;
   try {
@@ -349,18 +349,18 @@ export async function POST(req: Request) {
 `;
 
 const apiItemTpl = `import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Gpu1Client } from "@/lib/gpu1";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// La table « ${resource} » n'est dans les types Supabase qu'après migration + génération.
-// TODO: supprimer adminDb() et utiliser getSupabaseAdmin() directement une fois les types régénérés.
+// La table « ${resource} » n'est dans les types gpu1 qu'après migration + génération.
+// TODO: supprimer adminDb() et utiliser getGpu1Admin() directement une fois les types régénérés.
 function adminDb() {
-  return getSupabaseAdmin() as unknown as SupabaseClient | null;
+  return getGpu1Admin() as unknown as Gpu1Client | null;
 }
 
 // ─── PATCH /api/${resource}/[id] ──────────────────────────────────────────────
@@ -370,7 +370,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const sb = adminDb();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await params;
 
@@ -424,7 +424,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const sb = adminDb();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await params;
 
@@ -446,7 +446,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 const migrationTpl = `-- ─── ${resource} : table CRUD owner+tenant (STUB scaffolder) ──────────────────
 -- Pattern repo : owner (user_id) + tenant (tenant_id) ; RLS owner+tenant ; index FK.
 -- set_updated_at() existe déjà (0007). current_tenant_id() existe déjà (0003/0005).
--- TODO: compléter les colonnes métier puis générer les types Supabase.
+-- TODO: compléter les colonnes métier puis régénérer les types gpu1.
 
 create table if not exists ${resource} (
   id          uuid primary key default gen_random_uuid(),
@@ -555,7 +555,7 @@ if (tsPlaceholder) {
   console.log(`     avant de l'appliquer (ne JAMAIS inventer Date.now()).`);
 }
 
-console.log(`\n  3) Génère les types Supabase après application de la migration :`);
+console.log(`\n  3) Régénère les types gpu1 après application de la migration :`);
 console.log(
-  `        mcp__supabase__generate_typescript_types → lib/supabase/database.types.ts\n`,
+  `        régénère lib/gpu1/database.types.ts depuis le schéma appliqué (voir docs/DEPLOYMENT.md).\n`,
 );

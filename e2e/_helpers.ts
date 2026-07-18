@@ -117,6 +117,34 @@ export function loadEnv(): Record<string, string> {
 }
 
 /**
+ * Supprime des lignes par id via PostgREST (Postgres self-hosté gpu1), best-effort.
+ *
+ * DB = PostgREST + token admin service-role (bypass RLS) — AUCUN SDK Supabase.
+ * Variables canoniques : `GPU1_POSTGREST_URL` (…/rest/v1) + `GPU1_POSTGREST_ADMIN_TOKEN`.
+ * Utilisé UNIQUEMENT dans les `afterAll` de cleanup : jamais bloquant, ne fait
+ * pas échouer la suite si prérequis absents ou suppression partielle.
+ */
+export async function gpu1DeleteByIds(
+  env: Record<string, string>,
+  table: string,
+  ids: string[],
+): Promise<void> {
+  if (ids.length === 0) return;
+  const base = (env.GPU1_POSTGREST_URL || "").replace(/\/$/, "");
+  const token = env.GPU1_POSTGREST_ADMIN_TOKEN;
+  if (!base || !token) return;
+  const inList = ids.map((id) => encodeURIComponent(id)).join(",");
+  try {
+    await fetch(`${base}/${table}?id=in.(${inList})`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    /* best-effort — cleanup ne doit jamais faire échouer la suite */
+  }
+}
+
+/**
  * Ouvre un contexte API authentifié en REJOUANT la session partagée.
  * Aucun appel à `/api/auth/login` ici — c'est ce qui déclenchait les 429.
  * Renvoie `null` si la session partagée est absente → le parcours se `skip`.

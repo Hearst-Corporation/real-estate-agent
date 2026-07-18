@@ -2,59 +2,154 @@
 // Seed idempotent CRM — properties / leads / visits / mandates
 // Usage : node scripts/seed-crm.mjs
 // Requiert : .env.local à la racine du projet
+//
+// DB = Postgres self-hosté gpu1 exposé par PostgREST (aucun SDK Supabase).
+// Variables canoniques :
+//   GPU1_POSTGREST_URL         base PostgREST (…/rest/v1)  [REQUIS]
+//   GPU1_POSTGREST_ADMIN_TOKEN JWT service-role (bypass RLS) [REQUIS]
+// Le token bypass la RLS → on filtre TOUJOURS explicitement user_id + tenant_id.
 
-import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // ── Parse .env.local ────────────────────────────────────────────────────────
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = resolve(__dirname, "../.env.local");
 
-function loadEnv(filePath) {
-  let raw;
-  try {
-    raw = readFileSync(filePath, "utf8");
-  } catch {
-    // Fallback : cherche .env.local dans la racine réelle du projet
-    const fallback = resolve(
-      "/Users/adrienbeyondcrypto/Dev/Projects/Real estate Agent/.env.local"
-    );
-    raw = readFileSync(fallback, "utf8");
-  }
-  const env = {};
-  for (const line of raw.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const idx = trimmed.indexOf("=");
-    if (idx === -1) continue;
-    const key = trimmed.slice(0, idx).trim();
-    let value = trimmed.slice(idx + 1).trim();
-    // Strip surrounding single or double quotes
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
+function loadEnv() {
+  // Cherche .env.local dans le worktree/script puis à la racine du repo (resolue
+  // via git, jamais un chemin utilisateur en dur).
+  const candidates = [
+    process.env.REA_ENV_FILE,
+    resolve(__dirname, "../.env.local"),
+  ].filter(Boolean);
+  for (const filePath of candidates) {
+    let raw;
+    try {
+      raw = readFileSync(filePath, "utf8");
+    } catch {
+      continue;
     }
-    env[key] = value;
+    const env = {};
+    for (const line of raw.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const idx = trimmed.indexOf("=");
+      if (idx === -1) continue;
+      const key = trimmed.slice(0, idx).trim();
+      let value = trimmed.slice(idx + 1).trim();
+      // Strip surrounding single or double quotes
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      env[key] = value;
+    }
+    return env;
   }
-  return env;
+  return {};
 }
 
-const env = loadEnv(envPath);
-const SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+const env = loadEnv();
+const PGRST_BASE = (env.GPU1_POSTGREST_URL || "").replace(/\/$/, "");
+const ADMIN_TOKEN = env.GPU1_POSTGREST_ADMIN_TOKEN;
 
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-  console.error("❌  NEXT_PUBLIC_SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY absent dans .env.local");
+if (!PGRST_BASE || !ADMIN_TOKEN) {
+  console.error("❌  GPU1_POSTGREST_URL ou GPU1_POSTGREST_ADMIN_TOKEN absent dans .env.local");
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: { persistSession: false },
-});
+// ── Mini-client PostgREST (fetch, Bearer service-role) ───────────────────────
+// Reproduit la surface supabase-js utilisée ici : from().select/insert
+// (+ like/eq/limit, count exact head). Aucune dépendance externe.
+function pgrst(base, token) {
+  async function req(path, { method = "GET", body, count } = {}) {
+    const headers = { Authorization: `Bearer ${token}` };
+    if (body) headers["Content-Type"] = "application/json";
+    const prefer = [];
+    if (method === "POST") prefer.push("return=representation");
+    if (count === "exact") prefer.push("count=exact");
+    if (prefer.length) headers["Prefer"] = prefer.join(",");
+    const res = await fetch(`${base}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      return { data: null, count: null, error: { message: `HTTP ${res.status}: ${text.slice(0, 160)}` } };
+    }
+    const contentRange = res.headers.get("content-range"); // ex. "0-9/42"
+    const total = contentRange?.includes("/") ? Number(contentRange.split("/")[1]) : null;
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : [];
+    } catch {
+      data = [];
+    }
+    return { data, count: total, error: null };
+  }
+
+  return {
+    from(table) {
+      const filters = [];
+      let cols = "*";
+      let lim = null;
+      let head = false;
+      let countMode = null;
+      const builder = {
+        select(columns = "*", opts = {}) {
+          cols = columns;
+          if (opts.count) countMode = opts.count;
+          if (opts.head) head = true;
+          return builder;
+        },
+        like(field, pattern) {
+          filters.push(`${field}=like.${encodeURIComponent(pattern)}`);
+          return builder;
+        },
+        eq(field, value) {
+          filters.push(`${field}=eq.${encodeURIComponent(value)}`);
+          return builder;
+        },
+        limit(n) {
+          lim = n;
+          return builder;
+        },
+        insert(values) {
+          const payload = Array.isArray(values) ? values : [values];
+          const insertBuilder = {
+            _cols: "*",
+            select(columns = "*") {
+              this._cols = columns;
+              return this;
+            },
+            then(onF, onR) {
+              const qs = `select=${encodeURIComponent(this._cols)}`;
+              return req(`/${table}?${qs}`, { method: "POST", body: payload }).then(onF, onR);
+            },
+          };
+          return insertBuilder;
+        },
+        then(onF, onR) {
+          const params = [...filters];
+          params.push(`select=${encodeURIComponent(cols)}`);
+          if (lim != null) params.push(`limit=${lim}`);
+          const qs = params.join("&");
+          return req(`/${table}?${qs}`, {
+            method: head ? "HEAD" : "GET",
+            count: countMode,
+          }).then(onF, onR);
+        },
+      };
+      return builder;
+    },
+  };
+}
+
+const db = pgrst(PGRST_BASE, ADMIN_TOKEN);
 
 const USER_ID = "9717aa27-d844-4221-ab2e-c277b93d77ca";
 const TENANT_ID = "real-estate-agent";
@@ -65,7 +160,7 @@ const SENTINEL = "[SEED]";
 // est repris proprement sans dupliquer ce qui existe déjà.
 
 async function checkTableSeeded(table, field) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from(table)
     .select("id")
     .like(field, `${SENTINEL}%`)
@@ -89,7 +184,7 @@ const allSeeded = propertiesSeeded && leadsSeeded && visitsSeeded && mandatesSee
 if (allSeeded) {
   console.log("✅  Déjà seedé — aucun doublon inséré.");
   for (const table of ["properties", "leads", "visits", "mandates"]) {
-    const { count } = await supabase
+    const { count } = await db
       .from(table)
       .select("*", { count: "exact", head: true })
       .eq("tenant_id", TENANT_ID);
@@ -107,7 +202,7 @@ let insertedProperties;
 
 if (propertiesSeeded) {
   console.log("⏭   properties déjà seedées — skip insert");
-  const { data } = await supabase
+  const { data } = await db
     .from("properties")
     .select("id, title")
     .like("title", `${SENTINEL}%`)
@@ -165,7 +260,7 @@ if (propertiesSeeded) {
     },
   ];
 
-  const { data, error: propErr } = await supabase
+  const { data, error: propErr } = await db
     .from("properties")
     .insert(propertiesData)
     .select("id, title");
@@ -187,7 +282,7 @@ let insertedLeads;
 
 if (leadsSeeded) {
   console.log("⏭   leads déjà seedés — skip insert");
-  const { data } = await supabase
+  const { data } = await db
     .from("leads")
     .select("id, full_name")
     .like("full_name", `${SENTINEL}%`)
@@ -257,7 +352,7 @@ if (leadsSeeded) {
     },
   ];
 
-  const { data, error: leadErr } = await supabase
+  const { data, error: leadErr } = await db
     .from("leads")
     .insert(leadsData)
     .select("id, full_name");
@@ -309,7 +404,7 @@ if (visitsSeeded) {
     },
   ];
 
-  const { data: insertedVisits, error: visitErr } = await supabase
+  const { data: insertedVisits, error: visitErr } = await db
     .from("visits")
     .insert(visitsData)
     .select("id, scheduled_at");
@@ -372,7 +467,7 @@ if (mandatesSeeded) {
     },
   ];
 
-  const { data: insertedMandates, error: mandErr } = await supabase
+  const { data: insertedMandates, error: mandErr } = await db
     .from("mandates")
     .insert(mandatesData)
     .select("id, reference");
@@ -389,7 +484,7 @@ if (mandatesSeeded) {
 // ── Récap counts ─────────────────────────────────────────────────────────────
 console.log("\n── Récap counts (tenant: real-estate-agent) ──");
 for (const table of ["properties", "leads", "visits", "mandates"]) {
-  const { count, error: cntErr } = await supabase
+  const { count, error: cntErr } = await db
     .from(table)
     .select("*", { count: "exact", head: true })
     .eq("tenant_id", TENANT_ID);

@@ -1,6 +1,5 @@
 import { test, expect, type APIRequestContext } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
-import { loginAdminContext, loginPage, loadEnv } from "./_helpers";
+import { loginAdminContext, loginPage, loadEnv, gpu1DeleteByIds } from "./_helpers";
 
 /**
  * ESTIMATION + PROSPECTION — parcours critiques (REA-M04-14).
@@ -27,22 +26,9 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  // Cleanup best-effort via service role (jamais bloquant).
-  const url = envVars.NEXT_PUBLIC_SUPABASE_URL || envVars.SUPABASE_URL;
-  const key = envVars.SUPABASE_SERVICE_ROLE_KEY;
-  if (url && key && (createdEstimationIds.length || createdCriteresIds.length)) {
-    try {
-      const sb = createClient(url, key, { auth: { persistSession: false } });
-      if (createdEstimationIds.length) {
-        await sb.from("estimations").delete().in("id", createdEstimationIds);
-      }
-      if (createdCriteresIds.length) {
-        await sb.from("prosp_criteres_acquereur").delete().in("id", createdCriteresIds);
-      }
-    } catch {
-      /* best-effort */
-    }
-  }
+  // Cleanup best-effort via PostgREST service-role (gpu1), jamais bloquant.
+  await gpu1DeleteByIds(envVars, "estimations", createdEstimationIds);
+  await gpu1DeleteByIds(envVars, "prosp_criteres_acquereur", createdCriteresIds);
   if (api) await api.dispose();
 });
 

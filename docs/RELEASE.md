@@ -17,9 +17,9 @@ multi-agents interne). Tables `inv_*`/`swarm_*` dormantes en DB (non purgées).
 - App déployée sur Vercel ; DB sur gpu1 ; stockage Cloudflare R2.
 
 ## Variables (voir `.env.example`)
-**Requises au boot** (`lib/env.ts`) : `NEXT_PUBLIC_SUPABASE_URL`,
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`,
-`ANTHROPIC_API_KEY`.
+**Requises au boot** (`lib/env-check.ts`) : `GPU1_POSTGREST_URL`,
+`GPU1_POSTGREST_ADMIN_TOKEN`, `JWT_SECRET`, `ANTHROPIC_API_KEY`
+(DB = Postgres self-hosté gpu1 via PostgREST, serveur-only — aucune var `NEXT_PUBLIC_*` DB).
 **Cockpit OpenAI** (optionnel, mode dégradé si absent) : `OPENAI_API_KEY`,
 `OPENAI_CHAT_MODEL` (défaut `gpt-5.4`), `OPENAI_CHAT_FALLBACK_MODEL`
 (`gpt-5.4-mini`), `OPENAI_CHAT_TIMEOUT_MS` (45000).

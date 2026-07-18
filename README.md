@@ -36,8 +36,9 @@ npm run electron:dev            # application desktop
 ## Variables d'environnement
 
 Copier [`.env.example`](.env.example). Requises au boot :
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-`SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `ANTHROPIC_API_KEY`. Le Cockpit OpenAI
+`GPU1_POSTGREST_URL`, `GPU1_POSTGREST_ADMIN_TOKEN`, `JWT_SECRET`,
+`ANTHROPIC_API_KEY` (DB = Postgres self-hosté gpu1 via PostgREST, serveur-only —
+aucune variable `NEXT_PUBLIC_*` DB). Le Cockpit OpenAI
 (`OPENAI_API_KEY`) est optionnel — le chat dégrade proprement si absent. Les clés
 vivent uniquement en `.env.local` (gitignored), jamais committées.
 

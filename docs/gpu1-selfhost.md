@@ -26,22 +26,26 @@ avec le token `CLOUDFLARE_TUNNEL_TOKEN` (scope `Account:Cloudflare Tunnel:Edit`)
 Layout gpu1 : `~/real-estate-agent-db/` (Caddyfile, roles/grants/harden.sql,
 00_prelude.sql, migrations/, .jwt_secret, .auth_pwd).
 
-## Variables (.env.local)
+## Variables (.env.local) — nomenclature canonique GPU1
+
+La DB (Postgres self-hosté gpu1 via PostgREST) est **100 % serveur** : aucune variable
+`NEXT_PUBLIC_*` DB, aucun SDK Supabase. Le client unique est `lib/gpu1` (`getGpu1Admin()`).
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://real-estate-agent-db.hearst.app
-SUPABASE_URL=https://real-estate-agent-db.hearst.app
-NEXT_PUBLIC_SUPABASE_PROJECT_REF=real-estate-agent
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<JWT anon re-signé, secret workspace>
-SUPABASE_SERVICE_ROLE_KEY=<JWT service_role re-signé, secret workspace>
-SUPABASE_JWT_SECRET=<secret workspace>
+GPU1_POSTGREST_URL=https://real-estate-agent-db.hearst.app/rest/v1
+GPU1_POSTGREST_ADMIN_TOKEN=<JWT service-role re-signé, secret workspace — bypass RLS, serveur-only>
+GPU1_POSTGREST_TIMEOUT_MS=15000        # optionnel
+JWT_SECRET=<secret de signature des sessions applicatives (jose)>
 ```
 
-Les anciennes clés Cloud sont dans `.env.local.bak-*` (rupture nette voulue).
+> Historique : lors du montage (2026-07-13), les JWT anon/service-role avaient été
+> re-signés avec le secret workspace `~/real-estate-agent-db/.jwt_secret`. Les anciennes
+> clés Cloud vivent dans `.env.local.bak-*` (rupture nette voulue). Le token admin
+> **contourne la RLS** → le code applicatif filtre TOUJOURS explicitement `user_id + tenant_id`.
 
 ## Auth recâblée (limite GoTrue résolue)
 
-Le montage PostgREST **ne reprend pas GoTrue** → `sb.auth.signInWithPassword` HS.
+Le montage PostgREST **ne reprend pas GoTrue** → l'authentification par mot de passe native est absente.
 Recâblage propre (migration **0037**) :
 - table `public.auth_credentials` (email, `password_hash` bcrypt via pgcrypto, tenant_id, role) ;
 - RPC `verify_login(p_email, p_password)` SECURITY DEFINER → renvoie l'identité si le hash matche ;
