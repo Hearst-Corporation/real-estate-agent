@@ -1612,6 +1612,67 @@ export const UI = {
     assistantAvatar: "IA",
     errorPrefix: "Erreur",
   },
+  /**
+   * Visite guidée du produit (REA-ONBOARDING-011).
+   * ---------------------------------------------------------------
+   * `chrome`  = textes du moteur (boutons, statut, repli cible absente).
+   * `tours.*` = textes métier d'UNE visite. Chaque worker de tour ajoute SA
+   *             clé sous `tours` (prospection, crm, estimations, offmarket,
+   *             communications-hitl, agents, radar) sur ce modèle :
+   *             { title, description, steps: { <stepId>: { title, body, consequence? } } }
+   * Règle : jamais « Cliquez ici pour continuer », jamais de faux statut LIVE.
+   */
+  onboarding: {
+    chrome: {
+      dialogLabel: "Visite guidée",
+      stepLabel: (current: number, total: number) => `Étape ${current} sur ${total}`,
+      next: "Suivant",
+      prev: "Précédent",
+      finish: "Terminer",
+      skip: "Passer la visite",
+      close: "Fermer la visite",
+      /** Affiché quand l'élément pointé n'existe pas sur l'écran courant. */
+      targetMissing: "Cet élément n'est pas affiché sur cet écran. L'explication reste valable.",
+      /** Rappel permanent : la visite ne fait rien à la place de l'utilisateur. */
+      readOnly: "La visite montre et explique. Elle n'exécute aucune action à ta place.",
+      loading: "Recherche de l'élément…",
+    },
+    tours: {
+      "core-cockpit": {
+        title: "Prendre en main le cockpit",
+        description:
+          "Les repères de base : navigation, priorités du jour, assistant et compte.",
+        steps: {
+          welcome: {
+            title: "Bienvenue dans le cockpit",
+            body: "En quelques étapes, tu vois où se trouvent la navigation, tes priorités du jour et l'assistant.",
+            consequence: "Rien n'est modifié pendant la visite : tu peux l'arrêter à tout moment avec Échap.",
+          },
+          nav: {
+            title: "La navigation",
+            body: "Le rail de gauche regroupe tous les modules : CRM, estimations, prospection, off-market, agents.",
+          },
+          actionCenter: {
+            title: "Tes priorités du jour",
+            body: "Le centre d'actions classe ce qui mérite ton attention : relances en retard, mandats à renouveler, visites à débriefer.",
+          },
+          assistant: {
+            title: "L'assistant",
+            body: "Le panneau de droite répond en langage naturel et sait lire tes données : « quels leads sans relance depuis 15 jours ? ».",
+            consequence: "Il demande confirmation avant toute action irréversible, comme la suppression d'un lead.",
+          },
+          profile: {
+            title: "Ton compte",
+            body: "Le profil regroupe tes informations et la déconnexion.",
+          },
+          wrapup: {
+            title: "Tu as les repères",
+            body: "Chaque module a sa propre visite, lançable quand tu en as besoin.",
+          },
+        },
+      },
+    },
+  },
   common: {
     yes: "Oui",
     no: "Non",
