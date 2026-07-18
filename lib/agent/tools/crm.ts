@@ -14,7 +14,7 @@ type LeadUpdate = Database["public"]["Tables"]["leads"]["Update"];
 /**
  * Formes des projections avec relation embarquée PostgREST `properties(title, city)`.
  * Le client GPU1 n'infère pas la chaîne de select (relations embarquées) — on
- * annonce donc explicitement la forme via `from<T>()`, comme le permet supabase-js
+ * annonce donc explicitement la forme via `from<T>()`, que le client GPU1 accepte
  * pour les projections. `properties` revient en objet (relation to-one) ou null.
  */
 type EmbeddedProperty = { title: string | null; city: string | null } | null;

@@ -204,7 +204,7 @@ describe("normalizeListings — fail-closed", () => {
 
 // ── Aucune persistance (garde-fou statique) ──────────────────────────────────
 describe("normalize.ts — aucune persistance", () => {
-  it("le module n'importe AUCUN client DB / Supabase", () => {
+  it("le module n'importe AUCUN client DB / GPU1", () => {
     const src = readFileSync(join(__dirname, "normalize.ts"), "utf8");
     expect(src).not.toMatch(/getGpu1Admin|@\/lib\/gpu1|\.from\(/);
     // Aucune écriture DB : pas d'insert/upsert/update dans le module.

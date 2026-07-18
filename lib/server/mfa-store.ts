@@ -6,7 +6,7 @@ import { getGpu1Admin } from "@/lib/gpu1";
  * Accès DB à la table `user_mfa` — FAIL-SOFT TOTAL.
  *
  * GARANTIE ANTI-LOCKOUT : tant que la migration 0035 n'est pas appliquée (table absente),
- * ou sur toute autre erreur (réseau, Supabase non configuré, colonne manquante…), ces
+ * ou sur toute autre erreur (réseau, base GPU1 non configurée, colonne manquante…), ces
  * fonctions se comportent comme « pas de MFA » :
  *   - lecture  → `null`  (jamais de throw)
  *   - écriture → `false` (jamais de throw)
@@ -24,7 +24,7 @@ export type UserMfa = {
   backup_codes: string[];
 };
 
-/** Client service-role non typé (table hors types générés). `null` si Supabase non configuré. */
+/** Client service-role non typé (table hors types générés). `null` si la base GPU1 n’est pas configurée. */
 function untypedAdmin(): Gpu1Client<unknown> | null {
   return getGpu1Admin() as Gpu1Client<unknown> | null;
 }
@@ -32,7 +32,7 @@ function untypedAdmin(): Gpu1Client<unknown> | null {
 /**
  * Lit la ligne MFA d'un utilisateur.
  * @returns la ligne `{ secret, enabled, backup_codes }`, ou `null` si aucune ligne /
- *          TOUTE erreur (table absente, réseau, Supabase non configuré). JAMAIS de throw.
+ *          TOUTE erreur (table absente, réseau, base GPU1 non configurée). JAMAIS de throw.
  */
 export async function getUserMfa(userId: string): Promise<UserMfa | null> {
   if (!userId) return null;

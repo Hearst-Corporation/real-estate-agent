@@ -1,6 +1,6 @@
 # Real estate Agent
 
-> Projet créé via `/setup-adrien`. Stack : Next.js 16 (App Router) + Electron. Région Supabase : eu-west-1.
+> Projet créé via `/setup-adrien`. Stack : Next.js 16 (App Router) + Electron. DB : Postgres self-hosté GPU1 (PostgREST).
 
 ## Langue & mode
 - Toutes les réponses en **français**.
@@ -18,7 +18,7 @@
 
 Le MCP Supabase **ne s'applique plus** (Cloud supprimé). La DB est un Postgres self-hosté gpu1 exposé par PostgREST.
 
-- **Diagnostic schéma** : `node scripts/db-diagnose.mjs` (compare 59 tables attendues au réel, teste `verify_login`, RLS anon/service-role, GoTrue/Storage/Realtime). Lit `.env.local`, masque les secrets.
+- **Diagnostic schéma** : `node scripts/db-diagnose.mjs` (compare 59 tables attendues au réel, teste `verify_login`, RLS anon/service-role, et confirme le montage PostgREST-only). Lit `.env.local`, masque les secrets.
 - **Appliquer une migration** : SQL versionné dans `supabase/migrations/NNNN_nom.sql`, puis appliqué sur gpu1 :
   ```bash
   ssh gpu1 'docker exec -i nexus-postgres psql -U postgres -d real-estate-agent' < supabase/migrations/00NN_nom.sql

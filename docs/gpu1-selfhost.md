@@ -1,5 +1,10 @@
 # Self-hosting gpu1 — Real Estate Agent
 
+> **Document historique** — trace du montage réalisé le 2026-07-13. Les mentions
+> « Supabase » ci-dessous décrivent le point de DÉPART, pas le runtime actuel :
+> aujourd’hui la DB est un Postgres self-hosté gpu1 + PostgREST, sans aucun SDK,
+> service ni projet Supabase (gate `scripts/check-no-supabase.mjs`).
+
 > Migré de Supabase Cloud vers gpu1 le **2026-07-13** via `/cloud-adrien`.
 > Le projet Cloud `pyxhhkdjirqambhlpuqz` **avait été supprimé** côté Supabase
 > (DNS `db.pyxhhkdjirqambhlpuqz.supabase.co` mort, ref absent de `list_projects`)

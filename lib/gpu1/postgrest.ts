@@ -1,10 +1,9 @@
 // lib/gpu1/postgrest.ts — Client PostgREST natif (fetch), serveur-only.
 //
-// Remplace le SDK @supabase/supabase-js par un client minimal câblé sur le
-// PostgREST self-hosté gpu1. Expose une API de query CHAÎNABLE volontairement
-// proche de celle de supabase-js (from/select/insert/update/delete/upsert/rpc,
+// Client minimal (zéro dépendance) câblé sur le PostgREST self-hosté gpu1.
+// Expose une API de query CHAÎNABLE (from/select/insert/update/delete/upsert/rpc,
 // filtres eq/neq/gt/gte/lt/lte/in/is/like/or/not/contains, order/limit/range,
-// single/maybeSingle) afin de minimiser le diff des routes consommatrices.
+// single/maybeSingle) — c'est LA seule surface d'accès DB du produit.
 //
 // Contrat de résultat, identique partout : `{ data, error, count }`.
 //  - `data`  : lignes (T[]) ou ligne unique (T) selon single/maybeSingle/head.
@@ -494,7 +493,7 @@ export class Gpu1SingleBuilder<T> implements PromiseLike<PostgrestSingleResult<T
 }
 
 // ── Résolution de type table → Row depuis le schéma `Database` ───────────────
-// Reproduit la commodité de supabase-js : `client.from("leads")` infère la Row
+// `client.from("leads")` infère la Row
 // de `leads` sans annotation. Si `Db` n'expose pas de schéma `public` (ex.
 // `unknown`), on retombe sur un objet générique — jamais d'erreur de type.
 

@@ -123,7 +123,7 @@ export async function POST(
     );
   }
 
-  // Supabase
+  // Base GPU1
   const sb = getGpu1Admin();
   if (!sb) {
     return NextResponse.json(

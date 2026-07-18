@@ -67,10 +67,11 @@ npm run electron:build           # .dmg signé/notarisé (voir /release-mac)
 
 ## 4. Migrations DB
 
-Les migrations vivent dans `supabase/migrations/NNNN_nom.sql` (**52 fichiers, `0001`→`0048`** ; dernières :
-`0046_auth_credentials_tenant_index`, `0047_rls_prospection`, `0048_agent_alert_approvals_trigger_idempotent`).
+Les migrations vivent dans `supabase/migrations/NNNN_nom.sql` (**62 fichiers, `0001`→`0058`** ; dernières :
+`0056_share_events`, `0057_value_snapshots`, `0058_learning_signals`).
 Le nom du dossier `supabase/` est une **convention de chemin historique**, pas une dépendance runtime :
-le SQL est du Postgres standard rejoué sur gpu1 (aucun outil Supabase Cloud).
+le SQL est du Postgres standard rejoué sur gpu1 (aucun outil ni projet Supabase — voir
+[`supabase/migrations/README.md`](../supabase/migrations/README.md)).
 La base gpu1 a été **montée en reconstruisant le schéma depuis ces migrations** (via `/cloud-adrien`, mode `install`). Il n'y a **pas** de `supabase db push` (interactif, banni). Deux scripts reproductibles existent :
 `scripts/db-diagnose.mjs` (diagnostic DB **live** — voir §Diagnostic ci-dessous) et
 `scripts/test-migrations-coherence.mjs` (**cohérence STATIQUE des migrations**, aucune connexion DB — exécuté en CI).
@@ -85,11 +86,11 @@ ssh gpu1 'docker exec -i nexus-postgres psql -U postgres -d real-estate-agent' <
 ssh gpu1 'docker kill -s SIGUSR1 real-estate-agent-postgrest'
 ```
 
-> Note : la mémoire projet mentionne aussi l'application de DDL via la Management API Supabase
-> (`api.supabase.com/.../database/query` + `SUPABASE_ACCESS_TOKEN`). Ce chemin ciblait le
-> **Cloud** (supprimé). Le mécanisme courant est celui ci-dessus (gpu1). Ne pas mixer les deux.
+> ⚠️ Note historique : d'anciennes traces (mémoire projet, vieux rapports) décrivent une
+> application de DDL via une Management API Cloud. **Ce chemin n'existe plus** — le projet
+> Cloud a été supprimé. Le SEUL mécanisme est celui ci-dessus (psql sur gpu1).
 
-**Diagnostic schéma** — script reproductible qui compare les 59 tables attendues (migrations) au schéma réel, teste la RPC `verify_login`, GoTrue/Storage/Realtime, et le RLS anon vs service-role :
+**Diagnostic schéma** — script reproductible qui compare les 59 tables attendues (migrations) au schéma réel, teste la RPC `verify_login`, confirme le montage PostgREST-only, et vérifie le RLS anon vs service-role :
 ```bash
 node scripts/db-diagnose.mjs        # lit .env.local, masque les secrets, sortie lisible
 ```

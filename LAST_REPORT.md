@@ -2,6 +2,13 @@
 
 > Orchestrateur. Squad parallèle A1/A2/A3 + A4. Règle de vérité respectée (LIVE/SNAPSHOT/DEMO/CONFIG/UNAVAILABLE).
 
+> **⚠️ ARCHIVE — état figé au moment de la passe REA-PLATFORM-002, PAS l'état courant.**
+> Les mentions `SUPABASE_*` / `supabase_not_configured` / `lib/supabase/*` ci-dessous
+> décrivent une configuration **révolue** : elles ont été supprimées depuis (DB = Postgres
+> self-hosté GPU1 via PostgREST, `getGpu1Admin()` de `@/lib/gpu1`, gate
+> `scripts/check-no-supabase.mjs`). Conservé tel quel comme trace de la passe — ne rien
+> en déduire sur la configuration actuelle.
+
 ## 1. Verdict
 **RÉUSSI**. Parcours métier réellement augmentés et **persistés LIVE** (migration additive 0043 appliquée gpu1) : acquéreurs multi-profils + matching expliqué + alertes honnêtes ; estimation → propriétaire → mandat ; centre d'actions dérivé + tâches. Intégration Aigent = **frontière propre en état UNAVAILABLE** (Aigent non connecté — jamais de faux agent). **Gate définitive verte** (check + 312 tests + build), branche poussée, **12 captures WebP anonymisées** + captures PII publiques remplacées. **Non « production ready »** (build vert ≠ prod ready ; réserves §12 — auth à durcir, preview data-limitée, alertes/messages sans transport).
 

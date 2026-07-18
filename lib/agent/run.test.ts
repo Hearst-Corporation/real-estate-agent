@@ -123,7 +123,7 @@ function makeCtx(): { ctx: ToolContext; frames: AgentFrame[] } {
     tenant: "tenant-1",
     ownerId: "user-1",
     origin: "https://app.test",
-    // Stub Supabase : non utilisé par les tools mockés de ce fichier.
+    // Stub du client DB : non utilisé par les tools mockés de ce fichier.
     sb: {} as unknown as ToolContext["sb"],
     emit: (f) => frames.push(f),
   };

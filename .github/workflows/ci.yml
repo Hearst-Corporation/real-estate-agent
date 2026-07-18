@@ -104,8 +104,8 @@ jobs:
         if: steps.guard.outputs.enabled == 'true'
         # `test:e2e` démarre lui-même le serveur (playwright.config.ts → webServer)
         # et attend http://localhost:3002. Les secrets ne sont exposés qu'au runtime,
-        # jamais imprimés. DB = PostgREST gpu1 (serveur-only). Migration terminée :
-        # plus aucune variable Supabase (les specs E2E ne les consomment plus).
+        # jamais imprimés. DB = PostgREST gpu1 (serveur-only) : les deux variables
+        # ci-dessous sont les SEULES variables DB consommées par les specs E2E.
         env:
           GPU1_POSTGREST_URL: ${{ secrets.GPU1_POSTGREST_URL }}
           GPU1_POSTGREST_ADMIN_TOKEN: ${{ secrets.GPU1_POSTGREST_ADMIN_TOKEN }}

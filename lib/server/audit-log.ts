@@ -6,7 +6,7 @@ import { getGpu1Admin } from "@/lib/gpu1";
  * Journal d'audit des événements d'authentification — FAIL-SOFT TOTAL.
  *
  * GARANTIE : si la migration 0036 n'est pas encore appliquée (table absente),
- * ou sur toute autre erreur (réseau, Supabase non configuré, colonne manquante…),
+ * ou sur toute autre erreur (réseau, base GPU1 non configurée, colonne manquante…),
  * `recordAuthEvent` swallow l'erreur silencieusement et retourne sans throw.
  * Il ne bloque JAMAIS le flux d'authentification de l'appelant.
  *
@@ -74,7 +74,7 @@ export function extractClientMeta(req: Request): {
   return { ip, userAgent };
 }
 
-/** Client service-role non typé (table hors types générés). `null` si Supabase non configuré. */
+/** Client service-role non typé (table hors types générés). `null` si la base GPU1 n’est pas configurée. */
 function untypedAdmin(): Gpu1Client<unknown> | null {
   return getGpu1Admin() as Gpu1Client<unknown> | null;
 }
@@ -87,7 +87,7 @@ function untypedAdmin(): Gpu1Client<unknown> | null {
  * Enregistre un événement d'authentification dans `auth_audit_log`.
  *
  * FAIL-SOFT TOTAL : ne lève JAMAIS d'erreur. Toute exception (table absente,
- * réseau, Supabase non configuré) est avalée silencieusement.
+ * réseau, base GPU1 non configurée) est avalée silencieusement.
  *
  * ⚠️  En environnement serverless (Vercel / Edge), l'`await` est OBLIGATOIRE :
  * un appel non-awaité serait tué dès l'envoi de la réponse HTTP, avant que
@@ -114,7 +114,7 @@ export async function recordAuthEvent(params: {
       user_agent: userAgent,
       meta: params.meta ?? {},
     });
-    // On ignore délibérément le retour `{ error }` : même une erreur Supabase
+    // On ignore délibérément le retour `{ error }` : même une erreur DB
     // (contrainte, table absente, réseau) ne doit pas remonter à l'appelant.
   } catch {
     // Swallow — jamais de throw depuis cette fonction.

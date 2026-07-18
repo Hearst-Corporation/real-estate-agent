@@ -1,7 +1,8 @@
 // rls-matrix.test.ts — HARNAIS STATIQUE (aucune connexion DB, jamais gpu1).
 //
 // Prouve la MATRICE D'ACCÈS RLS du module Prospection posée par
-// supabase/migrations/0047_rls_prospection.sql, PAR ANALYSE DU SQL VERSIONNÉ
+// supabase/migrations/0047_rls_prospection.sql (SQL PostgreSQL historique, cf.
+// supabase/migrations/README.md), PAR ANALYSE DU SQL VERSIONNÉ
 // (le test réel contre Postgres se fait à l'intégration/QA — cf. mission REA-M04-03,
 // condition STOP : aucune exécution sur gpu1).
 //

@@ -28,7 +28,7 @@ const BodySchema = GatewayEnvelopeSchema.extend({
 /**
  * Forme de la projection avec relations embarquées PostgREST. Le client GPU1
  * n'infère pas la chaîne de select (relations embarquées) — on annonce donc
- * explicitement la forme via `from<T>()`, comme le permet supabase-js. Les
+ * explicitement la forme via `from<T>()`, que le client GPU1 accepte. Les
  * relations reviennent en objet OU tableau selon la cardinalité → le handler
  * normalise (`Array.isArray`).
  */

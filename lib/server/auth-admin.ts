@@ -13,14 +13,14 @@ import { getGpu1Admin } from "@/lib/gpu1";
  *
  * FAIL-CLOSED : contrairement aux stores best-effort (mfa-store, audit-log), l'isolation
  * de sécurité ne tolère PAS le fail-open. Toute impossibilité de PROUVER l'appartenance
- * au même tenant (Supabase non configuré, user cible introuvable, erreur DB) renvoie
+ * au même tenant (base GPU1 non configurée, user cible introuvable, erreur DB) renvoie
  * `false` → l'appelant DOIT refuser (403). Ne jamais transformer un doute en autorisation.
  *
  * `auth_credentials` n'est pas dans les types générés (même situation que `user_mfa` /
  * `revoked_sessions`) → cast Gpu1Client non typé pour cette requête.
  */
 
-/** Client service-role non typé (table hors types générés). `null` si Supabase non configuré. */
+/** Client service-role non typé (table hors types générés). `null` si la base GPU1 n’est pas configurée. */
 function untypedAdmin(): Gpu1Client<unknown> | null {
   return getGpu1Admin() as Gpu1Client<unknown> | null;
 }

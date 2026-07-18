@@ -97,7 +97,7 @@ export async function GET(req: Request) {
   // — Requête DB via cast non typé ——————————————————————————————————————
   const sb = untypedAdmin();
   if (!sb) {
-    // Supabase non configuré → fail-soft
+    // Base GPU1 non configurée → fail-soft
     return NextResponse.json({ rows: [], limit, offset });
   }
 

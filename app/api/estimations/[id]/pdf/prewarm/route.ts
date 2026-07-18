@@ -5,7 +5,7 @@
  * (qui reste la voie synchrone / fallback). Le front peut ensuite poller
  * pdf_status puis ouvrir le GET (cache HIT).
  *
- * - 401 non authentifié · 503 Supabase absent · 404 non possédée · 409 pas "ready"
+ * - 401 non authentifié · 503 base GPU1 absente · 404 non possédée · 409 pas "ready"
  * - Inngest non configuré → 200 { status: 'sync_only' } (utiliser le GET directement)
  * - sinon → 202 { status: 'pending' } (job émis, idempotent sur id + updated_at)
  */
