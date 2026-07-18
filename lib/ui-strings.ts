@@ -1583,7 +1583,7 @@ export const UI = {
     errors: {
       invalid_credentials: "Email ou mot de passe incorrect.",
       invalid_body: "Formulaire invalide.",
-      supabase_not_configured: "Backend indisponible. Réessaie dans 1 min.",
+      database_not_configured: "Backend indisponible. Réessaie dans 1 min.",
       jwt_not_configured: "Backend mal configuré (JWT).",
       rate_limited: "Trop de tentatives. Réessaie dans 1 min.",
       generic: "Erreur de connexion.",

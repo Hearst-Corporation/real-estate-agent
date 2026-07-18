@@ -21,7 +21,7 @@
  * Zones EXCLUES (secret légitime / hors code) :
  *   - *.env*                    → c'est LE bon endroit
  *   - docs/api-config/**        → catalogue de services (gitignored)
- *   - fichiers .bak, node_modules, .next, dist, lib/supabase/database.types.ts
+ *   - fichiers .bak, node_modules, .next, dist
  *
  * Échappatoire ponctuelle : `secret-lint-allow` en commentaire de la ligne.
  *
@@ -52,7 +52,6 @@ const ALLOW_PATHS = [
   /node_modules/,
   /\.next\//,
   /\/dist/,
-  /lib\/supabase\/database\.types\.ts$/,
   /scripts\/lint-secrets\.mjs$/, // self-exempt (contient les préfixes en regex)
 ];
 

@@ -3,10 +3,10 @@ import { FakeDb } from "@/lib/agent-gateway/test-helpers";
 import { PROPERTY_STATUSES } from "@/lib/crm/format";
 
 const getSession = vi.fn();
-const getSupabaseAdmin = vi.fn();
+const getGpu1Admin = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 
 import { POST } from "@/app/api/properties/route";
 
@@ -34,14 +34,14 @@ function request(status?: unknown) {
 
 beforeEach(() => {
   getSession.mockReset();
-  getSupabaseAdmin.mockReset();
+  getGpu1Admin.mockReset();
   getSession.mockResolvedValue(CLAIMS);
 });
 
 describe("POST /api/properties — validation du statut", () => {
   it("utilise prospect par défaut", async () => {
     const db = new FakeDb({ properties: [] });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const response = await POST(request());
 
@@ -56,7 +56,7 @@ describe("POST /api/properties — validation du statut", () => {
 
   it.each(PROPERTY_STATUSES)("accepte le statut canonique %s", async (status) => {
     const db = new FakeDb({ properties: [] });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const response = await POST(request(status));
 
@@ -68,7 +68,7 @@ describe("POST /api/properties — validation du statut", () => {
     "refuse le statut invalide %j sans insertion",
     async (status) => {
       const db = new FakeDb({ properties: [] });
-      getSupabaseAdmin.mockReturnValue(db);
+      getGpu1Admin.mockReturnValue(db);
 
       const response = await POST(request(status));
 

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const getSession = vi.fn();
-const getSupabaseAdmin = vi.fn();
+const getGpu1Admin = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 
 import { POST } from "@/app/api/prospection/annonces/[id]/estimate/route";
 
@@ -83,7 +83,7 @@ const propertyRow = { select: { data: { id: PROP_UUID, property_type: "apparteme
 
 beforeEach(() => {
   getSession.mockReset();
-  getSupabaseAdmin.mockReset();
+  getGpu1Admin.mockReset();
 });
 
 describe("POST estimate — auth & annonce", () => {
@@ -95,7 +95,7 @@ describe("POST estimate — auth & annonce", () => {
   it("404 si annonce absente", async () => {
     getSession.mockResolvedValue(CLAIMS);
     const { db } = makeDb({ prosp_annonces: { select: { data: [], error: null } } });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
     expect((await POST(postReq(), ctx)).status).toBe(404);
   });
 });
@@ -109,7 +109,7 @@ describe("POST estimate — flux annonce → bien → estimation", () => {
       properties: { insert: { data: { id: PROP_UUID }, error: null }, select: propertyRow.select },
       estimations: { insert: { data: { id: EST_UUID, status: "draft", market_value: null }, error: null } },
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq(), ctx);
     expect(res.status).toBe(201);
@@ -133,7 +133,7 @@ describe("POST estimate — flux annonce → bien → estimation", () => {
       prosp_annonces: annonceRow({ property_id: PROP_UUID, estimation_id: EST_UUID }),
       estimations: { select: { data: { id: EST_UUID, status: "ready", market_value: 250000 }, error: null } },
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq(), ctx);
     expect(res.status).toBe(200);
@@ -155,7 +155,7 @@ describe("POST estimate — flux annonce → bien → estimation", () => {
       properties: propertyRow, // maybeSingle = ownership OK + chargement
       estimations: { insert: { data: { id: EST_UUID, status: "draft", market_value: null }, error: null } },
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq({ propertyId: PROP_UUID }), ctx);
     expect(res.status).toBe(201);
@@ -170,7 +170,7 @@ describe("POST estimate — flux annonce → bien → estimation", () => {
       prosp_annonces: annonceRow(),
       properties: { select: { data: null, error: null } },
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq({ propertyId: PROP_UUID }), ctx);
     expect(res.status).toBe(404);

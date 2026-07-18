@@ -1,7 +1,7 @@
 # CRM Orchestration Spec — conventions FIGÉES (à respecter à la lettre)
 
 Tu construis un module d'un CRM immobilier dans Next.js 16 App Router. La DB est déjà migrée
-(tables `properties`, `leads`, `visits`, `mandates`), types TS à jour dans `lib/supabase/database.types.ts`.
+(tables `properties`, `leads`, `visits`, `mandates`), types TS à jour dans `lib/gpu1/database.types.ts`.
 NE PAS toucher à la DB, ni aux types, ni à `lib/server/*`, ni à `cockpit.css` (sauf agent CSS dédié).
 
 ## Patterns obligatoires (copier exactement)
@@ -10,7 +10,7 @@ NE PAS toucher à la DB, ni aux types, ni à `lib/server/*`, ni à `cockpit.css`
 ```ts
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 
 export const runtime = "nodejs";
@@ -19,8 +19,8 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
   const { data, error } = await sb
     .from("<table>")
     .select("...")
@@ -37,7 +37,7 @@ export async function GET() {
 - `params` est une Promise en Next 16 : `{ params }: { params: Promise<{ id: string }> }` puis `const { id } = await params;`.
 
 ### Page serveur (app/(dashboard)/<module>/page.tsx)
-- Server Component `async`. Charge via `getSession()` + `getSupabaseAdmin()` + `tenantOf()` DIRECTEMENT (pas de fetch HTTP interne).
+- Server Component `async`. Charge via `getSession()` + `getGpu1Admin()` + `tenantOf()` DIRECTEMENT (pas de fetch HTTP interne).
 - Filtrer `.eq("user_id", claims.sub).eq("tenant_id", tenantOf(claims))`.
 - Primitives : `import { Eyebrow, Title, Sub, Card, KpiGrid, KpiCard, Badge } from "@/components/cockpit/primitives";`
 - Toutes les strings via `UI.<module>.*` (lib/ui-strings.ts). AUCUNE string FR en dur dans le JSX.

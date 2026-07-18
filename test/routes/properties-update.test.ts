@@ -3,10 +3,10 @@ import { FakeDb } from "@/lib/agent-gateway/test-helpers";
 import { PROPERTY_STATUSES } from "@/lib/crm/format";
 
 const getSession = vi.fn();
-const getSupabaseAdmin = vi.fn();
+const getGpu1Admin = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 
 import { PATCH } from "@/app/api/properties/[id]/route";
 
@@ -38,14 +38,14 @@ const context = { params: Promise.resolve({ id: PROPERTY_ID }) };
 
 beforeEach(() => {
   getSession.mockReset();
-  getSupabaseAdmin.mockReset();
+  getGpu1Admin.mockReset();
   getSession.mockResolvedValue(CLAIMS);
 });
 
 describe("PATCH /api/properties/[id] — validation du statut", () => {
   it.each(PROPERTY_STATUSES)("accepte le statut canonique %s", async (status) => {
     const { db, row } = seedDb();
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const response = await PATCH(request({ status }), context);
 
@@ -58,7 +58,7 @@ describe("PATCH /api/properties/[id] — validation du statut", () => {
     "refuse le statut invalide %j avant toute mutation",
     async (status) => {
       const { db, row } = seedDb();
-      getSupabaseAdmin.mockReturnValue(db);
+      getGpu1Admin.mockReturnValue(db);
 
       const response = await PATCH(
         request({ status, title: "Ne doit pas être écrit" }),
@@ -73,7 +73,7 @@ describe("PATCH /api/properties/[id] — validation du statut", () => {
 
   it("refuse un body sans champ modifiable", async () => {
     const { db, row } = seedDb();
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
     const response = await PATCH(request({ unknown: true }), context);
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_body" });
@@ -82,7 +82,7 @@ describe("PATCH /api/properties/[id] — validation du statut", () => {
 
   it("refuse un JSON malformé", async () => {
     const { db, row } = seedDb();
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
     const response = await PATCH(request("{not json", true), context);
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_body" });
@@ -93,7 +93,7 @@ describe("PATCH /api/properties/[id] — validation du statut", () => {
     getSession.mockResolvedValue(null);
     const response = await PATCH(request({ status: "vendu" }), context);
     expect(response.status).toBe(401);
-    expect(getSupabaseAdmin).not.toHaveBeenCalled();
+    expect(getGpu1Admin).not.toHaveBeenCalled();
   });
 
   it("ne modifie pas un bien d'un autre tenant", async () => {
@@ -103,7 +103,7 @@ describe("PATCH /api/properties/[id] — validation du statut", () => {
       tenant_id: "tenant-beta",
       status: "prospect",
     };
-    getSupabaseAdmin.mockReturnValue(new FakeDb({ properties: [row] }));
+    getGpu1Admin.mockReturnValue(new FakeDb({ properties: [row] }));
     const response = await PATCH(request({ status: "vendu" }), context);
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "update_failed" });
