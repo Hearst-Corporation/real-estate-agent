@@ -22,6 +22,8 @@ import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { CalendarDaysIcon } from "@heroicons/react/24/outline";
 import VisitForm from "./_components/VisitForm";
+import VisitReportForm from "./_components/VisitReportForm";
+import type { VisitReportRow } from "@/lib/visit-report/schema";
 
 type VisitRow = {
   id: string;
@@ -48,6 +50,23 @@ export default async function VisitsPage() {
       .order("scheduled_at", { ascending: true })
       .limit(200);
     visits = (data ?? []) as unknown as VisitRow[];
+  }
+
+  // Comptes-rendus rattachés (W7) — dégrade proprement si la table 0051 n'existe
+  // pas encore (query en erreur → map vide, la colonne CR reste "à rédiger").
+  const reportsByVisit = new Map<string, VisitReportRow>();
+  if (claims && sb && visits.length > 0) {
+    const { data: reports } = await sb
+      .from("visit_reports")
+      .select("*")
+      .eq("tenant_id", tenantOf(claims))
+      .in(
+        "visit_id",
+        visits.map((v) => v.id),
+      );
+    for (const r of (reports ?? []) as unknown as VisitReportRow[]) {
+      reportsByVisit.set(r.visit_id, r);
+    }
   }
 
   const now = new Date();
@@ -127,6 +146,7 @@ export default async function VisitsPage() {
                 <TableHeader>{t.table.datetime}</TableHeader>
                 <TableHeader className="text-right">{t.table.duration}</TableHeader>
                 <TableHeader>{t.table.status}</TableHeader>
+                <TableHeader>Compte-rendu</TableHeader>
                 <TableHeader className="text-right">{t.table.action}</TableHeader>
               </TableRow>
             </TableHead>
@@ -149,6 +169,14 @@ export default async function VisitsPage() {
                       options={VISIT_STATUSES}
                       labels={t.statusLabels}
                       ariaLabel={t.table.status}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <VisitReportForm
+                      key={reportsByVisit.get(v.id)?.updated_at ?? "new"}
+                      visitId={v.id}
+                      initial={reportsByVisit.get(v.id) ?? null}
+                      cta={reportsByVisit.get(v.id) ? "Voir / modifier" : "Rédiger"}
                     />
                   </TableCell>
                   <TableCell className="text-right">
