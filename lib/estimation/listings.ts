@@ -189,7 +189,14 @@ async function fetchViaApifyRaw(q: ListingsQuery): Promise<{ raw: number; filter
   }
 }
 
-function normalizeApify(items: unknown[], source: string = SOURCE_LEBONCOIN): ListingComparable[] {
+/**
+ * Normalise les items BRUTS d'un dataset Apify (LeBonCoin / Bienici) vers
+ * `ListingComparable[]`. PURE et déterministe (aucun IO). Exclut les locations
+ * et les prix aberrants. Exportée pour être RÉUTILISÉE telle quelle par
+ * l'interface gateway `listings.normalize` (parité avec le chemin d'estimation
+ * réel : mêmes règles d'exclusion et de mapping, pas une copie divergente).
+ */
+export function normalizeApify(items: unknown[], source: string = SOURCE_LEBONCOIN): ListingComparable[] {
   const out: ListingComparable[] = [];
   for (let i = 0; i < items.length; i++) {
     const it = asRecord(items[i]);

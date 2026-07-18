@@ -483,13 +483,26 @@ export function buildActionCenter(
     ...deriveMatchs(input.matchs, L),
   ];
 
-  // Dédup : une visite du jour apparaît en "today" ; on la retire de "rdv".
+  // Dédup 1 : une visite du jour apparaît en "today" ; on la retire de "rdv".
   const todayVisitIds = new Set(
     items.filter((i) => i.category === "today" && i.entity === "visit").map((i) => i.entityId),
   );
-  const deduped = items.filter(
+  const visitDeduped = items.filter(
     (i) => !(i.category === "rdv" && i.entity === "visit" && todayVisitIds.has(i.entityId)),
   );
+
+  // Dédup 2 : un même item.id ne doit apparaître qu'UNE fois (clé React unique).
+  // Les items de TÂCHE portent `id = t.id` (UUID nu) et peuvent être surfacés par
+  // deux dérivations qui se recouvrent — ex. une tâche `kind=validation` ET échue
+  // (deriveValidationTasks ∩ deriveOverdueTasks n'excluent pas le cas croisé).
+  // `items` est déjà en ordre de priorité de catégorie (overdue → today →
+  // validation → task…) : on garde la PREMIÈRE occurrence (la plus urgente).
+  const seenIds = new Set<string>();
+  const deduped = visitDeduped.filter((i) => {
+    if (seenIds.has(i.id)) return false;
+    seenIds.add(i.id);
+    return true;
+  });
 
   deduped.sort((a, b) => {
     const p = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];

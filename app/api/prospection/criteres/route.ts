@@ -3,160 +3,27 @@ import { z } from "zod";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
-import type { Tables, TablesInsert, TablesUpdate } from "@/lib/supabase/database.types";
+import type { Tables, TablesInsert } from "@/lib/supabase/database.types";
+import {
+  CreateCritereSchema,
+  UpdateCritereSchema,
+  buildCriterePatch,
+} from "@/lib/prospection/criteres-update";
 
 // Les colonnes 0043 (alerte_frequence/urgence/exclusions/criteres_secondaires)
 // sont désormais reflétées dans database.types.ts : l'objet d'insert est vérifié
-// via `satisfies`. Le patch PATCH reste un objet dynamique (construit par boucle)
-// → cast simple vers CritereUpdate au point de contact.
+// via `satisfies`. La validation (Zod) + la construction du patch PARTIEL vivent
+// dans lib/prospection/criteres-update.ts — MÊME logique que l'interface gateway
+// `buyers.update_preferences` (zéro duplication divergente).
 type CritereInsert = TablesInsert<"prosp_criteres_acquereur">;
-type CritereUpdate = TablesUpdate<"prosp_criteres_acquereur">;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type AcquereurCritere = Tables<"prosp_criteres_acquereur">;
 
-// ─── Validation input critères (Zod) ────────────────────────────────────────
-// Bornes : budget/surface/pièces ≥ 0 finis ; min ≤ max ; zone (via lead_id/zones)
-// non totalement vide ; coordonnées valides si fournies ; préférences en enum
-// must-have/preferred/excluded (miroir CHECK DB : 'indifferent'|'requis'|'exclu').
-const PREF = z.enum(["indifferent", "requis", "exclu"]);
+// UUID utilisé uniquement pour la validation de l'`id` de suppression (DELETE).
 const UUID = z.string().uuid();
-
-// Une zone géographique optionnellement géolocalisée : label + coords + rayon.
-const ZoneObjectSchema = z
-  .object({
-    label: z.string().trim().min(1).optional(),
-    cp: z.string().trim().min(1).optional(),
-    ville: z.string().trim().min(1).optional(),
-    lat: z.number().finite().min(-90).max(90).optional(),
-    lng: z.number().finite().min(-180).max(180).optional(),
-    rayon_km: z.number().finite().nonnegative().optional(),
-  })
-  .strict()
-  .refine((z) => !!(z.label || z.cp || z.ville), {
-    message: "zone_empty",
-  })
-  // lat sans lng (ou l'inverse) = coordonnée invalide.
-  .refine((z) => (z.lat === undefined) === (z.lng === undefined), {
-    message: "coords_invalid",
-  });
-
-// Le formulaire envoie des zones en texte libre (ex: "Nice, 06000") ; on les
-// normalise en objet { label } pour rejoindre le même contrat de stockage.
-const ZoneSchema = z.union([
-  ZoneObjectSchema,
-  z
-    .string()
-    .trim()
-    .min(1)
-    .transform((label) => ({ label })),
-]);
-
-const PosNum = z.number().finite().nonnegative();
-const PosInt = z.number().int().finite().nonnegative();
-
-// ── Champs 0043 (LIVE) ────────────────────────────────────────────────────────
-// Miroir EXACT des CHECK DB (migration 0043).
-const ALERTE_FREQ = z.enum(["immediate", "quotidien", "hebdo", "off"]);
-const URGENCE = z.enum(["faible", "normale", "haute", "urgente"]);
-// exclusions = liste de rejets non-bloquants → bloquants (ex. « rez-de-chaussée »).
-const ExclusionsSchema = z.array(z.string().trim().min(1).max(200)).max(50);
-// criteres_secondaires = souhaits non-bloquants (clé lisible → valeur libre).
-const CriteresSecondairesSchema = z.record(
-  z.string().trim().min(1).max(80),
-  z.union([z.string().trim().max(200), z.number().finite(), z.boolean()]),
-);
-
-// Bloc commun aux champs éditables d'un critère (POST création + PATCH édition).
-const critereFields = {
-  nom: z.string().trim().min(1).max(200),
-  lead_id: UUID.nullish(),
-  type_bien: z.union([z.array(z.string().trim().min(1)), z.string().trim().min(1)]).nullish(),
-  budget_min: PosNum.nullish(),
-  budget_max: PosNum.nullish(),
-  surface_min: PosNum.nullish(),
-  surface_max: PosNum.nullish(),
-  pieces_min: PosInt.nullish(),
-  pieces_max: PosInt.nullish(),
-  zones: z.array(ZoneSchema).max(50).optional(),
-  terrasse: PREF.optional(),
-  parking: PREF.optional(),
-  ascenseur: PREF.optional(),
-  jardin: PREF.optional(),
-  piscine: PREF.optional(),
-  dpe_max: z.string().trim().min(1).max(2).nullish(),
-  alerte_email: z.boolean().optional(),
-  alerte_whatsapp: z.boolean().optional(),
-  telephone: z.string().trim().min(1).max(32).nullish(),
-  // ── 0043 LIVE ──
-  alerte_frequence: ALERTE_FREQ.optional(),
-  urgence: URGENCE.nullish(),
-  exclusions: ExclusionsSchema.optional(),
-  criteres_secondaires: CriteresSecondairesSchema.optional(),
-} as const;
-
-type RangeShape = {
-  budget_min?: number | null;
-  budget_max?: number | null;
-  surface_min?: number | null;
-  surface_max?: number | null;
-  pieces_min?: number | null;
-  pieces_max?: number | null;
-};
-
-function rangeChecks<T extends z.ZodType<RangeShape>>(schema: T) {
-  return schema
-    .refine((v) => v.budget_min == null || v.budget_max == null || v.budget_min <= v.budget_max, {
-      message: "budget_range_invalid",
-      path: ["budget_min"],
-    })
-    .refine((v) => v.surface_min == null || v.surface_max == null || v.surface_min <= v.surface_max, {
-      message: "surface_range_invalid",
-      path: ["surface_min"],
-    })
-    .refine((v) => v.pieces_min == null || v.pieces_max == null || v.pieces_min <= v.pieces_max, {
-      message: "pieces_range_invalid",
-      path: ["pieces_min"],
-    });
-}
-
-const CreateCritereSchema = rangeChecks(z.object(critereFields).strict());
-
-// PATCH : tous les champs deviennent optionnels ; `id` requis.
-const UpdateCritereSchema = rangeChecks(
-  z
-    .object({
-      id: UUID,
-      nom: critereFields.nom.optional(),
-      lead_id: critereFields.lead_id,
-      type_bien: critereFields.type_bien,
-      budget_min: critereFields.budget_min,
-      budget_max: critereFields.budget_max,
-      surface_min: critereFields.surface_min,
-      surface_max: critereFields.surface_max,
-      pieces_min: critereFields.pieces_min,
-      pieces_max: critereFields.pieces_max,
-      zones: critereFields.zones,
-      terrasse: critereFields.terrasse,
-      parking: critereFields.parking,
-      ascenseur: critereFields.ascenseur,
-      jardin: critereFields.jardin,
-      piscine: critereFields.piscine,
-      dpe_max: critereFields.dpe_max,
-      alerte_email: critereFields.alerte_email,
-      alerte_whatsapp: critereFields.alerte_whatsapp,
-      telephone: critereFields.telephone,
-      alerte_frequence: critereFields.alerte_frequence,
-      urgence: critereFields.urgence,
-      exclusions: critereFields.exclusions,
-      criteres_secondaires: critereFields.criteres_secondaires,
-    })
-    .strict(),
-);
-
-export type CreateCritereInput = z.infer<typeof CreateCritereSchema>;
 
 async function fetchCriteresRest({
   tenantId,
@@ -313,17 +180,9 @@ export async function PATCH(req: NextRequest) {
   }
   const { id, ...rest } = parsed.data as { id: string } & Record<string, unknown>;
 
-  // On ne pousse en UPDATE que les champs RÉELLEMENT fournis (pas d'écrasement
-  // implicite à null). type_bien est normalisé en tableau si présent.
-  const patch: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(rest)) {
-    if (v === undefined) continue;
-    if (k === "type_bien") {
-      patch.type_bien = v == null ? null : Array.isArray(v) ? v : [v];
-    } else {
-      patch[k] = v;
-    }
-  }
+  // Delta partiel construit par la logique PARTAGÉE (buildCriterePatch) : champs
+  // absents non poussés (pas d'écrasement implicite), type_bien normalisé.
+  const patch = buildCriterePatch(rest);
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "no_fields" }, { status: 400 });
   }
@@ -331,7 +190,7 @@ export async function PATCH(req: NextRequest) {
   // Owner-check applicatif : user_id (= sub) ET tenant_id.
   const { data, error } = await db
     .from("prosp_criteres_acquereur")
-    .update(patch as CritereUpdate)
+    .update(patch)
     .eq("id", id)
     .eq("tenant_id", tenantId)
     .eq("user_id", claims.sub)
