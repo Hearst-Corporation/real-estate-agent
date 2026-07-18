@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { Card } from "@/components/cockpit/primitives";
 import { Badge } from "@/components/ui/badge";
 import { UI } from "@/lib/ui-strings";
@@ -17,7 +17,7 @@ export async function PropertyRelatedSection({ propertyId, userId, tenantId }: P
   const tVisits = UI.visits;
   const tMandates = UI.mandates;
 
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) return null;
 
   const [{ data: leads }, { data: visits }, { data: mandates }] = await Promise.all([

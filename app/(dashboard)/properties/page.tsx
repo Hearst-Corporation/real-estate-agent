@@ -10,7 +10,7 @@ import { filterSeed } from "@/lib/crm/demo-filter";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import PropertyFormModal from "./_components/PropertyForm";
 
@@ -30,7 +30,7 @@ type Property = {
 export default async function PropertiesPage() {
   const t = UI.properties;
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let properties: Property[] = [];
   let total = 0;

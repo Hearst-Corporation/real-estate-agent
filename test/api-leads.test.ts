@@ -6,7 +6,7 @@ const getSession = vi.fn();
 const getSupabaseAdmin = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getSupabaseAdmin() }));
 vi.mock("@/lib/providers/posthog", () => ({ captureServer: vi.fn() }));
 
 import { POST, GET } from "@/app/api/leads/route";

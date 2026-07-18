@@ -18,7 +18,7 @@ import { statusTone } from "@/lib/crm/statusTone";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { CalendarDaysIcon } from "@heroicons/react/24/outline";
 import VisitForm from "./_components/VisitForm";
@@ -35,7 +35,7 @@ type VisitRow = {
 export default async function VisitsPage() {
   const t = UI.visits;
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let visits: VisitRow[] = [];
 
@@ -47,7 +47,7 @@ export default async function VisitsPage() {
       .eq("tenant_id", tenantOf(claims))
       .order("scheduled_at", { ascending: true })
       .limit(200);
-    visits = (data ?? []) as VisitRow[];
+    visits = (data ?? []) as unknown as VisitRow[];
   }
 
   const now = new Date();

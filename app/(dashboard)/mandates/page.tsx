@@ -18,7 +18,7 @@ import { statusTone } from "@/lib/crm/statusTone";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import MandateFormModal from "./_components/MandateForm";
 
@@ -36,7 +36,7 @@ type MandateRow = {
 export default async function MandatesPage() {
   const t = UI.mandates;
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let mandates: MandateRow[] = [];
 
@@ -50,7 +50,7 @@ export default async function MandatesPage() {
       .eq("tenant_id", tenantOf(claims))
       .order("updated_at", { ascending: false })
       .limit(200);
-    mandates = (data ?? []) as MandateRow[];
+    mandates = (data ?? []) as unknown as MandateRow[];
   }
 
   const actifs = mandates.filter((m) => m.status === "actif");

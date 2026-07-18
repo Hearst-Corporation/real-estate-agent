@@ -17,7 +17,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { rateLimit } from "@/lib/ratelimit";
 import {
@@ -26,7 +26,7 @@ import {
   pdlIsConfigured,
   pdlEnrich,
 } from "@/lib/providers";
-import type { Json } from "@/lib/supabase/database.types";
+import type { Json } from "@/lib/gpu1/database.types";
 import { isEnrichable } from "@/lib/crm/enrichable";
 
 export const runtime = "nodejs";
@@ -57,10 +57,10 @@ export async function POST(
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  // Supabase
-  const sb = getSupabaseAdmin();
+  // Base de données
+  const sb = getGpu1Admin();
   if (!sb) {
-    return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+    return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
   }
 
   // Body validation + garde RGPD

@@ -10,7 +10,7 @@ import { filterSeed } from "@/lib/crm/demo-filter";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import LeadFormModal from "./_components/LeadForm";
 
@@ -35,7 +35,7 @@ type Lead = {
 export default async function LeadsPage() {
   const t = UI.leads;
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let leads: Lead[] = [];
 

@@ -8,7 +8,7 @@ import {
 import { UI } from "@/lib/ui-strings";
 import { eur, dateFr, dateTimeFr } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { isEnrichable } from "@/lib/crm/enrichable";
 import {
@@ -134,7 +134,7 @@ export default async function LeadDetailPage({
   const claims = await getSession();
   if (!claims) notFound();
 
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) notFound();
 
   const tenantId = tenantOf(claims);

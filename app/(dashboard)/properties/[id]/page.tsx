@@ -7,7 +7,7 @@ import { DescriptionList, DescriptionTerm, DescriptionDetails } from "@/componen
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateFr, daysSince } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { PropertyStatusControl } from "./_components/PropertyStatusControl";
 import { DpeBadge } from "./_components/DpeBadge";
@@ -71,7 +71,7 @@ export default async function PropertyDetailPage({
   const claims = await getSession();
   if (!claims) notFound();
 
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) notFound();
 
   const tenantId = tenantOf(claims);
