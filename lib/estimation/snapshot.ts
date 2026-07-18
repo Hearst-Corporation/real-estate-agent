@@ -9,6 +9,8 @@
  * non nominatif), classe DPE, listings normalisés. Pas de données nominatives.
  */
 
+import type { ProviderProvenance } from "./provenance";
+
 const MAX_SAMPLE = 50;
 const MAX_BYTES = 512 * 1024; // 512 KB sérialisés
 
@@ -20,6 +22,8 @@ export interface SnapshotInput {
   mutations?: unknown[];
   dpeClasse?: string | null;
   listings?: unknown[];
+  /** Provenance honnête par source (LIVE/SNAPSHOT/FALLBACK/UNAVAILABLE). */
+  provenance?: ProviderProvenance[];
 }
 
 export interface SourcesSnapshot {
@@ -31,6 +35,11 @@ export interface SourcesSnapshot {
   dvf: { count: number; sample: unknown[] };
   ademe: { classe: string | null };
   listings: { count: number; sample: unknown[] };
+  /**
+   * Statut réel de chaque source (jamais tronqué : c'est la vérité de
+   * provenance, elle prime sur les échantillons volumineux). [] si non calculée.
+   */
+  provenance: ProviderProvenance[];
   truncated: boolean;
 }
 
@@ -51,10 +60,14 @@ export function buildSourcesSnapshot(input: SnapshotInput, fetchedAt: string): S
     dvf: { count: mutations.length, sample: mutations.slice(0, MAX_SAMPLE) },
     ademe: { classe: input.dpeClasse ?? null },
     listings: { count: listings.length, sample: listings.slice(0, MAX_SAMPLE) },
+    // Provenance : petite (≤6 entrées), toujours conservée intacte — c'est la
+    // vérité de source affichée dans le PDF, jamais sacrifiée à la troncature.
+    provenance: input.provenance ?? [],
     truncated: false,
   };
 
-  // Réduction progressive si trop volumineux (les counts sont toujours conservés).
+  // Réduction progressive si trop volumineux (les counts + la provenance sont
+  // toujours conservés ; seuls les gros échantillons DVF/listings sont tronqués).
   if (size(snap) > MAX_BYTES) {
     snap.dvf.sample = [];
     snap.truncated = true;

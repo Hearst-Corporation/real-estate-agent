@@ -15,6 +15,11 @@ import type {
   PropertyData,
 } from '@/lib/estimation/types';
 import { buildStaticMap, type MapPoint } from '@/lib/estimation/staticmap';
+import {
+  contributed,
+  statusLabel,
+  type ProviderProvenance,
+} from '@/lib/estimation/provenance';
 
 // ── Formatage ────────────────────────────────────────────────────────────────
 
@@ -226,6 +231,71 @@ function Foot({ ref_, date, page }: { ref_: string; date: string; page: number }
   );
 }
 
+/**
+ * Bloc « Sources & données » PILOTÉ PAR LA PROVENANCE réelle.
+ *
+ * Règle de vérité (mission REA-M04-12) : on n'affiche une source comme
+ * contributrice QUE si elle a réellement fourni de la donnée (statut
+ * live/snapshot/fallback). Les sources indisponibles sont listées à part et
+ * clairement marquées « indisponible » — jamais présentées comme un socle
+ * certain. Les statuts affichés ("à jour", "source de secours", "indisponible")
+ * évitent tous les motifs du firewall (confiance/score/à confirmer).
+ *
+ * `sourceLabel` = libellé honnête des annonces (jamais « marché actif » quand
+ * aucune annonce n'a été détectée).
+ */
+function SourcesBlock({
+  provenance,
+  sourceLabel,
+}: {
+  provenance: ProviderProvenance[] | null | undefined;
+  sourceLabel: string;
+}): React.JSX.Element {
+  // Fallback estimations pré-provenance : socle statique historique (BAN/IGN/DVF
+  // toujours utilisés dans le pipeline ; ADEME + marché actif restent listés).
+  if (!provenance || provenance.length === 0) {
+    return (
+      <div className="sources">
+        <span className="src"><b>BAN</b> · géocodage</span>
+        <span className="src"><b>IGN</b> · cadastre</span>
+        <span className="src"><b>DVF Etalab</b> · ventes</span>
+        <span className="src"><b>ADEME</b> · DPE</span>
+        <span className="src"><b>{sourceLabel}</b> · marché actif</span>
+      </div>
+    );
+  }
+
+  const active = provenance.filter((p) => contributed(p.status));
+  const missing = provenance.filter((p) => !contributed(p.status));
+
+  return (
+    <>
+      <div className="sources">
+        {active.map((p) => (
+          <span className="src" key={p.key}>
+            <b>{p.label}</b>
+            {p.count != null && p.count > 0 ? ` · ${p.count}` : ''}
+            <span className="src-st">{statusLabel(p.status)}</span>
+          </span>
+        ))}
+        {active.length === 0 && (
+          <span className="src na"><b>Sources externes</b><span className="src-st">indisponibles</span></span>
+        )}
+      </div>
+      {missing.length > 0 && (
+        <div className="sources">
+          {missing.map((p) => (
+            <span className="src na" key={p.key}>
+              <b>{p.label}</b>
+              <span className="src-st">{statusLabel(p.status)}</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 // ── Page 1 ───────────────────────────────────────────────────────────────────
 
 function PageOne({ estimation }: { estimation: Estimation }): React.JSX.Element {
@@ -420,8 +490,12 @@ function PageTwo({ estimation }: { estimation: Estimation }): React.JSX.Element 
 
   const dvf: DvfComparable[] = (market?.dvf_comparables ?? []).slice(0, 6);
   const listings: ListingComparable[] = (market?.listing_comparables ?? []).slice(0, 3);
-  const sourceLabel = market?.listing_source?.source === 'apify' ? 'LeBonCoin'
-    : market?.listing_source?.source === 'myswarms' ? 'Bienici' : 'marché actif';
+  // Libellé HONNÊTE de la source d'annonces : le nom réel du portail si des
+  // annonces ont été détectées, sinon « marché actif » générique (jamais un
+  // portail nommé qui n'a rien renvoyé).
+  const hasListings = (market?.listing_comparables ?? []).length > 0;
+  const sourceLabel = hasListings && market?.listing_source?.source === 'apify' ? 'LeBonCoin'
+    : hasListings && market?.listing_source?.source === 'myswarms' ? 'Bienici' : 'marché actif';
 
   const strat = saleStrategies ?? [];
   const stratRapide = strat[0] ?? 'Prix d’appel positionné pour déclencher une décision rapide et maximiser la liquidité.';
@@ -515,14 +589,8 @@ function PageTwo({ estimation }: { estimation: Estimation }): React.JSX.Element 
         </div>
         <div>
           <h3>Sources & données</h3>
-          <div className="sources">
-            <span className="src"><b>BAN</b> · géocodage</span>
-            <span className="src"><b>IGN</b> · cadastre</span>
-            <span className="src"><b>DVF Etalab</b> · ventes</span>
-            <span className="src"><b>ADEME</b> · DPE</span>
-            <span className="src"><b>{sourceLabel}</b> · marché actif</span>
-          </div>
-          <p className="mnote">Sources publiques officielles françaises. <b>Aucune donnée Google Maps n&apos;est utilisée.</b></p>
+          <SourcesBlock provenance={estimation.provenance} sourceLabel={sourceLabel} />
+          <p className="mnote">Sources publiques officielles françaises, avec leur statut réel au moment de l&apos;analyse. <b>Aucune donnée Google Maps n&apos;est utilisée.</b></p>
         </div>
       </div>
 

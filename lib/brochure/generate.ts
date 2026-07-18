@@ -16,8 +16,16 @@ import type {
   MarketAnalysis,
   Valuation,
 } from "@/lib/estimation/types";
+import { parseProvenance } from "@/lib/estimation/provenance";
 
 type EstimationRow = Database["public"]["Tables"]["estimations"]["Row"];
+
+/** Extrait la provenance honnête depuis sources_snapshot.provenance (défensif). */
+function provenanceFromRow(row: EstimationRow) {
+  const snap = row.sources_snapshot;
+  if (!snap || typeof snap !== "object" || Array.isArray(snap)) return null;
+  return parseProvenance((snap as Record<string, unknown>).provenance);
+}
 
 function rowToEstimation(row: EstimationRow): Estimation {
   return {
@@ -31,6 +39,7 @@ function rowToEstimation(row: EstimationRow): Estimation {
     valuation: row.valuation as Valuation,
     saleStrategies: Array.isArray(row.sale_strategies) ? (row.sale_strategies as string[]) : null,
     branding: (row.branding ?? null) as Record<string, unknown> | null,
+    provenance: provenanceFromRow(row),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
