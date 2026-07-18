@@ -278,8 +278,14 @@ export const BROCHURE_CSS = `
 .metho p b{color:var(--ct-text-strong);font-weight:700}
 .sources{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .src{font-size:7.5px;font-weight:600;color:var(--ct-text-body);
-  background:var(--ct-surface);border:1px solid var(--ct-border);border-radius:6px;padding:3px 8px}
+  background:var(--ct-surface);border:1px solid var(--ct-border);border-radius:6px;padding:3px 8px;
+  display:inline-flex;align-items:center;gap:5px}
 .src b{color:var(--ct-accent-700);font-weight:800}
+/* Pastille de statut de provenance (honnête : à jour / secours / indisponible). */
+.src-st{font-size:6.8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ct-text-muted);border-radius:4px;padding:1px 4px;background:var(--ct-surface-tint)}
+.src.na{opacity:.62}
+.src.na b{color:var(--ct-text-muted)}
 .mnote{font-size:7.5px;color:var(--ct-text-muted);margin-top:8px;line-height:1.4}
 .mnote b{color:var(--ct-text-primary);font-weight:700}
 

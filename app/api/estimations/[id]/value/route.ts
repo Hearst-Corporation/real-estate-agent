@@ -19,7 +19,7 @@ import { loadOwnedEstimation } from '@/lib/estimation/owned';
 import { rateLimit } from '@/lib/ratelimit';
 import { captureFatal } from '@/lib/server/observe';
 import { captureServer } from '@/lib/providers/posthog';
-import { geocode } from '@/lib/estimation/geocode';
+import { geocodeWithProvenance } from '@/lib/estimation/geocode';
 import { resolveParcelle } from '@/lib/estimation/cadastre';
 import { candidateSections } from '@/lib/estimation/sections';
 import { fetchMutationsMultiSection } from '@/lib/estimation/dvf';
@@ -28,6 +28,7 @@ import { fetchDpeForAddress } from '@/lib/estimation/ademe';
 import { computeValuation } from '@/lib/estimation/valuation';
 import { fetchListingComparables } from '@/lib/estimation/listings';
 import { buildSourcesSnapshot } from '@/lib/estimation/snapshot';
+import { buildProvenance } from '@/lib/estimation/provenance';
 import { ENGINE_VERSION } from '@/lib/estimation/valuation';
 import type { PropertyData, MarketAnalysis } from '@/lib/estimation/types';
 import type { Json } from '@/lib/supabase/database.types';
@@ -133,7 +134,8 @@ export async function POST(
           .filter(Boolean)
           .join(', ');
 
-        const geo = await geocode(adresse);
+        const geoOutcome = await geocodeWithProvenance(adresse);
+        const geo = geoOutcome?.result ?? null;
 
         if (!geo) {
           emit({
@@ -150,8 +152,17 @@ export async function POST(
             refNowIso: valuedAt,
           });
           const saleStrategies = buildSaleStrategies(0);
+          // Provenance honnête : géocodage échoué → tout indisponible en aval.
+          // Le DPE reste tracé s'il a été fourni par le vendeur au dossier.
+          const degradedProvenance = buildProvenance({
+            geocode: null,
+            cadastreResolved: false,
+            dvfComparables: 0,
+            dpe: property.dpe_classe ? { via: 'provided' } : null,
+            listings: { source: 'none', count: 0, fallbackUsed: false },
+          });
           const degradedSnapshot = buildSourcesSnapshot(
-            { adresse, geo: null },
+            { adresse, geo: null, provenance: degradedProvenance },
             valuedAt,
           );
           await sb.from('estimations').update({
@@ -213,11 +224,15 @@ export async function POST(
         // ── DPE ADEME (best-effort) ───────────────────────────────────
         emit({ type: 'progress', step: 'DPE…' });
 
+        // `dpeVia` trace la SOURCE réelle de la classe DPE pour la provenance :
+        //   provided = fournie par le vendeur · ademe = résolue via ADEME · null = inconnue.
         let resolvedDpeClasse = property.dpe_classe;
+        let dpeVia: 'provided' | 'ademe' | null = property.dpe_classe ? 'provided' : null;
         if (!resolvedDpeClasse && adresse) {
           const ademeResult = await fetchDpeForAddress(adresse);
           if (ademeResult.classe) {
             resolvedDpeClasse = ademeResult.classe as PropertyData['dpe_classe'];
+            dpeVia = 'ademe';
           }
         }
 
@@ -267,6 +282,22 @@ export async function POST(
           fetched_at: valuedAt,
         };
 
+        // ── Provenance honnête par source (LIVE/FALLBACK/UNAVAILABLE) ────
+        // Dérivée de ce qui s'est RÉELLEMENT passé : géocodeur utilisé, parcelle
+        // résolue, nb de comparables DVF retenus, source réelle du DPE, source
+        // réelle des annonces. Aucune source « toujours présente » inventée.
+        const provenance = buildProvenance({
+          geocode: { via: geoOutcome!.via },
+          cadastreResolved: parcelle !== null,
+          dvfComparables: nbComparables,
+          dpe: dpeVia === null ? null : { via: dpeVia },
+          listings: {
+            source: listingResult.source,
+            count: listingResult.filteredCount,
+            fallbackUsed: listingResult.fallbackUsed,
+          },
+        });
+
         // ── Snapshot sources (auditabilité, capé, inclus dans l'update) ──
         const sourcesSnapshot = buildSourcesSnapshot(
           {
@@ -277,6 +308,7 @@ export async function POST(
             mutations,
             dpeClasse: resolvedDpeClasse ?? null,
             listings: listingComparables,
+            provenance,
           },
           market.fetched_at,
         );

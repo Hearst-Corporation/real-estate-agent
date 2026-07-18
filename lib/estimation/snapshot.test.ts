@@ -29,4 +29,28 @@ describe('buildSourcesSnapshot', () => {
     expect(s.dvf.sample.length).toBe(0); // sample tronqué
     expect(s.truncated).toBe(true);
   });
+
+  it('provenance : [] par défaut, portée intacte quand fournie', () => {
+    const empty = buildSourcesSnapshot({ adresse: 'x', geo: null }, TS);
+    expect(empty.provenance).toEqual([]);
+
+    const provenance = [
+      { key: 'dvf' as const, label: 'Ventes DVF', status: 'live' as const, count: 5, detail: '5 ventes' },
+    ];
+    const s = buildSourcesSnapshot({ provenance }, TS);
+    expect(s.provenance).toEqual(provenance);
+  });
+
+  it('provenance conservée même quand les échantillons volumineux sont tronqués', () => {
+    const big = 'x'.repeat(20_000);
+    const mutations = Array.from({ length: 50 }, (_, i) => ({ id: i, blob: big }));
+    const provenance = [
+      { key: 'dvf' as const, label: 'Ventes DVF', status: 'live' as const, count: 50, detail: '50 ventes' },
+    ];
+    const s = buildSourcesSnapshot({ mutations, provenance }, TS);
+    expect(s.truncated).toBe(true);
+    expect(s.dvf.sample.length).toBe(0);
+    // La vérité de source prime : jamais sacrifiée à la troncature.
+    expect(s.provenance).toEqual(provenance);
+  });
 });

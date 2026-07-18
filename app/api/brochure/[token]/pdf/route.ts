@@ -20,6 +20,7 @@ import type {
   MarketAnalysis,
   Valuation,
 } from "@/lib/estimation/types";
+import { parseProvenance } from "@/lib/estimation/provenance";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -79,6 +80,13 @@ export async function GET(
     }
   }
 
+  // Provenance honnête, extraite du snapshot persisté (défensif, [] si absent).
+  const snapProvenance = (() => {
+    const snap = row.sources_snapshot;
+    if (!snap || typeof snap !== "object" || Array.isArray(snap)) return null;
+    return parseProvenance((snap as Record<string, unknown>).provenance);
+  })();
+
   // ── Re-render ─────────────────────────────────────────────────────────────
   const estimation: Estimation = {
     id: row.id,
@@ -93,6 +101,7 @@ export async function GET(
       ? (row.sale_strategies as string[])
       : null,
     branding: (row.branding ?? null) as Record<string, unknown> | null,
+    provenance: snapProvenance,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
