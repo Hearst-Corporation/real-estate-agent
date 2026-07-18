@@ -23,6 +23,7 @@ import { tenantOf } from "@/lib/tenant";
 import { CalendarDaysIcon } from "@heroicons/react/24/outline";
 import VisitForm from "./_components/VisitForm";
 import VisitReportForm from "./_components/VisitReportForm";
+import PostVisitLoop from "./_components/PostVisitLoop";
 import type { VisitReportRow } from "@/lib/visit-report/schema";
 
 type VisitRow = {
@@ -172,12 +173,15 @@ export default async function VisitsPage() {
                     />
                   </TableCell>
                   <TableCell>
-                    <VisitReportForm
-                      key={reportsByVisit.get(v.id)?.updated_at ?? "new"}
-                      visitId={v.id}
-                      initial={reportsByVisit.get(v.id) ?? null}
-                      cta={reportsByVisit.get(v.id) ? "Voir / modifier" : "Rédiger"}
-                    />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <VisitReportForm
+                        key={reportsByVisit.get(v.id)?.updated_at ?? "new"}
+                        visitId={v.id}
+                        initial={reportsByVisit.get(v.id) ?? null}
+                        cta={reportsByVisit.get(v.id) ? "Voir / modifier" : "Rédiger"}
+                      />
+                      {reportsByVisit.get(v.id) && <PostVisitLoop visitId={v.id} />}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <DeleteButton
