@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, feature/rea-master-004]
 
 # Annule les runs obsolètes d'une même ref (économie de minutes CI).
 concurrency:
