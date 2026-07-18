@@ -66,32 +66,6 @@ function deriveLabels(): DeriveLabels {
   };
 }
 
-/** Ligne d'actions secondaires compactes (l'action principale vit dans le header). */
-function ActionTiles({
-  items,
-}: {
-  items: { href: string; label: string; icon: IconName }[];
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-3 @xl:grid-cols-4">
-      {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className="group flex items-center gap-3 rounded-xl border border-accent-500/12 bg-white px-4 py-3 shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-        >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent-500/10 text-accent-600 transition-colors group-hover:bg-accent-500/15">
-            <Icon name={item.icon} className="size-5" />
-          </span>
-          <span className="min-w-0 truncate text-sm font-medium text-zinc-800 transition-colors group-hover:text-accent-800">
-            {item.label}
-          </span>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
 export default async function DashboardPage() {
   const claims = await getSession();
   const sb = getSupabaseAdmin();
@@ -257,12 +231,14 @@ export default async function DashboardPage() {
   const t = UI.dashboard;
   const { items: actionItems } = buildActionCenter(derive, nowMs, deriveLabels());
 
-  const secondaryActions: { href: string; label: string; icon: IconName }[] = [
-    { href: "/properties?new=1", label: t.actions.newProperty, icon: "properties" },
-    { href: "/leads?new=1", label: t.actions.newClient, icon: "leads" },
-    { href: "/visits?new=1", label: t.actions.newVisit, icon: "visits" },
-    { href: "/prospection", label: t.actions.launchPros, icon: "search" },
-  ];
+  // Libellés des bandes temporelles du centre d'actions (urgent → aujourd'hui →
+  // ensuite). Réutilise des clés UI existantes — aucun texte en dur, aucune
+  // nouvelle clé requise dans lib/ui-strings.ts.
+  const bucketLabels = {
+    urgent: t.center.groups.overdue,
+    today: t.center.groups.today,
+    next: UI.visits.upcoming,
+  };
 
   const kpis = [
     { label: t.kpis.properties, value: String(nbProperties), icon: "properties" as IconName },
@@ -310,16 +286,14 @@ export default async function DashboardPage() {
         ))}
       </dl>
 
-      {/* (a) CENTRE D'ACTIONS — bloc dominant : quoi faire, pour qui, pourquoi */}
-      <ActionCenter items={actionItems} />
+      {/* (a) CENTRE D'ACTIONS — bloc dominant : quoi faire, pour qui, pourquoi.
+          Regroupé par bande temporelle (urgent → aujourd'hui → ensuite). */}
+      <ActionCenter items={actionItems} bucketLabels={bucketLabels} />
 
-      {/* (b) ACTIONS RAPIDES — créer une entité (l'action principale est dans le header) */}
-      <section>
-        <h2 className="mb-4 font-titre text-xl font-semibold text-zinc-900">{t.actions.title}</h2>
-        <ActionTiles items={secondaryActions} />
-      </section>
-
-      {/* (c) PORTEFEUILLE RÉCENT */}
+      {/* (b) PORTEFEUILLE RÉCENT.
+          La section « Actions rapides » (créer bien/client/visite) a été retirée :
+          100 % redondante avec le menu « Créer » du rail gauche (toujours visible)
+          et le CTA principal du header. Zéro fonction perdue, moins de CTA à trier. */}
       <section>
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.recentPortfolio}</h2>
