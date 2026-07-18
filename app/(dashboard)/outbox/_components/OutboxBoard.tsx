@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Text } from "@/components/ui/text";
+import { UI } from "@/lib/ui-strings";
+import { useTourActive } from "@/components/onboarding";
+import { COMMUNICATIONS_ANCHORS } from "@/lib/onboarding/tours/communications-hitl";
+import { blockDuringTour } from "@/lib/onboarding/tour-guard";
 
 /** Vue publique d'un draft (miroir de OutboxDraftView, jamais de secret). */
 export type DraftView = {
@@ -89,6 +93,8 @@ export function OutboxBoard({
   const [editSubject, setEditSubject] = useState("");
   const [editBody, setEditBody] = useState("");
   const [flash, setFlash] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
+  // LOT 10 — pendant une visite guidée, aucun geste irréversible ne part d'ici.
+  const tourActive = useTourActive();
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -121,6 +127,7 @@ export function OutboxBoard({
   }
 
   async function approve(id: string) {
+    if (blockDuringTour(tourActive, "outbox-approve")) return;
     setBusyId(id);
     const json = await call(`/api/outbox/${id}`, {
       method: "PATCH",
@@ -134,6 +141,7 @@ export function OutboxBoard({
   }
 
   async function cancel(id: string) {
+    if (blockDuringTour(tourActive, "outbox-cancel")) return;
     setBusyId(id);
     const json = await call(`/api/outbox/${id}`, {
       method: "PATCH",
@@ -144,6 +152,7 @@ export function OutboxBoard({
   }
 
   async function send(id: string) {
+    if (blockDuringTour(tourActive, "outbox-send")) return;
     setBusyId(id);
     const json = await call(`/api/outbox/${id}/send`, { method: "POST" });
     if (json?.draft) {
@@ -164,6 +173,7 @@ export function OutboxBoard({
   }
 
   async function saveEdit(id: string) {
+    if (blockDuringTour(tourActive, "outbox-edit-save")) return;
     setBusyId(id);
     const json = await call(`/api/outbox/${id}`, {
       method: "PATCH",
@@ -198,9 +208,17 @@ export function OutboxBoard({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* LOT 10 — bandeau honnête : pendant une visite, les gestes sont inertes. */}
+      {tourActive && (
+        <p role="status" className="surface border-l-4 border-accent-500 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+          {UI.onboarding.guard.notice}
+        </p>
+      )}
+
       {/* Vérité des transports : LIVE = envoi réel possible, CONFIG = variable manquante. */}
       {transports.length > 0 && (
         <section
+          data-tour-id={COMMUNICATIONS_ANCHORS.transports}
           aria-label="État des canaux d'envoi"
           className="surface flex flex-col gap-2 p-4"
         >
@@ -246,7 +264,11 @@ export function OutboxBoard({
       )}
 
       {/* Onglets par statut */}
-      <nav aria-label="Statuts" className="-mb-px flex flex-wrap items-center gap-1">
+      <nav
+        data-tour-id={COMMUNICATIONS_ANCHORS.statusTabs}
+        aria-label="Statuts"
+        className="-mb-px flex flex-wrap items-center gap-1"
+      >
         {STATUS_TABS.map((s) => {
           const active = s === tab;
           return (
@@ -278,7 +300,7 @@ export function OutboxBoard({
         </div>
       ) : (
         <ul className="flex flex-col gap-4">
-          {visible.map((d) => {
+          {visible.map((d, index) => {
             const editing = editId === d.id;
             const busy = busyId === d.id;
             const reason = reasonLabel(d.error);
@@ -318,7 +340,11 @@ export function OutboxBoard({
                       onChange={(e) => setEditBody(e.target.value)}
                     />
                     <div className="flex gap-2">
-                      <Button color="indigo" disabled={busy || !editBody.trim()} onClick={() => saveEdit(d.id)}>
+                      <Button
+                        color="indigo"
+                        disabled={busy || !editBody.trim() || tourActive}
+                        onClick={() => saveEdit(d.id)}
+                      >
                         {busy ? "…" : "Enregistrer"}
                       </Button>
                       <Button plain disabled={busy} onClick={() => setEditId(null)}>
@@ -339,21 +365,30 @@ export function OutboxBoard({
 
                 {/* Actions selon le statut */}
                 {!editing && (
-                  <div className="flex flex-wrap gap-2">
+                  // Ancre de visite sur la 1re rangée d'actions : c'est le
+                  // composant qui modifie, valide et envoie réellement.
+                  <div
+                    data-tour-id={index === 0 ? COMMUNICATIONS_ANCHORS.draftActions : undefined}
+                    className="flex flex-wrap gap-2"
+                  >
                     {(d.status === "draft" || d.status === "approved") && (
                       <Button plain disabled={busy} onClick={() => beginEdit(d)}>
                         Modifier
                       </Button>
                     )}
                     {d.status === "draft" && (
-                      <Button color="indigo" disabled={busy} onClick={() => approve(d.id)}>
+                      <Button
+                        color="indigo"
+                        disabled={busy || tourActive}
+                        onClick={() => approve(d.id)}
+                      >
                         {busy ? "…" : "Valider"}
                       </Button>
                     )}
                     {d.status === "approved" && (
                       <Button
                         color="indigo"
-                        disabled={busy || !sendable}
+                        disabled={busy || !sendable || tourActive}
                         title={sendable ? undefined : "Canal non configuré — envoi impossible"}
                         onClick={() => send(d.id)}
                       >
@@ -363,7 +398,7 @@ export function OutboxBoard({
                     {d.status === "failed" && (
                       <Button
                         color="indigo"
-                        disabled={busy || !sendable}
+                        disabled={busy || !sendable || tourActive}
                         title={sendable ? undefined : "Canal non configuré — envoi impossible"}
                         onClick={() => send(d.id)}
                       >
@@ -376,7 +411,7 @@ export function OutboxBoard({
                       </span>
                     )}
                     {(d.status === "draft" || d.status === "approved") && (
-                      <Button plain disabled={busy} onClick={() => cancel(d.id)}>
+                      <Button plain disabled={busy || tourActive} onClick={() => cancel(d.id)}>
                         Annuler
                       </Button>
                     )}

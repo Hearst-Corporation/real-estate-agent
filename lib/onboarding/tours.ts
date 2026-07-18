@@ -48,6 +48,10 @@ import type { TourDefinition, TourKey, TourRegistry } from "./types";
 import { prospectionTour } from "./tours/prospection";
 import { radarTour } from "./tours/radar";
 import { offmarketTour } from "./tours/offmarket";
+import { crmTour } from "./tours/crm";
+import { estimationsTour } from "./tours/estimations";
+import { communicationsHitlTour } from "./tours/communications-hitl";
+import { agentsTour } from "./tours/agents";
 
 /**
  * Fabrique une définition de tour et vérifie sa cohérence (ids uniques, textes
@@ -79,6 +83,13 @@ export const CORE_ANCHORS = {
   profile: "cockpit-profile",
 } as const;
 
+export const DASHBOARD_ANCHORS = {
+  newEstimation: "dashboard-new-estimation",
+  kpis: "dashboard-kpis",
+  actionCenter: "dashboard-action-center",
+  recentProperties: "dashboard-recent-properties",
+} as const;
+
 export const coreCockpitTour: TourDefinition = defineTour({
   key: "core-cockpit",
   version: 1,
@@ -100,6 +111,43 @@ export const coreCockpitTour: TourDefinition = defineTour({
       title: core.steps.nav.title,
       body: core.steps.nav.body,
       placement: "right",
+    },
+    /* ── Accueil (LOT 5A) : les quatre repères de l'écran d'arrivée, dans
+       l'ordre de lecture de la page (action principale → chiffres → priorités
+       → portefeuille). Aucune de ces étapes ne déclenche l'action montrée. ── */
+    {
+      id: "dashboardNewEstimation",
+      anchor: DASHBOARD_ANCHORS.newEstimation,
+      route: "/",
+      title: core.steps.dashboardNewEstimation.title,
+      body: core.steps.dashboardNewEstimation.body,
+      consequence: core.steps.dashboardNewEstimation.consequence,
+      placement: "bottom",
+    },
+    {
+      id: "dashboardKpis",
+      anchor: DASHBOARD_ANCHORS.kpis,
+      route: "/",
+      title: core.steps.dashboardKpis.title,
+      body: core.steps.dashboardKpis.body,
+      placement: "bottom",
+    },
+    {
+      id: "dashboardActionCenter",
+      anchor: DASHBOARD_ANCHORS.actionCenter,
+      route: "/",
+      title: core.steps.dashboardActionCenter.title,
+      body: core.steps.dashboardActionCenter.body,
+      consequence: core.steps.dashboardActionCenter.consequence,
+      placement: "auto",
+    },
+    {
+      id: "dashboardRecentProperties",
+      anchor: DASHBOARD_ANCHORS.recentProperties,
+      route: "/",
+      title: core.steps.dashboardRecentProperties.title,
+      body: core.steps.dashboardRecentProperties.body,
+      placement: "auto",
     },
     {
       id: "actionCenter",
@@ -144,11 +192,11 @@ export const coreCockpitTour: TourDefinition = defineTour({
 export const TOUR_REGISTRY: TourRegistry = {
   "core-cockpit": coreCockpitTour,
   prospection: prospectionTour, // W4 → lib/onboarding/tours/prospection.ts
-  crm: null, // W3
-  estimations: null, // W3
+  crm: crmTour, // W3 → lib/onboarding/tours/crm.ts
+  estimations: estimationsTour, // W3 → lib/onboarding/tours/estimations.ts
   offmarket: offmarketTour, // W4 → lib/onboarding/tours/offmarket.ts
-  "communications-hitl": null, // W5
-  agents: null, // W5
+  "communications-hitl": communicationsHitlTour, // W5 → lib/onboarding/tours/communications-hitl.ts
+  agents: agentsTour, // W5 → lib/onboarding/tours/agents.ts
   radar: radarTour, // W4 → lib/onboarding/tours/radar.ts
 };
 

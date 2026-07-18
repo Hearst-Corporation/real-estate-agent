@@ -8,6 +8,7 @@ import { tenantOf } from "@/lib/tenant";
 import { Text } from "@/components/ui/text";
 import { Link } from "@/components/ui/link";
 import { ActionCenter } from "@/components/cockpit/ActionCenter";
+import { DASHBOARD_ANCHORS } from "@/lib/onboarding/tours";
 import { buildActionCenter, type DeriveInput, type DeriveLabels } from "@/lib/actions/derive";
 import {
   Table,
@@ -260,14 +261,21 @@ export default async function DashboardPage() {
             {t.title}
           </h1>
         </div>
-        <Link href="/estimations/new" className={PRIMARY_CTA}>
+        <Link
+          href="/estimations/new"
+          className={PRIMARY_CTA}
+          data-tour-id={DASHBOARD_ANCHORS.newEstimation}
+        >
           <Icon name="estimate" className="size-5" />
           {t.actions.newEstimation}
         </Link>
       </header>
 
       {/* KPI — bandeau léger à filets or (pas 4 cartes encagées) */}
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-accent-500/12 bg-accent-500/15 shadow-[var(--shadow-card)] @xl:grid-cols-4">
+      <dl
+        data-tour-id={DASHBOARD_ANCHORS.kpis}
+        className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-accent-500/12 bg-accent-500/15 shadow-[var(--shadow-card)] @xl:grid-cols-4"
+      >
         {kpis.map((item) => (
           <div key={item.label} className="flex items-center gap-3 bg-white px-5 py-4">
             <span
@@ -294,7 +302,7 @@ export default async function DashboardPage() {
           La section « Actions rapides » (créer bien/client/visite) a été retirée :
           100 % redondante avec le menu « Créer » du rail gauche (toujours visible)
           et le CTA principal du header. Zéro fonction perdue, moins de CTA à trier. */}
-      <section>
+      <section data-tour-id={DASHBOARD_ANCHORS.recentProperties}>
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="font-titre text-xl font-semibold text-zinc-900">{t.recentPortfolio}</h2>
           {properties.length > 0 ? (

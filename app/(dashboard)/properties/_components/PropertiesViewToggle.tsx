@@ -19,6 +19,7 @@ import { PropertiesCockpit, type CockpitProperty } from "./PropertiesCockpit";
 import { eur, sqm } from "@/lib/crm/format";
 import { statusTone, type StatusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
+import { CRM_ANCHORS } from "@/lib/onboarding/tours/crm";
 
 type Property = CockpitProperty & {
   surface: number | null;
@@ -83,7 +84,10 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
         <Text className="font-semibold !text-zinc-950 dark:!text-white">
           {t.cockpit.panelTitle}
         </Text>
-        <div className="flex items-center gap-1 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-1 dark:border-white/10 dark:bg-white/[0.03]">
+        <div
+          data-tour-id={CRM_ANCHORS.propertyViews}
+          className="flex items-center gap-1 rounded-xl border border-zinc-950/10 bg-zinc-950/[0.02] p-1 dark:border-white/10 dark:bg-white/[0.03]"
+        >
           {views.map((v) =>
             view === v.key ? (
               <Button key={v.key} color="indigo" onClick={() => setView(v.key)}>

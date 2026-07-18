@@ -5,6 +5,8 @@ import { UI } from "@/lib/ui-strings";
 import { Text, Strong } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AGENTS_ANCHORS } from "@/lib/onboarding/tours/agents";
+import { blockDuringTour } from "@/lib/onboarding/tour-guard";
 import type { PublishedAgent, PublishedAgentStatus } from "@/lib/aigent/runtime-types";
 
 const t = UI.agentsPage;
@@ -43,15 +45,22 @@ export function AgentCard({
   agent,
   runnable,
   onRunStarted,
+  tourActive,
+  anchorRun,
 }: {
   agent: PublishedAgent;
   runnable: boolean;
   onRunStarted: (runId: string) => void;
+  /** LOT 10 — visite en cours : le lancement est expliqué, jamais déclenché. */
+  tourActive: boolean;
+  /** Ancre `agents-run` posée sur la 1re carte uniquement. */
+  anchorRun: boolean;
 }) {
   const [launching, setLaunching] = useState(false);
   const [note, setNote] = useState<{ tone: "ok" | "err"; msg: string } | null>(null);
 
   async function launch() {
+    if (blockDuringTour(tourActive, "agents-run")) return;
     setLaunching(true);
     setNote(null);
     try {
@@ -118,9 +127,12 @@ export function AgentCard({
       ) : null}
 
       {/* Action principale : lancer un run autorisé (désactivé si non exécutable) */}
-      <div className="mt-auto flex flex-col gap-2 border-t border-zinc-950/8 pt-4">
+      <div
+        data-tour-id={anchorRun ? AGENTS_ANCHORS.run : undefined}
+        className="mt-auto flex flex-col gap-2 border-t border-zinc-950/8 pt-4"
+      >
         {runnable ? (
-          <Button color="indigo" onClick={launch} disabled={launching}>
+          <Button color="indigo" onClick={launch} disabled={launching || tourActive}>
             {launching ? t.launching : t.launch}
           </Button>
         ) : (

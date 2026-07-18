@@ -7,6 +7,7 @@ import { LEAD_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
 import { filterSeed } from "@/lib/crm/demo-filter";
 import { UI } from "@/lib/ui-strings";
+import { CRM_ANCHORS } from "@/lib/onboarding/tours/crm";
 import { getSession } from "@/lib/server/session";
 import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
@@ -97,7 +98,7 @@ export default async function LeadsPage() {
 
       {/* Charts — cartes surface, viz métier conservée */}
       <div className="grid grid-cols-1 items-start gap-6 @2xl:grid-cols-2">
-        <section className="surface p-5">
+        <section className="surface p-5" data-tour-id={CRM_ANCHORS.leadPipeline}>
           <Subheading className="font-titre mb-3">{t.charts.pipeline}</Subheading>
           <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />
         </section>

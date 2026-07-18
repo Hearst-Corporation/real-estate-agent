@@ -1767,6 +1767,24 @@ export const UI = {
             title: "Tu as les repères",
             body: "Chaque module a sa propre visite, lançable quand tu en as besoin.",
           },
+          dashboardNewEstimation: {
+            title: "Démarrer une estimation",
+            body: "L'action principale de l'accueil ouvre l'entretien d'estimation : adresse, surface, état du bien, puis la valeur argumentée.",
+            consequence: "Le bouton ouvre l'entretien. Rien n'est enregistré tant que tu ne l'as pas lancé toi-même.",
+          },
+          dashboardKpis: {
+            title: "Tes quatre chiffres",
+            body: "Biens au portefeuille, clients actifs, visites à venir et mandats en cours. Recalculés à chaque chargement, sur tes seules données.",
+          },
+          dashboardActionCenter: {
+            title: "Le bloc des priorités",
+            body: "Chaque ligne est rattachée à une vraie fiche et dit pourquoi elle remonte : relance en retard, rendez-vous du jour, estimation à reprendre.",
+            consequence: "« Traité » et « Reporter » modifient la tâche. La visite te les montre, elle ne les déclenche pas.",
+          },
+          dashboardRecentProperties: {
+            title: "Ton portefeuille récent",
+            body: "Les derniers biens modifiés, avec statut, type et ville. Une ligne ouvre la fiche complète du bien.",
+          },
         },
       },
 
@@ -1863,6 +1881,159 @@ export const UI = {
           },
         },
       },
+      crm: {
+        title: "Clients et portefeuille",
+        description:
+          "Enregistrer un client, suivre son avancement, ajouter un bien et lire l'état du portefeuille.",
+        steps: {
+          leadCreate: {
+            title: "Créer un client",
+            body: "L'action d'en-tête ouvre la fiche de création : nom, coordonnées, budget et mode de financement.",
+            consequence: "Le client n'existe qu'après ta validation dans le formulaire.",
+          },
+          leadKinds: {
+            title: "Acquéreur ou propriétaire",
+            body: "Chaque client porte un type : l'acquéreur cherche un bien, le propriétaire en confie un. Les zones les séparent pour que tu saches quoi faire de chacun.",
+          },
+          leadPipeline: {
+            title: "L'avancement",
+            body: "L'entonnoir situe tes clients : nouveau, contacté, qualifié, visite, offre, gagné ou perdu. Le statut se change dans la vue liste.",
+          },
+          leadOpen: {
+            title: "Ouvrir une fiche",
+            body: "L'activité récente mène à la fiche du client. Elle réunit ses coordonnées et son historique : appels, visites, estimations, mandats.",
+          },
+          propertyCreate: {
+            title: "Ajouter un bien",
+            body: "Même principe côté portefeuille : l'action d'en-tête ouvre la saisie du bien — adresse, surface, prix, diagnostics.",
+            consequence: "Le bien n'est enregistré qu'après ta validation dans le formulaire.",
+          },
+          propertyIndicators: {
+            title: "L'état du portefeuille",
+            body: "Les biens sont répartis par situation : en commercialisation, à compléter, entrés récemment, clos. Un bien à compléter est un bien qui se vend mal.",
+          },
+          propertyViews: {
+            title: "Trois lectures du même stock",
+            body: "Cockpit pour l'état métier, kanban pour glisser un bien d'une étape à l'autre, liste pour comparer prix et surfaces.",
+          },
+          propertyOpen: {
+            title: "Ouvrir un bien",
+            body: "La fiche du bien réunit photos, caractéristiques, mandat, visites et clients rattachés.",
+          },
+        },
+      },
+      estimations: {
+        title: "Estimer un bien",
+        description:
+          "Lancer une estimation, suivre son avancement, la reprendre et exploiter son résultat.",
+        steps: {
+          create: {
+            title: "Lancer une estimation",
+            body: "L'entretien te pose les questions dans l'ordre : localisation, surface, état, atouts et défauts du bien.",
+            consequence: "Tu peux interrompre l'entretien à tout moment : l'estimation reste en brouillon.",
+          },
+          pipeline: {
+            title: "Où en sont tes estimations",
+            body: "Une estimation passe par brouillon, entretien, récapitulatif, calcul, puis prête. Ce bloc compte celles présentes à chaque étape.",
+          },
+          resume: {
+            title: "Reprendre une estimation",
+            body: "La liste rassemble toutes tes estimations. Une ligne encore en cours propose de reprendre l'entretien là où il s'est arrêté.",
+          },
+          result: {
+            title: "Ce que tu obtiens",
+            body: "Une estimation prête donne une valeur de marché, une fourchette, les biens comparables retenus et le raisonnement associé.",
+            consequence:
+              "Depuis le résultat, tu crées le propriétaire et le mandat sans ressaisir le bien. L'envoi au client reste une action explicite de ta part.",
+          },
+        },
+      },
+      "communications-hitl": {
+        title: "Envoyer un message et valider une action",
+        description:
+          "Où passent les messages avant de partir, et comment se tranche une action proposée par un agent.",
+        steps: {
+          transports: {
+            title: "L'état réel de tes canaux",
+            body: "Chaque canal affiche son état vrai : LIVE = envoi réel possible, CONFIG = variable manquante, donc aucun envoi.",
+            consequence:
+              "Aujourd'hui SMS et WhatsApp sont en CONFIG (Twilio non renseigné). L'email est configuré côté Resend mais aucun envoi réel n'a encore été effectué depuis ce dashboard.",
+          },
+          tabs: {
+            title: "Le parcours d'un message",
+            body: "Un message traverse quatre statuts : Brouillon, Validé, Envoyé, Échec. Les onglets filtrent la liste sur l'un d'eux.",
+            consequence:
+              "Un message n'arrive dans « Envoyé » que si le fournisseur a renvoyé une référence réelle. Sinon il reste en Échec avec la raison.",
+          },
+          edit: {
+            title: "Corriger avant de valider",
+            body: "Tant qu'un message est en brouillon ou validé, tu peux réécrire l'objet et le corps. C'est ton dernier mot sur le contenu.",
+          },
+          validate: {
+            title: "La validation humaine",
+            body: "« Valider » fait passer le brouillon en Validé. C'est toi qui décides qu'un message est prêt — jamais l'agent qui l'a rédigé.",
+            consequence: "Valider ne fait rien partir : le message attend encore un envoi explicite.",
+          },
+          send: {
+            title: "L'envoi, en dernier",
+            body: "« Envoyer » n'apparaît que sur un message déjà validé, et reste inactif si le canal est en CONFIG.",
+            consequence:
+              "Un message n'est marqué « Envoyé » qu'avec une référence fournisseur réelle. Sans référence, il reste en Échec — jamais de faux envoi.",
+          },
+          proposal: {
+            title: "Une action proposée par un agent",
+            body: "Cette file liste les actions qu'un agent veut réaliser : le canal visé, l'agent demandeur et la date de la demande.",
+            consequence: "Tant que tu n'as pas tranché, l'action reste en attente et ne s'exécute pas.",
+          },
+          justification: {
+            title: "Sur quoi tu décides",
+            body: "Chaque ligne porte sa justification : l'agent à l'origine, la cible concernée et l'empreinte du contenu proposé.",
+            consequence: "L'empreinte garantit que le contenu approuvé est exactement celui qui sera utilisé.",
+          },
+          decision: {
+            title: "Approuver ou refuser",
+            body: "Deux boutons, deux issues : approuver autorise l'agent à réaliser l'action, refuser l'annule définitivement.",
+            consequence:
+              "Votre décision est enregistrée. Cette page n'exécute jamais silencieusement l'action.",
+          },
+        },
+      },
+      agents: {
+        title: "Exploiter les agents",
+        description:
+          "Ce que ce cockpit fait des agents publiés : les lire, les lancer, suivre leur run et trancher leurs étapes de validation.",
+        steps: {
+          registry: {
+            title: "Un registre, pas un atelier",
+            body: "Cette page lit le registre Aigent et affiche exactement ce qu'il renvoie : ni agent inventé, ni run simulé.",
+            consequence:
+              "Les agents ne sont pas créés dans ce dashboard. Ils sont publiés par Aigent puis exploités ici.",
+          },
+          capabilities: {
+            title: "Capacités et disponibilité",
+            body: "Chaque agent publié annonce sa version, ses capacités et son statut. Seul un agent en production est exécutable.",
+            consequence:
+              "Le runtime Aigent n'est pas connecté sur cet environnement : les variables d'accès sont absentes et le registre ne renvoie donc aucun agent. L'écran l'affiche tel quel, sans en fabriquer un.",
+          },
+          run: {
+            title: "Lancer et suivre un run",
+            body: "Le bouton « Lancer » démarre un run sur le runtime, puis un suivi affiche son statut réel, ses événements et son résultat sourcé.",
+            consequence:
+              "Ce bouton n'apparaît qu'avec un agent en production dans le registre. Tant qu'Aigent n'est pas connecté, il n'y a rien à lancer.",
+          },
+          hitl: {
+            title: "Les étapes de validation",
+            body: "Quand un agent atteint une étape à effet réel, son run s'arrête et attend ta décision : approuver ou refuser.",
+            consequence:
+              "Le run reste bloqué tant que tu n'as pas tranché. Aucun agent ne franchit seul une étape sensible.",
+          },
+        },
+      },
+    },
+    guard: {
+      notice:
+        "Visite guidée en cours : les envois, les décisions et les lancements sont désactivés. Termine ou passe la visite pour agir.",
+      blockedTitle: "Action désactivée pendant la visite guidée",
     },
   },
   common: {

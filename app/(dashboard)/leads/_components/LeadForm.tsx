@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { UI } from "@/lib/ui-strings";
+import { CRM_ANCHORS } from "@/lib/onboarding/tours/crm";
 import {
   LEAD_KINDS,
   LEAD_TYPE_PERSONNE,
@@ -317,7 +318,13 @@ export default function LeadFormModal({ cta }: { cta: string }) {
 
   return (
     <>
-      <Button color="indigo" className="!text-zinc-950" type="button" onClick={() => setOpen(true)}>
+      <Button
+        color="indigo"
+        className="!text-zinc-950"
+        type="button"
+        data-tour-id={CRM_ANCHORS.leadCreate}
+        onClick={() => setOpen(true)}
+      >
         {cta}
       </Button>
       <Dialog open={open} onClose={setOpen}>

@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
 import { UI } from "@/lib/ui-strings";
+import { CRM_ANCHORS } from "@/lib/onboarding/tours/crm";
 import { FORM_LIMITS } from "@/lib/crm/format";
 import { emitPropertyChanged } from "@/lib/hooks/usePropertyLive";
 
@@ -368,7 +369,14 @@ export default function PropertyFormModal({ id, defaultValues, triggerLabel }: P
 
   return (
     <>
-      <Button color="indigo" className="!text-zinc-950" onClick={() => setOpen(true)}>
+      <Button
+        color="indigo"
+        className="!text-zinc-950"
+        // Ancre de visite guidée : uniquement sur le bouton de CRÉATION
+        // (l'édition d'une fiche réutilise le même composant).
+        data-tour-id={id ? undefined : CRM_ANCHORS.propertyCreate}
+        onClick={() => setOpen(true)}
+      >
         {triggerLabel ?? t.newCta}
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} size="2xl">

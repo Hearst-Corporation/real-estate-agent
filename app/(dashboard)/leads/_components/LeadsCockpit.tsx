@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { eur, dateFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
+import { CRM_ANCHORS } from "@/lib/onboarding/tours/crm";
 import { Badge } from "@/components/ui/badge";
 import { Text } from "@/components/ui/text";
 
@@ -29,9 +30,17 @@ function budgetLabel(min: number | null, max: number | null): string {
   return "—";
 }
 
-/** Carte flottante canonique (surface). */
-function Panel({ children }: { children: React.ReactNode }) {
-  return <div className="surface p-4">{children}</div>;
+/**
+ * Carte flottante canonique (surface).
+ * `tourId` : ancre de visite guidée, posée sur la carte elle-même (jamais sur
+ * un wrapper ajouté pour l'occasion).
+ */
+function Panel({ children, tourId }: { children: React.ReactNode; tourId?: string }) {
+  return (
+    <div className="surface p-4" data-tour-id={tourId}>
+      {children}
+    </div>
+  );
 }
 
 /** Zone compacte : titre + compteur + 3 items max. */
@@ -94,7 +103,10 @@ export function LeadsCockpit({ leads }: { leads: CockpitLead[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-4 @xl:grid-cols-2 @4xl:grid-cols-4">
+      <div
+        data-tour-id={CRM_ANCHORS.leadKinds}
+        className="grid grid-cols-1 gap-4 @xl:grid-cols-2 @4xl:grid-cols-4"
+      >
         <Zone
           label={t.toFollow}
           count={toFollow.length}
@@ -121,7 +133,7 @@ export function LeadsCockpit({ leads }: { leads: CockpitLead[] }) {
         />
       </div>
 
-      <Panel>
+      <Panel tourId={CRM_ANCHORS.leadOpen}>
         <div className="font-titre text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
           {t.recentActivity}
         </div>

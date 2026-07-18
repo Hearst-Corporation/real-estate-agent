@@ -14,6 +14,7 @@ import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
 import { eur, dateFr } from "@/lib/crm/format";
 import { statusTone, type StatusTone } from "@/lib/crm/statusTone";
 import { UI } from "@/lib/ui-strings";
+import { ESTIMATION_ANCHORS } from "@/lib/onboarding/tours/estimations";
 import { getSession } from "@/lib/server/session";
 import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
@@ -85,7 +86,11 @@ export default async function EstimationsPage() {
             <Heading className="font-titre">{t.title}</Heading>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
-            <AccentButton href="/estimations/new">{t.newCta}</AccentButton>
+            {/* Ancre de visite guidée : le CTA d'en-tête, TOUJOURS présent (celui
+                de l'état vide ne l'est qu'à zéro estimation → ancre unique). */}
+            <AccentButton href="/estimations/new" data-tour-id={ESTIMATION_ANCHORS.create}>
+              {t.newCta}
+            </AccentButton>
           </div>
         </div>
       </div>
@@ -102,7 +107,7 @@ export default async function EstimationsPage() {
 
       {/* Répartitions */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="surface p-5">
+        <section className="surface p-5" data-tour-id={ESTIMATION_ANCHORS.pipeline}>
           <Subheading className="font-titre mb-4">{t.charts.pipeline}</Subheading>
           {pipeline.length > 0 ? (
             <ul className="divide-y divide-zinc-950/10 dark:divide-white/10">
@@ -137,7 +142,7 @@ export default async function EstimationsPage() {
 
       {/* Table — primitives Catalyst */}
       {estimations.length > 0 ? (
-        <div className="surface px-2">
+        <div className="surface px-2" data-tour-id={ESTIMATION_ANCHORS.list}>
           <Table>
             <TableHead>
               <TableRow>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { eur, dateFr } from "@/lib/crm/format";
 import { UI } from "@/lib/ui-strings";
+import { CRM_ANCHORS } from "@/lib/onboarding/tours/crm";
 import { usePropertyLive } from "@/lib/hooks/usePropertyLive";
 
 export type CockpitProperty = {
@@ -170,7 +171,10 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
       <div className="flex justify-end">
         <LiveBadge />
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div
+        data-tour-id={CRM_ANCHORS.propertyIndicators}
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      >
         <Zone
           label={t.active}
           count={active.length}
@@ -203,7 +207,7 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
 
       <HealthBlock properties={properties} />
 
-      <div className="surface flex flex-col gap-2 p-4">
+      <div data-tour-id={CRM_ANCHORS.propertyOpen} className="surface flex flex-col gap-2 p-4">
         <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
           {t.recentActivity}
         </div>
