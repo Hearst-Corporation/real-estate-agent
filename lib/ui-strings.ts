@@ -1637,6 +1637,104 @@ export const UI = {
       readOnly: "La visite montre et explique. Elle n'exécute aucune action à ta place.",
       loading: "Recherche de l'élément…",
     },
+    /**
+     * Écran d'accueil du PREMIER accès authentifié (W6, LOT 4).
+     * Introduction courte, jamais bloquante : « Plus tard » referme sans rien
+     * marquer comme fait, et une visite quittée reprend à sa dernière étape.
+     */
+    welcome: {
+      title: "Bienvenue dans votre cockpit immobilier",
+      promise:
+        "Identifiez les opportunités, priorisez vos actions et gardez le contrôle sur chaque automatisation.",
+      note: "La visite montre et explique. Tu peux l'arrêter à tout moment : elle reprendra où tu l'as laissée.",
+      start: "Commencer la visite",
+      later: "Plus tard",
+      dialogLabel: "Bienvenue",
+    },
+    /**
+     * Checklist de démarrage (W6, LOT 6). La complétion est DÉRIVÉE des données
+     * réelles du compte — jamais d'une case cochée à la main. Trois états :
+     * fait / à faire / indéterminé (table absente sur cet environnement).
+     */
+    checklist: {
+      title: "Prise en main",
+      description: "Sept repères pour rendre le cockpit utile sur ton activité.",
+      progress: (done: number, total: number) => `${done} sur ${total}`,
+      open: "Ouvrir la prise en main",
+      collapse: "Réduire la prise en main",
+      hide: "Masquer",
+      done: "Fait",
+      todo: "À faire",
+      unknown: "Indéterminé",
+      /** État honnête : la donnée n'est pas lisible ici, donc on ne conclut pas. */
+      unknownHint:
+        "Cette donnée n'est pas disponible sur cet environnement : impossible de dire si c'est fait.",
+      completedTitle: "Prise en main terminée",
+      completedBody: "Tu retrouves cette liste quand tu veux depuis l'aide.",
+      items: {
+        "first-lead": {
+          label: "Créer un premier client",
+          hint: "Un contact acheteur ou vendeur dans le CRM.",
+        },
+        "first-property": {
+          label: "Ajouter un premier bien",
+          hint: "Un bien de ton portefeuille, même incomplet.",
+        },
+        "first-estimation": {
+          label: "Créer une estimation",
+          hint: "Un avis de valeur à partir d'une adresse.",
+        },
+        "buyer-criteria": {
+          label: "Définir un critère acquéreur",
+          hint: "Budget, secteur, surface : la base du matching.",
+        },
+        "first-match": {
+          label: "Consulter un matching",
+          hint: "Les annonces qui correspondent à un critère.",
+        },
+        "first-draft": {
+          label: "Préparer un brouillon",
+          hint: "Un message prêt à relire avant tout envoi.",
+        },
+        "action-center": {
+          label: "Consulter le Centre d'actions",
+          hint: "Tes priorités du jour, sur le tableau de bord.",
+        },
+      } as Record<string, { label: string; hint: string }>,
+    },
+    /**
+     * Panneau « Aide et visites guidées » (W6, LOT 7). Chaque visite est
+     * relançable manuellement, même terminée.
+     */
+    help: {
+      entry: "Aide et visites guidées",
+      title: "Aide et visites guidées",
+      description: "Chaque visite pointe des composants réels et explique quoi en faire.",
+      close: "Fermer l'aide",
+      start: "Commencer",
+      resume: "Reprendre",
+      replay: "Rejouer",
+      unavailable: "Bientôt disponible",
+      resetting: "Réinitialisation…",
+      /** Libellés des visites listées dans le panneau, dans l'ordre d'apprentissage. */
+      entries: {
+        "core-cockpit": "Découvrir le cockpit",
+        prospection: "Prospection et matching",
+        crm: "Clients et portefeuille",
+        estimations: "Estimations",
+        offmarket: "Off-market",
+        "communications-hitl": "Communications et approbations",
+        agents: "Agents",
+      } as Record<string, string>,
+      status: {
+        idle: "Jamais lancée",
+        running: "En cours",
+        completed: "Terminée",
+        skipped: "Interrompue",
+      } as Record<string, string>,
+      /** Action secondaire discrète posée sur les pages prioritaires. */
+      pageTour: "Découvrir cette page",
+    },
     tours: {
       "core-cockpit": {
         title: "Prendre en main le cockpit",
