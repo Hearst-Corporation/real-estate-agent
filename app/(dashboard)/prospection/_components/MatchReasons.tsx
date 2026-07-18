@@ -1,26 +1,26 @@
 "use client";
 
 import { UI } from "@/lib/ui-strings";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Text } from "@/components/ui/text";
 import type { Match, Recommandation } from "./types";
 import { matchReco, scoreFactors } from "./reco";
 
 const t = UI.prospection;
 
-const RECO_LABEL: Record<Recommandation, string> = {
+export const RECO_LABEL: Record<Recommandation, string> = {
   high_priority: t.recoHighPriority,
   review: t.recoReview,
   low_priority: t.recoLowPriority,
   rejected: t.recoRejected,
 };
 
-// Priorité haute = accent fort ; à revoir = zinc plein ; basse/écarté = discret.
-const RECO_COLOR: Record<Recommandation, "indigo" | "zinc"> = {
-  high_priority: "indigo",
-  review: "zinc",
-  low_priority: "zinc",
-  rejected: "zinc",
+// Priorité haute = mise en avant ; review = neutre ; basse = neutre ; écarté = secondaire.
+export const RECO_VARIANT: Record<Recommandation, BadgeVariant> = {
+  high_priority: "brand",
+  review: "neutral",
+  low_priority: "neutral",
+  rejected: "outline",
 };
 
 /** Prochaine action recommandée dérivée de la recommandation (source unique). */
@@ -37,25 +37,15 @@ export function nextActionLabel(reco: Recommandation): string {
   }
 }
 
-/** Badge de recommandation (dérivé du score si l'API ne le fournit pas). */
-export function RecoBadge({ match }: { match: Match }) {
-  const reco = matchReco(match);
-  return (
-    <Badge color={RECO_COLOR[reco]} title={t.recoTitleAria}>
-      {RECO_LABEL[reco]}
-    </Badge>
-  );
-}
-
 /** Groupe de facteurs (label + points) rendu en badges. */
 function FactorGroup({
   title,
   factors,
-  color,
+  variant,
 }: {
   title: string;
   factors: Array<{ label: string; points: number }>;
-  color: "indigo" | "zinc" | "amber";
+  variant: BadgeVariant;
 }) {
   if (factors.length === 0) return null;
   return (
@@ -65,7 +55,7 @@ function FactorGroup({
       </p>
       <div className="mt-1 flex flex-wrap gap-1.5">
         {factors.map((f) => (
-          <Badge key={f.label} color={color}>
+          <Badge key={f.label} variant={variant}>
             {t.matchFactorPts(f.label, f.points)}
           </Badge>
         ))}
@@ -74,7 +64,7 @@ function FactorGroup({
   );
 }
 
-/** Liste simple de libellés (données manquantes) en badges zinc. */
+/** Liste simple de libellés (données manquantes) en badges neutres. */
 function LabelGroup({ title, labels }: { title: string; labels: string[] }) {
   if (labels.length === 0) return null;
   return (
@@ -84,7 +74,7 @@ function LabelGroup({ title, labels }: { title: string; labels: string[] }) {
       </p>
       <div className="mt-1 flex flex-wrap gap-1.5">
         {labels.map((l) => (
-          <Badge key={l} color="zinc">
+          <Badge key={l} variant="neutral">
             {l}
           </Badge>
         ))}
@@ -119,9 +109,9 @@ export function MatchReasons({ match, showNextAction = false }: { match: Match; 
 
     return (
       <div className="flex flex-col gap-2.5">
-        <FactorGroup title={t.matchSatisfied} factors={exp.satisfaits} color="indigo" />
-        <FactorGroup title={t.matchImperfect} factors={exp.imparfaits} color="zinc" />
-        <FactorGroup title={t.matchBlocking} factors={exp.bloquants} color="amber" />
+        <FactorGroup title={t.matchSatisfied} factors={exp.satisfaits} variant="brand" />
+        <FactorGroup title={t.matchImperfect} factors={exp.imparfaits} variant="neutral" />
+        <FactorGroup title={t.matchBlocking} factors={exp.bloquants} variant="neutral" />
         <LabelGroup title={t.matchMissingData} labels={exp.donneesManquantes} />
         {showNextAction && (
           <div>
@@ -143,9 +133,9 @@ export function MatchReasons({ match, showNextAction = false }: { match: Match; 
   const nuls = factors.filter((f) => f.points === 0);
   return (
     <div className="flex flex-col gap-2.5">
-      <FactorGroup title={t.matchSatisfied} factors={positifs} color="indigo" />
-      <FactorGroup title={t.matchImperfect} factors={nuls} color="zinc" />
-      <FactorGroup title={t.matchBlocking} factors={negatifs} color="amber" />
+      <FactorGroup title={t.matchSatisfied} factors={positifs} variant="brand" />
+      <FactorGroup title={t.matchImperfect} factors={nuls} variant="neutral" />
+      <FactorGroup title={t.matchBlocking} factors={negatifs} variant="neutral" />
       {showNextAction && (
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">

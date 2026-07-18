@@ -58,6 +58,50 @@ Le reste (spacing, radius, shadows, typo scale) utilise les **valeurs Tailwind
 natives** (`rounded-xl`, `rounded-2xl`, `gap-*`, `text-sm`/`text-xs`/`text-2xl`,
 `shadow-lg`) — pas de réinvention, la doc Tailwind fait référence.
 
+## Couche premium Azigo (REA-UX-012)
+
+### Accents fonctionnels — porteurs de sens, jamais décoratifs
+Tokens dans `@theme` (`app/globals.css`). Chacun a UN rôle :
+
+| Token | Rôle unique | Échelle |
+|---|---|---|
+| `accent-*` (Pierre Blonde or) | primaire, sélection, mise en avant | 50→950 |
+| `mediterranee-*` (bleu profond) | navigation, information, assistant/Aigent | 50/100/500/700/900 |
+| `sauge-*` (vert sauge) | succès, parcours accompli | 50/100/500/700/900 |
+| `terracotta-*` (terre cuite) | attention, relance, signal vendeur — **jamais une erreur** | 50/100/500/700/900 |
+| `red-*` (Tailwind) | **RÉSERVÉ** aux erreurs et actions destructrices | — |
+
+### Profondeur — 3 niveaux max (recettes CSS)
+`canvas` (body Lin Brut) → `surface` (contenu standard) → `elevated` (mise en avant).
+Recettes : `.surface`, `.surface-hover`, `.surface-elevated` (ombre héro), `.surface-inset`
+(en creux, sans ombre), `.section-hero` (dégradé chaud + filigrane), `.status-accent`
++ `.status-{brand,info,success,attention,danger}` (filet gauche coloré porteur de sens).
+**L'ombre forte est réservée au niveau `elevated`** — pas toutes les cartes.
+
+### Badge Azigo — `components/ui/badge.tsx`
+Prop `variant` UNIQUEMENT (jamais `color`), par POIDS visuel :
+`neutral` (métadonnée) · `outline` (secondaire, exclusions, non-sélectionné) ·
+`brand` (sélection / étape active, rare) · `strong` (un seul structurant par carte).
+Aucune sémantique colorée publique (pas de warning/success/danger/info). Le sens vient
+du texte. Garde : `npm run check:badges`. Référence vivante : `/design/badges`.
+
+### Boutons — `components/ui/button.tsx`
+Primaire `color="accent"` (or, texte foncé, AA) · secondaire `outline` · tertiaire `plain` ·
+destructif `color="red"`. Curseur : `cursor-pointer` (interactif), `cursor-default` (disabled).
+
+### Filigrane Azigo — `components/cockpit/AzigoWatermark.tsx`
+Monogramme « A » + trame cadastrale/topographique, SVG local, opacité 2–5 %,
+`pointer-events-none` + `aria-hidden`. Placements : `hero` (or), `panel` (bleu), `empty`.
+Jamais en mosaïque, jamais derrière du petit texte.
+
+### Stepper métier — `components/cockpit/CommercialStepper.tsx`
+Frise « Suite commerciale » (ContinuityPanel). États DISTINCTS `done`/`current`/`todo`
+(jamais 4 coches identiques). Horizontal @sm, vertical en mobile.
+
+### État vide partagé — `components/cockpit/EmptyState.tsx`
+Une seule primitive (`tone` `default`/`unavailable`, `icon`/`title`/`description`/`steps`/`action`),
+filigrane Azigo intégré. Remplace les copies locales.
+
 ## Shell — 3 colonnes
 
 Posé une seule fois par [`app/(dashboard)/layout.tsx`](<app/(dashboard)/layout.tsx>)

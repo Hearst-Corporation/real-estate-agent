@@ -484,7 +484,7 @@ export function EstimationWizard({
         )}
         {error ? (
           <div className="mt-3 flex items-center gap-2">
-            <Badge color="red">{UI.chat.errorPrefix}</Badge>
+            <Badge variant="neutral">{UI.chat.errorPrefix}</Badge>
             <Text>{error}</Text>
           </div>
         ) : null}
@@ -531,7 +531,7 @@ export function EstimationWizard({
 
           {generateError && (
             <div className="flex items-center gap-2">
-              <Badge color="red">{UI.chat.errorPrefix}</Badge>
+              <Badge variant="neutral">{UI.chat.errorPrefix}</Badge>
               <Text>{generateError}</Text>
             </div>
           )}

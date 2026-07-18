@@ -99,7 +99,7 @@ export function AlertsPanel({ criteres, onChanged }: { criteres: Critere[]; onCh
           <Subheading>{t.alertsTitle}</Subheading>
           <Text className="mt-1 max-w-xl">{t.alertsHint}</Text>
         </div>
-        <Badge color="amber">
+        <Badge variant="neutral">
           <EyeIcon aria-hidden="true" className="size-3.5" />
           {t.alertsPreviewBadge}
         </Badge>
@@ -132,8 +132,8 @@ export function AlertsPanel({ criteres, onChanged }: { criteres: Critere[]; onCh
           <GuardItem label={t.alertsGuardOptOut} />
         </ul>
         <div className="mt-4 flex flex-wrap items-center gap-1.5">
-          <Badge color="zinc">{t.alertsChannelEmail}</Badge>
-          <Badge color="zinc">{t.alertsChannelWhatsapp}</Badge>
+          <Badge variant="neutral">{t.alertsChannelEmail}</Badge>
+          <Badge variant="neutral">{t.alertsChannelWhatsapp}</Badge>
           <span className="text-xs text-zinc-500 dark:text-zinc-400">{t.alertsChannelHint}</span>
         </div>
       </div>

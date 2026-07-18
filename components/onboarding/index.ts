@@ -8,9 +8,12 @@ export { ProductTourProvider, useProductTour, useTourActive } from "./ProductTou
 export { TourOverlay } from "./TourOverlay";
 export { TourCoachMark } from "./TourCoachMark";
 
-/* Onboarding non intrusif (W6) : accueil, checklist dérivée, aide et relecture. */
+/* Onboarding non intrusif : accueil, checklist dérivée, aide et relecture.
+   REA-UX-012 (LOT 1) : plus de dock flottant — un seul point d'accès permanent
+   via l'entrée « Aide » de la navigation, pilotée par HelpPanelProvider. */
 export { OnboardingLauncher } from "./OnboardingLauncher";
-export { OnboardingChecklist, OnboardingChecklistPanel, ChecklistList } from "./OnboardingChecklist";
+export { OnboardingChecklistPanel, ChecklistList, useChecklistSummary } from "./OnboardingChecklist";
 export { HelpPanel, HELP_TOUR_ORDER } from "./HelpPanel";
-export { PageTourButton, tourForPath } from "./PageTourButton";
+export { HelpPanelProvider, useHelpPanel } from "./HelpPanelProvider";
+export { tourForPath } from "./PageTourButton";
 export { WelcomeDialog } from "./WelcomeDialog";

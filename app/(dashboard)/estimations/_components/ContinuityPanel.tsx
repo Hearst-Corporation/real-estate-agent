@@ -10,6 +10,7 @@ import { Field, Label, ErrorMessage } from "@/components/ui/fieldset";
 import { Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Icon } from "@/components/cockpit/Icon";
+import { CommercialStepper, type CommercialStep } from "@/components/cockpit/CommercialStepper";
 import { UI } from "@/lib/ui-strings";
 import {
   DECISIONS,
@@ -43,61 +44,6 @@ type Props = {
 type AdjustUnit = "pct" | "eur";
 type OwnerMode = "create" | "link";
 type VendeurLead = { id: string; full_name: string; email: string | null; phone: string | null };
-
-/**
- * Un jalon du pipeline commercial.
- *
- * Responsive : en dessous de `@sm` (≈ mobile, la colonne de contenu fait
- * ~343 px), les jalons s'empilent en grille 2×2 sans filet de liaison — les 4
- * restent lisibles, aucun débordement (le « Décision » ne sort plus du cadre).
- * À partir de `@sm`, on retrouve la frise horizontale connectée. Le jalon
- * `current` (premier non fait) porte un anneau accent : l'agent voit où agir.
- */
-function PipelineStep({
-  label,
-  done,
-  current,
-  first,
-}: {
-  label: string;
-  done: boolean;
-  current?: boolean;
-  first?: boolean;
-}) {
-  const stateLabel = done ? t.stepDone : t.stepTodo;
-  return (
-    <div className="flex items-center gap-2 @sm:flex-1">
-      {!first && (
-        <span
-          aria-hidden="true"
-          className={`hidden h-px flex-1 @sm:block ${done ? "bg-accent-400" : "bg-zinc-950/10"}`}
-        />
-      )}
-      <div className="flex min-w-0 items-center gap-1.5">
-        <span
-          aria-hidden="true"
-          className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-            done
-              ? "bg-accent-500 text-zinc-950"
-              : current
-                ? "border-2 border-accent-500 bg-accent-500/10 text-accent-700"
-                : "border border-zinc-950/15 bg-white text-zinc-400"
-          }`}
-        >
-          {done ? "✓" : "○"}
-        </span>
-        <span
-          className={`truncate text-xs font-semibold ${
-            done ? "text-zinc-900" : current ? "text-accent-700" : "text-zinc-500"
-          }`}
-        >
-          {label}
-          <span className="sr-only"> — {stateLabel}</span>
-        </span>
-      </div>
-    </div>
-  );
-}
 
 /** Formatte la magnitude d'un ajustement manuel (pct ou €), signe inclus. */
 function adjustMagnitude(a: ManualAdjustment): string {
@@ -171,6 +117,19 @@ export function ContinuityPanel({
       : !hasDecision
         ? "decision"
         : null;
+
+  // Frise « Suite commerciale » : chaque étape a un état DISTINCT (done / current
+  // / todo). L'estimation est toujours acquise ; le reste dérive de l'avancement.
+  const stepState = (
+    kind: "owner" | "mandate" | "decision",
+    done: boolean,
+  ): CommercialStep["state"] => (done ? "done" : pipelineCurrent === kind ? "current" : "todo");
+  const pipelineSteps: CommercialStep[] = [
+    { label: t.pipelineEstimation, state: "done" },
+    { label: t.pipelineOwner, state: stepState("owner", hasOwner) },
+    { label: t.pipelineOpportunity, state: stepState("mandate", hasMandate) },
+    { label: t.pipelineDecision, state: stepState("decision", hasDecision) },
+  ];
 
   // ── Actions ──
   async function openOwnerForm() {
@@ -354,19 +313,16 @@ export function ContinuityPanel({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* ── En-tête + pipeline ── */}
-      <div className="surface flex flex-col gap-4 p-5 sm:p-6">
+      {/* ── En-tête + stepper métier « Suite commerciale » (surface élevée) ── */}
+      <div className="surface-elevated flex flex-col gap-5 p-5 sm:p-6">
         <div>
           <Subheading className="font-titre">{t.title}</Subheading>
           <Text className="mt-1 !text-sm">{t.subtitle}</Text>
         </div>
-        {/* Mobile : grille 2×2 (tous les jalons visibles). @sm+ : frise connectée. */}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2 @sm:flex @sm:items-center @sm:gap-1">
-          <PipelineStep label={t.pipelineEstimation} done first />
-          <PipelineStep label={t.pipelineOwner} done={hasOwner} current={pipelineCurrent === "owner"} />
-          <PipelineStep label={t.pipelineOpportunity} done={hasMandate} current={pipelineCurrent === "mandate"} />
-          <PipelineStep label={t.pipelineDecision} done={hasDecision} current={pipelineCurrent === "decision"} />
-        </div>
+        <CommercialStepper
+          steps={pipelineSteps}
+          labels={{ done: t.stepDone, current: t.stepCurrent, todo: t.stepTodo }}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
@@ -380,7 +336,7 @@ export function ContinuityPanel({
                 <span className="font-medium text-zinc-950">
                   {continuity.owner.full_name}
                 </span>
-                <Badge color="zinc">{t.ownerKindBadge}</Badge>
+                <Badge variant="neutral">{t.ownerKindBadge}</Badge>
               </div>
               {(continuity.owner.email || continuity.owner.phone) && (
                 <p className="text-sm text-zinc-500">
@@ -524,7 +480,7 @@ export function ContinuityPanel({
         <section className="surface flex flex-col gap-3 p-5">
           <div className="flex items-center justify-between gap-2">
             <Subheading className="font-titre">{t.mandateTitle}</Subheading>
-            {hasMandate && <Badge color="amber">{t.mandateDraftBadge}</Badge>}
+            {hasMandate && <Badge variant="neutral">{t.mandateDraftBadge}</Badge>}
           </div>
 
           {hasMandate && continuity.mandate ? (
@@ -616,10 +572,10 @@ export function ContinuityPanel({
             <Text className="mt-1 !text-sm">{t.adjustClaritySubtitle}</Text>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <Badge color="lime">{t.legendCalculated}</Badge>
-            <Badge color="indigo">{t.legendManual}</Badge>
-            <Badge color="zinc">{t.legendMissing}</Badge>
-            <Badge color="amber">{t.legendVerify}</Badge>
+            <Badge variant="neutral">{t.legendCalculated}</Badge>
+            <Badge variant="brand">{t.legendManual}</Badge>
+            <Badge variant="neutral">{t.legendMissing}</Badge>
+            <Badge variant="outline">{t.legendVerify}</Badge>
           </div>
         </div>
 
@@ -627,7 +583,7 @@ export function ContinuityPanel({
           {/* Calculé */}
           <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/5 bg-lin-brut/40 p-4">
             <div className="flex items-center gap-2">
-              <Badge color="lime">{t.legendCalculated}</Badge>
+              <Badge variant="neutral">{t.legendCalculated}</Badge>
               <span className="text-sm font-semibold text-zinc-800">
                 {t.adjustCalculatedTitle}
               </span>
@@ -639,7 +595,7 @@ export function ContinuityPanel({
                 {calculated.map((adj, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm">
                     <Badge
-                      color={adj.type === "premium" ? "lime" : "red"}
+                      variant={adj.type === "premium" ? "brand" : "neutral"}
                       className="shrink-0 tabular-nums"
                     >
                       {adj.type === "premium" ? "+" : "−"}
@@ -661,7 +617,7 @@ export function ContinuityPanel({
           <div className="flex flex-col gap-2 rounded-xl border border-accent-400/30 bg-accent-500/[0.06] p-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Badge color="indigo">{t.legendManual}</Badge>
+                <Badge variant="brand">{t.legendManual}</Badge>
                 <span className="text-sm font-semibold text-zinc-800">
                   {t.adjustManualTitle}
                 </span>
@@ -681,7 +637,7 @@ export function ContinuityPanel({
                 {manual.map((adj) => (
                   <li key={adj.id} className="flex items-start justify-between gap-2 text-sm">
                     <div className="flex items-start gap-2">
-                      <Badge color="indigo" className="shrink-0 tabular-nums">
+                      <Badge variant="brand" className="shrink-0 tabular-nums">
                         {adjustMagnitude(adj)}
                       </Badge>
                       <span>
@@ -775,7 +731,7 @@ export function ContinuityPanel({
           {/* Manquant */}
           <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/5 bg-zinc-950/[0.02] p-4">
             <div className="flex items-center gap-2">
-              <Badge color="zinc">{t.legendMissing}</Badge>
+              <Badge variant="neutral">{t.legendMissing}</Badge>
               <span className="text-sm font-semibold text-zinc-800">
                 {t.adjustMissingTitle}
               </span>
@@ -786,7 +742,7 @@ export function ContinuityPanel({
               <ul className="flex flex-wrap gap-1.5">
                 {clarity.missing.map((f) => (
                   <li key={f.field}>
-                    <Badge color="zinc">{f.label}</Badge>
+                    <Badge variant="neutral">{f.label}</Badge>
                   </li>
                 ))}
               </ul>
@@ -796,7 +752,7 @@ export function ContinuityPanel({
           {/* À vérifier */}
           <div className="flex flex-col gap-2 rounded-xl border border-zinc-950/5 bg-zinc-950/[0.02] p-4">
             <div className="flex items-center gap-2">
-              <Badge color="amber">{t.legendVerify}</Badge>
+              <Badge variant="outline">{t.legendVerify}</Badge>
               <span className="text-sm font-semibold text-zinc-800">
                 {t.adjustVerifyTitle}
               </span>
@@ -807,7 +763,7 @@ export function ContinuityPanel({
               <ul className="flex flex-wrap gap-1.5">
                 {clarity.toVerify.map((f) => (
                   <li key={f.field}>
-                    <Badge color="amber">{f.label}</Badge>
+                    <Badge variant="outline">{f.label}</Badge>
                   </li>
                 ))}
               </ul>

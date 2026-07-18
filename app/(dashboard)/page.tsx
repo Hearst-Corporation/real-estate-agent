@@ -8,6 +8,8 @@ import { tenantOf } from "@/lib/tenant";
 import { Text } from "@/components/ui/text";
 import { Link } from "@/components/ui/link";
 import { ActionCenter } from "@/components/cockpit/ActionCenter";
+import { AzigoWatermark } from "@/components/cockpit/AzigoWatermark";
+import { EmptyState } from "@/components/cockpit/EmptyState";
 import { DASHBOARD_ANCHORS } from "@/lib/onboarding/tours";
 import { buildActionCenter, type DeriveInput, type DeriveLabels } from "@/lib/actions/derive";
 import {
@@ -250,9 +252,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
-      {/* Header — eyebrow + titre court + action principale UNIQUE (or) */}
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
+      {/* Header — zone héro (profondeur niveau 3 + filigrane Azigo discret) :
+          eyebrow + titre court + action principale UNIQUE (or). */}
+      <header className="section-hero flex flex-wrap items-end justify-between gap-4 px-6 py-6 sm:px-8 sm:py-7">
+        <AzigoWatermark placement="hero" />
+        <div className="relative min-w-0">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-600">
             <span aria-hidden className="h-px w-6 bg-accent-500/70" />
             {t.eyebrow}
@@ -263,7 +267,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/estimations/new"
-          className={PRIMARY_CTA}
+          className={`relative ${PRIMARY_CTA}`}
           data-tour-id={DASHBOARD_ANCHORS.newEstimation}
         >
           <Icon name="estimate" className="size-5" />
@@ -316,19 +320,16 @@ export default async function DashboardPage() {
         </div>
 
         {properties.length === 0 ? (
-          <div className="surface flex flex-col items-center gap-4 px-6 py-12 text-center">
-            <span
-              aria-hidden="true"
-              className="flex size-12 items-center justify-center rounded-2xl bg-accent-500/10 text-accent-600"
-            >
-              <Icon name="properties" className="size-6" />
-            </span>
-            <Text>{t.propertiesEmpty}</Text>
-            <Link href="/properties?new=1" className={PRIMARY_CTA}>
-              <Icon name="plus" className="size-5" />
-              {t.addProperty}
-            </Link>
-          </div>
+          <EmptyState
+            icon={<Icon name="properties" className="size-6" />}
+            description={t.propertiesEmpty}
+            action={
+              <Link href="/properties?new=1" className={PRIMARY_CTA}>
+                <Icon name="plus" className="size-5" />
+                {t.addProperty}
+              </Link>
+            }
+          />
         ) : (
           <div className="surface overflow-hidden px-5 py-2">
             <Table dense grid>

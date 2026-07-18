@@ -10,7 +10,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTitle, DialogBody, DialogActions } from "@/components/ui/dialog";
 import { Field, Label } from "@/components/ui/fieldset";
@@ -78,7 +78,7 @@ function ActionFeedback({ state }: { state: ActionState }) {
           aria-hidden="true"
           className="mt-0.5 size-4 shrink-0 text-zinc-500 dark:text-zinc-400"
         />
-        <Badge color="red">{UI.common.error}</Badge>
+        <Badge variant="neutral">{UI.common.error}</Badge>
         <Text>{state.message}</Text>
       </div>
     );
@@ -304,9 +304,9 @@ export function AnnonceDetailDialog({
             <div className="min-w-0 flex-1">
               <Strong>{titleOf(a)}</Strong>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                <Badge color="zinc">{t.detailProviderTag}</Badge>
-                {provider && <Badge color="zinc">{provider}</Badge>}
-                {optedOut && <Badge color="amber">{t.actionOptoutDone}</Badge>}
+                <Badge variant="neutral">{t.detailProviderTag}</Badge>
+                {provider && <Badge variant="neutral">{provider}</Badge>}
+                {optedOut && <Badge variant="neutral">{t.actionOptoutDone}</Badge>}
               </div>
               {a.url && (
                 <a
@@ -389,9 +389,9 @@ export function AnnonceDetailDialog({
           <section>
             <Subheading>{t.detailSectionCrm}</Subheading>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {hasLead && <Badge color="indigo">{t.crmLeadLinked}</Badge>}
-              {hasProperty && <Badge color="indigo">{t.crmPropertyLinked}</Badge>}
-              {hasEstimation && <Badge color="indigo">{t.crmEstimationLinked}</Badge>}
+              {hasLead && <Badge variant="brand">{t.crmLeadLinked}</Badge>}
+              {hasProperty && <Badge variant="brand">{t.crmPropertyLinked}</Badge>}
+              {hasEstimation && <Badge variant="brand">{t.crmEstimationLinked}</Badge>}
               {!hasLead && !hasProperty && !hasEstimation && (
                 <Text>{t.crmNothingLinked}</Text>
               )}
@@ -508,7 +508,7 @@ function ValuationBlock({
           : t.valuationLowConfidence;
 
   // Opportunité (below) = accent ; surcoté / low_confidence = neutre.
-  const badgeColor: "indigo" | "zinc" = v.status === "below_range" ? "indigo" : "zinc";
+  const badgeVariant: BadgeVariant = v.status === "below_range" ? "brand" : "neutral";
 
   const marketValue = v.marketValue ?? null;
   const deltaEur =
@@ -522,7 +522,7 @@ function ValuationBlock({
     <div className="mt-3">
       <Text>{t.valuationTitle}</Text>
       <div className="mt-1.5 flex flex-col gap-1">
-        <Badge color={badgeColor}>{statusLabel}</Badge>
+        <Badge variant={badgeVariant}>{statusLabel}</Badge>
         {marketValue != null && <Text>{t.valuationMarketValue(marketValue)}</Text>}
         {deltaEur != null && deltaPct != null && (
           <Text>{t.valuationDelta(deltaEur, deltaPct)}</Text>

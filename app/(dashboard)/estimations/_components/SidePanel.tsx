@@ -159,7 +159,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                     <span className="flex items-center gap-1.5 text-right text-zinc-950">
                       {formatted}
                       {toConfirm && (
-                        <Badge color="amber">{UI.estimations.toConfirm}</Badge>
+                        <Badge variant="neutral">{UI.estimations.toConfirm}</Badge>
                       )}
                     </span>
                   </div>
@@ -177,7 +177,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
           <ul className="mt-3 flex flex-col gap-3">
             {adjustments.map((adj, i) => (
               <li key={i} className="flex items-start gap-3">
-                <Badge color={adj.type === "premium" ? "lime" : "red"} className="shrink-0 tabular-nums">
+                <Badge variant={adj.type === "premium" ? "brand" : "neutral"} className="shrink-0 tabular-nums">
                   {adj.type === "premium" ? UI.estimations.premiumSign : UI.estimations.discountSign}
                   {Math.abs(adj.pct)}%
                 </Badge>

@@ -70,7 +70,7 @@ function NewEstimationInner() {
         {error ? (
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="flex items-center gap-2">
-              <Badge color="red">{UI.common.error}</Badge>
+              <Badge variant="neutral">{UI.common.error}</Badge>
               <Text>{error}</Text>
             </div>
             <Button outline href="/estimations">

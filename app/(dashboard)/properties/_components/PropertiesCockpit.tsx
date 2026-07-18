@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { eur, dateFr } from "@/lib/crm/format";
@@ -27,15 +27,15 @@ const TO_COMPLETE = new Set(["prospect", "estimation"]);
 /** Statuts terminés. */
 const CLOSED = new Set(["vendu", "archive"]);
 
-/** Couleur de Badge (état) selon la tonalité métier du bien. */
-function statusColorProp(status: string): "lime" | "amber" | "zinc" {
+/** Variante de Badge Azigo selon la tonalité métier du bien. */
+function statusColorProp(status: string): BadgeVariant {
   if (status === "en_vente" || status === "sous_offre" || status === "mandat") {
-    return "lime";
+    return "neutral";
   }
   if (status === "prospect" || status === "estimation") {
-    return "amber";
+    return "neutral";
   }
-  return "zinc";
+  return "neutral";
 }
 
 function priceLabel(price: number | null): string {
@@ -66,7 +66,7 @@ function Zone({
     <div className="surface flex flex-col gap-2 p-4">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</span>
-        <Badge color="zinc">{count}</Badge>
+        <Badge variant="neutral">{count}</Badge>
       </div>
       {properties.length === 0 ? (
         <Text className="py-2 text-xs">{emptyLabel}</Text>
@@ -88,7 +88,7 @@ function Zone({
                   <span className="text-xs text-zinc-500">{dateFr(p.created_at ?? null)}</span>
                 )}
                 {showStatus && (
-                  <Badge color={statusColorProp(p.status)}>
+                  <Badge variant={statusColorProp(p.status)}>
                     {tp.statusLabels[p.status] ?? p.status}
                   </Badge>
                 )}
@@ -123,7 +123,7 @@ function HealthBlock({ properties }: { properties: CockpitProperty[] }) {
       </div>
       <div className="flex flex-wrap gap-2">
         {signals.map((s) => (
-          <Badge key={s.label} color="amber">
+          <Badge key={s.label} variant="neutral">
             {s.count} {s.label}
           </Badge>
         ))}
@@ -132,18 +132,18 @@ function HealthBlock({ properties }: { properties: CockpitProperty[] }) {
   );
 }
 
-/** Badge discret d'état live. */
-function LiveBadge() {
+/** État live, discret — <Badge variant> direct (wrapper LiveBadge retiré). */
+function LiveIndicator() {
   const { connected, lastEventAt, pendingRefresh } = usePropertyLive();
   const t = UI.properties.cockpit;
   if (!connected) return null;
   if (pendingRefresh) {
-    return <Badge color="indigo" title={t.liveHint}>{t.liveRefreshing}</Badge>;
+    return <Badge variant="brand" title={t.liveHint}>{t.liveRefreshing}</Badge>;
   }
   if (lastEventAt) {
-    return <Badge color="lime" title={t.liveHint}>{t.liveUpdated}</Badge>;
+    return <Badge variant="neutral" title={t.liveHint}>{t.liveUpdated}</Badge>;
   }
-  return <Badge color="zinc" title={t.liveHint}>{t.live}</Badge>;
+  return <Badge variant="neutral" title={t.liveHint}>{t.live}</Badge>;
 }
 
 /**
@@ -169,7 +169,7 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
-        <LiveBadge />
+        <LiveIndicator />
       </div>
       <div
         data-tour-id={CRM_ANCHORS.propertyIndicators}
@@ -224,7 +224,7 @@ export function PropertiesCockpit({ properties }: { properties: CockpitProperty[
                   {p.title ?? tp.fallbackTitle}
                 </Link>
                 <span className="flex shrink-0 items-center gap-2">
-                  <Badge color={statusColorProp(p.status)}>
+                  <Badge variant={statusColorProp(p.status)}>
                     {tp.statusLabels[p.status] ?? p.status}
                   </Badge>
                   {p.city && (

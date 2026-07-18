@@ -204,6 +204,7 @@ export default async function PropertyDetailPage({
     <PageStack>
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <PageHeader
+        hero
         kicker={t.eyebrow}
         title={property.title ?? t.fallbackTitle}
         action={

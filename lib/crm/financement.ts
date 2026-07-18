@@ -16,6 +16,7 @@
  */
 
 import { z } from "zod";
+import type { BadgeVariant } from "@/components/ui/badge";
 
 // ─── Enum des modes de financement (valeurs stockées, stables) ────────────────
 
@@ -73,20 +74,21 @@ export const FINANCEMENT_UI = {
 /**
  * Tonalité indicative de solidité du financement pour la priorisation.
  * Neutre par défaut : jamais une couleur « validée » sur une info non fournie.
- * Couleurs = palette Badge Catalyst autorisée (zinc/lime/amber).
+ * Le financement n'est pas une alerte : toutes les situations rendent en `neutral`
+ * (Badge Azigo — la distinction se lit dans le libellé, pas dans la couleur).
  */
-export type FinancementTone = "zinc" | "lime" | "amber";
+export type FinancementTone = BadgeVariant;
 
 export function financementTone(mode: FinancementMode): FinancementTone {
   switch (mode) {
     case "comptant":
     case "accord_principe":
-      return "lime"; // financement solide / quasi acquis
+      return "neutral"; // financement solide / quasi acquis
     case "pret_en_cours":
     case "pret_a_obtenir":
-      return "amber"; // en cours, à confirmer
+      return "neutral"; // en cours, à confirmer
     case "en_reflexion":
-      return "zinc"; // non engagé
+      return "neutral"; // non engagé
   }
 }
 

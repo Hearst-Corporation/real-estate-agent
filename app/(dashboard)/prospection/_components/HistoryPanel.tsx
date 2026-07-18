@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ClockIcon } from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Subheading } from "@/components/ui/heading";
 import { Text, Strong } from "@/components/ui/text";
 import { signalOutcome, type DbSignal } from "@/lib/prospection/feedback";
@@ -22,8 +22,8 @@ function outcomeLabel(signal: string): string {
         ? t.historyContactee
         : t.historyVisitee;
 }
-function outcomeColor(signal: string): "indigo" | "zinc" | "amber" {
-  return signal === "like" ? "indigo" : signal === "dislike" ? "amber" : "zinc";
+function outcomeVariant(signal: string): BadgeVariant {
+  return signal === "like" ? "brand" : signal === "dislike" ? "neutral" : "neutral";
 }
 
 // ── Libellés / couleurs des statuts de tentative de contact ──
@@ -45,8 +45,8 @@ function attemptLabel(statut: string): string {
       return statut;
   }
 }
-function attemptColor(statut: string): "indigo" | "zinc" | "amber" {
-  return statut === "sent" || statut === "replied" ? "indigo" : statut === "failed" || statut === "opted_out" ? "amber" : "zinc";
+function attemptVariant(statut: string): BadgeVariant {
+  return statut === "sent" || statut === "replied" ? "brand" : statut === "failed" || statut === "opted_out" ? "neutral" : "neutral";
 }
 
 function priceLabel(prix: number | null | undefined): string | null {
@@ -64,7 +64,7 @@ function PropRow({ p }: { p: PropositionRow }) {
         <Text className="truncate">{p.annonce?.titre ?? "—"}</Text>
         {meta && <span className="text-xs text-zinc-500 dark:text-zinc-400">{meta}</span>}
       </div>
-      <Badge color={outcomeColor(p.signal)}>{outcomeLabel(p.signal)}</Badge>
+      <Badge variant={outcomeVariant(p.signal)}>{outcomeLabel(p.signal)}</Badge>
     </li>
   );
 }
@@ -115,7 +115,7 @@ export function HistoryPanel({ criteres }: { criteres: Critere[] }) {
   if (error) {
     return (
       <div className="flex items-center gap-2 p-4">
-        <Badge color="red">{UI.common.error}</Badge>
+        <Badge variant="neutral">{UI.common.error}</Badge>
         <Text>{error}</Text>
       </div>
     );
@@ -165,8 +165,8 @@ export function HistoryPanel({ criteres }: { criteres: Critere[] }) {
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-950/8 pb-3 dark:border-white/10">
               <Strong className="text-base">{nameByCritere.get(critereId)}</Strong>
               <div className="flex items-center gap-1.5">
-                {retenues > 0 && <Badge color="indigo">{t.historyCountRetenues(retenues)}</Badge>}
-                {refusees > 0 && <Badge color="amber">{t.historyCountRefusees(refusees)}</Badge>}
+                {retenues > 0 && <Badge variant="brand">{t.historyCountRetenues(retenues)}</Badge>}
+                {refusees > 0 && <Badge variant="neutral">{t.historyCountRefusees(refusees)}</Badge>}
               </div>
             </div>
             <ul className="mt-1 divide-y divide-zinc-950/5 dark:divide-white/5">
@@ -202,7 +202,7 @@ function ContactAttempts({ attempts }: { attempts: ContactAttemptRow[] }) {
         {attempts.map((a) => (
           <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
             <Text>{a.canal}</Text>
-            <Badge color={attemptColor(a.statut)}>{attemptLabel(a.statut)}</Badge>
+            <Badge variant={attemptVariant(a.statut)}>{attemptLabel(a.statut)}</Badge>
           </li>
         ))}
       </ul>

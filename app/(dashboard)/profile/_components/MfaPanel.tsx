@@ -173,7 +173,7 @@ export function MfaPanel() {
 
   const errorNode = error ? (
     <Text>
-      <Badge color="red">{error}</Badge>
+      <Badge variant="neutral">{error}</Badge>
     </Text>
   ) : null;
 
@@ -287,12 +287,12 @@ export function MfaPanel() {
       <MfaSection title={UI.profile.mfa.titleEnabled}>
         <div className="flex flex-col gap-4">
           <div>
-            <Badge color="lime">{UI.profile.mfa.badge}</Badge>
+            <Badge variant="brand">{UI.profile.mfa.badge}</Badge>
           </div>
 
           <div className="rounded-lg border border-zinc-950/10 p-3 dark:border-white/10">
             <div className="mb-1">
-              <Badge color="amber">{UI.profile.mfa.backupWarning}</Badge>
+              <Badge variant="neutral">{UI.profile.mfa.backupWarning}</Badge>
             </div>
             <Text>
               Ces codes permettent d&apos;accéder à votre compte si vous perdez accès à votre
@@ -327,7 +327,7 @@ export function MfaPanel() {
       <MfaSection title={UI.profile.mfa.title}>
         <div className="flex flex-col gap-4">
           <div>
-            <Badge color="lime">{UI.profile.mfa.badge}</Badge>
+            <Badge variant="brand">{UI.profile.mfa.badge}</Badge>
           </div>
           <Text>
             Votre compte est protégé par un second facteur. Pour désactiver, saisissez un code de

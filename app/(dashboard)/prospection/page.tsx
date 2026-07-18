@@ -15,7 +15,7 @@ import { Heading } from "@/components/ui/heading";
 import { Text, Strong } from "@/components/ui/text";
 import { ScrapeCustomModal } from "./_components/ScrapeCustomModal";
 import { AnnonceDetailDialog } from "./_components/AnnonceDetailDialog";
-import { RecoBadge, MatchReasons } from "./_components/MatchReasons";
+import { MatchReasons, RECO_LABEL, RECO_VARIANT } from "./_components/MatchReasons";
 import { CritereForm } from "./_components/CritereForm";
 import { AcquereurProfiles } from "./_components/AcquereurProfiles";
 import { HistoryPanel } from "./_components/HistoryPanel";
@@ -166,10 +166,10 @@ function AnnonceCard({ annonce, onOpenDetail }: { annonce: Annonce; onOpenDetail
           </div>
         )}
         <div className="absolute inset-x-2 top-2 flex flex-wrap gap-1.5">
-          {isPap && <Badge color="lime">{UI.prospection.badgePap}</Badge>}
-          {!isPap && annonce.type_annonceur === "pro" && <Badge color="zinc">{UI.prospection.badgePro}</Badge>}
-          {hasBaisse && <Badge color="amber">{UI.prospection.badgeBaissePrix}</Badge>}
-          {annonce.dpe_note && <Badge color="zinc">{UI.prospection.badgeDpe(annonce.dpe_note)}</Badge>}
+          {isPap && <Badge variant="neutral">{UI.prospection.badgePap}</Badge>}
+          {!isPap && annonce.type_annonceur === "pro" && <Badge variant="neutral">{UI.prospection.badgePro}</Badge>}
+          {hasBaisse && <Badge variant="neutral">{UI.prospection.badgeBaissePrix}</Badge>}
+          {annonce.dpe_note && <Badge variant="neutral">{UI.prospection.badgeDpe(annonce.dpe_note)}</Badge>}
         </div>
       </div>
 
@@ -188,9 +188,9 @@ function AnnonceCard({ annonce, onOpenDetail }: { annonce: Annonce; onOpenDetail
 
         <div className="mt-auto flex flex-col gap-2 pt-2">
           <div className="flex flex-wrap gap-1.5">
-            <Badge color="zinc">{UI.prospection.detailProviderTag}</Badge>
-            {annonce.age_hours != null && <Badge color="zinc">{UI.prospection.badgeAge(annonce.age_hours)}</Badge>}
-            {(annonce.source_platform ?? annonce.source) && <Badge color="zinc">{annonce.source_platform ?? annonce.source}</Badge>}
+            <Badge variant="neutral">{UI.prospection.detailProviderTag}</Badge>
+            {annonce.age_hours != null && <Badge variant="neutral">{UI.prospection.badgeAge(annonce.age_hours)}</Badge>}
+            {(annonce.source_platform ?? annonce.source) && <Badge variant="neutral">{annonce.source_platform ?? annonce.source}</Badge>}
           </div>
           <div className="flex items-center justify-between gap-2">
             <Button plain onClick={() => onOpenDetail(annonce)}>
@@ -570,7 +570,7 @@ export default function ProspectionPage() {
 function ErrorLine({ msg }: { msg: string }) {
   return (
     <div className="surface flex items-center gap-2 p-4">
-      <Badge color="red">{UI.common.error}</Badge>
+      <Badge variant="neutral">{UI.common.error}</Badge>
       <Text>{msg}</Text>
     </div>
   );
@@ -617,8 +617,10 @@ function MatchList({
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <Strong className="text-base">{annonceTitle(a)}</Strong>
-                <RecoBadge match={m} />
-                {isGood && <Badge color="indigo">{UI.prospection.matchGoodLabel}</Badge>}
+                <Badge variant={RECO_VARIANT[matchReco(m)]} title={UI.prospection.recoTitleAria}>
+                  {RECO_LABEL[matchReco(m)]}
+                </Badge>
+                {isGood && <Badge variant="brand">{UI.prospection.matchGoodLabel}</Badge>}
               </div>
               {metaParts.length > 0 && <Text className="mt-0.5">{metaParts.join(" · ")}</Text>}
               <div className="mt-3">

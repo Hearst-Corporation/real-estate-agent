@@ -27,10 +27,9 @@ type DraftState = "idle" | "creating" | "created" | "unavailable" | "error";
 
 const THRESHOLDS = [30, 45, 60, 90] as const;
 
-function ChannelBadge({ channel }: { channel: DormantProspect["suggested_channel"] }) {
-  if (!channel) return <Badge color="zinc">Sans coordonnée</Badge>;
-  const label = channel === "email" ? "Email" : channel === "whatsapp" ? "WhatsApp" : "SMS";
-  return <Badge color="zinc">{label}</Badge>;
+function channelLabel(channel: DormantProspect["suggested_channel"]): string {
+  if (!channel) return "Sans coordonnée";
+  return channel === "email" ? "Email" : channel === "whatsapp" ? "WhatsApp" : "SMS";
 }
 
 function ProspectCard({
@@ -55,8 +54,8 @@ function ProspectCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <Text className="font-medium text-zinc-950 dark:text-white">{prospect.full_name}</Text>
-            <Badge color="zinc">{roleLabel}</Badge>
-            <ChannelBadge channel={prospect.suggested_channel} />
+            <Badge variant="neutral">{roleLabel}</Badge>
+            <Badge variant="neutral">{channelLabel(prospect.suggested_channel)}</Badge>
           </div>
           <Text className="mt-0.5 flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400">
             <ClockIcon className="size-4" aria-hidden />
@@ -88,9 +87,9 @@ function ProspectCard({
 
         <div className="shrink-0">
           {draftState === "created" ? (
-            <Badge color="lime">Brouillon créé</Badge>
+            <Badge variant="neutral">Brouillon créé</Badge>
           ) : draftState === "unavailable" ? (
-            <Badge color="amber">Outbox indisponible</Badge>
+            <Badge variant="neutral">Outbox indisponible</Badge>
           ) : (
             <Button
               color="indigo"

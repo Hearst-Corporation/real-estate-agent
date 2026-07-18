@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
 import { Icon } from "./Icon";
 import { MOBILE_SHORTCUTS } from "@/config/nav";
+import { useHelpPanel } from "@/components/onboarding";
 
 const PORTEFEUILLE_ROUTES = ["/properties", "/estimations", "/mandates"];
 const CLIENTS_ROUTES = ["/leads", "/visits"];
@@ -24,8 +25,12 @@ function isActive(itemHref: string, pathname: string): boolean {
   return pathname === itemHref || pathname.startsWith(itemHref + "/");
 }
 
+const BOTTOM_ITEM =
+  "flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg py-1.5 text-[10px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500";
+
 export function BottomBar() {
   const pathname = usePathname();
+  const { openHelp } = useHelpPanel();
 
   return (
     <nav
@@ -40,7 +45,7 @@ export function BottomBar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg py-1.5 text-[10px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
+              className={`${BOTTOM_ITEM} ${
                 active ? "bg-accent-500/10 text-accent-700" : "text-zinc-500 hover:bg-zinc-950/5"
               }`}
               title={item.label}
@@ -52,6 +57,19 @@ export function BottomBar() {
             </Link>
           );
         })}
+
+        {/* Entrée Aide — même point d'accès permanent que le rail desktop (LOT 1). */}
+        <button
+          type="button"
+          className={`${BOTTOM_ITEM} text-zinc-500 hover:bg-zinc-950/5`}
+          title={UI.onboarding.help.entry}
+          aria-label={UI.onboarding.help.entry}
+          aria-haspopup="dialog"
+          onClick={openHelp}
+        >
+          <Icon name="help" className="size-5" />
+          <span className="max-w-full truncate px-0.5">{UI.onboarding.help.entry}</span>
+        </button>
       </div>
     </nav>
   );

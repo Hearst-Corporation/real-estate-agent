@@ -105,7 +105,7 @@ function ActionCard({ item }: { item: ScoredAction }) {
           <div className="flex items-center gap-2">
             <Text className="truncate font-medium text-zinc-950">{item.title}</Text>
             {item.priority === "haute" && (
-              <Badge color="amber" className="shrink-0">
+              <Badge variant="neutral" className="shrink-0">
                 {UI.dashboard.center.groups[item.category] ?? item.category}
               </Badge>
             )}

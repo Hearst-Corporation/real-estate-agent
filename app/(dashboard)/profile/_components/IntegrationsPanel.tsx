@@ -79,7 +79,7 @@ export function IntegrationsPanel() {
   if (phase === "error") {
     return (
       <Text>
-        <Badge color="red">{t.loadError}</Badge>
+        <Badge variant="neutral">{t.loadError}</Badge>
       </Text>
     );
   }
@@ -106,7 +106,7 @@ export function IntegrationsPanel() {
                 {provider.name}
               </span>
               <span className="ml-auto">
-                <Badge color={connected ? "lime" : "zinc"}>
+                <Badge variant={connected ? "brand" : "neutral"}>
                   {connected ? t.connected : t.disconnected}
                 </Badge>
               </span>
@@ -144,7 +144,7 @@ export function IntegrationsPanel() {
               )}
               {note?.toolkit === toolkit ? (
                 <Text>
-                  <Badge color="red">{note.msg}</Badge>
+                  <Badge variant="neutral">{note.msg}</Badge>
                 </Text>
               ) : null}
             </div>

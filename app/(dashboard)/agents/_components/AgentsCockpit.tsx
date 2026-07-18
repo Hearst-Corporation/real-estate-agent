@@ -8,6 +8,7 @@ import { Text, Strong } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTourActive } from "@/components/onboarding";
+import { EmptyState as SharedEmptyState } from "@/components/cockpit/EmptyState";
 import { AGENTS_ANCHORS } from "@/lib/onboarding/tours/agents";
 import type {
   PublishedAgent,
@@ -163,7 +164,7 @@ function Header({
           </p>
           <Heading className="font-titre">{t.title}</Heading>
           <div className="mt-1.5 flex items-center gap-2">
-            <Badge color={connected ? "lime" : "zinc"}>
+            <Badge variant={connected ? "brand" : "neutral"}>
               <span
                 aria-hidden
                 className="size-1.5 rounded-full bg-current opacity-70"
@@ -200,42 +201,33 @@ function Kpi({ label, value }: { label: string; value: number }) {
   );
 }
 
-/** Registre vide (connecté, aucun agent) — message simple et honnête. */
+/** Registre vide (connecté, aucun agent) — primitive partagée + filigrane Azigo. */
 function EmptyState() {
   return (
-    <div className="surface flex flex-col items-center gap-3 px-6 py-16 text-center">
-      <span
-        aria-hidden
-        className="flex size-12 items-center justify-center rounded-2xl border border-zinc-950/10 text-zinc-400"
-      >
-        <Icon name="agents" className="size-6" />
-      </span>
-      <Strong className="text-base">{t.emptyTitle}</Strong>
-      <Text className="max-w-md">{t.emptyBody}</Text>
-    </div>
+    <SharedEmptyState
+      icon={<Icon name="agents" className="size-6" />}
+      title={t.emptyTitle}
+      description={t.emptyBody}
+    />
   );
 }
 
-/** Aigent non connecté (vars absentes / injoignable) — raison honnête. */
+/** Aigent non connecté (vars absentes / injoignable) — raison honnête, ton indispo. */
 function UnavailableState({ reason }: { reason: RuntimeUnavailableReason }) {
   return (
-    <div className="surface flex flex-col items-center gap-3 px-6 py-16 text-center">
-      <span
-        aria-hidden
-        className="flex size-12 items-center justify-center rounded-2xl border border-dashed border-zinc-950/15 text-zinc-400"
-      >
-        <Icon name="agents" className="size-6" />
-      </span>
-      <Strong className="text-base">{t.unavailableTitle}</Strong>
-      <Text className="max-w-md">{t.unavailableReasons[reason] ?? t.unavailableReasons.error}</Text>
-    </div>
+    <SharedEmptyState
+      tone="unavailable"
+      icon={<Icon name="agents" className="size-6" />}
+      title={t.unavailableTitle}
+      description={t.unavailableReasons[reason] ?? t.unavailableReasons.error}
+    />
   );
 }
 
 function ErrorState({ onRetry, retrying }: { onRetry: () => void; retrying: boolean }) {
   return (
     <div className="surface flex flex-col items-center gap-3 px-6 py-12 text-center">
-      <Badge color="red">{UI.common.error}</Badge>
+      <Badge variant="neutral">{UI.common.error}</Badge>
       <Text className="max-w-md">{t.loadError}</Text>
       <Button color="light" onClick={onRetry} disabled={retrying}>
         {retrying ? t.refreshing : t.retry}

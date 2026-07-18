@@ -114,7 +114,7 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
                   </Link>
                 </TableCell>
                 <TableCell>
-                  {l.kind ? <Badge color="zinc">{t.kindLabels[l.kind] ?? l.kind}</Badge> : "—"}
+                  {l.kind ? <Badge variant="neutral">{t.kindLabels[l.kind] ?? l.kind}</Badge> : "—"}
                 </TableCell>
                 <TableCell>
                   <StatusSelect
@@ -139,7 +139,7 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
                       );
                     }
                     return (
-                      <Badge color={financementTone(fin.mode)}>
+                      <Badge variant={financementTone(fin.mode)}>
                         {financementSummary(l.financement)}
                       </Badge>
                     );

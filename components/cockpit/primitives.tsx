@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/cockpit/Icon";
+import { AzigoWatermark } from "@/components/cockpit/AzigoWatermark";
 
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
@@ -43,6 +44,7 @@ export function PageHeader({
   nav,
   kpis,
   className,
+  hero = false,
 }: {
   kicker?: ReactNode;
   title: ReactNode;
@@ -51,22 +53,35 @@ export function PageHeader({
   nav?: ReactNode;
   kpis?: { label: string; value: ReactNode; icon?: IconName }[];
   className?: string;
+  /** Enveloppe le bloc titre dans une zone héro (profondeur + filigrane Azigo). */
+  hero?: boolean;
 }) {
+  const headRow = (
+    <div className="relative flex flex-wrap items-start justify-between gap-4">
+      <div>
+        {kicker ? (
+          <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-pierre-blonde">
+            <span aria-hidden className="h-px w-5 bg-pierre-blonde/60" />
+            {kicker}
+          </p>
+        ) : null}
+        <h1 className="font-titre text-3xl font-semibold tracking-tight text-zinc-900">{title}</h1>
+        {meta ? <div className="mt-1.5 text-sm text-zinc-500">{meta}</div> : null}
+      </div>
+      {action ? <div className="relative w-full sm:w-auto sm:shrink-0">{action}</div> : null}
+    </div>
+  );
+
   return (
     <div className={`flex flex-col gap-4 pb-6 ${className ?? ""}`}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          {kicker ? (
-            <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-pierre-blonde">
-              <span aria-hidden className="h-px w-5 bg-pierre-blonde/60" />
-              {kicker}
-            </p>
-          ) : null}
-          <h1 className="font-titre text-3xl font-semibold tracking-tight text-zinc-900">{title}</h1>
-          {meta ? <div className="mt-1.5 text-sm text-zinc-500">{meta}</div> : null}
+      {hero ? (
+        <div className="section-hero px-6 py-6 sm:px-8">
+          <AzigoWatermark placement="hero" />
+          {headRow}
         </div>
-        {action ? <div className="w-full sm:w-auto sm:shrink-0">{action}</div> : null}
-      </div>
+      ) : (
+        headRow
+      )}
 
       {nav ? (
         <nav className="flex flex-wrap items-center gap-1 border-b border-zinc-950/10 pb-2">
@@ -147,10 +162,6 @@ export function Card({
   );
 }
 
-export function Badge({ children }: { children: ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-zinc-950/10 bg-zinc-950/5 px-2.5 py-1 text-xs font-medium text-zinc-700">
-      {children}
-    </span>
-  );
-}
+/* Le Badge « pill neutre » de cockpit a été retiré (REA-UX-012) : il faisait
+   doublon avec la primitive canonique. Utiliser <Badge variant="neutral"> de
+   components/ui/badge. */

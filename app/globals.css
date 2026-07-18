@@ -38,6 +38,35 @@
   --color-lin-brut: #f7f5f0;       /* fond clair */
   --color-pierre-blonde: #c9b08a;  /* = accent-500 (or principal) */
 
+  /* ─────────────────────────────────────────────────────────────────────
+     ACCENTS FONCTIONNELS Azigo (REA-UX-012, LOT 2.A).
+     Couleurs PORTEUSES DE SENS, jamais décoratives. Chacune a un rôle unique
+     et une échelle claire/foncée pour fond + texte + filet (contraste AA).
+     ───────────────────────────────────────────────────────────────────── */
+
+  /* Bleu Méditerranée profond — navigation, information, assistant / Aigent. */
+  --color-mediterranee-50: #eef3f6;
+  --color-mediterranee-100: #d6e2ea;
+  --color-mediterranee-500: #2f5d78;
+  --color-mediterranee-700: #234a61;
+  --color-mediterranee-900: #16303f;
+
+  /* Vert sauge — succès, parcours accompli, activité saine. */
+  --color-sauge-50: #eef2ec;
+  --color-sauge-100: #dce5d7;
+  --color-sauge-500: #6f8464;
+  --color-sauge-700: #55684c;
+  --color-sauge-900: #384433;
+
+  /* Terre cuite — attention, relance, signal vendeur (JAMAIS une erreur). */
+  --color-terracotta-50: #f7f0ea;
+  --color-terracotta-100: #ecdccf;
+  --color-terracotta-500: #b0714a;
+  --color-terracotta-700: #8c5837;
+  --color-terracotta-900: #5c3a24;
+
+  /* Rouge — RÉSERVÉ aux erreurs et actions destructrices (échelle Tailwind red). */
+
   /* Satoshi Variable — fonte unique du produit (self-hostée, cf. layout.tsx). */
   --font-sans: var(--font-satoshi, ui-sans-serif, system-ui, sans-serif);
   --font-mono: var(--font-geist-mono, ui-monospace, "SFMono-Regular", monospace);
@@ -77,6 +106,77 @@
 .surface-hover:hover {
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-1px);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   PROFONDEUR — trois niveaux MAXIMUM (REA-UX-012, LOT 2.B).
+     1. canvas    → fond général (body Lin Brut, hors recette).
+     2. surface   → contenu standard (.surface ci-dessus).
+     3. elevated  → hero, panneau actif, popover, action prioritaire.
+   L'ombre forte est réservée au niveau 3 : toutes les cartes n'ont PAS une
+   ombre marquée — l'élévation signale l'importance, elle ne décore pas.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Niveau 3 — surface mise en avant : ombre héro + filet or un peu plus présent. */
+.surface-elevated {
+  background-color: #ffffff;
+  border: 1px solid rgba(201, 176, 138, 0.22);
+  border-radius: 1.25rem; /* rounded-3xl-ish */
+  box-shadow: var(--shadow-hero);
+}
+
+/* Surface EN CREUX — panneau interne posé DANS une surface (progression, aparté).
+   Pas d'ombre : le léger enfoncement vient d'un fond crème + filet discret. */
+.surface-inset {
+  background-color: rgba(247, 245, 240, 0.7); /* Lin Brut atténué */
+  border: 1px solid rgba(201, 176, 138, 0.16);
+}
+
+/* ZONE HÉRO — grand bandeau de tête : léger dégradé chaud + profondeur héro.
+   Le filigrane Azigo se pose par-dessus (composant AzigoWatermark). */
+.section-hero {
+  position: relative;
+  background:
+    radial-gradient(
+      120% 140% at 100% 0%,
+      rgba(201, 176, 138, 0.14) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #ffffff 0%, rgba(247, 245, 240, 0.6) 100%);
+  border: 1px solid rgba(201, 176, 138, 0.2);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-hero);
+  overflow: hidden;
+}
+
+/* Accent d'état porteur de sens — filet gauche coloré sur une surface.
+   La couleur vient d'une variable locale --accent-tone posée par la classe de
+   ton (voir status-* ci-dessous) ; par défaut, l'accent or. */
+.status-accent {
+  position: relative;
+}
+.status-accent::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  border-radius: 999px 0 0 999px;
+  background-color: var(--accent-tone, var(--color-accent-500));
+}
+.status-brand {
+  --accent-tone: var(--color-accent-500);
+}
+.status-info {
+  --accent-tone: var(--color-mediterranee-500);
+}
+.status-success {
+  --accent-tone: var(--color-sauge-500);
+}
+.status-attention {
+  --accent-tone: var(--color-terracotta-500);
+}
+.status-danger {
+  --accent-tone: var(--color-red-600);
 }
 
 * {

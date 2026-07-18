@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import {
   VISIT_REPORT_INTEREST,
   VISIT_REPORT_OUTCOME,
@@ -21,19 +21,19 @@ import {
   type VisitReportRow,
 } from "@/lib/visit-report/schema";
 
-const INTEREST_TONE: Record<VisitReportInterest, "lime" | "amber" | "zinc" | "red"> = {
-  tres_interesse: "lime",
-  interesse: "lime",
-  mitige: "amber",
-  peu_interesse: "zinc",
-  non_interesse: "red",
+const INTEREST_TONE: Record<VisitReportInterest, BadgeVariant> = {
+  tres_interesse: "neutral",
+  interesse: "neutral",
+  mitige: "neutral",
+  peu_interesse: "neutral",
+  non_interesse: "neutral",
 };
 
-const OUTCOME_TONE: Record<VisitReportOutcome, "lime" | "amber" | "zinc" | "red"> = {
-  offre_probable: "lime",
-  a_relancer: "amber",
-  reflexion: "zinc",
-  abandon: "red",
+const OUTCOME_TONE: Record<VisitReportOutcome, BadgeVariant> = {
+  offre_probable: "brand",
+  a_relancer: "neutral",
+  reflexion: "neutral",
+  abandon: "neutral",
 };
 
 /** Formatte un prix en euros sans magic number de locale en dur ailleurs. */
@@ -50,14 +50,14 @@ export function VisitReportCard({ report }: { report: VisitReportRow }) {
   return (
     <div className="surface flex flex-col gap-4 p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge color={INTEREST_TONE[report.interest]}>
+        <Badge variant={INTEREST_TONE[report.interest]}>
           {VISIT_REPORT_INTEREST_LABELS[report.interest]}
         </Badge>
-        <Badge color={OUTCOME_TONE[report.outcome]}>
+        <Badge variant={OUTCOME_TONE[report.outcome]}>
           {VISIT_REPORT_OUTCOME_LABELS[report.outcome]}
         </Badge>
         {report.price_discussed != null && (
-          <Badge color="zinc">Prix évoqué&nbsp;: {euros(report.price_discussed)}</Badge>
+          <Badge variant="neutral">Prix évoqué&nbsp;: {euros(report.price_discussed)}</Badge>
         )}
       </div>
       <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">

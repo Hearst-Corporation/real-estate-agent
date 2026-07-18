@@ -12,6 +12,7 @@ import {
   MagnifyingGlassIcon,
   MapPinIcon,
   PlusIcon,
+  QuestionMarkCircleIcon,
   ShareIcon,
   UserCircleIcon,
   UserGroupIcon,
@@ -30,6 +31,7 @@ export type IconName =
   | "user"
   | "plus"
   | "agents"
+  | "help"
   | "chevron-down"
   | "chevron-right";
 
@@ -46,6 +48,7 @@ const ICONS: Record<IconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   user: UserCircleIcon,
   plus: PlusIcon,
   agents: CpuChipIcon,
+  help: QuestionMarkCircleIcon,
   "chevron-down": ChevronDownIcon,
   "chevron-right": ChevronRightIcon,
 };

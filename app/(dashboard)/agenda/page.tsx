@@ -151,7 +151,7 @@ export default async function AgendaPage() {
               {/* En-tête de journée : date lisible + repère « Aujourd'hui ». */}
               <div className="mb-2.5 flex items-center gap-2.5">
                 <h2 className="text-sm font-semibold capitalize text-zinc-900">{dayLabel(g.key)}</h2>
-                {g.key === todayKey ? <Badge color="indigo">{t.kpis.today}</Badge> : null}
+                {g.key === todayKey ? <Badge variant="brand">{t.kpis.today}</Badge> : null}
                 <span aria-hidden="true" className="h-px flex-1 bg-zinc-950/8" />
                 <span className="tabular-nums text-xs font-medium text-zinc-400">
                   {g.items.length}
@@ -201,7 +201,7 @@ export default async function AgendaPage() {
                         </p>
                       </div>
                     </div>
-                    <Badge color={v.status === "planifiee" ? "amber" : "zinc"}>
+                    <Badge variant="neutral">
                       {tv.statusLabels[v.status] ?? v.status}
                     </Badge>
                   </li>

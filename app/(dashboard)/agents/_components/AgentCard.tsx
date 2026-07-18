@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { UI } from "@/lib/ui-strings";
 import { Text, Strong } from "@/components/ui/text";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AGENTS_ANCHORS } from "@/lib/onboarding/tours/agents";
 import { blockDuringTour } from "@/lib/onboarding/tour-guard";
@@ -11,20 +11,18 @@ import type { PublishedAgent, PublishedAgentStatus } from "@/lib/aigent/runtime-
 
 const t = UI.agentsPage;
 
-/** Couleur de badge par statut de version (sémantique, cf. Badge color). */
-function statusColor(
-  status: PublishedAgentStatus,
-): "lime" | "amber" | "zinc" | "red" {
+/** Variante de badge par statut de version (poids visuel, cf. Badge variant). */
+function statusColor(status: PublishedAgentStatus): BadgeVariant {
   switch (status) {
     case "production":
-      return "lime";
+      return "brand";
     case "testing":
     case "draft":
-      return "amber";
+      return "neutral";
     case "unavailable":
-      return "red";
+      return "neutral";
     default:
-      return "zinc"; // specification / paused
+      return "neutral"; // specification / paused
   }
 }
 
@@ -97,17 +95,17 @@ export function AgentCard({
             <Text className="mt-0.5 line-clamp-2">{agent.description}</Text>
           ) : null}
         </div>
-        <Badge color={statusColor(agent.status)}>{statusLabel}</Badge>
+        <Badge variant={statusColor(agent.status)}>{statusLabel}</Badge>
       </div>
 
       {/* Méta : version + validation humaine */}
       <div className="flex flex-wrap items-center gap-1.5">
         {agent.version ? (
-          <Badge color="zinc">
+          <Badge variant="neutral">
             {t.versionLabel} {agent.version}
           </Badge>
         ) : null}
-        {agent.requiresHumanApproval ? <Badge color="amber">{t.hitlBadge}</Badge> : null}
+        {agent.requiresHumanApproval ? <Badge variant="neutral">{t.hitlBadge}</Badge> : null}
       </div>
 
       {/* Capacités déclarées (informatif) */}
@@ -118,7 +116,7 @@ export function AgentCard({
           </span>
           <div className="flex flex-wrap gap-1.5">
             {capabilities.map((cap) => (
-              <Badge key={cap} color="zinc">
+              <Badge key={cap} variant="neutral">
                 {cap}
               </Badge>
             ))}
@@ -145,7 +143,7 @@ export function AgentCard({
         )}
         {note ? (
           <Text className="text-xs">
-            <Badge color={note.tone === "ok" ? "lime" : "red"}>{note.msg}</Badge>
+            <Badge variant="neutral">{note.msg}</Badge>
           </Text>
         ) : null}
       </div>

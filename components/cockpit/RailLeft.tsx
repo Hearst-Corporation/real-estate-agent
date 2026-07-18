@@ -8,6 +8,7 @@ import { UI } from "@/lib/ui-strings";
 import { Icon } from "./Icon";
 import { navRail } from "@/config/nav";
 import { CORE_ANCHORS } from "@/lib/onboarding/tours";
+import { useHelpPanel } from "@/components/onboarding";
 
 const INITIALS_LEN = 2;
 
@@ -49,6 +50,7 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
   const initials = (userEmail ?? "?").slice(0, INITIALS_LEN).toUpperCase();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { openHelp } = useHelpPanel();
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -135,6 +137,25 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
       </div>
 
       <div className="flex-1" />
+
+      {/* Entrée Aide — SEUL point d'accès permanent aux visites guidées (LOT 1).
+          Placée en bas du rail, sous la nav et au-dessus du compte : discrète,
+          jamais posée sur le contenu. */}
+      <button
+        type="button"
+        className={RAIL_ACTION}
+        title={UI.onboarding.help.entry}
+        aria-label={UI.onboarding.help.entry}
+        aria-haspopup="dialog"
+        onClick={openHelp}
+      >
+        <span aria-hidden="true">
+          <Icon name="help" className="size-5" />
+        </span>
+        <span className="max-w-full truncate px-1 text-[10px] font-medium leading-none">
+          {UI.onboarding.help.entry}
+        </span>
+      </button>
 
       <div className="pt-4">
         <Link

@@ -87,8 +87,15 @@ const styles = {
       'dark:[--btn-hover-overlay:var(--color-white)]/5',
       '[--btn-icon:var(--color-zinc-400)] data-active:[--btn-icon:var(--color-zinc-300)] data-hover:[--btn-icon:var(--color-zinc-300)]',
     ],
+    // Accent "Pierre Blonde" (or) : fond clair → texte foncé pour contraste AA
+    // (zinc-950 sur or ≈ 9.6:1, vs blanc ≈ 2.1:1). C'est le bouton PRIMAIRE du
+    // produit. `accent` est le nom sémantique canonique ; `indigo` en est l'alias
+    // historique (mêmes classes) conservé pour les usages existants.
+    accent: [
+      'text-zinc-950 [--btn-hover-overlay:var(--color-zinc-950)]/10 [--btn-bg:var(--color-accent-500)] [--btn-border:var(--color-accent-600)]/90',
+      '[--btn-icon:var(--color-accent-950)]/70 data-active:[--btn-icon:var(--color-accent-950)] data-hover:[--btn-icon:var(--color-accent-950)]',
+    ],
     indigo: [
-      // Accent "Pierre Blonde" (or) : fond clair → texte foncé pour contraste AA (zinc-950 sur or ≈ 9.6:1, vs blanc ≈ 2.1:1).
       'text-zinc-950 [--btn-hover-overlay:var(--color-zinc-950)]/10 [--btn-bg:var(--color-accent-500)] [--btn-border:var(--color-accent-600)]/90',
       '[--btn-icon:var(--color-accent-950)]/70 data-active:[--btn-icon:var(--color-accent-950)] data-hover:[--btn-icon:var(--color-accent-950)]',
     ],
@@ -183,7 +190,13 @@ export const Button = forwardRef(function Button(
       <TouchTarget>{children}</TouchTarget>
     </Link>
   ) : (
-    <Headless.Button {...props} className={clsx(classes, 'cursor-default')} ref={ref}>
+    // Un vrai bouton interactif indique qu'il est cliquable (cursor-pointer) ;
+    // seul l'état désactivé retombe sur le curseur par défaut.
+    <Headless.Button
+      {...props}
+      className={clsx(classes, 'cursor-pointer data-disabled:cursor-default')}
+      ref={ref}
+    >
       <TouchTarget>{children}</TouchTarget>
     </Headless.Button>
   )

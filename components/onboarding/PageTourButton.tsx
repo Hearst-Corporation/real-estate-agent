@@ -1,23 +1,18 @@
 "use client";
 
 /**
- * « Découvrir cette page » — action SECONDAIRE et discrète (LOT 7).
+ * Résolution route-aware de la visite d'une page (REA-ONBOARDING-011 ; REA-UX-012).
  * =================================================================
  *
- * Route-aware VOLONTAIREMENT : plutôt que d'ajouter un bouton dans le header de
- * chaque page (bruit visuel + une édition par page), un seul montage dans le
- * shell résout la visite correspondant à la route courante. Sur les pages sans
- * visite livrée, le composant ne rend RIEN — aucun lanceur mort.
- *
- * Masqué sous `sm` : sur mobile, l'entrée globale « Aide et visites guidées »
- * suffit, et l'écran n'a pas de place à gaspiller.
+ * REA-UX-012 (LOT 1) — `PageTourButton` n'est plus rendu comme commande globale
+ * indépendante posée sur le shell. Sa LOGIQUE route-aware est conservée et
+ * réutilisée : `tourForPath` mappe la route courante à la visite correspondante,
+ * et l'action « Découvrir cette page » vit désormais dans `HelpPanel` (section
+ * « Cette page »). Sur une page sans visite, le panneau explique sobrement que
+ * les visites générales restent disponibles — jamais de bouton mort.
  */
 
-import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import type { TourKey } from "@/lib/onboarding/types";
-import { UI } from "@/lib/ui-strings";
-import { useProductTour } from "./ProductTourProvider";
 
 /**
  * Route prioritaire → visite associée. Le préfixe le plus long gagne, pour que
@@ -43,27 +38,4 @@ export function tourForPath(pathname: string): TourKey | null {
     prefix === "/" ? pathname === "/" : pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
   return match ? match.tour : null;
-}
-
-export function PageTourButton() {
-  const pathname = usePathname();
-  const { availableTours, startTour, resumeTour, statusOf, tourActive } = useProductTour();
-
-  const key = tourForPath(pathname ?? "");
-  // Visite non livrée pour cette route, ou visite déjà en cours → rien à montrer.
-  if (!key || tourActive) return null;
-  if (!availableTours.some((d) => d.key === key)) return null;
-
-  const status = statusOf(key);
-
-  return (
-    <Button
-      plain
-      className="max-sm:hidden"
-      onClick={() => (status === "running" ? resumeTour(key) : startTour(key))}
-      aria-label={UI.onboarding.help.pageTour}
-    >
-      <span className="text-xs">{UI.onboarding.help.pageTour}</span>
-    </Button>
-  );
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { UsersIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Subheading } from "@/components/ui/heading";
 import { Text, Strong } from "@/components/ui/text";
@@ -34,13 +34,13 @@ function MetaChip({ label, value }: { label: string; value: string }) {
 
 /** Groupe de badges secondaire/exclusion — rendu UNIQUEMENT s'il a du contenu
  *  (les blocs « Aucun… » vides gonflaient la carte sans information). */
-function ChipsRow({ label, items, color }: { label: string; items: string[]; color: "zinc" | "amber" }) {
+function ChipsRow({ label, items, variant }: { label: string; items: string[]; variant: BadgeVariant }) {
   if (items.length === 0) return null;
   return (
     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
       <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{label}</span>
       {items.map((x) => (
-        <Badge key={x} color={color}>
+        <Badge key={x} variant={variant}>
           {x}
         </Badge>
       ))}
@@ -60,10 +60,10 @@ function ProfilCard({ critere, onEdit }: { critere: Critere; onEdit: () => void 
       <div className="flex items-start justify-between gap-x-3">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Strong>{c.nom}</Strong>
-          <Badge color={urgenceColor(c.urgence)}>
+          <Badge variant={urgenceColor(c.urgence)}>
             {t.urgenceLabel} · {urgenceLabel(c.urgence)}
           </Badge>
-          <Badge color="zinc">
+          <Badge variant="neutral">
             {t.profilAlerte} · {frequenceLabel(c.alerte_frequence)}
           </Badge>
         </div>
@@ -84,8 +84,8 @@ function ProfilCard({ critere, onEdit }: { critere: Critere; onEdit: () => void 
       {/* Secondaires + exclusions : uniquement si renseignés (sinon rien). */}
       {(secondaires.length > 0 || exclusions.length > 0) && (
         <div className="mt-2.5 flex flex-col gap-1.5 border-t border-zinc-950/5 pt-2.5 dark:border-white/5">
-          <ChipsRow label={t.profilSecondaires} items={secondaires} color="zinc" />
-          <ChipsRow label={t.profilExclusions} items={exclusions} color="amber" />
+          <ChipsRow label={t.profilSecondaires} items={secondaires} variant="neutral" />
+          <ChipsRow label={t.profilExclusions} items={exclusions} variant="neutral" />
         </div>
       )}
     </div>
@@ -126,7 +126,7 @@ export function AcquereurProfiles({ criteres, onChanged }: { criteres: Critere[]
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-b border-zinc-950/8 pb-2.5 dark:border-white/10">
             <div className="flex items-center gap-2">
               <Strong className="text-base">{g.nom}</Strong>
-              <Badge color="zinc">{t.acquereurProfilCount(g.criteres.length)}</Badge>
+              <Badge variant="neutral">{t.acquereurProfilCount(g.criteres.length)}</Badge>
             </div>
             {g.leadId && (
               <Link

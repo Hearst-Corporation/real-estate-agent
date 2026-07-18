@@ -3,6 +3,7 @@
 // ces fonctions renvoient des libellés déjà tirés de UI.*).
 
 import { UI } from "@/lib/ui-strings";
+import type { BadgeVariant } from "@/components/ui/badge";
 import type { Critere, AcquereurGroup, Urgence, AlerteFrequence } from "./types";
 
 const t = UI.prospection;
@@ -49,9 +50,9 @@ export function urgenceLabel(u: Urgence | null | undefined): string {
   }
 }
 
-/** Couleur du badge d'urgence : accent pour haute/urgente, zinc sinon. */
-export function urgenceColor(u: Urgence | null | undefined): "indigo" | "zinc" {
-  return u === "haute" || u === "urgente" ? "indigo" : "zinc";
+/** Variante du badge d'urgence : accent pour haute/urgente, neutre sinon. */
+export function urgenceColor(u: Urgence | null | undefined): BadgeVariant {
+  return u === "haute" || u === "urgente" ? "brand" : "neutral";
 }
 
 export function frequenceLabel(f: AlerteFrequence | null | undefined): string {

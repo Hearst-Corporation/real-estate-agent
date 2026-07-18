@@ -69,7 +69,7 @@ function AutomationBanner({ data }: { data: AssistantResponse }) {
   const live = a.mode === "live";
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-zinc-950/8 bg-white px-4 py-3">
-      <Badge color={live ? "lime" : "zinc"}>{ASSISTANT.automation.title}</Badge>
+      <Badge variant={live ? "brand" : "neutral"}>{ASSISTANT.automation.title}</Badge>
       <Text className="min-w-0 flex-1 text-sm text-zinc-500">{automationLabel(a)}</Text>
     </div>
   );
@@ -131,7 +131,7 @@ function ProposalCard({
         <div className="flex flex-wrap items-center gap-2">
           <Text className="truncate font-medium text-zinc-950">{p.title}</Text>
           {p.urgency === "haute" && (
-            <Badge color="amber" className="shrink-0">
+            <Badge variant="neutral" className="shrink-0">
               {ASSISTANT.urgency.haute}
             </Badge>
           )}

@@ -200,7 +200,7 @@ export function CritereForm({
 
       {error && (
         <div className="flex items-center gap-2">
-          <Badge color="red">{UI.common.error}</Badge>
+          <Badge variant="neutral">{UI.common.error}</Badge>
           <Text>{error}</Text>
         </div>
       )}

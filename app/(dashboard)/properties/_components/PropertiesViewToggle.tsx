@@ -12,7 +12,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Text } from "@/components/ui/text";
 import { PropertyKanban } from "@/components/cockpit/PropertyKanban";
 import { PropertiesCockpit, type CockpitProperty } from "./PropertiesCockpit";
@@ -26,11 +26,11 @@ type Property = CockpitProperty & {
   cover_photo_url?: string | null;
 };
 
-/** Tonalité métier (`statusTone`) → couleur de Badge Catalyst (état). */
-const STATUS_TONE_COLOR: Record<StatusTone, "lime" | "red" | "amber"> = {
-  "is-positive": "lime",
-  "is-negative": "red",
-  "is-pending": "amber",
+/** Tonalité métier (`statusTone`) → variante de Badge Azigo. */
+const STATUS_TONE_COLOR: Record<StatusTone, BadgeVariant> = {
+  "is-positive": "neutral",
+  "is-negative": "neutral",
+  "is-pending": "neutral",
 };
 
 /** Bouton de suppression inline (confirm + DELETE + refresh). */
@@ -139,7 +139,7 @@ export function PropertiesViewToggle({ properties }: { properties: Property[] })
                 <TableCell className="text-right">{sqm(p.surface)}</TableCell>
                 <TableCell className="text-right">{eur(p.asking_price)}</TableCell>
                 <TableCell>
-                  <Badge color={STATUS_TONE_COLOR[statusTone("property", p.status)]}>
+                  <Badge variant={STATUS_TONE_COLOR[statusTone("property", p.status)]}>
                     {t.statusLabels[p.status] ?? p.status}
                   </Badge>
                 </TableCell>

@@ -147,11 +147,11 @@ export default function PostVisitLoop({
           {/* Signaux persistés */}
           <section>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge color="lime">Signaux enregistrés</Badge>
-              <Badge color="zinc">{VISIT_REPORT_INTEREST_LABELS[result.signals.interest]}</Badge>
-              <Badge color="zinc">{VISIT_REPORT_OUTCOME_LABELS[result.signals.outcome]}</Badge>
+              <Badge variant="neutral">Signaux enregistrés</Badge>
+              <Badge variant="neutral">{VISIT_REPORT_INTEREST_LABELS[result.signals.interest]}</Badge>
+              <Badge variant="neutral">{VISIT_REPORT_OUTCOME_LABELS[result.signals.outcome]}</Badge>
               {result.signals.price_discussed != null && (
-                <Badge color="zinc">Prix évoqué&nbsp;: {euros(result.signals.price_discussed)}</Badge>
+                <Badge variant="neutral">Prix évoqué&nbsp;: {euros(result.signals.price_discussed)}</Badge>
               )}
             </div>
           </section>
@@ -183,9 +183,9 @@ export default function PostVisitLoop({
                       </div>
                       {result.critereId ? (
                         st === "done" ? (
-                          <Badge color="lime">Appliqué</Badge>
+                          <Badge variant="neutral">Appliqué</Badge>
                         ) : st === "error" ? (
-                          <Badge color="red">Échec</Badge>
+                          <Badge variant="neutral">Échec</Badge>
                         ) : (
                           <Button
                             plain
@@ -197,7 +197,7 @@ export default function PostVisitLoop({
                           </Button>
                         )
                       ) : (
-                        <Badge color="zinc">Aucun critère lié</Badge>
+                        <Badge variant="neutral">Aucun critère lié</Badge>
                       )}
                     </li>
                   );
@@ -213,7 +213,7 @@ export default function PostVisitLoop({
             </h4>
             {relancesSummary ? (
               <div className="mt-2 flex flex-wrap gap-2">
-                <Badge color={relancesSummary.tasks === "created" ? "lime" : "zinc"}>
+                <Badge variant={relancesSummary.tasks === "created" ? "brand" : "neutral"}>
                   Tâches&nbsp;: {relancesSummary.tasks === "created"
                     ? `${relancesSummary.tasksCreated ?? 0} créée(s)`
                     : relancesSummary.tasks === "unavailable"
@@ -222,7 +222,7 @@ export default function PostVisitLoop({
                         ? "aucune"
                         : "erreur"}
                 </Badge>
-                <Badge color={relancesSummary.drafts === "created" ? "lime" : "zinc"}>
+                <Badge variant={relancesSummary.drafts === "created" ? "brand" : "neutral"}>
                   Brouillons&nbsp;: {relancesSummary.drafts === "created"
                     ? `${relancesSummary.draftsCreated ?? 0} (DRAFT)`
                     : relancesSummary.drafts === "unavailable"
@@ -261,12 +261,12 @@ export default function PostVisitLoop({
                   >
                     <span className="text-sm text-zinc-950 dark:text-white">{m.critereNom}</span>
                     <Badge
-                      color={
+                      variant={
                         m.recommandation === "high_priority"
-                          ? "lime"
+                          ? "brand"
                           : m.recommandation === "review"
-                            ? "amber"
-                            : "zinc"
+                            ? "neutral"
+                            : "neutral"
                       }
                     >
                       {m.score}/100

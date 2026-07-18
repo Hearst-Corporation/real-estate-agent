@@ -68,7 +68,7 @@ export default async function AdminPage() {
 
       {!sb && (
         <div className="surface flex items-center gap-3 px-4 py-3">
-          <Badge color="amber">!</Badge>
+          <Badge variant="neutral">!</Badge>
           <Text>{t.degraded}</Text>
         </div>
       )}
@@ -118,7 +118,7 @@ export default async function AdminPage() {
                     {r.name}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Badge color={r.ok ? "lime" : "zinc"}>{r.ok ? t.configured : t.absent}</Badge>
+                    <Badge variant={r.ok ? "brand" : "neutral"}>{r.ok ? t.configured : t.absent}</Badge>
                   </TableCell>
                 </TableRow>
               ))

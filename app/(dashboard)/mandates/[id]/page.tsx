@@ -230,11 +230,11 @@ export default async function MandateDetailPage({ params }: { params: Promise<{ 
                 <span className="flex flex-wrap items-center gap-2">
                   {dateFr(mandate.expires_at)}
                   {isExpiringSoon && daysLeft !== null && (
-                    <Badge color="amber">
+                    <Badge variant="neutral">
                       {td.expiringWarning} — {td.fields.daysLeft(daysLeft)}
                     </Badge>
                   )}
-                  {isExpired && <Badge color="red">{td.fields.daysExpired}</Badge>}
+                  {isExpired && <Badge variant="neutral">{td.fields.daysExpired}</Badge>}
                 </span>
               </DescriptionDetails>
             </>

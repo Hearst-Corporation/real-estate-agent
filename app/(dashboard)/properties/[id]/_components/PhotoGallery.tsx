@@ -76,7 +76,7 @@ export function PhotoGallery({ photos, propertyId, onDelete }: PhotoGalleryProps
             />
             {selected.is_cover && (
               <span className="absolute left-3 top-3">
-                <Badge color="indigo">{t.cover}</Badge>
+                <Badge variant="brand">{t.cover}</Badge>
               </span>
             )}
           </>

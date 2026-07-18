@@ -12,16 +12,15 @@
  * LOT 10 — SÉCURITÉ : ce composant ne fait qu'un `GET`. Il ne crée aucun client,
  * aucun bien, aucune estimation, n'approuve rien et n'envoie rien. Il OBSERVE.
  *
- * NON INTRUSIF :
- *   - réductible (pastille) et réouvrable, choix mémorisé localement ;
- *   - une fois TERMINÉE, la checklist ne s'impose plus : le dock disparaît, la
- *     liste reste consultable depuis « Aide et visites guidées » ;
+ * NON INTRUSIF (REA-UX-012) :
+ *   - plus de dock flottant : la checklist vit UNIQUEMENT dans le panneau d'aide
+ *     (section « Prise en main », repliable), atteint par l'entrée « Aide » de la
+ *     navigation ; sa progression est rappelée en tête du panneau ;
  *   - état inconnu (session/DB/réseau) → on n'affiche RIEN plutôt qu'une
  *     checklist vierge inventée.
  */
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { fetchChecklist } from "@/lib/onboarding/checklist-client";
 import {
   ACTION_CENTER_TOUR_KEY,
@@ -32,47 +31,6 @@ import {
 } from "@/lib/onboarding/checklist";
 import { UI } from "@/lib/ui-strings";
 import { useProductTour } from "./ProductTourProvider";
-
-/**
- * Repli du dock — préférence d'AFFICHAGE (aucune donnée métier), lue dans
- * `localStorage`. Exposée via `useSyncExternalStore` : le stockage est un
- * système externe, on ne le recopie pas dans un état via un effet.
- * Instantané serveur = « replié » : le rendu initial est le moins intrusif.
- */
-const COLLAPSE_STORAGE_KEY = "azigo.onboarding.checklist.collapsed";
-
-let collapsedCache: boolean | null = null;
-const collapsedListeners = new Set<() => void>();
-
-function subscribeCollapsed(onChange: () => void): () => void {
-  collapsedListeners.add(onChange);
-  return () => collapsedListeners.delete(onChange);
-}
-
-function getCollapsedSnapshot(): boolean {
-  if (collapsedCache !== null) return collapsedCache;
-  try {
-    collapsedCache = window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1";
-  } catch {
-    collapsedCache = false; // stockage indisponible → dock ouvert, sans casser
-  }
-  return collapsedCache;
-}
-
-/** Rendu serveur : replié par défaut, jamais d'ouverture imposée. */
-function getCollapsedServerSnapshot(): boolean {
-  return true;
-}
-
-function setCollapsedPreference(collapsed: boolean): void {
-  collapsedCache = collapsed;
-  try {
-    window.localStorage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? "1" : "0");
-  } catch {
-    /* stockage indisponible : la préférence est simplement volatile */
-  }
-  for (const listener of collapsedListeners) listener();
-}
 
 /* ------------------------------------------------------------------ */
 /* Chargement                                                           */
@@ -112,6 +70,14 @@ function useChecklist(): { summary: ChecklistSummary | null; loading: boolean } 
     item.id === "action-center" ? mergeLocalActionCenter(item, localCompleted) : item,
   );
   return { summary: summarize(merged), loading };
+}
+
+/**
+ * Résumé seul (progression + items), pour les consommateurs qui n'ont pas besoin
+ * de l'état de chargement — ex. le panneau d'aide, qui affiche « n sur 7 ».
+ */
+export function useChecklistSummary(): ChecklistSummary | null {
+  return useChecklist().summary;
 }
 
 /* ------------------------------------------------------------------ */
@@ -195,62 +161,7 @@ export function OnboardingChecklistPanel() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Dock flottant, compact et réductible                                 */
-/* ------------------------------------------------------------------ */
-
-/**
- * Dock non intrusif. Disparaît dès que la checklist est terminée — elle ne
- * s'impose plus ; le panneau d'aide reste le point d'accès permanent.
- */
-export function OnboardingChecklist() {
-  const t = UI.onboarding.checklist;
-  const { tourActive } = useProductTour();
-  const { summary } = useChecklist();
-  const collapsed = useSyncExternalStore(
-    subscribeCollapsed,
-    getCollapsedSnapshot,
-    getCollapsedServerSnapshot,
-  );
-
-  const toggle = useCallback(() => setCollapsedPreference(!collapsed), [collapsed]);
-
-  // Pendant une visite guidée, le dock s'efface : il ne masque pas la cible.
-  if (!summary || summary.completed || tourActive) return null;
-
-  if (collapsed) {
-    return (
-      <Button outline onClick={toggle} aria-expanded={false} aria-label={t.open}>
-        <span className="text-xs">{t.title}</span>
-        <span className="text-xs tabular-nums text-zinc-500">
-          {t.progress(summary.done, summary.total)}
-        </span>
-      </Button>
-    );
-  }
-
-  return (
-    <section
-      aria-label={t.title}
-      className="w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-zinc-950/10 bg-white/95 p-4 shadow-lg backdrop-blur-xl"
-    >
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-sm font-semibold text-zinc-900">{t.title}</p>
-        <p className="text-xs tabular-nums text-zinc-500">
-          {t.progress(summary.done, summary.total)}
-        </p>
-      </div>
-      <p className="mt-1 text-xs/5 text-zinc-500">{t.description}</p>
-
-      <div className="mt-4 max-h-72 overflow-y-auto pr-1">
-        <ChecklistList summary={summary} />
-      </div>
-
-      <div className="mt-4 flex justify-end border-t border-zinc-950/5 pt-3">
-        <Button plain onClick={toggle} aria-expanded aria-label={t.collapse}>
-          <span className="text-xs">{t.hide}</span>
-        </Button>
-      </div>
-    </section>
-  );
-}
+/* Le dock flottant a été retiré (REA-UX-012, LOT 1) : la checklist n'est plus une
+   surface posée sur le contenu. Elle vit désormais UNIQUEMENT dans le panneau
+   d'aide (section « Prise en main », repliable), atteint par l'entrée « Aide »
+   de la navigation. La progression reste visible en tête du panneau. */

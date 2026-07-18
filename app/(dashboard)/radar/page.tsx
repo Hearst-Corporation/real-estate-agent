@@ -10,7 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text, Strong } from "@/components/ui/text";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { eur, dateFr } from "@/lib/crm/format";
 import type {
@@ -34,11 +34,11 @@ function totalSignals(d: RadarResponse): number {
 
 // ─── Tonalité d'urgence (accent or / zinc uniquement) ───────────────────────────
 
-/** Badge de jours restants pour un mandat : plus c'est proche, plus c'est accentué. */
-function expiryBadge(jours: number): { color: "amber" | "zinc"; label: string } {
-  if (jours < 0) return { color: "amber", label: `Expiré (${Math.abs(jours)} j)` };
-  if (jours <= 7) return { color: "amber", label: `${jours} j` };
-  return { color: "zinc", label: `${jours} j` };
+/** Badge de jours restants pour un mandat — poids neutre, ce n'est pas une alerte. */
+function expiryBadge(jours: number): { variant: BadgeVariant; label: string } {
+  if (jours < 0) return { variant: "neutral", label: `Expiré (${Math.abs(jours)} j)` };
+  if (jours <= 7) return { variant: "neutral", label: `${jours} j` };
+  return { variant: "neutral", label: `${jours} j` };
 }
 
 // ─── Sections ───────────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ function SectionShell({
           <Icon className="size-5" aria-hidden />
         </span>
         <Subheading className="flex-1">{title}</Subheading>
-        {count != null && count > 0 && <Badge color="amber">{count}</Badge>}
+        {count != null && count > 0 && <Badge variant="neutral">{count}</Badge>}
       </header>
       {children}
     </section>
@@ -186,7 +186,7 @@ function MandateList({ section }: { section: RadarSection<MandateExpirySignal> }
             subtitle={[s.kind_label, s.asking_price != null ? eur(s.asking_price) : null]
               .filter(Boolean)
               .join(" · ") || null}
-            metric={<Badge color={b.color}>{b.label}</Badge>}
+            metric={<Badge variant={b.variant}>{b.label}</Badge>}
             metricSub={`échéance ${dateFr(s.expires_at)}`}
             action={
               <Button href="/mandates" plain aria-label="Voir les mandats">

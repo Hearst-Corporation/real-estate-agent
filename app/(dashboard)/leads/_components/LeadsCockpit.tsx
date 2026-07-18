@@ -62,7 +62,7 @@ function Zone({
         <span className="font-titre text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
           {label}
         </span>
-        <Badge color="zinc">{count}</Badge>
+        <Badge variant="neutral">{count}</Badge>
       </div>
       {leads.length === 0 ? (
         <Text className="mt-3">{t.cockpit.zoneEmpty}</Text>

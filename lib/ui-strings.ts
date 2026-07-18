@@ -477,6 +477,7 @@ export const UI = {
       pipelineEstimation: "Estimation",
       stepDone: "Fait",
       stepTodo: "À faire",
+      stepCurrent: "En cours",
       // ── Propriétaire (lead vendeur) ──
       ownerTitle: "Propriétaire",
       ownerNone: "Aucun propriétaire rattaché à cette estimation.",
@@ -1707,7 +1708,8 @@ export const UI = {
      * relançable manuellement, même terminée.
      */
     help: {
-      entry: "Aide et visites guidées",
+      /** Libellé COURT de l'entrée permanente dans la navigation (rail + barre mobile). */
+      entry: "Aide",
       title: "Aide et visites guidées",
       description: "Chaque visite pointe des composants réels et explique quoi en faire.",
       close: "Fermer l'aide",
@@ -1716,6 +1718,18 @@ export const UI = {
       replay: "Rejouer",
       unavailable: "Bientôt disponible",
       resetting: "Réinitialisation…",
+      /** Titres des sections internes du panneau, dans l'ordre imposé. */
+      sectionContextual: "Cette page",
+      sectionTours: "Toutes les visites",
+      sectionChecklist: "Prise en main",
+      /** Action contextuelle : visite de la page en cours. */
+      pageTourAvailable: (page: string) => `Découvrir « ${page} »`,
+      /** Aucune visite dédiée à la page courante → on n'affiche pas de bouton mort. */
+      pageTourNone:
+        "Aucune visite dédiée à cette page. Les visites générales ci-dessous restent disponibles à tout moment.",
+      /** Repli de la checklist dans le panneau. */
+      checklistExpand: "Afficher la prise en main",
+      checklistCollapse: "Masquer la prise en main",
       /** Libellés des visites listées dans le panneau, dans l'ordre d'apprentissage. */
       entries: {
         "core-cockpit": "Découvrir le cockpit",
@@ -2047,6 +2061,54 @@ export const UI = {
     saving: "Enregistrement…",
     httpError: (status: number) => `Erreur ${status}`,
     required: (label: string) => `${label} requis`,
+  },
+  /** Page de référence interne du design system (variantes de badge Azigo). */
+  design: {
+    eyebrow: "Design system",
+    badgesTitle: "Badges Azigo",
+    badgesIntro:
+      "Un badge classifie une information compacte — il n'alerte pas. Le sens vient du texte et de l'ordre, jamais d'une couleur criarde. Quatre variantes, choisies par POIDS visuel.",
+    variants: {
+      neutral: {
+        name: "neutral",
+        usage: "Métadonnées, volumes, fréquence, typologie.",
+        sample: "Quotidienne",
+      },
+      outline: {
+        name: "outline",
+        usage: "États secondaires, valeurs non sélectionnées, exclusions.",
+        sample: "rez-de-chaussée",
+      },
+      brand: {
+        name: "brand",
+        usage: "Sélection, étape active, information mise en avant. Usage rare.",
+        sample: "En avant",
+      },
+      strong: {
+        name: "strong",
+        usage: "Un seul état réellement structurant par carte.",
+        sample: "Prioritaire",
+      },
+    } as Record<string, { name: string; usage: string; sample: string }>,
+    forbiddenTitle: "Usages interdits",
+    forbidden: [
+      "Jaune / amber pour « attention » ou « urgence ».",
+      "Orange pour les exclusions ou les travaux.",
+      "Vert / emerald pour « succès ».",
+      "Bleu / sky pour « information ».",
+      "Violet pour « agentique ».",
+      "Rouge comme simple badge de statut (réservé aux erreurs et actions destructrices).",
+    ],
+    examplesTitle: "Exemples métier",
+    examples: [
+      { text: "Urgence · Haute", variant: "neutral" as const },
+      { text: "Alerte · Quotidienne", variant: "neutral" as const },
+      { text: "rez-de-chaussée", variant: "outline" as const },
+      { text: "à rénover", variant: "outline" as const },
+      { text: "Brouillon", variant: "neutral" as const },
+      { text: "En attente de validation", variant: "brand" as const },
+      { text: "Indisponible", variant: "neutral" as const },
+    ],
   },
   logout: "Se déconnecter",
   brochure: {

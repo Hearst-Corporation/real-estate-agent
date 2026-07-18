@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/description-list";
 import { LeadEnrichButton } from "../_components/LeadEnrichButton";
 import { Timeline } from "@/components/timeline/Timeline";
+import { AzigoWatermark } from "@/components/cockpit/AzigoWatermark";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -206,16 +207,17 @@ export default async function LeadDetailPage({
 
   return (
     <div className="flex flex-col gap-6 pb-12">
-      {/* Header */}
-      <div className="flex flex-col gap-4 border-b border-zinc-950/10 pb-5 lg:flex-row lg:items-center lg:justify-between dark:border-white/10">
-        <div className="min-w-0 flex-1">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
+      {/* Header — grand en-tête (zone héro + filigrane Azigo discret). */}
+      <div className="section-hero flex flex-col gap-4 px-6 py-6 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
+        <AzigoWatermark placement="hero" />
+        <div className="relative min-w-0 flex-1">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-600 dark:text-accent-400">
             {eyebrow}
           </p>
           <Heading>{lead.full_name ?? td.fallbackName}</Heading>
           <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
             <div className="mt-2 flex items-center text-sm text-zinc-500 dark:text-zinc-400">
-              <Badge color="zinc">{t.statusLabels[lead.status] ?? lead.status}</Badge>
+              <Badge variant="neutral">{t.statusLabels[lead.status] ?? lead.status}</Badge>
             </div>
             {lead.source && (
               <div className="mt-2 flex items-center text-sm text-zinc-500 dark:text-zinc-400">
@@ -231,7 +233,7 @@ export default async function LeadDetailPage({
             )}
           </div>
         </div>
-        <div className="mt-5 flex shrink-0 lg:mt-0 lg:ml-4">
+        <div className="relative mt-5 flex shrink-0 lg:mt-0 lg:ml-4">
           <Button href="/leads" outline>
             <ArrowLeftIcon />
             {td.backLink}
@@ -337,7 +339,7 @@ export default async function LeadDetailPage({
             {fin ? (
               <>
                 <div className="mb-4">
-                  <Badge color={financementTone(fin.mode)}>
+                  <Badge variant={financementTone(fin.mode)}>
                     {financementModeLabel(fin.mode)}
                   </Badge>
                 </div>
@@ -451,16 +453,16 @@ export default async function LeadDetailPage({
                   {/* Équipements souhaités */}
                   {(c.terrasse || c.parking || c.ascenseur || c.jardin || c.piscine) && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      {c.terrasse && <Badge color="zinc">{td.criteres.terrasse}</Badge>}
-                      {c.parking && <Badge color="zinc">{td.criteres.parking}</Badge>}
-                      {c.ascenseur && <Badge color="zinc">{td.criteres.ascenseur}</Badge>}
-                      {c.jardin && <Badge color="zinc">{td.criteres.jardin}</Badge>}
-                      {c.piscine && <Badge color="zinc">{td.criteres.piscine}</Badge>}
+                      {c.terrasse && <Badge variant="neutral">{td.criteres.terrasse}</Badge>}
+                      {c.parking && <Badge variant="neutral">{td.criteres.parking}</Badge>}
+                      {c.ascenseur && <Badge variant="neutral">{td.criteres.ascenseur}</Badge>}
+                      {c.jardin && <Badge variant="neutral">{td.criteres.jardin}</Badge>}
+                      {c.piscine && <Badge variant="neutral">{td.criteres.piscine}</Badge>}
                     </div>
                   )}
                 </div>
                 {c.actif != null && (
-                  <Badge color={c.actif ? "lime" : "zinc"}>
+                  <Badge variant={c.actif ? "brand" : "outline"}>
                     {c.actif ? td.criteres.actif : "Inactif"}
                   </Badge>
                 )}
@@ -485,7 +487,7 @@ export default async function LeadDetailPage({
                     {v.properties.city ? ` — ${v.properties.city}` : ""}
                   </span>
                 )}
-                <Badge color="zinc">{tVisits.statusLabels[v.status] ?? v.status}</Badge>
+                <Badge variant="neutral">{tVisits.statusLabels[v.status] ?? v.status}</Badge>
                 {v.duration_min != null && v.duration_min > 0 && (
                   <span className="text-sm text-zinc-500 dark:text-zinc-400">{v.duration_min} min</span>
                 )}

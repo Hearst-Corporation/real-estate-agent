@@ -70,7 +70,7 @@ export default async function ProfilePage() {
                 <Text>{t.empty}</Text>
               ) : (
                 scopes.map((s) => (
-                  <Badge key={s} color="zinc">
+                  <Badge key={s} variant="neutral">
                     {s}
                   </Badge>
                 ))

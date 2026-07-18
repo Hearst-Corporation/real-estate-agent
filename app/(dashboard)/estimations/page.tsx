@@ -1,5 +1,5 @@
 import { AccentButton } from "./_components/AccentButton";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import {
@@ -24,11 +24,11 @@ import { HomeModernIcon } from "@heroicons/react/24/outline";
 const ESTIMATION_STATUSES = ["draft", "interviewing", "recap", "valuating", "ready", "archived"];
 const IN_PROGRESS = ["draft", "interviewing", "recap", "valuating"];
 
-/** Tonalité `statusTone` → couleur de badge Catalyst (couleurs d'état tolérées). */
-const TONE_BADGE: Record<StatusTone, "lime" | "red" | "zinc"> = {
-  "is-positive": "lime",
-  "is-negative": "red",
-  "is-pending": "zinc",
+/** Tonalité `statusTone` → variante de Badge Azigo. */
+const TONE_BADGE: Record<StatusTone, BadgeVariant> = {
+  "is-positive": "neutral",
+  "is-negative": "neutral",
+  "is-pending": "neutral",
 };
 
 type EstRow = {
@@ -114,7 +114,7 @@ export default async function EstimationsPage() {
               {pipeline.map((step) => (
                 <li key={step.label} className="flex items-center justify-between py-2.5">
                   <Text>{step.label}</Text>
-                  <Badge color={TONE_BADGE[step.tone ?? "is-pending"]}>{step.count}</Badge>
+                  <Badge variant={TONE_BADGE[step.tone ?? "is-pending"]}>{step.count}</Badge>
                 </li>
               ))}
             </ul>
@@ -167,7 +167,7 @@ export default async function EstimationsPage() {
                   </TableCell>
                   <TableCell className="text-right tabular-nums">{eur(e.market_value)}</TableCell>
                   <TableCell>
-                    <Badge color={TONE_BADGE[statusTone("estimation", e.status)]}>
+                    <Badge variant={TONE_BADGE[statusTone("estimation", e.status)]}>
                       {t.status[e.status] ?? e.status}
                     </Badge>
                   </TableCell>

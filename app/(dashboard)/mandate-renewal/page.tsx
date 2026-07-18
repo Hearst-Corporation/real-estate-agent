@@ -23,7 +23,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Heading } from "@/components/ui/heading";
 import { Text, Strong } from "@/components/ui/text";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { eur, dateFr } from "@/lib/crm/format";
 import {
@@ -52,14 +52,14 @@ type DraftState =
   | { phase: "unavailable" }
   | { phase: "error" };
 
-function expiryBadge(jours: number): { color: "amber" | "zinc"; label: string } {
-  if (jours < 0) return { color: "amber", label: `Expiré (${Math.abs(jours)} j)` };
-  if (jours <= 7) return { color: "amber", label: `${jours} j restants` };
-  return { color: "zinc", label: `${jours} j restants` };
+function expiryBadge(jours: number): { variant: BadgeVariant; label: string } {
+  if (jours < 0) return { variant: "neutral", label: `Expiré (${Math.abs(jours)} j)` };
+  if (jours <= 7) return { variant: "neutral", label: `${jours} j restants` };
+  return { variant: "neutral", label: `${jours} j restants` };
 }
 
-function actionBadge(action: RenewalAction): "amber" | "zinc" {
-  return action === "renew" ? "zinc" : "amber";
+function actionBadge(action: RenewalAction): BadgeVariant {
+  return action === "renew" ? "neutral" : "neutral";
 }
 
 export default function MandateRenewalPage() {
@@ -190,7 +190,7 @@ function MandateCard({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <Strong>{propertyLabel}</Strong>
-            <Badge color={exp.color}>{exp.label}</Badge>
+            <Badge variant={exp.variant}>{exp.label}</Badge>
           </div>
           <Text className="mt-0.5 text-zinc-500">
             Mandat {analysis.kind}
@@ -251,7 +251,7 @@ function MandateCard({
           <Text className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             Proposition
           </Text>
-          <Badge color={actionBadge(analysis.proposal.action)}>
+          <Badge variant={actionBadge(analysis.proposal.action)}>
             {RENEWAL_ACTION_LABELS[analysis.proposal.action]}
           </Badge>
           {analysis.proposal.suggestedPrice != null && (

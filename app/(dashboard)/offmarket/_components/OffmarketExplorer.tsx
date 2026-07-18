@@ -14,7 +14,7 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Card } from "@/components/cockpit/primitives";
 import { useTourActive } from "@/components/onboarding";
 import { OFFMARKET_ANCHORS } from "@/lib/onboarding/tours/offmarket";
@@ -46,11 +46,11 @@ const RECO_LABEL: Record<Match["recommandation"], string> = {
   rejected: "Rejeté",
 };
 
-const RECO_COLOR: Record<Match["recommandation"], "green" | "amber" | "zinc"> = {
-  high_priority: "green",
-  review: "amber",
-  low_priority: "zinc",
-  rejected: "zinc",
+const RECO_COLOR: Record<Match["recommandation"], BadgeVariant> = {
+  high_priority: "brand",
+  review: "neutral",
+  low_priority: "neutral",
+  rejected: "outline",
 };
 
 function fmtEur(n: number | null): string {
@@ -222,7 +222,7 @@ export function OffmarketExplorer({ properties }: { properties: PortfolioPropert
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{m.critereNom}</span>
-                          <Badge color={RECO_COLOR[m.recommandation]}>{RECO_LABEL[m.recommandation]}</Badge>
+                          <Badge variant={RECO_COLOR[m.recommandation]}>{RECO_LABEL[m.recommandation]}</Badge>
                         </div>
                         <div className="mt-1 text-xs text-zinc-500">
                           {m.satisfaits.length > 0 ? `Satisfait : ${m.satisfaits.join(", ")}` : "—"}

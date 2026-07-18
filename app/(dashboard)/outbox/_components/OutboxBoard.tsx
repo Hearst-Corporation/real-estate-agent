@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Text } from "@/components/ui/text";
@@ -38,12 +38,12 @@ const STATUS_LABEL: Record<DraftView["status"], string> = {
   canceled: "Annulé",
 };
 
-const STATUS_TONE: Record<DraftView["status"], React.ComponentProps<typeof Badge>["color"]> = {
-  draft: "zinc",
-  approved: "amber",
-  sent: "emerald",
-  failed: "red",
-  canceled: "zinc",
+const STATUS_TONE: Record<DraftView["status"], BadgeVariant> = {
+  draft: "neutral",
+  approved: "neutral",
+  sent: "brand",
+  failed: "neutral",
+  canceled: "neutral",
 };
 
 const CHANNEL_LABEL: Record<DraftView["channel"], string> = {
@@ -196,7 +196,7 @@ export function OutboxBoard({
   if (unavailable) {
     return (
       <div className="surface flex flex-col items-start gap-2 p-6">
-        <Badge color="red">Base indisponible</Badge>
+        <Badge variant="neutral">Base indisponible</Badge>
         <Text>
           Les brouillons ne peuvent pas être lus : la base est injoignable ou le schéma outbox est
           inaccessible. Aucun message n&apos;est perdu, aucun envoi n&apos;a eu lieu. Réessayez —
@@ -228,7 +228,7 @@ export function OutboxBoard({
           <ul className="flex flex-col gap-1.5">
             {transports.map((t) => (
               <li key={t.channel} className="flex flex-wrap items-center gap-2 text-sm">
-                <Badge color={t.state === "LIVE" ? "emerald" : "amber"}>
+                <Badge variant={t.state === "LIVE" ? "brand" : "neutral"}>
                   {t.state === "LIVE" ? "LIVE" : "CONFIG"}
                 </Badge>
                 <span className="font-medium text-zinc-800 dark:text-zinc-200">
@@ -311,8 +311,8 @@ export function OutboxBoard({
             return (
               <li key={d.id} className="surface flex flex-col gap-3 p-5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge color={STATUS_TONE[d.status]}>{STATUS_LABEL[d.status]}</Badge>
-                  <Badge color="zinc">{CHANNEL_LABEL[d.channel]}</Badge>
+                  <Badge variant={STATUS_TONE[d.status]}>{STATUS_LABEL[d.status]}</Badge>
+                  <Badge variant="neutral">{CHANNEL_LABEL[d.channel]}</Badge>
                   {d.status === "sent" && d.sent_at && (
                     <span className="text-xs text-zinc-400">
                       envoyé le {new Date(d.sent_at).toLocaleString("fr-FR")}

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { UI } from "@/lib/ui-strings";
 import { Icon } from "@/components/cockpit/Icon";
 import { Text, Strong } from "@/components/ui/text";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AGENTS_ANCHORS } from "@/lib/onboarding/tours/agents";
 import { blockDuringTour } from "@/lib/onboarding/tour-guard";
@@ -22,22 +22,22 @@ const POLL_MS = 2000;
 /** Statuts terminaux : plus rien à poller. */
 const TERMINAL: RuntimeRunStatus[] = ["completed", "failed", "cancelled"];
 
-/** Couleur de badge par statut de run (sémantique). */
-function runColor(status: RuntimeRunStatus): "lime" | "amber" | "red" | "zinc" {
+/** Variante de badge par statut de run (poids visuel). */
+function runColor(status: RuntimeRunStatus): BadgeVariant {
   switch (status) {
     case "completed":
-      return "lime";
+      return "brand";
     case "running":
     case "queued":
-      return "amber";
+      return "neutral";
     case "waiting_on_input":
-      return "amber";
+      return "neutral";
     case "failed":
-      return "red";
+      return "neutral";
     case "cancelled":
-      return "zinc";
+      return "neutral";
     default:
-      return "zinc";
+      return "neutral";
   }
 }
 
@@ -142,7 +142,7 @@ export function RunTracker({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Strong className="text-base">{t.runsTitle}</Strong>
-          {run ? <Badge color={runColor(run.status)}>{t.runStatus[run.status] ?? run.status}</Badge> : null}
+          {run ? <Badge variant={runColor(run.status)}>{t.runStatus[run.status] ?? run.status}</Badge> : null}
         </div>
         <Button plain onClick={onClose} aria-label={t.close}>
           <Icon name="chevron-right" data-slot="icon" />
@@ -162,7 +162,7 @@ export function RunTracker({
       {phase === "notfound" && <Text className="py-2">{t.runsEmpty}</Text>}
       {phase === "error" && (
         <Text className="py-2">
-          <Badge color="red">{UI.common.error}</Badge>
+          <Badge variant="neutral">{UI.common.error}</Badge>
         </Text>
       )}
 
@@ -261,7 +261,7 @@ function HitlPanel({
       </div>
       {note ? (
         <Text className="mt-2 text-xs">
-          <Badge color={note.tone === "ok" ? "lime" : "red"}>{note.msg}</Badge>
+          <Badge variant="neutral">{note.msg}</Badge>
         </Text>
       ) : null}
     </div>

@@ -3,11 +3,12 @@
 import { useCallback, useState } from "react";
 import { Icon } from "@/components/cockpit/Icon";
 import { Heading } from "@/components/ui/heading";
-import { Text, Strong } from "@/components/ui/text";
-import { Badge } from "@/components/ui/badge";
+import { Text } from "@/components/ui/text";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UI } from "@/lib/ui-strings";
 import { useTourActive } from "@/components/onboarding";
+import { EmptyState as SharedEmptyState } from "@/components/cockpit/EmptyState";
 import { COMMUNICATIONS_ANCHORS } from "@/lib/onboarding/tours/communications-hitl";
 import { blockDuringTour } from "@/lib/onboarding/tour-guard";
 import type { ApprovalRow, ViewableStatus } from "@/lib/approvals/db";
@@ -242,7 +243,7 @@ function Header({
           </p>
           <Heading className="font-titre">{T.title}</Heading>
           <div className="mt-1.5 flex items-center gap-2">
-            <Badge color={connected ? "lime" : "zinc"}>
+            <Badge variant={connected ? "brand" : "neutral"}>
               <span aria-hidden className="size-1.5 rounded-full bg-current opacity-70" />
               {connected ? T.live : T.unavailable}
             </Badge>
@@ -305,8 +306,8 @@ function ApprovalItem({
     <li className="surface flex flex-col gap-4 p-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge color="amber">{row.channel || "—"}</Badge>
-          <Badge color={statusColor(row.status)}>{statusLabel(row.status)}</Badge>
+          <Badge variant="neutral">{row.channel || "—"}</Badge>
+          <Badge variant={statusColor(row.status)}>{statusLabel(row.status)}</Badge>
         </div>
         <div className="grid grid-cols-1 gap-x-8 gap-y-1 @lg:grid-cols-2">
           <Field label={T.agent} value={row.agent_id || "—"} />
@@ -359,37 +360,25 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
 
 function EmptyState({ label }: { label: string }) {
   return (
-    <div className="surface flex flex-col items-center gap-3 px-6 py-16 text-center">
-      <span
-        aria-hidden
-        className="flex size-12 items-center justify-center rounded-2xl border border-zinc-950/10 text-zinc-400"
-      >
-        <Icon name="agents" className="size-6" />
-      </span>
-      <Text className="max-w-md">{label}</Text>
-    </div>
+    <SharedEmptyState icon={<Icon name="agents" className="size-6" />} description={label} />
   );
 }
 
 function UnavailableState() {
   return (
-    <div className="surface flex flex-col items-center gap-3 px-6 py-16 text-center">
-      <span
-        aria-hidden
-        className="flex size-12 items-center justify-center rounded-2xl border border-dashed border-zinc-950/15 text-zinc-400"
-      >
-        <Icon name="agents" className="size-6" />
-      </span>
-      <Strong className="text-base">{T.unavailableTitle}</Strong>
-      <Text className="max-w-md">{T.unavailableBody}</Text>
-    </div>
+    <SharedEmptyState
+      tone="unavailable"
+      icon={<Icon name="agents" className="size-6" />}
+      title={T.unavailableTitle}
+      description={T.unavailableBody}
+    />
   );
 }
 
 function ErrorState({ onRetry, retrying }: { onRetry: () => void; retrying: boolean }) {
   return (
     <div className="surface flex flex-col items-center gap-3 px-6 py-12 text-center">
-      <Badge color="red">Erreur</Badge>
+      <Badge variant="neutral">Erreur</Badge>
       <Text className="max-w-md">{T.loadError}</Text>
       <Button color="light" onClick={onRetry} disabled={retrying}>
         {retrying ? T.refreshing : T.retry}
@@ -400,16 +389,16 @@ function ErrorState({ onRetry, retrying }: { onRetry: () => void; retrying: bool
 
 // ─── helpers présentation ────────────────────────────────────────────────────
 
-function statusColor(status: string): "amber" | "lime" | "red" | "zinc" {
+function statusColor(status: string): BadgeVariant {
   switch (status) {
     case "pending":
-      return "amber";
+      return "neutral";
     case "approved":
-      return "lime";
+      return "brand";
     case "rejected":
-      return "red";
+      return "neutral";
     default:
-      return "zinc";
+      return "neutral";
   }
 }
 
