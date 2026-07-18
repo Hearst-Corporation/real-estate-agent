@@ -1,0 +1,9 @@
+{
+  "runId": "REA-GPU1-006-20260718-01",
+  "status": "prepared",
+  "artifacts": [],
+  "notes": [
+    "No production evidence is generated during prepare mode.",
+    "Never add secrets, PII, private hostnames, database dumps or sensitive screenshots."
+  ]
+}

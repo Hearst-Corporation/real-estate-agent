@@ -1,0 +1,24 @@
+{
+  "protocolVersion": 1,
+  "runId": "REA-GPU1-006-20260718-01",
+  "repository": "Hearst-Corporation/real-estate-agent",
+  "baseRef": "feature/rea-release-005",
+  "baseHead": "044ebd2ddc74fef8907d765b657ce65d0dc935ea",
+  "coordinationBranch": "orchestration/REA-GPU1-006-20260718-01",
+  "status": "READY",
+  "updatedAt": "2026-07-18T00:00:00Z",
+  "authorizations": {"commit":true,"pushWorkerBranches":true,"integrationRc":true,"mergeToReleaseOrMain":false,"deploy":false,"applyMigrations":false,"restartServices":false},
+  "workers": [
+    {"index":1,"missionId":"REA-GPU1-006-M01","branch":"work/rea-gpu1-006-m01-core","status":"READY","head":null,"report":null},
+    {"index":2,"missionId":"REA-GPU1-006-M02","branch":"work/rea-gpu1-006-m02-auth-admin","status":"READY","head":null,"report":null},
+    {"index":3,"missionId":"REA-GPU1-006-M03","branch":"work/rea-gpu1-006-m03-crm","status":"READY","head":null,"report":null},
+    {"index":4,"missionId":"REA-GPU1-006-M04","branch":"work/rea-gpu1-006-m04-estimation","status":"READY","head":null,"report":null},
+    {"index":5,"missionId":"REA-GPU1-006-M05","branch":"work/rea-gpu1-006-m05-prospection","status":"READY","head":null,"report":null},
+    {"index":6,"missionId":"REA-GPU1-006-M06","branch":"work/rea-gpu1-006-m06-gateway","status":"READY","head":null,"report":null},
+    {"index":7,"missionId":"REA-GPU1-006-M07","branch":"work/rea-gpu1-006-m07-shell","status":"READY","head":null,"report":null},
+    {"index":8,"missionId":"REA-GPU1-006-M08","branch":"work/rea-gpu1-006-m08-tooling","status":"READY","head":null,"report":null},
+    {"index":9,"missionId":"REA-GPU1-006-M09","branch":"work/rea-gpu1-006-m09-convergence","status":"READY","head":null,"report":null},
+    {"index":10,"missionId":"REA-GPU1-006-M10","branch":"work/rea-gpu1-006-m10-qa","status":"READY","head":null,"report":null}
+  ],
+  "verdict": null
+}

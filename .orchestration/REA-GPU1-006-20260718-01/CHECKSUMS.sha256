@@ -1,0 +1,14 @@
+d67b2f711fa84e4fd4c308d4810a06dfc3e66fadc596476b7dea57f6d5676143  .orchestration/REA-GPU1-006-20260718-01/MASTER.md
+07fdeaba802cee8d4b02a9ff5e3cef22db8f5a2bd0d74002d49142984e287fc1  .orchestration/REA-GPU1-006-20260718-01/STATUS.json
+f37d45a640d5f9e49dc49546cf68138500f8edafc1b0d3e6e400ee1812b70620  .orchestration/REA-GPU1-006-20260718-01/REPORT.md
+efa840778953ecaea49d2f3eb6a9750a779c7796094c3863ce03bc8ba3750341  .orchestration/REA-GPU1-006-20260718-01/evidence/manifest.json
+eb591f82c9143844b916eb429c22095e12b530fae0eea5d151f2cec97d2bb3da  .orchestration/REA-GPU1-006-20260718-01/prompts/01-core-gpu1-postgrest.md
+e64ade45ab925ab65de8ce6fe1378bb90b64bd6dd9d33a87ddb513a6e26e15ee  .orchestration/REA-GPU1-006-20260718-01/prompts/02-auth-admin.md
+d0a823824715f52d705a1c93718a8b9c074136e5720b488244ec67fc668828cb  .orchestration/REA-GPU1-006-20260718-01/prompts/03-crm.md
+be057bed4eb48ed05e8bafdb32cc5d6ddb26e0fb52ac29728f68a98f74675212  .orchestration/REA-GPU1-006-20260718-01/prompts/04-estimation-brochure.md
+68113186ee6da98181718589230e5e08c523ac57d114d440a35085f92e31931e  .orchestration/REA-GPU1-006-20260718-01/prompts/05-prospection.md
+a0b5d5d0de20c9124fddf1f6271c8c3ba20d175b01fadbddaa5efb513c8b66ed  .orchestration/REA-GPU1-006-20260718-01/prompts/06-agent-gateway-jobs.md
+4314e6b280c374f83ff62d59008ee63092996f278ded2188b8a895bd90031a1f  .orchestration/REA-GPU1-006-20260718-01/prompts/07-dashboard-tasks-health-chat.md
+8f7e4176caa7918db78d32c7e2b3b99ca7cbe22b4649d914db3195b769087d56  .orchestration/REA-GPU1-006-20260718-01/prompts/08-tooling-e2e-migrations-docs.md
+dfc00c9483407c48206aa13a3b8f40d3842cd21d76d8eb70f03e2bf55c49c9bf  .orchestration/REA-GPU1-006-20260718-01/prompts/09-convergence-zero-supabase.md
+8af029676217195cd68a8a062c0893b9b2e69099dad8c1b15323757496913c20  .orchestration/REA-GPU1-006-20260718-01/prompts/10-final-qa.md
