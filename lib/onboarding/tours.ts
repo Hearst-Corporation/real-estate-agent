@@ -43,7 +43,7 @@
  */
 
 import { UI } from "@/lib/ui-strings";
-import { validateTour } from "./progress";
+import { defineTour } from "./define";
 import type { TourDefinition, TourKey, TourRegistry } from "./types";
 import { prospectionTour } from "./tours/prospection";
 import { radarTour } from "./tours/radar";
@@ -52,19 +52,6 @@ import { crmTour } from "./tours/crm";
 import { estimationsTour } from "./tours/estimations";
 import { communicationsHitlTour } from "./tours/communications-hitl";
 import { agentsTour } from "./tours/agents";
-
-/**
- * Fabrique une définition de tour et vérifie sa cohérence (ids uniques, textes
- * présents, version >= 1). En développement, une définition invalide jette tout
- * de suite plutôt que de casser silencieusement l'affichage en production.
- */
-export function defineTour(def: TourDefinition): TourDefinition {
-  const problems = validateTour(def);
-  if (problems.length > 0 && process.env.NODE_ENV !== "production") {
-    throw new Error(`Tour « ${def.key} » invalide :\n  - ${problems.join("\n  - ")}`);
-  }
-  return def;
-}
 
 /* ------------------------------------------------------------------ */
 /* core-cockpit v1 — la visite socle                                    */

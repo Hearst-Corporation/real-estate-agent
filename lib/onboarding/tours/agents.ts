@@ -19,7 +19,7 @@
  */
 
 import { UI } from "@/lib/ui-strings";
-import { defineTour } from "../tours";
+import { defineTour } from "../define";
 
 const t = UI.onboarding.tours.agents;
 

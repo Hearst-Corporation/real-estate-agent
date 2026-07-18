@@ -46,6 +46,33 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+/**
+ * Borne une coordonnée d'un axe pour que la pancarte reste ENTIÈREMENT dans le
+ * viewport, y compris le cas pathologique où la pancarte est plus large/haute
+ * que l'espace utile.
+ *
+ * Garantie dure (le contrat du module) :
+ *   - `coord >= 0` toujours ;
+ *   - `coord + extent <= viewportExtent` dès que `extent <= viewportExtent`.
+ *
+ * Quand la pancarte dépasse le viewport (`extent > viewportExtent`, ne survient
+ * pas en pratique car la pancarte est bornée par `max-w-[calc(100vw-2rem)]`), on
+ * l'épingle à `0` : le coin haut-gauche reste visible plutôt que de laisser
+ * fuir le bord opposé hors de l'écran.
+ */
+export function clampAxis(coord: number, extent: number, viewportExtent: number): number {
+  // Pancarte plus grande que l'espace : le coin haut-gauche reste visible.
+  if (extent >= viewportExtent) return 0;
+  // Espace libre total de part et d'autre de la pancarte.
+  const slack = viewportExtent - extent; // > 0 ici
+  // Marge idéale de 16px, réduite si le viewport est trop étroit pour la tenir
+  // des deux côtés (on garde toujours `lo <= hi`, donc un intervalle valide).
+  const margin = Math.min(VIEWPORT_MARGIN, slack / 2);
+  const lo = margin; // bord proche : `coord >= margin >= 0`
+  const hi = slack - margin; // bord opposé : `coord + extent <= viewportExtent - margin`
+  return Math.round(clamp(coord, lo, hi));
+}
+
 /** Élargit un rectangle d'une marge uniforme. */
 export function inflateRect(rect: TourRect, padding: number): TourRect {
   return {
@@ -56,11 +83,15 @@ export function inflateRect(rect: TourRect, padding: number): TourRect {
   };
 }
 
-/** Position centrée à l'écran (repli universel). */
+/**
+ * Position centrée à l'écran (repli universel).
+ * Le centrage passe par `clampAxis` : même une pancarte plus grande que le
+ * viewport ne renvoie jamais de coordonnée hors écran (contrat du module).
+ */
 export function centerPosition(size: Size, viewport: Viewport): CoachPosition {
   return {
-    top: Math.max(VIEWPORT_MARGIN, Math.round((viewport.height - size.height) / 2)),
-    left: Math.max(VIEWPORT_MARGIN, Math.round((viewport.width - size.width) / 2)),
+    top: clampAxis((viewport.height - size.height) / 2, size.height, viewport.height),
+    left: clampAxis((viewport.width - size.width) / 2, size.width, viewport.width),
     side: "center",
   };
 }
@@ -90,28 +121,28 @@ function placeOn(
   size: Size,
   viewport: Viewport,
 ): CoachPosition {
-  const maxLeft = viewport.width - size.width - VIEWPORT_MARGIN;
-  const maxTop = viewport.height - size.height - VIEWPORT_MARGIN;
-  const alignedLeft = clamp(
+  // Axe transverse aligné sur le centre de la cible, puis borné pour rester
+  // entièrement dans le viewport (clampAxis garantit `>= 0` et `+extent <= vp`).
+  const alignedLeft = clampAxis(
     rect.left + rect.width / 2 - size.width / 2,
-    VIEWPORT_MARGIN,
-    maxLeft,
+    size.width,
+    viewport.width,
   );
-  const alignedTop = clamp(
+  const alignedTop = clampAxis(
     rect.top + rect.height / 2 - size.height / 2,
-    VIEWPORT_MARGIN,
-    maxTop,
+    size.height,
+    viewport.height,
   );
 
   switch (side) {
     case "bottom":
-      return { top: Math.round(rect.top + rect.height + COACH_GAP), left: Math.round(alignedLeft), side };
+      return { top: Math.round(rect.top + rect.height + COACH_GAP), left: alignedLeft, side };
     case "top":
-      return { top: Math.round(rect.top - COACH_GAP - size.height), left: Math.round(alignedLeft), side };
+      return { top: Math.round(rect.top - COACH_GAP - size.height), left: alignedLeft, side };
     case "right":
-      return { top: Math.round(alignedTop), left: Math.round(rect.left + rect.width + COACH_GAP), side };
+      return { top: alignedTop, left: Math.round(rect.left + rect.width + COACH_GAP), side };
     case "left":
-      return { top: Math.round(alignedTop), left: Math.round(rect.left - COACH_GAP - size.width), side };
+      return { top: alignedTop, left: Math.round(rect.left - COACH_GAP - size.width), side };
   }
 }
 

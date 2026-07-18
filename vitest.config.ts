@@ -16,8 +16,18 @@ export default defineConfig({
     },
   },
   test: {
+    // Environnement par défaut : Node (logique pure). Les tests de composant
+    // déclarent `// @vitest-environment jsdom` en tête de fichier — Vitest bascule
+    // alors ce fichier seul en jsdom, sans ralentir les ~1100 tests Node.
     environment: 'node',
-    include: ['lib/**/*.test.ts', 'test/**/*.test.ts'],
+    setupFiles: ['test/setup/react-testing.ts'],
+    include: [
+      'lib/**/*.test.ts',
+      'lib/**/*.test.tsx',
+      'test/**/*.test.ts',
+      'test/**/*.test.tsx',
+      'components/**/*.test.tsx',
+    ],
     exclude: ['node_modules/**', 'e2e/**', 'electron/**', 'dist-electron/**', '.next/**'],
     coverage: {
       provider: 'v8',
