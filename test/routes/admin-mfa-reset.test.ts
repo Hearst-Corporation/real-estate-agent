@@ -9,13 +9,13 @@
  *   - admin tenant A → user B     → 403 CROSS-TENANT (disableMfa jamais appelé)
  *   - admin tenant A → user A     → 200 (disableMfa appelé une fois avec le bon userId)
  *
- * Style aligné sur test/api-leads.test.ts (mocks getSession/getSupabaseAdmin/posthog).
+ * Style aligné sur test/api-leads.test.ts (mocks getSession/getGpu1Admin/posthog).
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { FakeDb } from "@/lib/agent-gateway/test-helpers";
 
 const getSession = vi.fn();
-const getSupabaseAdmin = vi.fn();
+const getGpu1Admin = vi.fn();
 // vi.fn typé pour matcher disableMfa(userId: string) : Promise<boolean> — garde
 // l'API mock (.mockClear / toHaveBeenCalledWith) tout en satisfaisant l'arité au typecheck.
 const disableMfa = vi.fn((userId: string): Promise<boolean> => {
@@ -24,7 +24,7 @@ const disableMfa = vi.fn((userId: string): Promise<boolean> => {
 });
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 vi.mock("@/lib/server/mfa-store", () => ({ disableMfa: (id: string) => disableMfa(id) }));
 vi.mock("@/lib/providers/posthog", () => ({ captureServer: vi.fn() }));
 vi.mock("@/lib/server/audit-log", () => ({ recordAuthEvent: vi.fn(async () => {}) }));
@@ -57,9 +57,9 @@ function req(body: unknown) {
 
 beforeEach(() => {
   getSession.mockReset();
-  getSupabaseAdmin.mockReset();
+  getGpu1Admin.mockReset();
   disableMfa.mockClear();
-  getSupabaseAdmin.mockReturnValue(credsDb());
+  getGpu1Admin.mockReturnValue(credsDb());
 });
 
 describe("POST /api/admin/mfa-reset", () => {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Gpu1Client } from "@/lib/gpu1";
 import { verifyJwt } from "@/lib/server/auth";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { TOKEN_COOKIE, clearTokenCookie } from "@/lib/server/auth-cookie";
 import { recordAuthEvent } from "@/lib/server/audit-log";
 
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       if (claims?.jti) {
         // `revoked_sessions` pas encore dans les types générés (migration 0028
         // non appliquée) → client non typé pour cet INSERT best-effort.
-        const sb = getSupabaseAdmin() as SupabaseClient | null;
+        const sb = getGpu1Admin() as Gpu1Client | null;
         if (sb) {
           await sb.from("revoked_sessions").upsert(
             {

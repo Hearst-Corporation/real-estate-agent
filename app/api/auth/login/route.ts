@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { signJwt } from "@/lib/server/auth";
 import { captureServer } from "@/lib/providers/posthog";
 import {
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
   );
   if (!emailAllowed) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
 
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
 
   // Auth locale (self-hosté gpu1) : GoTrue n'est pas repris par le montage

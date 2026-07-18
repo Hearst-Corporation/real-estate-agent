@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { buildAdminOverview } from "@/lib/admin/overview";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
@@ -26,7 +26,7 @@ export default async function AdminPage() {
   const claims = await getSession();
   if (!claims || claims.role !== "admin") notFound();
 
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   const { providers, counts } = await buildAdminOverview(sb, claims.tenant_id);
   const providerEntries = Object.entries(providers);
   const configuredCount = providerEntries.filter(([, ok]) => ok).length;

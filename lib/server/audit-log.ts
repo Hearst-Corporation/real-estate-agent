@@ -1,6 +1,6 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import type { Gpu1Client } from "@/lib/gpu1";
+import { getGpu1Admin } from "@/lib/gpu1";
 
 /**
  * Journal d'audit des événements d'authentification — FAIL-SOFT TOTAL.
@@ -11,7 +11,7 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
  * Il ne bloque JAMAIS le flux d'authentification de l'appelant.
  *
  * La table `auth_audit_log` n'est PAS dans les types générés (même pattern que
- * `user_mfa` / 0035) → on cast le client en `SupabaseClient` non typé.
+ * `user_mfa` / 0035) → on cast le client en `Gpu1Client` non typé.
  *
  * ⚠️  Ne jamais logguer un mot de passe ou un secret dans `meta`.
  *     L'email d'un `login_failed` peut aller dans meta (table verrouillée, forensics) — acceptable.
@@ -75,8 +75,8 @@ export function extractClientMeta(req: Request): {
 }
 
 /** Client service-role non typé (table hors types générés). `null` si Supabase non configuré. */
-function untypedAdmin(): SupabaseClient | null {
-  return getSupabaseAdmin() as SupabaseClient | null;
+function untypedAdmin(): Gpu1Client<unknown> | null {
+  return getGpu1Admin() as Gpu1Client<unknown> | null;
 }
 
 // ---------------------------------------------------------------------------

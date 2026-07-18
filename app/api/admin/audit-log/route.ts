@@ -25,13 +25,13 @@
  * Fail-soft DB    : { rows: [], limit: number, offset: number } — jamais 500 sur lecture forensique.
  *
  * La table `auth_audit_log` n'est pas dans les types générés (même situation que `user_mfa`
- * dans lib/server/mfa-store.ts) → cast SupabaseClient non typé.
+ * dans lib/server/mfa-store.ts) → cast Gpu1Client non typé.
  */
 
 import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Gpu1Client } from "@/lib/gpu1";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { isSameTenant, listTenantUserIds } from "@/lib/server/auth-admin";
 
 export const runtime = "nodejs";
@@ -43,9 +43,9 @@ const MAX_LIMIT = 200;
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Client service-role non typé (table hors types générés). `null` si Supabase non configuré. */
-function untypedAdmin(): SupabaseClient | null {
-  return getSupabaseAdmin() as SupabaseClient | null;
+/** Client service-role non typé (table hors types générés). `null` si DB non configurée. */
+function untypedAdmin(): Gpu1Client<unknown> | null {
+  return getGpu1Admin() as Gpu1Client<unknown> | null;
 }
 
 export async function GET(req: Request) {

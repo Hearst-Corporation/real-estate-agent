@@ -14,10 +14,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { FakeDb } from "@/lib/agent-gateway/test-helpers";
 
 const getSession = vi.fn();
-const getSupabaseAdmin = vi.fn();
+const getGpu1Admin = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 
 import { GET } from "@/app/api/admin/audit-log/route";
 
@@ -49,8 +49,8 @@ function req(query = "") {
 
 beforeEach(() => {
   getSession.mockReset();
-  getSupabaseAdmin.mockReset();
-  getSupabaseAdmin.mockReturnValue(db());
+  getGpu1Admin.mockReset();
+  getGpu1Admin.mockReturnValue(db());
 });
 
 describe("GET /api/admin/audit-log", () => {

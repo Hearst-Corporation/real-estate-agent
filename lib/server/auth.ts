@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import type { Gpu1Client } from "@/lib/gpu1";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { captureFatal } from "@/lib/server/observe";
 
 // Throttle captureFatal pour le check de révocation : en prod, ce code tourne
@@ -74,7 +74,7 @@ export async function verifyJwt(
     try {
       // `revoked_sessions` n'est pas (encore) dans les types générés tant que la
       // migration 0028 n'est pas appliquée → client non typé pour cette requête.
-      const sb = getSupabaseAdmin() as SupabaseClient | null;
+      const sb = getGpu1Admin() as Gpu1Client | null;
       if (sb) {
         const { data, error } = await sb
           .from("revoked_sessions")

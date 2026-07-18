@@ -3,24 +3,24 @@
  *
  * Preuve centrale : un admin du tenant A ne peut jamais cibler un utilisateur du tenant B.
  *   (1) isSameTenant — même tenant → true ; tenant différent → false ;
- *       user introuvable → false ; Supabase non configuré → false (FAIL-CLOSED).
+ *       user introuvable → false ; DB non configurée → false (FAIL-CLOSED).
  *   (2) getUserTenant — résout depuis auth_credentials, null si absent/erreur.
  *   (3) listTenantUserIds — ne renvoie que les user_id du tenant demandé, [] si DB absente.
  *
- * On mocke lib/server/supabase (getSupabaseAdmin) pour injecter un FakeDb déterministe
+ * On mocke lib/gpu1 (getGpu1Admin) pour injecter un FakeDb déterministe
  * (aucun réseau, aucune vraie DB), en réutilisant le mock in-memory de la gateway.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { FakeDb } from "@/lib/agent-gateway/test-helpers";
 
-// Le client renvoyé par getSupabaseAdmin est remplacé par un FakeDb par test.
+// Le client renvoyé par getGpu1Admin est remplacé par un FakeDb par test.
 let fakeDb: FakeDb | null = null;
 
-vi.mock("@/lib/server/supabase", () => ({
-  getSupabaseAdmin: () => fakeDb,
+vi.mock("@/lib/gpu1", () => ({
+  getGpu1Admin: () => fakeDb,
 }));
 
-// Import APRÈS le mock (les helpers capturent getSupabaseAdmin à l'appel, pas à l'import).
+// Import APRÈS le mock (les helpers capturent getGpu1Admin à l'appel, pas à l'import).
 import { isSameTenant, getUserTenant, listTenantUserIds } from "./auth-admin";
 
 const TENANT_A = "tenant-alpha";

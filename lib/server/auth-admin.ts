@@ -1,6 +1,6 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import type { Gpu1Client } from "@/lib/gpu1";
+import { getGpu1Admin } from "@/lib/gpu1";
 
 /**
  * lib/server/auth-admin.ts — isolation multi-tenant des actions d'administration.
@@ -17,12 +17,12 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
  * `false` → l'appelant DOIT refuser (403). Ne jamais transformer un doute en autorisation.
  *
  * `auth_credentials` n'est pas dans les types générés (même situation que `user_mfa` /
- * `revoked_sessions`) → cast SupabaseClient non typé pour cette requête.
+ * `revoked_sessions`) → cast Gpu1Client non typé pour cette requête.
  */
 
 /** Client service-role non typé (table hors types générés). `null` si Supabase non configuré. */
-function untypedAdmin(): SupabaseClient | null {
-  return getSupabaseAdmin() as SupabaseClient | null;
+function untypedAdmin(): Gpu1Client<unknown> | null {
+  return getGpu1Admin() as Gpu1Client<unknown> | null;
 }
 
 /**

@@ -5,8 +5,7 @@
  * admin (la garde est côté caller : page + route /api/admin).
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Gpu1Client, Database } from "@/lib/gpu1";
 import { providersStatus } from "@/lib/providers";
 
 export interface AdminOverview {
@@ -15,7 +14,7 @@ export interface AdminOverview {
 }
 
 export async function buildAdminOverview(
-  sb: SupabaseClient<Database> | null,
+  sb: Gpu1Client<Database> | null,
   tenantId: string,
 ): Promise<AdminOverview> {
   const providers = providersStatus();
