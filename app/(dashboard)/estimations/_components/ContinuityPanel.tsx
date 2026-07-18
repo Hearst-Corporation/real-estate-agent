@@ -44,39 +44,55 @@ type AdjustUnit = "pct" | "eur";
 type OwnerMode = "create" | "link";
 type VendeurLead = { id: string; full_name: string; email: string | null; phone: string | null };
 
-/** Un jalon du pipeline commercial. */
+/**
+ * Un jalon du pipeline commercial.
+ *
+ * Responsive : en dessous de `@sm` (≈ mobile, la colonne de contenu fait
+ * ~343 px), les jalons s'empilent en grille 2×2 sans filet de liaison — les 4
+ * restent lisibles, aucun débordement (le « Décision » ne sort plus du cadre).
+ * À partir de `@sm`, on retrouve la frise horizontale connectée. Le jalon
+ * `current` (premier non fait) porte un anneau accent : l'agent voit où agir.
+ */
 function PipelineStep({
   label,
   done,
+  current,
   first,
 }: {
   label: string;
   done: boolean;
+  current?: boolean;
   first?: boolean;
 }) {
+  const stateLabel = done ? t.stepDone : t.stepTodo;
   return (
-    <div className="flex flex-1 items-center gap-2">
+    <div className="flex items-center gap-2 @sm:flex-1">
       {!first && (
         <span
           aria-hidden="true"
-          className={`h-px flex-1 ${done ? "bg-accent-400" : "bg-zinc-950/10"}`}
+          className={`hidden h-px flex-1 @sm:block ${done ? "bg-accent-400" : "bg-zinc-950/10"}`}
         />
       )}
-      <div className="flex items-center gap-1.5">
+      <div className="flex min-w-0 items-center gap-1.5">
         <span
           aria-hidden="true"
           className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
             done
               ? "bg-accent-500 text-zinc-950"
-              : "border border-zinc-950/15 bg-white text-zinc-400"
+              : current
+                ? "border-2 border-accent-500 bg-accent-500/10 text-accent-700"
+                : "border border-zinc-950/15 bg-white text-zinc-400"
           }`}
         >
           {done ? "✓" : "○"}
         </span>
         <span
-          className={`text-xs font-semibold ${done ? "text-zinc-900" : "text-zinc-500"}`}
+          className={`truncate text-xs font-semibold ${
+            done ? "text-zinc-900" : current ? "text-accent-700" : "text-zinc-500"
+          }`}
         >
           {label}
+          <span className="sr-only"> — {stateLabel}</span>
         </span>
       </div>
     </div>
@@ -145,6 +161,16 @@ export function ContinuityPanel({
   const hasMandate = continuity.mandate != null;
   const hasDecision =
     continuity.decision != null && continuity.decision !== "en_attente";
+
+  // Prochain jalon à traiter (le 1ᵉʳ non fait) → guide l'agent vers l'action
+  // commerciale suivante. Séquence : propriétaire → opportunité → décision.
+  const pipelineCurrent: "owner" | "mandate" | "decision" | null = !hasOwner
+    ? "owner"
+    : !hasMandate
+      ? "mandate"
+      : !hasDecision
+        ? "decision"
+        : null;
 
   // ── Actions ──
   async function openOwnerForm() {
@@ -334,11 +360,12 @@ export function ContinuityPanel({
           <Subheading className="font-titre">{t.title}</Subheading>
           <Text className="mt-1 !text-sm">{t.subtitle}</Text>
         </div>
-        <div className="flex items-center gap-1">
+        {/* Mobile : grille 2×2 (tous les jalons visibles). @sm+ : frise connectée. */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2 @sm:flex @sm:items-center @sm:gap-1">
           <PipelineStep label={t.pipelineEstimation} done first />
-          <PipelineStep label={t.pipelineOwner} done={hasOwner} />
-          <PipelineStep label={t.pipelineOpportunity} done={hasMandate} />
-          <PipelineStep label={t.pipelineDecision} done={hasDecision} />
+          <PipelineStep label={t.pipelineOwner} done={hasOwner} current={pipelineCurrent === "owner"} />
+          <PipelineStep label={t.pipelineOpportunity} done={hasMandate} current={pipelineCurrent === "mandate"} />
+          <PipelineStep label={t.pipelineDecision} done={hasDecision} current={pipelineCurrent === "decision"} />
         </div>
       </div>
 
@@ -478,7 +505,13 @@ export function ContinuityPanel({
             <div className="flex flex-col gap-3">
               <Text className="!text-sm">{t.ownerNone}</Text>
               <div>
-                <Button outline onClick={openOwnerForm}>
+                {/* CTA primaire : rattacher le propriétaire est l'étape naturelle
+                    juste après l'estimation → même poids visuel que « créer le mandat ». */}
+                <Button
+                  color="indigo"
+                  className="!text-zinc-950 hover:!text-zinc-950"
+                  onClick={openOwnerForm}
+                >
                   <Icon name="plus" data-slot="icon" />
                   {t.ownerAttachCta}
                 </Button>
