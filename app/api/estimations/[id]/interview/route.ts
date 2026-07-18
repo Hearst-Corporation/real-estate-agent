@@ -16,7 +16,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import {
@@ -124,10 +124,10 @@ export async function POST(
   }
 
   // Supabase
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) {
     return NextResponse.json(
-      { error: "supabase_not_configured" },
+      { error: "database_not_configured" },
       { status: 503 }
     );
   }
@@ -256,7 +256,7 @@ export async function POST(
               role: "assistant",
               content: assistantText || null,
               tool_input: toolInput
-                ? (toolInput as import("@/lib/supabase/database.types").Json)
+                ? (toolInput as import("@/lib/gpu1/database.types").Json)
                 : null,
             });
 
@@ -265,8 +265,8 @@ export async function POST(
             await sb
               .from("estimations")
               .update({
-                property: newProperty as unknown as import("@/lib/supabase/database.types").Json,
-                field_status: newFieldStatus as unknown as import("@/lib/supabase/database.types").Json,
+                property: newProperty as unknown as import("@/lib/gpu1/database.types").Json,
+                field_status: newFieldStatus as unknown as import("@/lib/gpu1/database.types").Json,
                 status: "interviewing",
                 ...promotedCols,
                 updated_at: new Date().toISOString(),

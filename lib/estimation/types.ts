@@ -1,3 +1,5 @@
+import type { ProviderProvenance } from './provenance';
+
 // ─── PropertyData ────────────────────────────────────────────────────────────
 
 export type PropertyData = {
@@ -209,6 +211,13 @@ export type Estimation = {
   valuation: Valuation | null;
   saleStrategies: string[] | null;
   branding: Record<string, unknown> | null;
+  /**
+   * Provenance honnête des sources (statut LIVE/SNAPSHOT/FALLBACK/UNAVAILABLE
+   * par provider), extraite de `sources_snapshot.provenance`. Optionnelle :
+   * les estimations pré-provenance restent valides (le PDF retombe alors sur
+   * l'affichage de sources statique). Voir lib/estimation/provenance.ts.
+   */
+  provenance?: ProviderProvenance[] | null;
   createdAt: string;
   updatedAt: string;
 };

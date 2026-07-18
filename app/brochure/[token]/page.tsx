@@ -8,7 +8,7 @@
 
 import { notFound } from "next/navigation";
 import { verifyShareToken } from "@/lib/estimation/share";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { UI } from "@/lib/ui-strings";
 
 interface Props {
@@ -23,7 +23,7 @@ export default async function BrochurePage({ params }: Props) {
   if (!verified) notFound();
 
   // ── Vérifier que l'estimation existe et est "ready" ───────────────────────
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) notFound();
 
   const { data: row } = await sb

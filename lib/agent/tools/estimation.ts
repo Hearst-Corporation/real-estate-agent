@@ -8,7 +8,7 @@
  * pour que la fiche se mette à jour en direct (écoutée par la page estimation).
  */
 
-import type { Database, Json } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/gpu1/database.types";
 import type { FieldStatusMap, PropertyData } from "@/lib/estimation/types";
 import type { AgentTool, ToolResult } from "@/lib/agent/types";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";

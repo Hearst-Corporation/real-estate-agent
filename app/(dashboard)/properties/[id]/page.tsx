@@ -2,18 +2,19 @@ import { Fragment, Suspense, type ReactNode } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { PageHeader, Card } from "@/components/cockpit/primitives";
+import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
 import { DescriptionList, DescriptionTerm, DescriptionDetails } from "@/components/ui/description-list";
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateFr, daysSince } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { PropertyStatusControl } from "./_components/PropertyStatusControl";
 import { DpeBadge } from "./_components/DpeBadge";
 import PropertyFormModal from "../_components/PropertyForm";
 import { PropertyPhotosSection } from "./_components/PropertyPhotosSection";
 import { PropertyRelatedSection } from "./_components/PropertyRelatedSection";
+import { Timeline } from "@/components/timeline/Timeline";
 
 /** Type étendu property — inclut les colonnes enrichissement (migration agent A). */
 type PropertyRow = {
@@ -71,7 +72,7 @@ export default async function PropertyDetailPage({
   const claims = await getSession();
   if (!claims) notFound();
 
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) notFound();
 
   const tenantId = tenantOf(claims);
@@ -155,7 +156,7 @@ export default async function PropertyDetailPage({
           value: (
             <Link
               href={`/estimations/${property.estimation_id}`}
-              className="font-semibold text-accent-300 hover:text-accent-200"
+              className="font-semibold text-accent-600 hover:text-accent-500"
             >
               {t.seeEstimation}
             </Link>
@@ -200,15 +201,18 @@ export default async function PropertyDetailPage({
       : null;
 
   return (
-    <>
+    <PageStack>
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <PageHeader
         kicker={t.eyebrow}
         title={property.title ?? t.fallbackTitle}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button href={`/estimations/new?property=${id}`}>
               {t.estimateThisProperty}
+            </Button>
+            <Button plain href={`/properties/${id}/owner-report`}>
+              Tableau propriétaire
             </Button>
             <PropertyStatusControl
               id={id}
@@ -370,7 +374,7 @@ export default async function PropertyDetailPage({
                 href={`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-accent-300 hover:text-accent-200"
+                className="mt-1 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-accent-600 hover:text-accent-500"
               >
                 <span aria-hidden="true">{"📍"}</span>
                 {td.locMapsLink}
@@ -431,6 +435,11 @@ export default async function PropertyDetailPage({
           tenantId={tenantId}
         />
       </Suspense>
-    </>
+
+      {/* Timeline unifiée — historique chronologique réel de ce bien */}
+      <Card title="Historique" titleAs="section">
+        <Timeline type="property" id={property.id} />
+      </Card>
+    </PageStack>
   );
 }

@@ -66,23 +66,27 @@ function NewEstimationInner() {
       </div>
 
       {/* Card conteneur */}
-      <section className="surface p-6">
+      <section className="surface flex min-h-[40vh] items-center justify-center p-8">
         {error ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-4 text-center">
             <div className="flex items-center gap-2">
               <Badge color="red">{UI.common.error}</Badge>
               <Text>{error}</Text>
             </div>
-            <div>
-              <Button outline href="/estimations">
-                {t.back}
-              </Button>
-            </div>
+            <Button outline href="/estimations">
+              {t.back}
+            </Button>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
-            <ArrowPathIcon aria-hidden="true" className="size-5 animate-spin text-accent-500 dark:text-accent-400" />
-            <Text>{t.creating}</Text>
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="relative flex size-14 items-center justify-center">
+              <span aria-hidden="true" className="absolute inset-0 animate-ping rounded-full bg-accent-400/25" />
+              <ArrowPathIcon aria-hidden="true" className="relative size-6 animate-spin text-accent-600" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <p className="font-titre text-lg font-semibold text-zinc-950">{t.creating}</p>
+              <Text className="max-w-xs">{t.interviewSub}</Text>
+            </div>
           </div>
         )}
       </section>

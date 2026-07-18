@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { EstimationWizard } from "./EstimationWizard";
 import { GeneratingScreen } from "./GeneratingScreen";
 import { ValuationHero } from "./ValuationHero";
 import { SidePanel } from "./SidePanel";
+import { ContinuityPanel } from "./ContinuityPanel";
 import { UI } from "@/lib/ui-strings";
 import type { Coverage } from "@/lib/estimation/spec";
+import {
+  emptyContinuity,
+  type ContinuityState,
+} from "@/lib/estimation/continuity";
 import type {
   PropertyData,
   FieldStatusMap,
@@ -38,6 +42,8 @@ type Props = {
   initialMarket?: MarketAnalysis | null;
   /** Lien retour vers le bien CRM source, si l'estimation en provient. */
   backToPropertyHref?: string | null;
+  /** État de continuité commerciale (propriétaire / opportunité / décision). */
+  initialContinuity?: ContinuityState | null;
 };
 
 export function InterviewView({
@@ -52,7 +58,7 @@ export function InterviewView({
   initialStatus,
   initialValuation,
   initialMarket,
-  backToPropertyHref,
+  initialContinuity,
 }: Props) {
   const [phase, setPhase] = useState<Phase>(resolvePhase(initialStatus));
   const [property, setProperty] = useState<PropertyData>(initialProperty);
@@ -178,23 +184,27 @@ export function InterviewView({
 
   // ── Phase 3 : Ready ───────────────────────────────────────────────────────
   return (
-    <div className="pb-12">
-      <div className="flex flex-col gap-6">
-        {backToPropertyHref && (
-          <Link
-            href={backToPropertyHref}
-            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-accent-600 hover:text-accent-500"
-          >
-            <span aria-hidden="true">←</span>
-            {UI.estimations.backToProperty}
-          </Link>
-        )}
-        {valuation ? (
-          <ValuationHero id={id} valuation={valuation} />
-        ) : (
-          <p className="text-sm text-zinc-500">{UI.common.error}</p>
-        )}
-        {valuation ? (
+    <div className="flex flex-col gap-6 pb-12">
+      {valuation ? (
+        <>
+          {/* Résultat d'abord — la valeur domine avant toute explication. */}
+          <ValuationHero
+            id={id}
+            valuation={valuation}
+            property={property}
+            market={market}
+          />
+
+          {/* Continuité commerciale — parcours réel persisté (0043), pas de fausse action. */}
+          <ContinuityPanel
+            id={id}
+            initialContinuity={initialContinuity ?? emptyContinuity()}
+            valuation={valuation}
+            property={property}
+            fieldStatus={fieldStatus}
+          />
+
+          {/* Preuve & détail au 2ᵉ niveau. */}
           <SidePanel
             id={id}
             valuation={valuation}
@@ -203,8 +213,10 @@ export function InterviewView({
             fieldStatus={fieldStatus}
             coverage={coverage}
           />
-        ) : null}
-      </div>
+        </>
+      ) : (
+        <p className="text-sm text-zinc-500">{UI.common.error}</p>
+      )}
     </div>
   );
 }

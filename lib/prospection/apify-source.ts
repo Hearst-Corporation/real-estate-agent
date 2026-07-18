@@ -8,6 +8,7 @@
  * Best-effort : jamais throw, [] si Apify absent/vide.
  */
 import { apifyIsConfigured, fetchListingComparables } from "@/lib/estimation/listings";
+import type { ListingComparable } from "@/lib/estimation/types";
 import type { MoteurImmoListing } from "@/lib/providers/moteurimmo";
 
 export function apifyProspectionIsConfigured(): boolean {
@@ -50,8 +51,14 @@ export async function searchListingsApify(
   return res.listings.map((l) => toMoteurImmo(l, codePostal, ville, typeBien));
 }
 
-function toMoteurImmo(
-  l: { id: string; url: string | null; titre: string; prix: number; surface_m2: number; prix_m2: number; nb_pieces: number | null; date_publication: string | null; statut: string },
+/**
+ * Convertit un `ListingComparable` (sortie du scraper Apify LeBonCoin/Bienici,
+ * réutilisé de l'estimation) vers `MoteurImmoListing`. PURE et déterministe.
+ * Exportée pour que l'interface gateway `listings.normalize` réutilise EXACTEMENT
+ * l'adaptateur qui précède l'ingestion réelle (parité, zéro copie divergente).
+ */
+export function toMoteurImmo(
+  l: ListingComparable,
   codePostal: string | null,
   ville: string,
   typeBien: string,

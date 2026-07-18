@@ -11,7 +11,8 @@
  */
 
 import { verifyShareToken } from "@/lib/estimation/share";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { recordShareEvent } from "@/lib/share-tracking";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { r2IsConfigured, getObject } from "@/lib/storage/r2";
 import type {
   Estimation,
@@ -20,28 +21,32 @@ import type {
   MarketAnalysis,
   Valuation,
 } from "@/lib/estimation/types";
+import { parseProvenance } from "@/lib/estimation/provenance";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ token: string }> }
 ) {
   const { token } = await ctx.params;
 
   // ── Vérifier le token signé ───────────────────────────────────────────────
+  // Anti-énumération : token invalide, expiré OU secret non configuré → 404
+  // GÉNÉRIQUE, identique au cas « estimation inexistante ». Un 401 distinct
+  // révélerait que la ressource existe (ou non) selon le code renvoyé.
   const verified = await verifyShareToken(token);
   if (!verified) {
-    return Response.json({ error: "invalid_or_expired_token" }, { status: 401 });
+    return Response.json({ error: "not_found" }, { status: 404 });
   }
   const { estimationId } = verified;
 
   // ── Supabase (service-role — pas de filtre user) ──────────────────────────
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) {
-    return Response.json({ error: "supabase_not_configured" }, { status: 503 });
+    return Response.json({ error: "database_not_configured" }, { status: 503 });
   }
 
   const { data: row, error } = await sb
@@ -50,9 +55,33 @@ export async function GET(
     .eq("id", estimationId)
     .maybeSingle();
 
-  if (error) throw error;
+  // Erreur DB : log serveur, réponse générique (jamais `error.message` au client).
+  if (error) {
+    console.error("[brochure/pdf] estimation read failed", { code: error.code });
+    return Response.json({ error: "internal_error" }, { status: 500 });
+  }
   if (!row || row.status !== "ready" || !row.valuation) {
     return Response.json({ error: "not_found" }, { status: 404 });
+  }
+
+  // ── Suivi des partages (ADDITIF, best-effort) ─────────────────────────────
+  // Consultation RÉELLE : token vérifié + estimation existante et servie. On
+  // enregistre l'événement 'share_open' sans jamais bloquer la livraison du PDF
+  // (dégrade en silence si la table 0056 est absente). Aucun « ouvert » inventé.
+  {
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      null;
+    const rec = await recordShareEvent(sb, {
+      resource: { type: "brochure", id: estimationId, tenantId: row.tenant_id },
+      kind: "share_open",
+      token,
+      ip,
+    });
+    if (!rec.ok && rec.reason === "error") {
+      console.warn("[brochure/pdf] share-tracking record failed");
+    }
   }
 
   // ── R2 cache hit ──────────────────────────────────────────────────────────
@@ -79,6 +108,13 @@ export async function GET(
     }
   }
 
+  // Provenance honnête, extraite du snapshot persisté (défensif, [] si absent).
+  const snapProvenance = (() => {
+    const snap = row.sources_snapshot;
+    if (!snap || typeof snap !== "object" || Array.isArray(snap)) return null;
+    return parseProvenance((snap as Record<string, unknown>).provenance);
+  })();
+
   // ── Re-render ─────────────────────────────────────────────────────────────
   const estimation: Estimation = {
     id: row.id,
@@ -93,6 +129,7 @@ export async function GET(
       ? (row.sale_strategies as string[])
       : null,
     branding: (row.branding ?? null) as Record<string, unknown> | null,
+    provenance: snapProvenance,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

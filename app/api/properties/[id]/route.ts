@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
-import type { TablesUpdate } from "@/lib/supabase/database.types";
+import { PROPERTY_STATUSES } from "@/lib/crm/format";
+import type { TablesUpdate } from "@/lib/gpu1/database.types";
+import { z } from "zod";
+
+const PropertyStatusSchema = z.enum(PROPERTY_STATUSES);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,8 +20,8 @@ export async function GET(
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await params;
 
@@ -45,8 +49,8 @@ export async function PATCH(
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await params;
 
@@ -91,7 +95,17 @@ export async function PATCH(
   ];
   const patch: TablesUpdate<"properties"> = {};
   for (const key of allowed) {
-    if (key in body) (patch as Record<string, unknown>)[key] = body[key];
+    if (key in body) {
+      if (key === "status") {
+        const parsed = PropertyStatusSchema.safeParse(body[key]);
+        if (!parsed.success) {
+          return NextResponse.json({ error: "invalid_status" }, { status: 400 });
+        }
+        patch.status = parsed.data;
+      } else {
+        (patch as Record<string, unknown>)[key] = body[key];
+      }
+    }
   }
 
   if (Object.keys(patch).length === 0) {
@@ -124,8 +138,8 @@ export async function DELETE(
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await params;
 

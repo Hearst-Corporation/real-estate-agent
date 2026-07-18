@@ -19,10 +19,10 @@
  */
 
 import { createHash } from "node:crypto";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Gpu1Client } from "@/lib/gpu1";
 import { twilioIsConfigured } from "@/lib/providers/twilio";
 import { resendIsConfigured } from "@/lib/providers/resend-email";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database } from "@/lib/gpu1/database.types";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -38,11 +38,11 @@ export type ContactStatut =
   | "opted_out";
 
 /**
- * Client DB requis : le sous-ensemble `from()` de SupabaseClient<Database>.
+ * Client DB requis : le sous-ensemble `from()` de Gpu1Client<Database>.
  * Le vrai client admin le satisfait directement ; le faux client de test se
- * cast en DbLike. Pas de `any` : le type vient du SDK Supabase.
+ * cast en DbLike. Pas de `any` : le type vient du client GPU1/PostgREST.
  */
-export type DbLike = Pick<SupabaseClient<Database>, "from">;
+export type DbLike = Pick<Gpu1Client<Database>, "from">;
 
 export interface Coordonnees {
   email?: string | null;

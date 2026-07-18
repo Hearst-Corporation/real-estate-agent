@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mocks serveur — déclarés AVANT l'import de la route (hoisting vi.mock).
 const getSession = vi.fn();
-const getSupabaseAdmin = vi.fn();
+const getGpu1Admin = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 
 import { POST, DELETE } from "@/app/api/prospection/criteres/route";
 
@@ -13,7 +13,7 @@ const CLAIMS = { sub: "11111111-1111-4111-8111-111111111111", tenant_id: "tenant
 const LEAD_UUID = "22222222-2222-4222-8222-222222222222";
 const CRIT_UUID = "33333333-3333-4333-8333-333333333333";
 
-/** Mock supabase capturant l'insert (insert→select→single). */
+/** Mock du client DB capturant l'insert (insert→select→single). */
 function makeInsert(returnData: unknown, error: unknown = null) {
   const single = vi.fn().mockResolvedValue({ data: returnData, error });
   const select = vi.fn().mockReturnValue({ single });
@@ -21,7 +21,7 @@ function makeInsert(returnData: unknown, error: unknown = null) {
   return { client: { from: vi.fn().mockReturnValue({ insert }) }, insert };
 }
 
-/** Mock supabase capturant l'update chaîné (.eq×3) pour le DELETE. */
+/** Mock du client DB capturant l'update chaîné (.eq×3) pour le DELETE. */
 function makeUpdate(error: unknown = null) {
   const eqUser = vi.fn().mockResolvedValue({ error });
   const eqTenant = vi.fn().mockReturnValue({ eq: eqUser });
@@ -40,7 +40,7 @@ function postReq(body: unknown) {
 
 beforeEach(() => {
   getSession.mockReset();
-  getSupabaseAdmin.mockReset();
+  getGpu1Admin.mockReset();
 });
 
 describe("POST /api/prospection/criteres — auth & validation", () => {
@@ -52,7 +52,7 @@ describe("POST /api/prospection/criteres — auth & validation", () => {
 
   it("400 si nom manquant", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(postReq({ budget_min: 100 }) as never);
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -61,28 +61,28 @@ describe("POST /api/prospection/criteres — auth & validation", () => {
 
   it("400 si budget_min > budget_max", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(postReq({ nom: "Jean", budget_min: 500000, budget_max: 300000 }) as never);
     expect(res.status).toBe(400);
   });
 
   it("400 si surface_min > surface_max", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(postReq({ nom: "Jean", surface_min: 120, surface_max: 40 }) as never);
     expect(res.status).toBe(400);
   });
 
   it("400 si pieces_min > pieces_max", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(postReq({ nom: "Jean", pieces_min: 5, pieces_max: 2 }) as never);
     expect(res.status).toBe(400);
   });
 
   it("400 sur budget NaN / négatif", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const nan = await POST(postReq({ nom: "Jean", budget_min: "abc" }) as never);
     expect(nan.status).toBe(400);
     const neg = await POST(postReq({ nom: "Jean", budget_min: -100 }) as never);
@@ -91,21 +91,21 @@ describe("POST /api/prospection/criteres — auth & validation", () => {
 
   it("400 sur coordonnées de zone invalides (lat sans lng)", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(postReq({ nom: "Jean", zones: [{ label: "Nice", lat: 43.7 }] }) as never);
     expect(res.status).toBe(400);
   });
 
   it("400 sur latitude hors bornes", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(postReq({ nom: "Jean", zones: [{ label: "X", lat: 200, lng: 5 }] }) as never);
     expect(res.status).toBe(400);
   });
 
   it("400 sur zone entièrement vide (ni label ni cp ni ville)", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(postReq({ nom: "Jean", zones: [{ rayon_km: 10 }] }) as never);
     expect(res.status).toBe(400);
   });
@@ -113,14 +113,14 @@ describe("POST /api/prospection/criteres — auth & validation", () => {
   it("201 sur zones en texte libre (contrat envoyé par le formulaire prospection)", async () => {
     getSession.mockResolvedValue(CLAIMS);
     const { client } = makeInsert({ id: CRIT_UUID, nom: "Jean", zones: [{ label: "Nice" }, { label: "06000" }] });
-    getSupabaseAdmin.mockReturnValue(client);
+    getGpu1Admin.mockReturnValue(client);
     const res = await POST(postReq({ nom: "Jean", zones: ["Nice", "06000"] }) as never);
     expect(res.status).toBe(201);
   });
 
   it("400 sur préférence hors enum indifferent|requis|exclu", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(postReq({ nom: "Jean", terrasse: "obligatoire" }) as never);
     expect(res.status).toBe(400);
   });
@@ -128,7 +128,7 @@ describe("POST /api/prospection/criteres — auth & validation", () => {
   it("201 + insert porte user_id + tenant_id du user connecté (owner-check applicatif)", async () => {
     getSession.mockResolvedValue(CLAIMS);
     const { client, insert } = makeInsert({ id: CRIT_UUID });
-    getSupabaseAdmin.mockReturnValue(client);
+    getGpu1Admin.mockReturnValue(client);
 
     const res = await POST(
       postReq({
@@ -154,7 +154,7 @@ describe("POST /api/prospection/criteres — auth & validation", () => {
   it("500 générique sans fuite du message DB si insert échoue", async () => {
     getSession.mockResolvedValue(CLAIMS);
     const { client } = makeInsert(null, { code: "23505", message: "duplicate key value violates unique" });
-    getSupabaseAdmin.mockReturnValue(client);
+    getGpu1Admin.mockReturnValue(client);
 
     const res = await POST(postReq({ nom: "Dup" }) as never);
     expect(res.status).toBe(500);
@@ -178,7 +178,7 @@ describe("DELETE /api/prospection/criteres — owner-check & validation id", () 
 
   it("400 si id absent ou non-UUID", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     expect((await DELETE(delReq(null) as never)).status).toBe(400);
     expect((await DELETE(delReq("not-a-uuid") as never)).status).toBe(400);
   });
@@ -186,7 +186,7 @@ describe("DELETE /api/prospection/criteres — owner-check & validation id", () 
   it("filtre id + tenant_id + user_id (owner-check applicatif, anti-IDOR)", async () => {
     getSession.mockResolvedValue(CLAIMS);
     const { client, eqId, eqTenant, eqUser } = makeUpdate();
-    getSupabaseAdmin.mockReturnValue(client);
+    getGpu1Admin.mockReturnValue(client);
 
     const res = await DELETE(delReq(CRIT_UUID) as never);
     expect(res.status).toBe(200);
@@ -198,7 +198,7 @@ describe("DELETE /api/prospection/criteres — owner-check & validation id", () 
   it("500 générique sans fuite si update échoue", async () => {
     getSession.mockResolvedValue(CLAIMS);
     const { client } = makeUpdate({ code: "XX000", message: "internal db detail" });
-    getSupabaseAdmin.mockReturnValue(client);
+    getGpu1Admin.mockReturnValue(client);
 
     const res = await DELETE(delReq(CRIT_UUID) as never);
     expect(res.status).toBe(500);

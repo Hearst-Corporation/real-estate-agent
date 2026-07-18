@@ -1,11 +1,6 @@
-import {
-  test,
-  expect,
-  request as playwrightRequest,
-  type APIRequestContext,
-} from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { createClient } from "@supabase/supabase-js";
+import { loginAdminContext, loadEnv, gpu1DeleteByIds } from "./_helpers";
 
 // ── Credentials ──────────────────────────────────────────────────────────────
 function readAdminCreds(): { email: string; password: string } | null {
@@ -26,40 +21,6 @@ function readAdminCreds(): { email: string; password: string } | null {
   return null;
 }
 
-// ── Env parser (même logique que seed-crm.mjs) ──────────────────────────────
-function loadEnv(): Record<string, string> {
-  const paths = [
-    ".env.local",
-    "/Users/adrienbeyondcrypto/Dev/Projects/Real estate Agent/.env.local",
-  ];
-  for (const p of paths) {
-    try {
-      const raw = readFileSync(p, "utf8");
-      const env: Record<string, string> = {};
-      for (const line of raw.split("\n")) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith("#")) continue;
-        const idx = trimmed.indexOf("=");
-        if (idx === -1) continue;
-        const key = trimmed.slice(0, idx).trim();
-        let value = trimmed.slice(idx + 1).trim();
-        // Strip surrounding quotes
-        if (
-          (value.startsWith('"') && value.endsWith('"')) ||
-          (value.startsWith("'") && value.endsWith("'"))
-        ) {
-          value = value.slice(1, -1);
-        }
-        env[key] = value;
-      }
-      return env;
-    } catch {
-      /* next */
-    }
-  }
-  return {};
-}
-
 const creds = readAdminCreds();
 const envVars = loadEnv();
 
@@ -74,13 +35,12 @@ const createdMandateIds: string[] = [];
 
 // ── beforeAll : login une seule fois sur le contexte partagé ──────────────────
 test.beforeAll(async () => {
-  test.skip(!creds, "docs/credentials.local.txt absent — tests CRM ignorés");
-
-  api = await playwrightRequest.newContext({ baseURL: "http://localhost:3002" });
-  const res = await api.post("/api/auth/login", {
-    data: { email: creds!.email, password: creds!.password },
-  });
-  expect(res.status()).toBe(200); // cookie stocké dans le jar de `api`
+  // Rejoue la session partagée établie une seule fois par `global-setup.ts`.
+  // On NE se reconnecte PAS ici : `/api/auth/login` est rate-limité (8/60 s par
+  // email) et un login par spec saturait la barrière → cascade de 429.
+  const shared = await loginAdminContext();
+  test.skip(!shared, "session admin partagée absente — tests CRM ignorés");
+  api = shared!;
 });
 
 // ── afterAll : cleanup rows [E2E] via service role ───────────────────────────
@@ -88,32 +48,12 @@ test.afterAll(async () => {
   // dispose the API context
   if (api) await api.dispose();
 
-  // Cleanup via Supabase service role
-  const supabaseUrl = envVars.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = envVars.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceRoleKey) return;
-
-  try {
-    const sb = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false },
-    });
-
-    // Ordre inverse des FK : mandates et visits d'abord, puis leads, puis properties
-    if (createdMandateIds.length > 0) {
-      await sb.from("mandates").delete().in("id", createdMandateIds);
-    }
-    if (createdVisitIds.length > 0) {
-      await sb.from("visits").delete().in("id", createdVisitIds);
-    }
-    if (createdLeadIds.length > 0) {
-      await sb.from("leads").delete().in("id", createdLeadIds);
-    }
-    if (createdPropertyIds.length > 0) {
-      await sb.from("properties").delete().in("id", createdPropertyIds);
-    }
-  } catch {
-    // best-effort — ne fait pas échouer la suite si cleanup partiel
-  }
+  // Cleanup via PostgREST service-role (Postgres self-hosté gpu1) — best-effort.
+  // Ordre inverse des FK : mandates et visits d'abord, puis leads, puis properties.
+  await gpu1DeleteByIds(envVars, "mandates", createdMandateIds);
+  await gpu1DeleteByIds(envVars, "visits", createdVisitIds);
+  await gpu1DeleteByIds(envVars, "leads", createdLeadIds);
+  await gpu1DeleteByIds(envVars, "properties", createdPropertyIds);
 });
 
 // ── Properties ───────────────────────────────────────────────────────────────
@@ -180,9 +120,15 @@ test("PATCH /api/properties statut invalide → 400", async () => {
   createdPropertyIds.push(id);
 
   const res = await api.patch(`/api/properties/${id}`, { data: { status: "nope" } });
+
   expect(res.status()).toBe(400);
   const body = await res.json();
-  expect(body).toMatchObject({ error: "invalid_status" });
+  expect(body).toEqual({ error: "invalid_status" });
+
+  // Le statut reste inchangé côté lecture — preuve que le refus applicatif est atomique.
+  const after = await api.get(`/api/properties/${id}`);
+  expect(after.status()).toBe(200);
+  expect((await after.json()).item.status).toBe("prospect");
 });
 
 // ── Leads ─────────────────────────────────────────────────────────────────────
@@ -540,7 +486,10 @@ test("POST /api/prospection/criteres sans nom → 400", async () => {
   const res = await api.post("/api/prospection/criteres", { data: { zones: ["75011"] } });
   expect(res.status()).toBe(400);
   const body = await res.json();
-  expect(body).toMatchObject({ error: "nom requis" });
+  // Contrat RÉEL (validation Zod) : `{ error:"invalid_body", detail:<message> }`.
+  // L'ancienne assertion `error:"nom requis"` datait d'avant le passage à Zod.
+  expect(body).toMatchObject({ error: "invalid_body" });
+  expect(typeof body.detail).toBe("string");
 });
 
 test("POST /api/prospection/matchs feedback invalide → 400", async () => {
@@ -551,7 +500,8 @@ test("POST /api/prospection/matchs feedback invalide → 400", async () => {
   });
   expect(res.status()).toBe(400);
   const body = await res.json();
-  expect(body).toMatchObject({ error: "match_id + verdict requis" });
+  // Idem : la route valide désormais via Zod → `invalid_body`.
+  expect(body).toMatchObject({ error: "invalid_body" });
 });
 
 test("POST /api/prospection/matchs feedback sur match inconnu → 404", async () => {

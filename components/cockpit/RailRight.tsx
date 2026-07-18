@@ -13,7 +13,7 @@ export function RailRight({ open, toggle }: { open: boolean; toggle: () => void 
   if (!open) {
     return (
       <aside
-        className="fixed inset-y-0 right-0 z-20 flex w-10 items-start justify-center border-l border-zinc-950/10 bg-white/60 pt-6"
+        className="fixed inset-y-0 right-0 z-20 flex w-10 items-start justify-center border-l border-zinc-950/10 bg-white/60 pt-6 max-sm:hidden"
         aria-label={UI.chat.title}
       >
         <button
@@ -29,7 +29,7 @@ export function RailRight({ open, toggle }: { open: boolean; toggle: () => void 
 
   return (
     <aside
-      className="fixed inset-y-0 right-0 z-20 flex w-rail-right flex-col border-l border-zinc-950/10 bg-white/60 backdrop-blur-xl"
+      className="fixed inset-y-0 right-0 z-20 flex w-rail-right flex-col border-l border-zinc-950/10 bg-white/60 backdrop-blur-xl max-sm:hidden"
       aria-label={UI.chat.title}
     >
       <div className="flex items-center justify-between border-b border-zinc-950/10 px-4 py-3">

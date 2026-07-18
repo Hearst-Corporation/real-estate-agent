@@ -7,6 +7,7 @@ import { Dialog, DialogTitle, DialogBody } from "@/components/ui/dialog";
 import { Fieldset, FieldGroup, Field, Label, ErrorMessage } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { UI } from "@/lib/ui-strings";
 import {
@@ -17,6 +18,14 @@ import {
   LEAD_DEFAULT_STATUS,
   FORM_LIMITS,
 } from "@/lib/crm/format";
+import {
+  FINANCEMENT_MODES,
+  FINANCEMENT_MODE_LABELS,
+  FINANCEMENT_UI,
+  FINANCEMENT_MONTANT_MAX,
+  parseFinancement,
+  type Financement,
+} from "@/lib/crm/financement";
 
 export type LeadDefaults = {
   full_name?: string;
@@ -28,6 +37,7 @@ export type LeadDefaults = {
   budget_min?: number | null;
   budget_max?: number | null;
   status?: string | null;
+  financement?: unknown;
 };
 
 /** Le formulaire pur (création si pas d'`id`, édition sinon). */
@@ -59,6 +69,19 @@ export function LeadForm({
     defaultValues.budget_max != null ? String(defaultValues.budget_max) : ""
   );
   const [status] = useState(defaultValues.status ?? LEAD_DEFAULT_STATUS);
+
+  // Financement (jsonb) — mode + apport + montant prêt + organisme + précisions.
+  const initialFin: Financement | null = parseFinancement(defaultValues.financement);
+  const [finMode, setFinMode] = useState(initialFin?.mode ?? "");
+  const [finApport, setFinApport] = useState(
+    initialFin?.apport != null ? String(initialFin.apport) : ""
+  );
+  const [finMontantPret, setFinMontantPret] = useState(
+    initialFin?.montant_pret != null ? String(initialFin.montant_pret) : ""
+  );
+  const [finOrganisme, setFinOrganisme] = useState(initialFin?.organisme ?? "");
+  const [finNotes, setFinNotes] = useState(initialFin?.notes ?? "");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,6 +94,18 @@ export function LeadForm({
     setLoading(true);
     setError(null);
 
+    // Financement : mode vide ⇒ null (non renseigné / effacé) ; sinon objet
+    // structuré. Les montants vides restent absents (→ null côté API).
+    const financement = finMode
+      ? {
+          mode: finMode,
+          ...(finApport ? { apport: Number(finApport) } : {}),
+          ...(finMontantPret ? { montant_pret: Number(finMontantPret) } : {}),
+          ...(finOrganisme.trim() ? { organisme: finOrganisme.trim() } : {}),
+          ...(finNotes.trim() ? { notes: finNotes.trim() } : {}),
+        }
+      : null;
+
     const body: Record<string, unknown> = {
       full_name: fullName.trim(),
       kind,
@@ -81,6 +116,7 @@ export function LeadForm({
       source: source || null,
       budget_min: budgetMin ? Number(budgetMin) : null,
       budget_max: budgetMax ? Number(budgetMax) : null,
+      financement,
     };
 
     const url = isEdit ? `/api/leads/${id}` : "/api/leads";
@@ -190,10 +226,76 @@ export function LeadForm({
             />
           </Field>
 
+          {/* ── Financement acquéreur ── */}
+          <Field>
+            <Label>{FINANCEMENT_UI.mode}</Label>
+            <Select
+              name="financement_mode"
+              value={finMode}
+              onChange={(e) => setFinMode(e.target.value)}
+            >
+              <option value="">{FINANCEMENT_UI.modePlaceholder}</option>
+              {FINANCEMENT_MODES.map((m) => (
+                <option key={m} value={m}>
+                  {FINANCEMENT_MODE_LABELS[m]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          {finMode ? (
+            <>
+              <Field>
+                <Label>{FINANCEMENT_UI.apport}</Label>
+                <Input
+                  name="financement_apport"
+                  type="number"
+                  min={0}
+                  max={FINANCEMENT_MONTANT_MAX}
+                  value={finApport}
+                  onChange={(e) => setFinApport(e.target.value)}
+                />
+              </Field>
+
+              <Field>
+                <Label>{FINANCEMENT_UI.montantPret}</Label>
+                <Input
+                  name="financement_montant_pret"
+                  type="number"
+                  min={0}
+                  max={FINANCEMENT_MONTANT_MAX}
+                  value={finMontantPret}
+                  onChange={(e) => setFinMontantPret(e.target.value)}
+                />
+              </Field>
+
+              <Field>
+                <Label>{FINANCEMENT_UI.organisme}</Label>
+                <Input
+                  name="financement_organisme"
+                  value={finOrganisme}
+                  placeholder={FINANCEMENT_UI.organismePlaceholder}
+                  onChange={(e) => setFinOrganisme(e.target.value)}
+                />
+              </Field>
+
+              <Field>
+                <Label>{FINANCEMENT_UI.notes}</Label>
+                <Textarea
+                  name="financement_notes"
+                  rows={FORM_LIMITS.textareaRows}
+                  value={finNotes}
+                  placeholder={FINANCEMENT_UI.notesPlaceholder}
+                  onChange={(e) => setFinNotes(e.target.value)}
+                />
+              </Field>
+            </>
+          ) : null}
+
           {error && <ErrorMessage>{error}</ErrorMessage>}
 
           <div className="flex items-center gap-3 pt-2">
-            <Button color="indigo" type="submit" disabled={loading}>
+            <Button color="indigo" className="!text-zinc-950" type="submit" disabled={loading}>
               {t.save}
             </Button>
             {onClose && (
@@ -215,7 +317,7 @@ export default function LeadFormModal({ cta }: { cta: string }) {
 
   return (
     <>
-      <Button color="indigo" type="button" onClick={() => setOpen(true)}>
+      <Button color="indigo" className="!text-zinc-950" type="button" onClick={() => setOpen(true)}>
         {cta}
       </Button>
       <Dialog open={open} onClose={setOpen}>

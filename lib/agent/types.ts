@@ -2,12 +2,12 @@
  * lib/agent/types.ts — Contrat du moteur agentique du chat Cockpit.
  *
  * Définit les frames streamées au client (NDJSON), le contexte d'exécution des
- * tools (Supabase service-role filtré user_id + tenant_id), et la forme d'un tool.
+ * tools (client service-role filtré user_id + tenant_id), et la forme d'un tool.
  * Aucun comportement ici — uniquement des types.
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Gpu1Client } from "@/lib/gpu1";
+import type { Database } from "@/lib/gpu1/database.types";
 
 /** Action déclenchée côté client (navigation, ou mise à jour live d'un champ d'estimation). */
 export type ClientAction =
@@ -45,7 +45,7 @@ export interface ToolContext {
   /** Origine HTTP de la requête (ex. https://app…) — pour construire des URLs
    *  absolues (lien de partage d'avis de valeur). */
   origin: string;
-  sb: SupabaseClient<Database>;
+  sb: Gpu1Client<Database>;
   emit: (frame: AgentFrame) => void;
 }
 

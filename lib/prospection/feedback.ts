@@ -1,33 +1,58 @@
 /**
- * lib/prospection/feedback.ts — normalisation du verdict de feedback sur un match.
+ * lib/prospection/feedback.ts — normalisation du signal de feedback sur un match.
  *
- * La table `prosp_match_feedback` a une CHECK `verdict IN ('up','down')`. L'UI émet
- * 👍/👎 (historiquement "like"/"dislike") et un bouton "Contacter"/"visite" qui ne
- * sont PAS du feedback noté. Cette fonction mappe ces signaux vers ce que la DB
- * accepte, sans jamais produire une valeur invalide.
+ * ⚠️ SCHÉMA RÉEL gpu1 (migration 0017, vérifié via PostgREST) : la table
+ * `prosp_match_feedback` a une colonne **`signal`** avec CHECK
+ * `signal IN ('like','dislike','contact','visite')`. Il n'existe PAS de colonne
+ * `verdict`, et 'up'/'down' ne sont PAS acceptés par la contrainte.
+ *
+ * L'UI émet 👍/👎 (up/down, ou legacy like/dislike) et des signaux d'action
+ * (contact/visite). Cette fonction mappe TOUT vers une valeur que la DB accepte
+ * réellement, sans jamais produire une valeur invalide (qui provoquait un 500).
+ *
+ * Sémantique produit (historique des propositions) :
+ *   - like    = proposition retenue / poussée à l'acquéreur (👍)
+ *   - dislike = proposition refusée / écartée (👎)
+ *   - contact = un contact a été tenté sur cette annonce
+ *   - visite  = une visite a été organisée
  *
  * Retour :
- *   - "up" | "down" : à écrire en DB.
- *   - "noop"        : signal reconnu mais NON noté (contact/visite) → aucune
- *                     écriture DB (parcours pas encore défini).
- *   - null          : signal inconnu → 400 côté route.
+ *   - "like" | "dislike" | "contact" | "visite" : à écrire en DB (colonne signal).
+ *   - null : signal inconnu → 400 côté route.
  */
-export type DbVerdict = "up" | "down";
-export type VerdictOutcome = DbVerdict | "noop" | null;
+export type DbSignal = "like" | "dislike" | "contact" | "visite";
+export type SignalOutcome = DbSignal | null;
 
-export function normalizeVerdict(raw: unknown): VerdictOutcome {
+export function normalizeSignal(raw: unknown): SignalOutcome {
   if (typeof raw !== "string") return null;
   switch (raw.trim().toLowerCase()) {
     case "up":
     case "like":
-      return "up";
+      return "like";
     case "down":
     case "dislike":
-      return "down";
+      return "dislike";
     case "contact":
+      return "contact";
     case "visite":
-      return "noop"; // reconnu mais pas un verdict notable → pas d'écriture DB
+      return "visite";
     default:
       return null;
+  }
+}
+
+/** Sens produit d'un signal : retenu / refusé / contacté / visité (pour l'UI historique). */
+export type PropositionOutcome = "retenue" | "refusee" | "contactee" | "visitee";
+
+export function signalOutcome(signal: DbSignal): PropositionOutcome {
+  switch (signal) {
+    case "like":
+      return "retenue";
+    case "dislike":
+      return "refusee";
+    case "contact":
+      return "contactee";
+    case "visite":
+      return "visitee";
   }
 }

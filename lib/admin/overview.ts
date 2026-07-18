@@ -5,8 +5,7 @@
  * admin (la garde est côté caller : page + route /api/admin).
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Gpu1Client, Database } from "@/lib/gpu1";
 import { providersStatus } from "@/lib/providers";
 
 export interface AdminOverview {
@@ -15,16 +14,18 @@ export interface AdminOverview {
 }
 
 export async function buildAdminOverview(
-  sb: SupabaseClient<Database> | null,
+  sb: Gpu1Client<Database> | null,
+  tenantId: string,
 ): Promise<AdminOverview> {
   const providers = providersStatus();
   let counts = { estimations: 0, leads: 0, leadsEnriched: 0 };
 
   if (sb) {
+    // Compteurs bornés au tenant courant (isolation multi-tenant — REA-M04-01).
     const [est, leads, enriched] = await Promise.all([
-      sb.from("estimations").select("id", { count: "exact", head: true }),
-      sb.from("leads").select("id", { count: "exact", head: true }),
-      sb.from("leads").select("id", { count: "exact", head: true }).not("enriched_at", "is", null),
+      sb.from("estimations").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+      sb.from("leads").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+      sb.from("leads").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).not("enriched_at", "is", null),
     ]);
     counts = {
       estimations: est.count ?? 0,

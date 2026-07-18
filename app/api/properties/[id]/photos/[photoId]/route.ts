@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { deleteObject } from "@/lib/storage/r2";
 
@@ -16,8 +16,8 @@ export async function DELETE(
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id: propertyId, photoId } = await params;
   const tenantId = tenantOf(claims);

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { RailLeft } from "./RailLeft";
 import { CenterPanel } from "./CenterPanel";
 import { RailRight } from "./RailRight";
+import { MobileAssistant } from "./MobileAssistant";
 import { useRailRight } from "./useRailRight";
 
 /**
@@ -30,6 +31,7 @@ export function CockpitShell({
       <RailLeft userEmail={userEmail} />
       <CenterPanel chatOpen={open}>{children}</CenterPanel>
       <RailRight open={open} toggle={toggle} />
+      <MobileAssistant />
     </div>
   );
 }

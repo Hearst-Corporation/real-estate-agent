@@ -9,7 +9,7 @@
  */
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import type { TruthStatusT } from "./contracts";
 
 export function newRequestId(): string {
@@ -31,7 +31,7 @@ interface AuditEntry {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function recordGatewayAudit(entry: AuditEntry): Promise<void> {
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return;
   try {
     await db.from("agent_gateway_audit_log").insert({

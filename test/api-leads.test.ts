@@ -3,18 +3,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mocks des dépendances serveur de la route. Doivent être déclarés AVANT
 // l'import de la route (hoisting vi.mock).
 const getSession = vi.fn();
-const getSupabaseAdmin = vi.fn();
+const getGpu1Admin = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 vi.mock("@/lib/providers/posthog", () => ({ captureServer: vi.fn() }));
 
 import { POST, GET } from "@/app/api/leads/route";
 
 const CLAIMS = { sub: "user-1", tenant_id: "tenant-1", role: "user", scope: [] };
 
-/** Construit un mock du client supabase capturant l'insert. */
-function makeSupabaseInsert(returnData: unknown, error: unknown = null) {
+/** Construit un mock du client DB capturant l'insert. */
+function makeDbInsert(returnData: unknown, error: unknown = null) {
   const insert = vi.fn().mockReturnValue({
     select: vi.fn().mockReturnValue({
       single: vi.fn().mockResolvedValue({ data: returnData, error }),
@@ -33,7 +33,7 @@ function req(body: unknown) {
 
 beforeEach(() => {
   getSession.mockReset();
-  getSupabaseAdmin.mockReset();
+  getGpu1Admin.mockReset();
 });
 
 describe("POST /api/leads", () => {
@@ -45,7 +45,7 @@ describe("POST /api/leads", () => {
 
   it("400 si full_name manquant", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(req({ kind: "acheteur" }));
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "invalid_body" });
@@ -53,15 +53,15 @@ describe("POST /api/leads", () => {
 
   it("400 si full_name vide/espaces", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const res = await POST(req({ full_name: "   " }));
     expect(res.status).toBe(400);
   });
 
   it("201 + insert avec user_id + tenant_id (owner-check applicatif)", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    const { client, insert } = makeSupabaseInsert({ id: "lead-99" });
-    getSupabaseAdmin.mockReturnValue(client);
+    const { client, insert } = makeDbInsert({ id: "lead-99" });
+    getGpu1Admin.mockReturnValue(client);
 
     const res = await POST(req({ full_name: "Jane Doe", kind: "acheteur" }));
     expect(res.status).toBe(201);
@@ -77,8 +77,8 @@ describe("POST /api/leads", () => {
 
   it("500 générique sans fuite de message DB si insert échoue", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    const { client } = makeSupabaseInsert(null, { code: "23505", message: "duplicate key value" });
-    getSupabaseAdmin.mockReturnValue(client);
+    const { client } = makeDbInsert(null, { code: "23505", message: "duplicate key value" });
+    getGpu1Admin.mockReturnValue(client);
 
     const res = await POST(req({ full_name: "Dup" }));
     expect(res.status).toBe(500);
@@ -90,7 +90,7 @@ describe("POST /api/leads", () => {
 
   it("400 sur body non-JSON", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     const bad = new Request("http://localhost/api/leads", {
       method: "POST",
       body: "{not json",
@@ -113,7 +113,7 @@ describe("GET /api/leads", () => {
     const eqUser = { eq: vi.fn().mockReturnValue(eqTenant) };
     const select = { eq: vi.fn().mockReturnValue(eqUser) };
     const client = { from: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue(select) }) };
-    getSupabaseAdmin.mockReturnValue(client);
+    getGpu1Admin.mockReturnValue(client);
 
     const res = await GET();
     expect(res.status).toBe(200);

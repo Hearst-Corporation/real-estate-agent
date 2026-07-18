@@ -1,5 +1,5 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Gpu1Client } from "@/lib/gpu1";
+import type { Database } from "@/lib/gpu1/database.types";
 
 /**
  * Charge une estimation appartenant à userId+tenant.
@@ -7,7 +7,7 @@ import type { Database } from "@/lib/supabase/database.types";
  * toutes les routes [id].
  */
 export async function loadOwnedEstimation(
-  sb: SupabaseClient<Database>,
+  sb: Gpu1Client<Database>,
   id: string,
   userId: string,
   tenant: string

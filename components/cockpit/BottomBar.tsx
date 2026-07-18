@@ -29,10 +29,10 @@ export function BottomBar() {
 
   return (
     <nav
-      className="absolute inset-x-0 bottom-0 z-30 hidden border-t border-zinc-950/10 bg-lin-brut/95 px-4 py-2 backdrop-blur-xl max-sm:block"
+      className="absolute inset-x-0 bottom-0 z-30 hidden border-t border-zinc-950/10 bg-lin-brut/95 px-2 py-1.5 backdrop-blur-xl max-sm:block"
       aria-label={UI.nav.home}
     >
-      <div className="flex items-center justify-around gap-2">
+      <div className="flex items-stretch justify-around gap-1">
         {MOBILE_SHORTCUTS.map((item) => {
           const active = isActive(item.href, pathname);
 
@@ -40,15 +40,15 @@ export function BottomBar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-1 text-[10px] font-semibold transition-colors ${
-                active ? "text-accent-700" : "text-zinc-500"
+              className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg py-1.5 text-[10px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
+                active ? "bg-accent-500/10 text-accent-700" : "text-zinc-500 hover:bg-zinc-950/5"
               }`}
               title={item.label}
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
             >
-              <Icon name={item.icon} className="size-6" />
-              <span>{item.label}</span>
+              <Icon name={item.icon} className="size-5" />
+              <span className="max-w-full truncate px-0.5">{item.label}</span>
             </Link>
           );
         })}

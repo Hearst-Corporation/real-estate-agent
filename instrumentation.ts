@@ -4,6 +4,7 @@
  */
 import * as Sentry from "@sentry/nextjs";
 import { scrubSentryEvent, scrubSecrets } from "./lib/providers/scrub";
+import { assertBootEnv } from "./lib/env-check";
 
 // Garde-fou : on ne patche qu'une seule fois même si register() est appelé plusieurs fois.
 let _consolePatchApplied = false;
@@ -11,6 +12,10 @@ let _consolePatchApplied = false;
 export function register() {
   const dsn = process.env.SENTRY_DSN;
   if (process.env.NEXT_RUNTIME === "nodejs" || process.env.NEXT_RUNTIME === "edge") {
+    // Fail-fast au boot : refuse de démarrer si une var serveur requise manque
+    // (message clair, aucun secret imprimé). Non bloquant pendant `next build`.
+    assertBootEnv();
+
     if (dsn) {
       Sentry.init({
         dsn,

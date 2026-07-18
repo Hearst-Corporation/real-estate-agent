@@ -1,129 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin, type Gpu1Client } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
-import type { Tables } from "@/lib/supabase/database.types";
+import type { Tables, TablesInsert } from "@/lib/gpu1/database.types";
+import {
+  CreateCritereSchema,
+  UpdateCritereSchema,
+  buildCriterePatch,
+} from "@/lib/prospection/criteres-update";
+
+// Les colonnes 0043 (alerte_frequence/urgence/exclusions/criteres_secondaires)
+// sont désormais reflétées dans database.types.ts : l'objet d'insert est vérifié
+// via `satisfies`. La validation (Zod) + la construction du patch PARTIEL vivent
+// dans lib/prospection/criteres-update.ts — MÊME logique que l'interface gateway
+// `buyers.update_preferences` (zéro duplication divergente).
+type CritereInsert = TablesInsert<"prosp_criteres_acquereur">;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type AcquereurCritere = Tables<"prosp_criteres_acquereur">;
 
-// ─── Validation input critères (Zod) ────────────────────────────────────────
-// Bornes : budget/surface/pièces ≥ 0 finis ; min ≤ max ; zone (via lead_id/zones)
-// non totalement vide ; coordonnées valides si fournies ; préférences en enum
-// must-have/preferred/excluded (miroir CHECK DB : 'indifferent'|'requis'|'exclu').
-const PREF = z.enum(["indifferent", "requis", "exclu"]);
+// UUID utilisé uniquement pour la validation de l'`id` de suppression (DELETE).
 const UUID = z.string().uuid();
 
-// Une zone géographique optionnellement géolocalisée : label + coords + rayon.
-const ZoneObjectSchema = z
-  .object({
-    label: z.string().trim().min(1).optional(),
-    cp: z.string().trim().min(1).optional(),
-    ville: z.string().trim().min(1).optional(),
-    lat: z.number().finite().min(-90).max(90).optional(),
-    lng: z.number().finite().min(-180).max(180).optional(),
-    rayon_km: z.number().finite().nonnegative().optional(),
-  })
-  .strict()
-  .refine((z) => !!(z.label || z.cp || z.ville), {
-    message: "zone_empty",
-  })
-  // lat sans lng (ou l'inverse) = coordonnée invalide.
-  .refine((z) => (z.lat === undefined) === (z.lng === undefined), {
-    message: "coords_invalid",
-  });
-
-// Le formulaire envoie des zones en texte libre (ex: "Nice, 06000") ; on les
-// normalise en objet { label } pour rejoindre le même contrat de stockage.
-const ZoneSchema = z.union([
-  ZoneObjectSchema,
-  z
-    .string()
-    .trim()
-    .min(1)
-    .transform((label) => ({ label })),
-]);
-
-const PosNum = z.number().finite().nonnegative();
-const PosInt = z.number().int().finite().nonnegative();
-
-const CreateCritereSchema = z
-  .object({
-    nom: z.string().trim().min(1).max(200),
-    lead_id: UUID.nullish(),
-    type_bien: z.union([z.array(z.string().trim().min(1)), z.string().trim().min(1)]).nullish(),
-    budget_min: PosNum.nullish(),
-    budget_max: PosNum.nullish(),
-    surface_min: PosNum.nullish(),
-    surface_max: PosNum.nullish(),
-    pieces_min: PosInt.nullish(),
-    pieces_max: PosInt.nullish(),
-    zones: z.array(ZoneSchema).max(50).optional(),
-    terrasse: PREF.optional(),
-    parking: PREF.optional(),
-    ascenseur: PREF.optional(),
-    jardin: PREF.optional(),
-    piscine: PREF.optional(),
-    dpe_max: z.string().trim().min(1).max(2).nullish(),
-    alerte_email: z.boolean().optional(),
-    alerte_whatsapp: z.boolean().optional(),
-    telephone: z.string().trim().min(1).max(32).nullish(),
-  })
-  .strict()
-  .refine((v) => v.budget_min == null || v.budget_max == null || v.budget_min <= v.budget_max, {
-    message: "budget_range_invalid",
-    path: ["budget_min"],
-  })
-  .refine((v) => v.surface_min == null || v.surface_max == null || v.surface_min <= v.surface_max, {
-    message: "surface_range_invalid",
-    path: ["surface_min"],
-  })
-  .refine((v) => v.pieces_min == null || v.pieces_max == null || v.pieces_min <= v.pieces_max, {
-    message: "pieces_range_invalid",
-    path: ["pieces_min"],
-  });
-
-export type CreateCritereInput = z.infer<typeof CreateCritereSchema>;
-
 async function fetchCriteresRest({
+  db,
   tenantId,
   userId,
   includeAllTenantUsers,
 }: {
+  db: Gpu1Client;
   tenantId: string;
   userId: string;
   includeAllTenantUsers: boolean;
 }): Promise<{ data: AcquereurCritere[] | null; error: string | null }> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return { data: null, error: "supabase_not_configured" };
+  // Filtrage explicite tenant/user conservé (le client admin bypass RLS).
+  let query = db
+    .from("prosp_criteres_acquereur")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .eq("actif", true)
+    .order("created_at", { ascending: false });
+  if (!includeAllTenantUsers) query = query.eq("user_id", userId);
 
-  const qs = new URLSearchParams({
-    select: "*",
-    tenant_id: `eq.${tenantId}`,
-    actif: "eq.true",
-    order: "created_at.desc",
-  });
-  if (!includeAllTenantUsers) qs.set("user_id", `eq.${userId}`);
-
-  const res = await fetch(`${url}/rest/v1/prosp_criteres_acquereur?${qs}`, {
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) return { data: null, error: `rest_fetch_failed_${res.status}` };
-  return { data: await res.json(), error: null };
+  const { data, error } = await query;
+  if (error) return { data: null, error: error.code ?? "rest_fetch_failed" };
+  return { data: (data as AcquereurCritere[] | null), error: null };
 }
 
 export async function GET() {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 
@@ -144,7 +74,7 @@ export async function GET() {
 
   if ((data?.length ?? 0) > 0 || claims.role !== "admin") {
     if ((data?.length ?? 0) > 0) return NextResponse.json({ data });
-    const rest = await fetchCriteresRest({ tenantId, userId: claims.sub, includeAllTenantUsers: false });
+    const rest = await fetchCriteresRest({ db, tenantId, userId: claims.sub, includeAllTenantUsers: false });
     if (rest.error) {
       console.error("prospection_criteres_rest_fetch_failed", { tenantId, userId: claims.sub, error: rest.error });
       return NextResponse.json({ data });
@@ -160,7 +90,7 @@ export async function GET() {
   }
   if ((tenantData?.length ?? 0) > 0) return NextResponse.json({ data: tenantData });
 
-  const rest = await fetchCriteresRest({ tenantId, userId: claims.sub, includeAllTenantUsers: true });
+  const rest = await fetchCriteresRest({ db, tenantId, userId: claims.sub, includeAllTenantUsers: true });
   if (rest.error) {
     console.error("prospection_criteres_tenant_rest_fetch_failed", { tenantId, userId: claims.sub, error: rest.error });
     return NextResponse.json({ data: tenantData ?? [] });
@@ -171,7 +101,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 
@@ -184,31 +114,40 @@ export async function POST(req: NextRequest) {
   const c = parsed.data;
   const typeBien = c.type_bien == null ? null : Array.isArray(c.type_bien) ? c.type_bien : [c.type_bien];
 
+  // Colonnes 0043 (LIVE) incluses ; l'objet est vérifié `satisfies CritereInsert`
+  // (les types reflètent maintenant ces colonnes).
+  const insertRow = {
+    tenant_id:            tenantId,
+    user_id:              claims.sub,
+    lead_id:              c.lead_id ?? null,
+    nom:                  c.nom,
+    type_bien:            typeBien,
+    budget_min:           c.budget_min ?? null,
+    budget_max:           c.budget_max ?? null,
+    surface_min:          c.surface_min ?? null,
+    surface_max:          c.surface_max ?? null,
+    pieces_min:           c.pieces_min ?? null,
+    pieces_max:           c.pieces_max ?? null,
+    zones:                c.zones ?? [],
+    terrasse:             c.terrasse ?? "indifferent",
+    parking:              c.parking ?? "indifferent",
+    ascenseur:            c.ascenseur ?? "indifferent",
+    jardin:               c.jardin ?? "indifferent",
+    piscine:              c.piscine ?? "indifferent",
+    dpe_max:              c.dpe_max ?? null,
+    alerte_email:         c.alerte_email ?? true,
+    alerte_whatsapp:      c.alerte_whatsapp ?? false,
+    telephone:            c.telephone ?? null,
+    // ── 0043 LIVE ──
+    alerte_frequence:     c.alerte_frequence ?? "off",
+    urgence:              c.urgence ?? null,
+    exclusions:           c.exclusions ?? [],
+    criteres_secondaires: c.criteres_secondaires ?? {},
+  };
+
   const { data, error } = await db
     .from("prosp_criteres_acquereur")
-    .insert({
-      tenant_id:       tenantId,
-      user_id:         claims.sub,
-      lead_id:         c.lead_id ?? null,
-      nom:             c.nom,
-      type_bien:       typeBien,
-      budget_min:      c.budget_min ?? null,
-      budget_max:      c.budget_max ?? null,
-      surface_min:     c.surface_min ?? null,
-      surface_max:     c.surface_max ?? null,
-      pieces_min:      c.pieces_min ?? null,
-      pieces_max:      c.pieces_max ?? null,
-      zones:           c.zones ?? [],
-      terrasse:        c.terrasse ?? "indifferent",
-      parking:         c.parking ?? "indifferent",
-      ascenseur:       c.ascenseur ?? "indifferent",
-      jardin:          c.jardin ?? "indifferent",
-      piscine:         c.piscine ?? "indifferent",
-      dpe_max:         c.dpe_max ?? null,
-      alerte_email:    c.alerte_email ?? true,
-      alerte_whatsapp: c.alerte_whatsapp ?? false,
-      telephone:       c.telephone ?? null,
-    })
+    .insert(insertRow satisfies CritereInsert)
     .select("*")
     .single();
 
@@ -219,10 +158,49 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ data }, { status: 201 });
 }
 
+export async function PATCH(req: NextRequest) {
+  const claims = await getSession();
+  if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const db = getGpu1Admin();
+  if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
+  const tenantId = tenantOf(claims);
+
+  const raw = await req.json().catch(() => null);
+  const parsed = UpdateCritereSchema.safeParse(raw ?? {});
+  if (!parsed.success) {
+    const detail = parsed.error.issues[0]?.message ?? "invalid_body";
+    return NextResponse.json({ error: "invalid_body", detail }, { status: 400 });
+  }
+  const { id, ...rest } = parsed.data as { id: string } & Record<string, unknown>;
+
+  // Delta partiel construit par la logique PARTAGÉE (buildCriterePatch) : champs
+  // absents non poussés (pas d'écrasement implicite), type_bien normalisé.
+  const patch = buildCriterePatch(rest);
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: "no_fields" }, { status: 400 });
+  }
+
+  // Owner-check applicatif : user_id (= sub) ET tenant_id.
+  const { data, error } = await db
+    .from("prosp_criteres_acquereur")
+    .update(patch)
+    .eq("id", id)
+    .eq("tenant_id", tenantId)
+    .eq("user_id", claims.sub)
+    .select("*")
+    .single();
+
+  if (error) {
+    console.error("prospection_criteres_update_failed", { tenantId, userId: claims.sub, error: error.message });
+    return NextResponse.json({ error: "update_failed" }, { status: 500 });
+  }
+  return NextResponse.json({ data }, { status: 200 });
+}
+
 export async function DELETE(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 

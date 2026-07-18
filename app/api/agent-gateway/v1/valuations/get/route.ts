@@ -9,7 +9,7 @@
  */
 import "server-only";
 import { z } from "zod";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { GatewayEnvelopeSchema } from "@/lib/agent-gateway/contracts";
 import { defineGatewayRoute } from "@/lib/agent-gateway/handler";
 
@@ -30,7 +30,7 @@ export const POST = defineGatewayRoute({
   schema: BodySchema,
   timeoutMs: 8_000,
   handler: async (input) => {
-    const db = getSupabaseAdmin();
+    const db = getGpu1Admin();
     if (!db) return { status: "UNAVAILABLE", reason: "db_not_configured" };
 
     let query = db

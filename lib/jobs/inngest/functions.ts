@@ -9,7 +9,7 @@
  */
 
 import { inngest } from "./client";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { renderAndCacheEstimationPdf } from "@/lib/brochure/generate";
 import { captureFatal } from "@/lib/server/observe";
 import { searchListings, moteurImmoIsConfigured } from "@/lib/providers/moteurimmo";
@@ -19,7 +19,7 @@ import { matchAnnonce } from "@/lib/prospection/matching/match";
 import { dbRowToAnnonce, dbRowToCritere } from "@/lib/prospection/mappers";
 import { sendMatchAlerte } from "@/lib/prospection/alert";
 import { MATCH_SCORE_MIN_PERSIST, MATCH_SCORE_ALERT } from "@/lib/prospection/types";
-import type { Database, Json } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/gpu1/database.types";
 import { DEFAULT_TENANT } from "@/lib/tenant";
 
 type ProspAnnonceRow = Database["public"]["Tables"]["prosp_annonces"]["Row"];
@@ -42,7 +42,7 @@ export const generatePdf = inngest.createFunction(
     const estimationId = (event.data as { estimationId?: string })?.estimationId;
     if (!estimationId) return { skipped: "no_id" };
 
-    const sb = getSupabaseAdmin();
+    const sb = getGpu1Admin();
     if (!sb) return { skipped: "no_db" };
 
     const { data: row } = await sb
@@ -69,7 +69,7 @@ export const generatePdf = inngest.createFunction(
 export const prospIngestion = inngest.createFunction(
   { id: "prosp-ingestion", triggers: [{ cron: "0 * * * *" }], concurrency: { limit: 1 } },
   async ({ step }) => {
-    const db = getSupabaseAdmin();
+    const db = getGpu1Admin();
     if (!db) return { skipped: "no_db" };
 
     const { data: cfg } = await db
@@ -110,7 +110,7 @@ export const prospIngestion = inngest.createFunction(
 export const prospScoring = inngest.createFunction(
   { id: "prosp-scoring", triggers: [{ cron: "*/15 * * * *" }], concurrency: { limit: 1 } },
   async ({ step }) => {
-    const db = getSupabaseAdmin();
+    const db = getGpu1Admin();
     if (!db) return { skipped: "no_db" };
 
     // Scoring mandat désactivé : prosp_annonces n'a pas de colonne score_mandat (le

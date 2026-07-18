@@ -48,6 +48,16 @@ export const NAV = [
   { href: "/leads",       label: UI.nav.clients,      icon: "leads",      group: "main", tabs: "clients" },
   { href: "/visits",      label: UI.nav.visits,       icon: "visits",     group: "main", tabs: "clients" },
   { href: "/agenda",      label: UI.nav.agenda,       icon: "agenda",     group: "main" },
+  { href: "/action-center", label: UI.nav.actionCenter, icon: "agenda",   group: "main" },
+  { href: "/assistant",   label: UI.nav.assistant,     icon: "agents",    group: "main" },
+  { href: "/conversion",  label: UI.nav.conversion,    icon: "estimate",  group: "main" },
+  { href: "/mandate-renewal", label: UI.nav.renewal,   icon: "mandates",  group: "main" },
+  { href: "/reactivation", label: UI.nav.reactivation, icon: "leads",     group: "main" },
+  { href: "/radar",       label: UI.nav.radar,        icon: "search",     group: "main" },
+  { href: "/outbox",      label: UI.nav.outbox,       icon: "network",    group: "main" },
+  { href: "/offmarket",   label: UI.nav.offmarket,    icon: "network",    group: "main" },
+  { href: "/approvals",   label: UI.nav.approvals,    icon: "agents",     group: "main" },
+  { href: "/agents",      label: UI.nav.agents,       icon: "agents",     group: "main" },
 ] as const satisfies readonly NavItem[];
 
 /** Alias complet du manifeste. */
@@ -55,8 +65,8 @@ export const navMain = NAV;
 
 /** Les items affichés dans le rail gauche (entry points des groupes). */
 // Nav principale AGENT immobilier : Dashboard, Prospection, Portefeuille
-// (biens/estimations/mandats), Clients (leads/visites), Agenda.
-const RAIL_HREFS = ["/", "/prospection", "/properties", "/leads", "/agenda"] as const;
+// (biens/estimations/mandats), Clients (leads/visites), Agenda, Agents (Aigent).
+const RAIL_HREFS = ["/", "/prospection", "/properties", "/leads", "/agenda", "/agents"] as const;
 export const navRail = NAV.filter((i) =>
   (RAIL_HREFS as readonly string[]).includes(i.href)
 );

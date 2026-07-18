@@ -170,6 +170,16 @@ export const READY_FIXTURE: Estimation = {
     "Haut de fourchette pour valorisation.",
   ],
   branding: { name: "Azigo", monogram: "A" },
+  // Provenance honnête : géocodage/cadastre/DVF/annonces LIVE, DPE fourni au
+  // dossier (donc ADEME non contributeur → indisponible). Reflète la forme
+  // réellement persistée dans sources_snapshot.provenance.
+  provenance: [
+    { key: "geocode", label: "Géocodage", status: "live", count: null, detail: "BAN" },
+    { key: "cadastre", label: "Cadastre IGN", status: "live", count: null, detail: "parcelle résolue" },
+    { key: "dvf", label: "Ventes DVF (Etalab)", status: "live", count: 6, detail: "6 ventes comparables" },
+    { key: "ademe", label: "DPE ADEME", status: "unavailable", count: null, detail: "DPE fourni au dossier (hors ADEME)" },
+    { key: "listings", label: "Marché actif", status: "live", count: 3, detail: "LeBonCoin" },
+  ],
   createdAt: "2026-07-01T00:00:00Z",
   updatedAt: "2026-07-13T00:00:00Z",
 };

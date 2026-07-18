@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const getSession = vi.fn();
-const getSupabaseAdmin = vi.fn();
+const getGpu1Admin = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 
 import { GET, POST } from "@/app/api/prospection/matchs/route";
 
@@ -24,7 +24,7 @@ function getReq() {
 
 beforeEach(() => {
   getSession.mockReset();
-  getSupabaseAdmin.mockReset();
+  getGpu1Admin.mockReset();
 });
 
 describe("GET /api/prospection/matchs — scope tenant + user (anti-IDOR)", () => {
@@ -41,7 +41,7 @@ describe("GET /api/prospection/matchs — scope tenant + user (anti-IDOR)", () =
     const eqUser = vi.fn().mockReturnValue({ order });
     const eqTenant = vi.fn().mockReturnValue({ eq: eqUser });
     const select = vi.fn().mockReturnValue({ eq: eqTenant });
-    getSupabaseAdmin.mockReturnValue({ from: vi.fn().mockReturnValue({ select }) });
+    getGpu1Admin.mockReturnValue({ from: vi.fn().mockReturnValue({ select }) });
 
     const res = await GET(getReq() as never);
     expect(res.status).toBe(200);
@@ -56,7 +56,7 @@ describe("GET /api/prospection/matchs — scope tenant + user (anti-IDOR)", () =
     const eqUser = vi.fn().mockReturnValue({ order });
     const eqTenant = vi.fn().mockReturnValue({ eq: eqUser });
     const select = vi.fn().mockReturnValue({ eq: eqTenant });
-    getSupabaseAdmin.mockReturnValue({ from: vi.fn().mockReturnValue({ select }) });
+    getGpu1Admin.mockReturnValue({ from: vi.fn().mockReturnValue({ select }) });
 
     const res = await GET(getReq() as never);
     expect(res.status).toBe(500);
@@ -74,7 +74,7 @@ describe("POST /api/prospection/matchs — feedback validation & ownership", () 
 
   it("400 si match_id absent ou non-UUID", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     expect((await POST(postReq({ verdict: "up" }) as never)).status).toBe(400);
     expect((await POST(postReq({ match_id: "nope", verdict: "up" }) as never)).status).toBe(400);
   });
@@ -88,7 +88,7 @@ describe("POST /api/prospection/matchs — feedback validation & ownership", () 
     const select = vi.fn().mockReturnValue({ eq: eqId });
     const insert = vi.fn().mockResolvedValue({ error: null });
     const from = vi.fn((t: string) => (t === "prosp_matchs" ? { select } : { insert }));
-    getSupabaseAdmin.mockReturnValue({ from });
+    getGpu1Admin.mockReturnValue({ from });
 
     const res = await POST(postReq({ match_id: MATCH_UUID, verdict: "up" }) as never);
     expect(res.status).toBe(201);
@@ -104,7 +104,7 @@ describe("POST /api/prospection/matchs — feedback validation & ownership", () 
     const eqTenant = vi.fn().mockReturnValue({ eq: eqUser });
     const eqId = vi.fn().mockReturnValue({ eq: eqTenant });
     const select = vi.fn().mockReturnValue({ eq: eqId });
-    getSupabaseAdmin.mockReturnValue({ from: vi.fn().mockReturnValue({ select }) });
+    getGpu1Admin.mockReturnValue({ from: vi.fn().mockReturnValue({ select }) });
 
     const res = await POST(postReq({ match_id: MATCH_UUID, verdict: "up" }) as never);
     expect(res.status).toBe(404);

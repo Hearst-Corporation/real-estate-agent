@@ -1,97 +1,59 @@
 "use client";
 import { useEffect, useState } from "react";
 import {
-  UsersIcon,
   MagnifyingGlassIcon,
   SparklesIcon,
   BuildingOffice2Icon,
   ArrowTopRightOnSquareIcon,
+  HandThumbUpIcon,
+  HandThumbDownIcon,
 } from "@heroicons/react/24/outline";
 import { UI } from "@/lib/ui-strings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox, CheckboxField } from "@/components/ui/checkbox";
-import { Field, Label, FieldGroup } from "@/components/ui/fieldset";
 import { Heading } from "@/components/ui/heading";
-import { Input } from "@/components/ui/input";
-import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "@/components/ui/table";
 import { Text, Strong } from "@/components/ui/text";
 import { ScrapeCustomModal } from "./_components/ScrapeCustomModal";
 import { AnnonceDetailDialog } from "./_components/AnnonceDetailDialog";
 import { RecoBadge, MatchReasons } from "./_components/MatchReasons";
+import { CritereForm } from "./_components/CritereForm";
+import { AcquereurProfiles } from "./_components/AcquereurProfiles";
+import { HistoryPanel } from "./_components/HistoryPanel";
+import { AlertsPanel } from "./_components/AlertsPanel";
 import { matchReco } from "./_components/reco";
-import type { Annonce, Match } from "./_components/types";
+import type { Annonce, Match, Critere } from "./_components/types";
 import { MATCH_SCORE_ALERT } from "@/lib/prospection/types";
 
-// ─── Interfaces API ────────────────────────────────────────────────────────────
-// Annonce / Match : voir ./_components/types.ts (partagés avec le détail).
+type Tab = "acquereurs" | "matching" | "annonces" | "historique" | "alertes";
 
-interface Critere {
-  id: string;
-  nom: string;
-  zones?: unknown;
-  budget_min?: number | null;
-  budget_max?: number | null;
-  surface_min?: number | null;
-  surface_max?: number | null;
-  pieces_min?: number | null;
-  pieces_max?: number | null;
-  type_bien?: string[] | null;
-  telephone?: string | null;
-  alerte_email?: boolean;
-  alerte_whatsapp?: boolean;
-}
-
-type Tab = "acquereurs" | "matching" | "annonces" | "criteres";
-
-const TABS: Tab[] = ["acquereurs", "matching", "annonces", "criteres"];
+const TABS: Tab[] = ["acquereurs", "matching", "annonces", "historique", "alertes"];
 
 function tabLabel(t: Tab): string {
   return t === "acquereurs"
-    ? UI.prospection.tabAcquereurs
+    ? UI.prospection.tabProfils
     : t === "annonces"
     ? UI.prospection.annonces
     : t === "matching"
     ? UI.prospection.matching
-    : UI.prospection.criteres;
+    : t === "historique"
+    ? UI.prospection.tabHistorique
+    : UI.prospection.tabAlertes;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function zonesLabel(zones: unknown): string {
-  if (Array.isArray(zones)) {
-    return zones
-      .map((z) => (typeof z === "string" ? z : (z as { label?: string; ville?: string; cp?: string })?.label ?? (z as { ville?: string })?.ville ?? (z as { cp?: string })?.cp ?? ""))
-      .filter(Boolean)
-      .join(", ") || "—";
-  }
-  if (typeof zones === "string") return zones;
-  return "—";
-}
-
-function budgetLabel(critere: Critere): string {
-  const min = critere.budget_min ? `${Number(critere.budget_min).toLocaleString("fr-FR")} €` : null;
-  const max = critere.budget_max ? `${Number(critere.budget_max).toLocaleString("fr-FR")} €` : null;
-  if (min && max) return `${min} – ${max}`;
-  return max ?? min ?? "Budget NC";
-}
+// ─── Helpers annonce ──────────────────────────────────────────────────────────
 
 function annonceTitle(a: Annonce): string {
   return a.titre ?? a.type_bien ?? UI.prospection.annonceNoTitle;
 }
-
 function annonceSurface(a: Annonce): number | undefined {
   return a.surface_m2 ?? a.surface;
 }
-
 function annoncePieces(a: Annonce): number | undefined {
   return a.nb_pieces ?? a.pieces;
 }
-
 function annonceVille(a: Annonce): string | undefined {
   return a.commune ?? a.ville;
 }
-
 function annoncePhotos(a: Annonce): string[] {
   return a.photos_urls ?? a.photos ?? [];
 }
@@ -102,14 +64,12 @@ function scoreClass(score: number): "is-good" | "is-ok" | "is-low" {
   return "is-low";
 }
 
-// Score ring : accent indigo (bon) / zinc (moyen/faible) — pas de couleur hors accent.
+// Score ring : accent (bon) / zinc (moyen/faible) — pas de couleur hors accent.
 const SCORE_TONE: Record<"is-good" | "is-ok" | "is-low", string> = {
   "is-good": "stroke-accent-400 text-accent-500 dark:text-accent-400",
   "is-ok": "stroke-zinc-400 text-zinc-600 dark:text-zinc-300",
   "is-low": "stroke-zinc-500 text-zinc-500 dark:text-zinc-400",
 };
-
-// ─── Composant score ring (data-viz — gardé, tokenisé accent/zinc) ────────────
 
 function ScoreRing({ score }: { score: number }) {
   const radius = 26;
@@ -117,15 +77,9 @@ function ScoreRing({ score }: { score: number }) {
   const offset = circ - (score / 100) * circ;
   const cls = scoreClass(score);
   return (
-    <div className="relative size-16 shrink-0" aria-label={`Score ${score}/100`}>
+    <div className="relative size-16 shrink-0" aria-label={UI.prospection.historyScore(score)}>
       <svg viewBox="0 0 64 64" className="size-16 -rotate-90">
-        <circle
-          cx="32"
-          cy="32"
-          r={radius}
-          className="fill-none stroke-zinc-950/10 dark:stroke-white/10"
-          strokeWidth="6"
-        />
+        <circle cx="32" cy="32" r={radius} className="fill-none stroke-zinc-950/10 dark:stroke-white/10" strokeWidth="6" />
         <circle
           cx="32"
           cy="32"
@@ -137,9 +91,7 @@ function ScoreRing({ score }: { score: number }) {
           strokeDashoffset={offset}
         />
       </svg>
-      <div className={`absolute inset-0 flex items-center justify-center text-sm font-bold ${SCORE_TONE[cls]}`}>
-        {score}
-      </div>
+      <div className={`absolute inset-0 flex items-center justify-center text-sm font-bold ${SCORE_TONE[cls]}`}>{score}</div>
     </div>
   );
 }
@@ -169,7 +121,7 @@ function EmptyState({
           {steps.map((s, i) => (
             <li key={i} className="flex items-center gap-2.5 text-sm text-zinc-600 dark:text-zinc-300">
               <span
-                className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-xs font-semibold text-accent-500 dark:text-accent-300"
+                className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-xs font-semibold text-accent-700 dark:text-accent-300"
                 aria-hidden="true"
               >
                 {i + 1}
@@ -184,15 +136,9 @@ function EmptyState({
   );
 }
 
-// ─── Carte annonce (grille + primitives) ──────────────────────────────────────
+// ─── Carte annonce ────────────────────────────────────────────────────────────
 
-function AnnonceCard({
-  annonce,
-  onOpenDetail,
-}: {
-  annonce: Annonce;
-  onOpenDetail: (a: Annonce) => void;
-}) {
+function AnnonceCard({ annonce, onOpenDetail }: { annonce: Annonce; onOpenDetail: (a: Annonce) => void }) {
   const photos = annoncePhotos(annonce);
   const surface = annonceSurface(annonce);
   const pieces = annoncePieces(annonce);
@@ -231,13 +177,9 @@ function AnnonceCard({
 
         {annonce.prix != null && (
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-zinc-950 dark:text-white">
-              {UI.prospection.annoncePrix(annonce.prix)}
-            </span>
+            <span className="text-lg font-bold text-zinc-950 dark:text-white">{UI.prospection.annoncePrix(annonce.prix)}</span>
             {annonce.prix_m2 != null && (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {UI.prospection.annoncePrixM2(Math.round(annonce.prix_m2))}
-              </span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">{UI.prospection.annoncePrixM2(Math.round(annonce.prix_m2))}</span>
             )}
           </div>
         )}
@@ -246,9 +188,7 @@ function AnnonceCard({
           <div className="flex flex-wrap gap-1.5">
             <Badge color="zinc">{UI.prospection.detailProviderTag}</Badge>
             {annonce.age_hours != null && <Badge color="zinc">{UI.prospection.badgeAge(annonce.age_hours)}</Badge>}
-            {(annonce.source_platform ?? annonce.source) && (
-              <Badge color="zinc">{annonce.source_platform ?? annonce.source}</Badge>
-            )}
+            {(annonce.source_platform ?? annonce.source) && <Badge color="zinc">{annonce.source_platform ?? annonce.source}</Badge>}
           </div>
           <div className="flex items-center justify-between gap-2">
             <Button plain onClick={() => onOpenDetail(annonce)}>
@@ -259,7 +199,7 @@ function AnnonceCard({
                 href={annonce.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-500 hover:text-accent-400 dark:text-accent-400 dark:hover:text-accent-300"
+                className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400 dark:hover:text-accent-300"
               >
                 {UI.prospection.annonceVoir}
                 <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-3.5" />
@@ -281,15 +221,10 @@ export default function ProspectionPage() {
   const [criteres, setCriteres] = useState<Critere[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterEligible, setFilterEligible] = useState(false);
-  // Détail annonce (ouvert depuis une card annonce OU une ligne de match).
   const [detailAnnonce, setDetailAnnonce] = useState<Annonce | null>(null);
   const [detailMatch, setDetailMatch] = useState<Match | undefined>(undefined);
-  // État du formulaire de création de critère, remonté au parent : les CTA de création
-  // (« Nouvel acquéreur », empty states) basculent sur l'onglet Critères ET ouvrent
-  // directement le formulaire — au lieu de juste changer d'onglet en laissant
-  // l'utilisateur re-cliquer « + Nouveau critère ».
-  const [criteresFormOpen, setCriteresFormOpen] = useState(false);
+  // Formulaire de création de profil (ouvert depuis « Nouvel acquéreur »).
+  const [createOpen, setCreateOpen] = useState(false);
 
   function openAnnonceDetail(a: Annonce, m?: Match) {
     setDetailAnnonce(a);
@@ -300,12 +235,11 @@ export default function ProspectionPage() {
     setDetailMatch(undefined);
   }
 
-  async function loadAnnonces(nextFilterEligible = filterEligible) {
+  async function loadAnnonces() {
     setLoading(true);
     setError(null);
     try {
-      const qs = nextFilterEligible ? "?eligible=1" : "";
-      const res = await fetch(`/api/prospection/annonces${qs}`);
+      const res = await fetch(`/api/prospection/annonces`);
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(json.error ?? `Erreur HTTP ${res.status}`);
@@ -339,8 +273,6 @@ export default function ProspectionPage() {
   }
 
   async function loadCriteres() {
-    setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/prospection/criteres");
       const json = await res.json().catch(() => ({}));
@@ -351,8 +283,6 @@ export default function ProspectionPage() {
       setCriteres(json.data ?? []);
     } catch {
       setError(UI.prospection.loadCriteresError);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -360,19 +290,12 @@ export default function ProspectionPage() {
     setTab(nextTab);
     if (nextTab === "annonces" && annonces.length === 0) void loadAnnonces();
     if (nextTab === "matching" && matchs.length === 0) void loadMatchs();
-    if ((nextTab === "acquereurs" || nextTab === "criteres") && criteres.length === 0) void loadCriteres();
   }
 
-  // CTA « créer » : va sur l'onglet Critères ET ouvre directement le formulaire.
-  function openNewCritere() {
-    setCriteresFormOpen(true);
-    selectTab("criteres");
-  }
-
+  // Chargement initial des critères (utilisés par profils / historique / alertes).
   useEffect(() => {
     let cancelled = false;
-
-    async function loadInitialCriteres() {
+    (async () => {
       try {
         const res = await fetch("/api/prospection/criteres");
         const json = await res.json().catch(() => ({}));
@@ -387,9 +310,7 @@ export default function ProspectionPage() {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    }
-
-    void loadInitialCriteres();
+    })();
     return () => {
       cancelled = true;
     };
@@ -401,7 +322,7 @@ export default function ProspectionPage() {
       const res = await fetch("/api/prospection/matchs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ match_id: matchId, verdict: signal }),
+        body: JSON.stringify({ match_id: matchId, signal }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -414,7 +335,6 @@ export default function ProspectionPage() {
     }
   }
 
-  // Priorité haute dérivée du même seuil partagé que le moteur (source unique).
   const highPriorityCount = matchs.filter((m) => matchReco(m) === "high_priority").length;
 
   const stats = [
@@ -425,17 +345,15 @@ export default function ProspectionPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 pb-12 @container">
-      {/* ── Header ── */}
-      <div className="flex flex-col gap-4 pb-2">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent-500 dark:text-accent-400">
-              {UI.prospection.kicker}
-            </p>
+    <div className="flex flex-col gap-4 pb-12 @container">
+      {/* ── Header : titre + actions + KPI compacts sur une bande dense ── */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent-600 dark:text-accent-400">{UI.prospection.kicker}</p>
             <Heading className="font-titre">{UI.prospection.title}</Heading>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
             <ScrapeCustomModal
               onDone={() => {
                 setTab("matching");
@@ -443,208 +361,184 @@ export default function ProspectionPage() {
                 void loadMatchs();
               }}
             />
-            <Button color="indigo" onClick={openNewCritere}>
+            <Button
+              outline
+              onClick={() => {
+                setTab("acquereurs");
+                setCreateOpen(true);
+              }}
+            >
               {UI.prospection.newAcquereurBtn}
             </Button>
           </div>
         </div>
 
-        <nav
-          className="flex flex-wrap items-center gap-1 border-b border-zinc-950/10 pb-2 dark:border-white/10"
-          aria-label={UI.prospection.tabAcquereurs}
-        >
-          {TABS.map((tItem) => (
+        {/* KPI compacts : bande dense (value + label). 2 col sur mobile (labels
+            au large), 4 col dès que la largeur le permet. */}
+        <dl className="surface grid grid-cols-2 divide-x divide-y divide-zinc-950/8 @md:grid-cols-4 @md:divide-y-0 dark:divide-white/10">
+          {stats.map((item) => (
+            <div key={item.name} className="flex items-baseline gap-2 px-3 py-2.5">
+              <dd className="text-lg font-semibold tracking-tight tabular-nums text-zinc-950 dark:text-white @md:text-xl">{item.value}</dd>
+              <dt className="truncate text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{item.name}</dt>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      {/* ── Onglets : contrôle segmenté, actif clair (pilule accent), scrollable mobile ── */}
+      <nav
+        className="scrollbar-thin -mx-1 flex items-center gap-0.5 overflow-x-auto px-1 pb-0.5"
+        aria-label={UI.prospection.tabProfils}
+      >
+        {TABS.map((tItem) => {
+          const isActive = tab === tItem;
+          return (
             <Button
               key={tItem}
               plain
               onClick={() => selectTab(tItem)}
-              aria-current={tab === tItem ? "page" : undefined}
-              className={tab === tItem ? "!text-accent-500 dark:!text-accent-400" : undefined}
+              aria-current={isActive ? "page" : undefined}
+              className={
+                "shrink-0 whitespace-nowrap !text-sm " +
+                (isActive
+                  ? "!bg-accent-500/15 !text-accent-700 dark:!bg-accent-500/20 dark:!text-accent-300"
+                  : "!text-zinc-600 dark:!text-zinc-400")
+              }
             >
               {tabLabel(tItem)}
             </Button>
-          ))}
-        </nav>
-      </div>
+          );
+        })}
+      </nav>
 
-      {/* ── Stats (grille KPI + primitives) ── */}
-      <dl className="grid grid-cols-2 gap-4 @2xl:grid-cols-4">
-        {stats.map((item) => (
-          <div key={item.name} className="surface p-4">
-            <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              {item.name}
-            </dt>
-            <dd className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-              {item.value}
-            </dd>
-          </div>
-        ))}
-      </dl>
-
-      <section className="surface p-5">
-        {/* ── Onglet acquéreurs ── */}
-        {tab === "acquereurs" && (
-          <div>
-            {error && criteres.length > 0 ? <ErrorLine msg={error} /> : null}
-            {loading ? (
+      {/* ── Onglet profils de recherche (acquéreurs regroupés) ── */}
+      {tab === "acquereurs" && (
+        <section className="flex flex-col gap-4">
+          {error && <ErrorLine msg={error} />}
+          {createOpen && (
+            <CritereForm
+              onSaved={async () => {
+                setCreateOpen(false);
+                await loadCriteres();
+              }}
+              onCancel={() => setCreateOpen(false)}
+            />
+          )}
+          {loading ? (
+            <div className="surface p-5">
               <Spinner />
-            ) : criteres.length === 0 ? (
-              <EmptyState
-                icon={UsersIcon}
-                title={UI.prospection.emptyCriteresTitle}
-                text={UI.prospection.emptyCriteresText}
-                steps={[
-                  UI.prospection.emptyCriteresStep1,
-                  UI.prospection.emptyCriteresStep2,
-                  UI.prospection.emptyCriteresStep3,
-                ]}
-                action={
-                  <Button color="indigo" className="mt-2" onClick={openNewCritere}>
-                    {UI.prospection.newCritere}
-                  </Button>
-                }
-              />
-            ) : (
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>{UI.prospection.colNom}</TableHeader>
-                    <TableHeader>{UI.prospection.colBudget}</TableHeader>
-                    <TableHeader>{UI.prospection.colZones}</TableHeader>
-                    <TableHeader>{UI.prospection.colContact}</TableHeader>
-                    <TableHeader>{UI.prospection.colCriteres}</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {criteres.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell>
-                        <Strong>{c.nom}</Strong>
-                      </TableCell>
-                      <TableCell>{budgetLabel(c)}</TableCell>
-                      <TableCell>{zonesLabel(c.zones)}</TableCell>
-                      <TableCell>{c.telephone ?? "—"}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1.5">
-                          {c.type_bien?.map((type) => (
-                            <Badge key={type} color="zinc">
-                              {type}
-                            </Badge>
-                          ))}
-                          {c.surface_min ? (
-                            <Badge color="zinc">{UI.prospection.annonceSurface(c.surface_min)} min</Badge>
-                          ) : null}
-                          {c.pieces_min ? (
-                            <Badge color="zinc">{UI.prospection.annoncePieces(c.pieces_min)} min</Badge>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </div>
-        )}
+            </div>
+          ) : criteres.length === 0 && !createOpen ? (
+            <EmptyState
+              icon={SparklesIcon}
+              title={UI.prospection.emptyCriteresTitle}
+              text={UI.prospection.emptyCriteresText}
+              steps={[UI.prospection.emptyCriteresStep1, UI.prospection.emptyCriteresStep2, UI.prospection.emptyCriteresStep3]}
+              action={
+                <Button color="indigo" className="mt-2 !text-zinc-950" onClick={() => setCreateOpen(true)}>
+                  {UI.prospection.newCritere}
+                </Button>
+              }
+            />
+          ) : (
+            <AcquereurProfiles criteres={criteres} onChanged={loadCriteres} />
+          )}
+        </section>
+      )}
 
-        {/* ── Onglet annonces ── */}
-        {tab === "annonces" && (
-          <div>
-            <div className="mb-4 flex flex-wrap items-center gap-4">
-              <CheckboxField>
-                <Checkbox
-                  checked={filterEligible}
-                  onChange={(checked) => {
-                    setFilterEligible(checked);
-                    void loadAnnonces(checked);
+      {/* ── Onglet annonces ── */}
+      {tab === "annonces" && (
+        <section className="surface p-5">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <Text>{UI.prospection.annonceCount(annonces.length)}</Text>
+            <Button outline className="ml-auto" onClick={() => loadAnnonces()}>
+              {UI.prospection.refresh}
+            </Button>
+          </div>
+
+          {error && annonces.length > 0 ? <ErrorLine msg={error} /> : null}
+
+          {loading ? (
+            <Spinner />
+          ) : annonces.length === 0 ? (
+            <EmptyState
+              icon={MagnifyingGlassIcon}
+              title={UI.prospection.emptyAnnoncesTitle}
+              text={UI.prospection.emptyAnnoncesText}
+              steps={[UI.prospection.emptyAnnoncesStep1, UI.prospection.emptyAnnoncesStep2, UI.prospection.emptyAnnoncesStep3]}
+            />
+          ) : (
+            <ul className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
+              {annonces.map((a) => (
+                <li key={a.id}>
+                  <AnnonceCard annonce={a} onOpenDetail={(x) => openAnnonceDetail(x)} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {/* ── Onglet matching ── */}
+      {tab === "matching" && (
+        <section className="surface p-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <Text>{UI.prospection.matchingHint}</Text>
+            <Button outline onClick={() => loadMatchs()}>
+              {UI.prospection.refresh}
+            </Button>
+          </div>
+
+          {error && matchs.length > 0 ? <ErrorLine msg={error} /> : null}
+
+          {loading ? (
+            <Spinner />
+          ) : matchs.length === 0 ? (
+            <EmptyState
+              icon={SparklesIcon}
+              title={UI.prospection.emptyMatchsTitle}
+              text={UI.prospection.emptyMatchsText}
+              steps={[UI.prospection.emptyMatchsStep1, UI.prospection.emptyMatchsStep2, UI.prospection.emptyMatchsStep3]}
+              action={
+                <Button
+                  color="indigo"
+                  className="mt-2 !text-zinc-950"
+                  onClick={() => {
+                    setTab("acquereurs");
+                    setCreateOpen(true);
                   }}
-                />
-                <Label>{UI.prospection.eligibleOnly}</Label>
-              </CheckboxField>
-              <Text>{UI.prospection.annonceCount(annonces.length)}</Text>
-              <Button outline className="ml-auto" onClick={() => loadAnnonces()}>
-                {UI.prospection.refresh}
-              </Button>
-            </div>
+                >
+                  {UI.prospection.newCritere}
+                </Button>
+              }
+            />
+          ) : (
+            <MatchList matchs={matchs} onFeedback={sendFeedback} onOpenDetail={(a, m) => openAnnonceDetail(a, m)} />
+          )}
+        </section>
+      )}
 
-            {error && annonces.length > 0 ? <ErrorLine msg={error} /> : null}
+      {/* ── Onglet historique ── */}
+      {tab === "historique" && (
+        <section>
+          <HistoryPanel criteres={criteres} />
+        </section>
+      )}
 
-            {loading ? (
+      {/* ── Onglet alertes ── */}
+      {tab === "alertes" && (
+        <section>
+          {loading ? (
+            <div className="surface p-5">
               <Spinner />
-            ) : annonces.length === 0 ? (
-              <EmptyState
-                icon={MagnifyingGlassIcon}
-                title={UI.prospection.emptyAnnoncesTitle}
-                text={UI.prospection.emptyAnnoncesText}
-                steps={[
-                  UI.prospection.emptyAnnoncesStep1,
-                  UI.prospection.emptyAnnoncesStep2,
-                  UI.prospection.emptyAnnoncesStep3,
-                ]}
-              />
-            ) : (
-              <ul className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
-                {annonces.map((a) => (
-                  <li key={a.id}>
-                    <AnnonceCard annonce={a} onOpenDetail={(x) => openAnnonceDetail(x)} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-
-        {/* ── Onglet matching ── */}
-        {tab === "matching" && (
-          <div>
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <Text>{UI.prospection.matchingHint}</Text>
-              <Button outline onClick={() => loadMatchs()}>
-                {UI.prospection.refresh}
-              </Button>
             </div>
+          ) : (
+            <AlertsPanel criteres={criteres} onChanged={loadCriteres} />
+          )}
+        </section>
+      )}
 
-            {error && matchs.length > 0 ? <ErrorLine msg={error} /> : null}
-
-            {loading ? (
-              <Spinner />
-            ) : matchs.length === 0 ? (
-              <EmptyState
-                icon={SparklesIcon}
-                title={UI.prospection.emptyMatchsTitle}
-                text={UI.prospection.emptyMatchsText}
-                steps={[
-                  UI.prospection.emptyMatchsStep1,
-                  UI.prospection.emptyMatchsStep2,
-                  UI.prospection.emptyMatchsStep3,
-                ]}
-                action={
-                  <Button color="indigo" className="mt-2" onClick={openNewCritere}>
-                    {UI.prospection.newCritere}
-                  </Button>
-                }
-              />
-            ) : (
-              <MatchList
-                matchs={matchs}
-                onFeedback={sendFeedback}
-                onOpenDetail={(a, m) => openAnnonceDetail(a, m)}
-              />
-            )}
-          </div>
-        )}
-
-        {/* ── Onglet critères ── */}
-        {tab === "criteres" && (
-          <CriteresPanel
-            onChanged={loadCriteres}
-            formOpen={criteresFormOpen}
-            onFormOpenChange={setCriteresFormOpen}
-          />
-        )}
-      </section>
-
-      {/* ── Détail annonce enrichi + actions CRM/contact/optout ── */}
+      {/* ── Détail annonce ── */}
       <AnnonceDetailDialog
         open={detailAnnonce !== null}
         onClose={closeDetail}
@@ -659,18 +553,18 @@ export default function ProspectionPage() {
   );
 }
 
-// ─── Ligne d'erreur (Badge + Text, pattern repo) ──────────────────────────────
+// ─── Ligne d'erreur ───────────────────────────────────────────────────────────
 
 function ErrorLine({ msg }: { msg: string }) {
   return (
-    <div className="flex items-center gap-2 p-4">
+    <div className="surface flex items-center gap-2 p-4">
       <Badge color="red">{UI.common.error}</Badge>
       <Text>{msg}</Text>
     </div>
   );
 }
 
-// ─── Match list (stacked list + primitives) ───────────────────────────────────
+// ─── Match list ───────────────────────────────────────────────────────────────
 
 function MatchList({
   matchs,
@@ -681,7 +575,6 @@ function MatchList({
   onFeedback: (id: string, signal: "up" | "down") => Promise<void>;
   onOpenDetail: (a: Annonce, m: Match) => void;
 }) {
-  // Trier : bons matchs en premier
   const sorted = [...matchs].sort((a, b) => b.score_match - a.score_match);
 
   return (
@@ -700,35 +593,34 @@ function MatchList({
         if (a.prix) metaParts.push(UI.prospection.annoncePrix(a.prix));
 
         return (
-          <li key={m.id} className="flex flex-wrap items-start gap-4 py-4">
+          <li key={m.id} className="flex flex-wrap items-start gap-4 py-5 sm:flex-nowrap">
             <ScoreRing score={m.score_match} />
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <Strong>{annonceTitle(a)}</Strong>
+                <Strong className="text-base">{annonceTitle(a)}</Strong>
                 <RecoBadge match={m} />
                 {isGood && <Badge color="indigo">{UI.prospection.matchGoodLabel}</Badge>}
               </div>
-              {metaParts.length > 0 && <Text>{metaParts.join(" · ")}</Text>}
-              {/* Pourquoi ce match : facteurs de score + explain (si dispo). */}
-              <div className="mt-2">
-                <Text>{UI.prospection.reasonsWhy}</Text>
-                <div className="mt-1">
-                  <MatchReasons match={m} />
-                </div>
+              {metaParts.length > 0 && <Text className="mt-0.5">{metaParts.join(" · ")}</Text>}
+              <div className="mt-3">
+                <MatchReasons match={m} showNextAction />
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-              <Button plain aria-label={UI.prospection.feedbackLikeAria} onClick={() => onFeedback(m.id, "up")}>
-                👍
-              </Button>
-              <Button plain aria-label={UI.prospection.feedbackDislikeAria} onClick={() => onFeedback(m.id, "down")}>
-                👎
-              </Button>
-              <Button color="indigo" onClick={() => onOpenDetail(a, m)}>
+            <div className="flex shrink-0 flex-col items-stretch gap-2 sm:w-44">
+              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{UI.prospection.matchNextAction}</span>
+              <Button color="indigo" className="!text-zinc-950" onClick={() => onOpenDetail(a, m)}>
                 {UI.prospection.detailOpen}
               </Button>
+              <div className="flex items-center gap-1">
+                <Button plain aria-label={UI.prospection.feedbackLikeAria} onClick={() => onFeedback(m.id, "up")}>
+                  <HandThumbUpIcon aria-hidden="true" className="size-5" />
+                </Button>
+                <Button plain aria-label={UI.prospection.feedbackDislikeAria} onClick={() => onFeedback(m.id, "down")}>
+                  <HandThumbDownIcon aria-hidden="true" className="size-5" />
+                </Button>
+              </div>
             </div>
           </li>
         );
@@ -737,231 +629,12 @@ function MatchList({
   );
 }
 
-// ─── Panel critères ───────────────────────────────────────────────────────────
-
-function CriteresPanel({
-  onChanged,
-  formOpen,
-  onFormOpenChange,
-}: {
-  onChanged: () => Promise<void>;
-  formOpen: boolean;
-  onFormOpenChange: (open: boolean) => void;
-}) {
-  const [criteres, setCriteres] = useState<Critere[]>([]);
-  const [nom, setNom] = useState("");
-  const [zones, setZones] = useState("");
-  const [budgetMax, setBudgetMax] = useState("");
-  const [surfaceMin, setSurfaceMin] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  async function loadCriteres() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/prospection/criteres");
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(json.error ?? `Erreur HTTP ${res.status}`);
-        return;
-      }
-      setCriteres(json.data ?? []);
-    } catch {
-      setError(UI.prospection.loadCriteresError);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadInitialCriteres() {
-      try {
-        const res = await fetch("/api/prospection/criteres");
-        const json = await res.json().catch(() => ({}));
-        if (cancelled) return;
-        if (!res.ok) {
-          setError(json.error ?? `Erreur HTTP ${res.status}`);
-          return;
-        }
-        setCriteres(json.data ?? []);
-      } catch {
-        if (!cancelled) setError(UI.prospection.loadCriteresError);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    void loadInitialCriteres();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  async function save() {
-    if (!nom.trim()) {
-      setError(UI.prospection.critereNameRequired);
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/prospection/criteres", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nom: nom.trim(),
-          zones: zones.split(",").map((z) => z.trim()).filter(Boolean),
-          budget_max: budgetMax ? Number(budgetMax) : null,
-          surface_min: surfaceMin ? Number(surfaceMin) : null,
-        }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(json.detail ?? json.error ?? `Erreur HTTP ${res.status}`);
-        return;
-      }
-      await loadCriteres();
-      await onChanged();
-      onFormOpenChange(false);
-      setNom("");
-      setZones("");
-      setBudgetMax("");
-      setSurfaceMin("");
-    } catch {
-      setError(UI.prospection.saveError);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function deleteCritere(id: string) {
-    const critere = criteres.find((c) => c.id === id);
-    if (!confirm(`${UI.prospection.delete} « ${critere?.nom ?? id} » ?`)) return;
-    setError(null);
-    try {
-      const res = await fetch(`/api/prospection/criteres?id=${id}`, { method: "DELETE" });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(json.error ?? `Erreur HTTP ${res.status}`);
-        return;
-      }
-      setCriteres((c) => c.filter((x) => x.id !== id));
-    } catch {
-      setError(UI.prospection.deleteError);
-    }
-  }
-
-  return (
-    <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Text>{UI.prospection.criteresCount(criteres.length)}</Text>
-        <div className="flex items-center gap-2">
-          <Button outline onClick={loadCriteres}>
-            {UI.prospection.refresh}
-          </Button>
-          <Button color="indigo" onClick={() => onFormOpenChange(!formOpen)}>
-            {UI.prospection.newCritere}
-          </Button>
-        </div>
-      </div>
-
-      {formOpen && (
-        <div className="surface mb-4 p-4">
-          <FieldGroup>
-            <Field>
-              <Label>{UI.prospection.critereNamePlaceholder}</Label>
-              <Input
-                placeholder={UI.prospection.critereNamePlaceholder}
-                value={nom}
-                onChange={(e) => setNom(e.target.value)}
-              />
-            </Field>
-            <Field>
-              <Label>{UI.prospection.critereZonesPlaceholder}</Label>
-              <Input
-                placeholder={UI.prospection.critereZonesPlaceholder}
-                value={zones}
-                onChange={(e) => setZones(e.target.value)}
-              />
-            </Field>
-            <Field>
-              <Label>{UI.prospection.budgetMaxPlaceholder}</Label>
-              <Input type="number" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
-            </Field>
-            <Field>
-              <Label>{UI.prospection.surfaceMinPlaceholder}</Label>
-              <Input type="number" value={surfaceMin} onChange={(e) => setSurfaceMin(e.target.value)} />
-            </Field>
-            <Button color="indigo" className="w-fit" onClick={save} disabled={saving}>
-              {saving ? UI.prospection.saving : UI.prospection.save}
-            </Button>
-          </FieldGroup>
-        </div>
-      )}
-
-      <div>
-        {error ? <ErrorLine msg={error} /> : null}
-        {loading ? (
-          <Spinner />
-        ) : criteres.length === 0 ? (
-          <EmptyState
-            icon={UsersIcon}
-            title={UI.prospection.emptyCriteresTitle}
-            text={UI.prospection.emptyCriteresText}
-            steps={[
-              UI.prospection.emptyCriteresStep1,
-              UI.prospection.emptyCriteresStep2,
-              UI.prospection.emptyCriteresStep3,
-            ]}
-          />
-        ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>{UI.prospection.colNom}</TableHeader>
-                <TableHeader>{UI.prospection.colZones}</TableHeader>
-                <TableHeader>{UI.prospection.colBudgetMax}</TableHeader>
-                <TableHeader className="text-right">{UI.prospection.colAction}</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {criteres.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell>
-                    <Strong>{c.nom}</Strong>
-                  </TableCell>
-                  <TableCell>{zonesLabel(c.zones)}</TableCell>
-                  <TableCell>
-                    {c.budget_max ? `${Number(c.budget_max).toLocaleString("fr-FR")} €` : "—"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button plain onClick={() => deleteCritere(c.id)}>
-                      {UI.prospection.delete}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── Spinner ──────────────────────────────────────────────────────────────────
 
 function Spinner() {
   return (
     <div className="flex items-center justify-center gap-2 py-12">
-      <span
-        className="size-4 animate-spin rounded-full border-2 border-accent-500 border-t-transparent dark:border-accent-400"
-        aria-hidden="true"
-      />
+      <span className="size-4 animate-spin rounded-full border-2 border-accent-500 border-t-transparent dark:border-accent-400" aria-hidden="true" />
       <Text>{UI.prospection.loading}</Text>
     </div>
   );

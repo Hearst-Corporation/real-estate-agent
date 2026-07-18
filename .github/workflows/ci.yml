@@ -4,9 +4,17 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, feature/rea-master-004]
+
+# Annule les runs obsolètes d'une même ref (économie de minutes CI).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  # ── Qualité statique + tests unitaires + build + cohérence migrations ─────────
+  # Aucun secret requis : tout est statique/hermétique. Le build reçoit des
+  # placeholders NEXT_PUBLIC_* (jamais de vrais secrets) pour l'inlining client.
   check:
     runs-on: ubuntu-latest
     steps:
@@ -27,8 +35,117 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check (lint + typecheck)
+      - name: Check (lint + typecheck + catalyst + strings + nav + secrets)
         run: pnpm run check
 
-      - name: Test
+      - name: Unit tests (vitest)
         run: pnpm run test
+
+      - name: Migrations coherence (static, no DB)
+        run: pnpm run test:migrations
+
+      - name: Build (next build)
+        # Placeholders NON secrets : suffisent au build. Le boot runtime revalide
+        # l'environnement réel (instrumentation → assertBootEnv). La DB est un
+        # PostgREST gpu1 serveur-only ; aucun secret DB n'est exposé au build.
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: pnpm run build
+
+  # ── E2E Playwright (smoke) ────────────────────────────────────────────────────
+  # Exige une DB réelle (verify_login) → ne s'exécute QUE si les secrets DB sont
+  # configurés sur le repo. Sur un fork / repo non configuré, le job se skippe
+  # proprement (pas d'échec rouge trompeur). Aucun secret n'est imprimé.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: check
+    # Ne lance le job que si le secret DB est présent (évalué en amont).
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify E2E secrets present
+        id: guard
+        env:
+          POSTGREST_URL: ${{ secrets.GPU1_POSTGREST_URL }}
+          ADMIN_TOKEN: ${{ secrets.GPU1_POSTGREST_ADMIN_TOKEN }}
+          JWT: ${{ secrets.JWT_SECRET }}
+        run: |
+          if [ -n "$POSTGREST_URL" ] && [ -n "$ADMIN_TOKEN" ] && [ -n "$JWT" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Configuration DB E2E incomplète — E2E NOT RUN."
+          fi
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.enabled == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.0
+
+      - name: Setup Node
+        if: steps.guard.outputs.enabled == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        if: steps.guard.outputs.enabled == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        if: steps.guard.outputs.enabled == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E smoke (Playwright)
+        if: steps.guard.outputs.enabled == 'true'
+        # `test:e2e` démarre lui-même le serveur (playwright.config.ts → webServer)
+        # et attend http://localhost:3002. Les secrets ne sont exposés qu'au runtime,
+        # jamais imprimés. DB = PostgREST gpu1 (serveur-only). Migration terminée :
+        # plus aucune variable Supabase (les specs E2E ne les consomment plus).
+        env:
+          GPU1_POSTGREST_URL: ${{ secrets.GPU1_POSTGREST_URL }}
+          GPU1_POSTGREST_ADMIN_TOKEN: ${{ secrets.GPU1_POSTGREST_ADMIN_TOKEN }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: pnpm run test:e2e
+
+  electron-smoke:
+    runs-on: ubuntu-latest
+    needs: check
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Electron smoke
+        # Placeholders NON secrets : satisfont assertBootEnv() au démarrage runtime
+        # (DB PostgREST gpu1 serveur-only). AUTH_DEV_BYPASS=true → aucune requête DB
+        # réelle n'est nécessaire pour le smoke.
+        env:
+          AUTH_DEV_BYPASS: 'true'
+          GPU1_POSTGREST_URL: https://ci.example.invalid
+          GPU1_POSTGREST_ADMIN_TOKEN: ci-placeholder-admin-token-not-a-secret
+          JWT_SECRET: ci-placeholder-jwt-secret-not-secret
+        run: |
+          pnpm run dev > /tmp/rea-next.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          pnpm exec wait-on tcp:3002 --timeout 120000
+          xvfb-run -a pnpm run electron:test

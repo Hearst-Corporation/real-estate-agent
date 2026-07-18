@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { Card } from "@/components/cockpit/primitives";
 import { PhotoGallery } from "./PhotoGallery";
 import { PhotoUploader } from "./PhotoUploader";
@@ -19,7 +19,7 @@ interface Props {
 
 export async function PropertyPhotosSection({ propertyId, userId, tenantId }: Props) {
   const td = UI.properties.detail;
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) return null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

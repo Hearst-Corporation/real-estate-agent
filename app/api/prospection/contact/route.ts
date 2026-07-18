@@ -22,7 +22,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { rateLimit } from "@/lib/ratelimit";
 import { sendWhatsApp, sendSms } from "@/lib/providers/twilio";
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
 
   const raw = await req.json().catch(() => null);
@@ -308,6 +308,10 @@ export async function POST(req: NextRequest) {
         { status: 200 },
       );
     }
+    return NextResponse.json({ error: "internal_error" }, { status: 500 });
+  }
+  // Fail-closed : sans ligne insérée on n'envoie jamais (pas de `sent` orphelin).
+  if (!attempt) {
     return NextResponse.json({ error: "internal_error" }, { status: 500 });
   }
 

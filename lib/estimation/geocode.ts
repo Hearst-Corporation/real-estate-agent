@@ -80,3 +80,24 @@ export async function geocode(adresse: string): Promise<GeocodeResult | null> {
   console.warn('[geocode] BAN échoué, failover vers Geopf');
   return fetchGeopf(adresse);
 }
+
+/** Quel service de géocodage a produit le résultat (pour la provenance). */
+export type GeocodeVia = 'primary' | 'fallback';
+
+/**
+ * Comme `geocode`, mais expose quel service a répondu — BAN (`primary`) ou
+ * Géoplateforme IGN (`fallback`) — pour tracer la provenance honnête. `null`
+ * si les deux échouent. N'ajoute aucun appel réseau vs `geocode`.
+ */
+export async function geocodeWithProvenance(
+  adresse: string,
+): Promise<{ result: GeocodeResult; via: GeocodeVia } | null> {
+  const primary = await fetchBAN(adresse);
+  if (primary) return { result: primary, via: 'primary' };
+
+  console.warn('[geocode] BAN échoué, failover vers Geopf');
+  const fb = await fetchGeopf(adresse);
+  if (fb) return { result: fb, via: 'fallback' };
+
+  return null;
+}

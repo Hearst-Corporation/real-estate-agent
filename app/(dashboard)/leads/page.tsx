@@ -10,7 +10,7 @@ import { filterSeed } from "@/lib/crm/demo-filter";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import LeadFormModal from "./_components/LeadForm";
 
@@ -25,6 +25,7 @@ type Lead = {
   source: string | null;
   budget_min: number | null;
   budget_max: number | null;
+  financement: Record<string, unknown> | null;
   property_id: string | null;
   notes: string | null;
   created_at: string;
@@ -34,7 +35,7 @@ type Lead = {
 export default async function LeadsPage() {
   const t = UI.leads;
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let leads: Lead[] = [];
 
@@ -42,7 +43,7 @@ export default async function LeadsPage() {
     const { data } = await sb
       .from("leads")
       .select(
-        "id, full_name, email, phone, status, kind, type_personne, source, budget_min, budget_max, property_id, notes, created_at, updated_at"
+        "id, full_name, email, phone, status, kind, type_personne, source, budget_min, budget_max, financement, property_id, notes, created_at, updated_at"
       )
       .eq("user_id", claims.sub)
       .eq("tenant_id", tenantOf(claims))
@@ -100,7 +101,7 @@ export default async function LeadsPage() {
       </dl>
 
       {/* Charts — cartes surface, viz métier conservée */}
-      <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 @2xl:grid-cols-2">
         <section className="surface p-5">
           <Subheading className="font-titre mb-3">{t.charts.pipeline}</Subheading>
           <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />

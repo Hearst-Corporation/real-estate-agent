@@ -1,6 +1,6 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import type { Gpu1Client } from "@/lib/gpu1";
+import { getGpu1Admin } from "@/lib/gpu1";
 
 /**
  * Accès DB à la table `user_mfa` — FAIL-SOFT TOTAL.
@@ -13,7 +13,7 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
  * Aucun utilisateur ne peut donc être verrouillé par un état DB indisponible.
  *
  * La table `user_mfa` n'est PAS dans les types générés (au même titre que `revoked_sessions`)
- * tant que 0035 n'est pas appliquée → on cast le client en `SupabaseClient` non typé
+ * tant que 0035 n'est pas appliquée → on cast le client en `Gpu1Client` non typé
  * (cf. lib/server/auth.ts lignes 70-78 pour le même pattern).
  */
 
@@ -25,8 +25,8 @@ export type UserMfa = {
 };
 
 /** Client service-role non typé (table hors types générés). `null` si Supabase non configuré. */
-function untypedAdmin(): SupabaseClient | null {
-  return getSupabaseAdmin() as SupabaseClient | null;
+function untypedAdmin(): Gpu1Client<unknown> | null {
+  return getGpu1Admin() as Gpu1Client<unknown> | null;
 }
 
 /**

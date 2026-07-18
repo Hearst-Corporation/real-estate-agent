@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   BuildingOffice2Icon,
   ArrowTopRightOnSquareIcon,
+  ArrowRightIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
@@ -84,6 +86,19 @@ function ActionFeedback({ state }: { state: ActionState }) {
   return null;
 }
 
+/** Lien de continuité vers une fiche CRM créée (route vérifiée existante). */
+function ContinuityLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-accent-600 hover:text-accent-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-700 dark:text-accent-400 dark:hover:text-accent-300"
+    >
+      {label}
+      <ArrowRightIcon aria-hidden="true" className="size-4" />
+    </Link>
+  );
+}
+
 /**
  * Détail annonce enrichi + actions CRM/contact/optout.
  * - `match` : optionnel — présent quand on ouvre depuis l'onglet matching
@@ -109,10 +124,33 @@ export function AnnonceDetailDialog({
   const [estimateState, setEstimateState] = useState<ActionState>({ kind: "idle" });
   const [contactState, setContactState] = useState<ActionState>({ kind: "idle" });
   const [optoutState, setOptoutState] = useState<ActionState>({ kind: "idle" });
-  // Copie locale des liens CRM (mise à jour optimiste après action réussie).
-  const [links, setLinks] = useState<{ lead?: boolean; property?: boolean; estimation?: boolean }>(
-    {},
-  );
+  // IDs CRM RÉELS (renvoyés par link-crm / estimate) → liens de continuité
+  // cliquables vers les fiches. Réinitialisés à chaque changement d'annonce
+  // pour ne jamais afficher un rattachement périmé d'une annonce précédente.
+  const [linkIds, setLinkIds] = useState<{
+    leadId?: string | null;
+    propertyId?: string | null;
+    estimationId?: string | null;
+  }>({});
+
+  // Réinitialise l'état (IDs CRM + états d'action) quand on change d'annonce, via
+  // le pattern React « ajuster l'état pendant le rendu » (pas d'effet → pas de
+  // cascade de rendus) : on ne montre jamais un rattachement périmé d'une annonce
+  // précédente. https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const annonceKey = `${annonce?.id ?? ""}|${annonce?.lead_id ?? ""}|${annonce?.property_id ?? ""}|${annonce?.estimation_id ?? ""}`;
+  const [syncedKey, setSyncedKey] = useState(annonceKey);
+  if (syncedKey !== annonceKey) {
+    setSyncedKey(annonceKey);
+    setLinkIds({
+      leadId: annonce?.lead_id ?? null,
+      propertyId: annonce?.property_id ?? null,
+      estimationId: annonce?.estimation_id ?? null,
+    });
+    setLinkState({ kind: "idle" });
+    setEstimateState({ kind: "idle" });
+    setContactState({ kind: "idle" });
+    setOptoutState({ kind: "idle" });
+  }
 
   if (!annonce) return null;
 
@@ -124,9 +162,9 @@ export function AnnonceDetailDialog({
   const provider = providerOf(a);
   const optedOut = a.demarchage_bloque === true;
 
-  const hasLead = links.lead || Boolean(a.lead_id);
-  const hasProperty = links.property || Boolean(a.property_id);
-  const hasEstimation = links.estimation || Boolean(a.estimation_id);
+  const hasLead = Boolean(linkIds.leadId);
+  const hasProperty = Boolean(linkIds.propertyId);
+  const hasEstimation = Boolean(linkIds.estimationId);
   const anyBusy =
     linkState.kind === "loading" ||
     estimateState.kind === "loading" ||
@@ -141,12 +179,19 @@ export function AnnonceDetailDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ createLead: true, createProperty: true }),
       });
-      await res.json().catch(() => ({}));
+      const json = (await res.json().catch(() => ({}))) as {
+        lead_id?: string | null;
+        property_id?: string | null;
+      };
       if (!res.ok) {
         setLinkState({ kind: "error", message: t.actionError });
         return;
       }
-      setLinks((l) => ({ ...l, lead: true, property: true }));
+      setLinkIds((l) => ({
+        ...l,
+        leadId: json.lead_id ?? l.leadId,
+        propertyId: json.property_id ?? l.propertyId,
+      }));
       setLinkState({ kind: "success", message: t.actionLinkCrmDone });
       onChanged?.();
     } catch {
@@ -162,12 +207,19 @@ export function AnnonceDetailDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-      await res.json().catch(() => ({}));
+      const json = (await res.json().catch(() => ({}))) as {
+        estimation_id?: string | null;
+        property_id?: string | null;
+      };
       if (!res.ok) {
         setEstimateState({ kind: "error", message: t.actionError });
         return;
       }
-      setLinks((l) => ({ ...l, estimation: true, property: true }));
+      setLinkIds((l) => ({
+        ...l,
+        estimationId: json.estimation_id ?? l.estimationId,
+        propertyId: json.property_id ?? l.propertyId,
+      }));
       setEstimateState({ kind: "success", message: t.actionEstimateDone });
       onChanged?.();
     } catch {
@@ -261,7 +313,7 @@ export function AnnonceDetailDialog({
                   href={a.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent-500 hover:text-accent-400 dark:text-accent-400 dark:hover:text-accent-300"
+                  className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400 dark:hover:text-accent-300"
                 >
                   {t.annonceVoir}
                   <ArrowTopRightOnSquareIcon aria-hidden="true" className="size-3.5" />
@@ -344,6 +396,25 @@ export function AnnonceDetailDialog({
                 <Text>{t.crmNothingLinked}</Text>
               )}
             </div>
+            {(hasLead || hasProperty || hasEstimation) && (
+              <div className="mt-3 flex flex-col gap-2">
+                {linkIds.leadId && (
+                  <ContinuityLink href={`/leads/${linkIds.leadId}`} label={t.crmOpenLead} />
+                )}
+                {linkIds.propertyId && (
+                  <ContinuityLink
+                    href={`/properties/${linkIds.propertyId}`}
+                    label={t.crmOpenProperty}
+                  />
+                )}
+                {linkIds.estimationId && (
+                  <ContinuityLink
+                    href={`/estimations/${linkIds.estimationId}`}
+                    label={t.crmOpenEstimation}
+                  />
+                )}
+              </div>
+            )}
           </section>
 
           {/* ── Actions ── */}
@@ -355,6 +426,7 @@ export function AnnonceDetailDialog({
               <div>
                 <Button
                   color="indigo"
+                  className="!text-zinc-950"
                   disabled={anyBusy || (hasLead && hasProperty)}
                   onClick={callLinkCrm}
                 >

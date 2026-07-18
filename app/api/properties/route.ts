@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
+import { PROPERTY_STATUSES } from "@/lib/crm/format";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
+import { z } from "zod";
+
+const PropertyStatusSchema = z.enum(PROPERTY_STATUSES);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,8 +16,8 @@ export async function GET() {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { data, error } = await sb
     .from("properties")
@@ -38,8 +42,8 @@ export async function POST(request: Request) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   let body: Record<string, unknown>;
   try {
@@ -68,7 +72,13 @@ export async function POST(request: Request) {
     notes?: string;
   };
 
-  const status = (body.status as string) ?? "prospect";
+  const parsedStatus = PropertyStatusSchema.safeParse(
+    body.status === undefined ? "prospect" : body.status,
+  );
+  if (!parsedStatus.success) {
+    return NextResponse.json({ error: "invalid_status" }, { status: 400 });
+  }
+  const status = parsedStatus.data;
 
   const { data, error } = await sb
     .from("properties")

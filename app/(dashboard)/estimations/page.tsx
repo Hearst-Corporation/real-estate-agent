@@ -1,5 +1,5 @@
 import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
-import { Button } from "@/components/ui/button";
+import { AccentButton } from "./_components/AccentButton";
 import { Badge } from "@/components/ui/badge";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
@@ -17,7 +17,7 @@ import { statusTone, type StatusTone } from "@/lib/crm/statusTone";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { HomeModernIcon } from "@heroicons/react/24/outline";
 
@@ -44,7 +44,7 @@ type EstRow = {
 export default async function EstimationsPage() {
   const t = UI.estimations;
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let estimations: EstRow[] = [];
 
@@ -87,9 +87,7 @@ export default async function EstimationsPage() {
             <Heading className="font-titre">{t.title}</Heading>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
-            <Button color="indigo" href="/estimations/new">
-              {t.newCta}
-            </Button>
+            <AccentButton href="/estimations/new">{t.newCta}</AccentButton>
           </div>
         </div>
         <nav className="flex flex-wrap items-center gap-1 border-b border-zinc-950/10 pb-2 dark:border-white/10">
@@ -97,15 +95,12 @@ export default async function EstimationsPage() {
         </nav>
       </div>
 
-      {/* Stats — KPI en grille sobre (structure lue dans data-display__stats) */}
-      <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats — bandeau inline (KPI non encagés, séparateurs plutôt que cartes) */}
+      <dl className="surface flex flex-col divide-y divide-zinc-950/5 sm:flex-row sm:divide-x sm:divide-y-0">
         {stats.map((item) => (
-          <div
-            key={item.name}
-            className="surface overflow-hidden px-4 py-5 sm:p-6"
-          >
-            <dt className="truncate text-sm font-medium text-zinc-500 dark:text-zinc-400">{item.name}</dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">{item.stat}</dd>
+          <div key={item.name} className="flex flex-1 flex-col gap-1 px-5 py-4 sm:px-6">
+            <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">{item.name}</dt>
+            <dd className="text-2xl font-semibold tracking-tight text-zinc-950 tabular-nums">{item.stat}</dd>
           </div>
         ))}
       </dl>
@@ -192,10 +187,8 @@ export default async function EstimationsPage() {
         <div className="surface px-6 py-16 text-center">
           <HomeModernIcon aria-hidden="true" className="mx-auto size-12 text-zinc-400 dark:text-zinc-500" />
           <Subheading className="mt-2">{t.empty}</Subheading>
-          <div className="mt-6">
-            <Button color="indigo" href="/estimations/new">
-              {t.newCta}
-            </Button>
+          <div className="mt-6 flex justify-center">
+            <AccentButton href="/estimations/new">{t.newCta}</AccentButton>
           </div>
         </div>
       )}

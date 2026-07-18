@@ -29,10 +29,23 @@
 - **Dev** : copier [`.env.example`](../.env.example) → `.env.local` (gitignored). Valeurs réelles dans `docs/api-config/SERVICES.md` (gitignored).
 - **Prod (Vercel)** : renseigner les vars de [`.env.production.example`](../.env.production.example) dans *Project Settings → Environment Variables* (Production + Preview).
 
-**Requises au boot** (validées par `lib/env.ts` — zod, throw si manquantes) :
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`.
+**Requises au boot** (validées par `lib/env-check.ts` — zod, **throw au démarrage** si manquantes) :
+`GPU1_POSTGREST_URL`, `GPU1_POSTGREST_ADMIN_TOKEN`, `JWT_SECRET`, `ANTHROPIC_API_KEY`.
+La DB (Postgres self-hosté gpu1 via PostgREST) est **100 % serveur** : aucune variable `NEXT_PUBLIC_*` DB.
 
-**Garde-fou prod** : `AUTH_DEV_BYPASS=true` avec `NODE_ENV=production` → **le boot throw** (`lib/env.ts`). Ne jamais définir `AUTH_DEV_BYPASS` en prod (ou `=false`). `AUTH_CHECK_REVOCATION=true` requis en prod pour que le logout serveur soit effectif (sinon le logout n'efface que le cookie navigateur).
+**Validation d'environnement au boot** : `instrumentation.ts#register()` appelle `assertBootEnv()`
+(`lib/env-check.ts`) au **démarrage du runtime serveur** (nodejs/edge). Si une var requise manque,
+l'instance **refuse de démarrer** avec un message clair listant les **noms** manquants — **jamais**
+la moindre valeur de secret. Ce fail-fast remplace un crash tardif obscur (500 au premier accès DB).
+Pendant `next build` (`NEXT_PHASE=phase-production-build`) la validation ne **bloque pas** (les env
+runtime peuvent manquer légitimement au build Vercel) : elle se contente d'un warning et re-valide au
+démarrage. `lib/env.ts` reste la façade typée `serverEnv()/publicEnv()` à adopter par le code métier
+(elle **n'est pas** le point de garde du boot).
+
+**Garde-fou prod** : `AUTH_DEV_BYPASS=true` avec `NODE_ENV=production` → **le boot throw**
+(`lib/env-check.ts`, doublé par `lib/env.ts`). Ne jamais définir `AUTH_DEV_BYPASS` en prod (ou `=false`).
+`AUTH_CHECK_REVOCATION=true` requis en prod pour que le logout serveur soit effectif (sinon le logout
+n'efface que le cookie navigateur).
 
 ---
 
@@ -54,8 +67,13 @@ npm run electron:build           # .dmg signé/notarisé (voir /release-mac)
 
 ## 4. Migrations DB
 
-Les migrations vivent dans `supabase/migrations/NNNN_nom.sql` (41 fichiers, `0001`→`0037`).
-La base gpu1 a été **montée en reconstruisant le schéma depuis ces migrations** (via `/cloud-adrien`, mode `install`). Il n'y a **pas** de `supabase db push` (interactif, banni). Un script de diagnostic reproductible existe : `scripts/db-diagnose.mjs` (voir §Diagnostic ci-dessous).
+Les migrations vivent dans `supabase/migrations/NNNN_nom.sql` (**52 fichiers, `0001`→`0048`** ; dernières :
+`0046_auth_credentials_tenant_index`, `0047_rls_prospection`, `0048_agent_alert_approvals_trigger_idempotent`).
+Le nom du dossier `supabase/` est une **convention de chemin historique**, pas une dépendance runtime :
+le SQL est du Postgres standard rejoué sur gpu1 (aucun outil Supabase Cloud).
+La base gpu1 a été **montée en reconstruisant le schéma depuis ces migrations** (via `/cloud-adrien`, mode `install`). Il n'y a **pas** de `supabase db push` (interactif, banni). Deux scripts reproductibles existent :
+`scripts/db-diagnose.mjs` (diagnostic DB **live** — voir §Diagnostic ci-dessous) et
+`scripts/test-migrations-coherence.mjs` (**cohérence STATIQUE des migrations**, aucune connexion DB — exécuté en CI).
 
 **Appliquer une migration sur gpu1** (DDL appliqué sur la base `real-estate-agent`, puis reload du cache PostgREST) :
 
@@ -101,6 +119,52 @@ Brancher ce endpoint sur le monitoring Vercel / uptime externe → alerte sur 50
 
 ---
 
+## 5bis. Intégration continue (CI)
+
+Pipeline GitHub Actions : `.github/workflows/ci.yml` (sur `push`/`pull_request` vers `main`).
+
+**Job `check`** (aucun secret requis — 100 % hermétique) :
+1. `pnpm install --frozen-lockfile`
+2. `pnpm run check` — lint (secrets/nav/strings/biome/next), typecheck, `check:catalyst`, manifest cockpit.
+3. `pnpm run test` — tests unitaires vitest.
+4. `node scripts/test-migrations-coherence.mjs` — **cohérence statique des migrations** (aucune DB).
+5. `pnpm run build` — `next build` avec des **placeholders NON secrets** `NEXT_PUBLIC_*` (inlining client ;
+   le boot runtime revalide l'env réel via `assertBootEnv`).
+
+**Job `e2e`** (Playwright smoke, `needs: check`) : ne s'exécute **que si** les secrets DB
+(`GPU1_POSTGREST_ADMIN_TOKEN`, `JWT_SECRET`) sont configurés sur le repo (GitHub → *Settings → Secrets
+and variables → Actions*). Sur un fork ou un repo non configuré, le job se **skippe proprement** (pas
+d'échec rouge trompeur, message `::notice::`). Les secrets ne sont exposés qu'au runtime, **jamais imprimés**.
+Secrets attendus : `GPU1_POSTGREST_URL`, `GPU1_POSTGREST_ADMIN_TOKEN`, `JWT_SECRET`, `ANTHROPIC_API_KEY`.
+
+> `scripts/db-diagnose.mjs` n'est **pas** en CI (il exige une DB live + `.env.local`) — c'est un outil
+> de diagnostic manuel (§4).
+
+---
+
+## 5ter. En-têtes de sécurité HTTP
+
+Posés globalement dans `next.config.ts` (`headers()`), sur toutes les routes (`/(.*)`) :
+
+| En-tête | Valeur | Rôle |
+|---|---|---|
+| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` | Force HTTPS (2 ans). |
+| `X-Frame-Options` | `SAMEORIGIN` | Anti-clickjacking (legacy). |
+| `X-Content-Type-Options` | `nosniff` | Empêche le MIME-sniffing. |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Fuite de référent limitée. |
+| `Permissions-Policy` | `camera=(), microphone=(), payment=()` | Coupe les API sensibles. |
+| `X-DNS-Prefetch-Control` | `off` | Pas de prefetch DNS implicite. |
+| `Content-Security-Policy` | `frame-ancestors 'self'; object-src 'none'; base-uri 'self'` | Directives **enforçantes** sûres (anti-clickjacking moderne, anti-injection `<base>`/plugin). |
+| `Content-Security-Policy-Report-Only` | politique complète (`default-src 'self'`, `connect-src` vers hearst.app/Sentry/PostHog, …) | Politique CSP de référence **en report-only** : n'impose rien, remonte les violations. |
+
+**Pourquoi la CSP complète est en report-only** : l'app est un Next App Router (scripts/styles **inline**
+d'hydratation) + Sentry browser + PostHog. Une CSP `script-src` *enforçante* exige un **nonce** câblé
+dans `proxy.ts` (hors périmètre) ; sans ça elle casserait l'hydratation. Le report-only donne la valeur
+sécurité (baseline + télémétrie de violation) **sans risque de régression**. Passage en enforçant =
+travail dédié (nonce + resserrement `script-src`), à faire une fois la télémétrie de violations propre.
+
+---
+
 ## 6. Rollback
 
 - **App (Vercel)** : *Deployments → sélectionner le déploiement stable précédent → Promote to Production* (rollback instantané, pas de rebuild). Ou `git revert` + push (redéploie).
@@ -129,10 +193,13 @@ Recommandé : cron gpu1 (dump quotidien vers R2 ou disque local), sur le modèle
 
 ## 8. Checklist go-live
 
-- [ ] Vars requises posées sur Vercel (Production + Preview) — cf `.env.production.example`.
+- [ ] Vars requises posées sur Vercel (Production + Preview) — cf `.env.production.example`. Un boot
+      sans l'une d'elles **échoue explicitement** (`assertBootEnv`, §2) — vérifier les logs de démarrage.
 - [ ] `AUTH_DEV_BYPASS` absent/false · `AUTH_CHECK_REVOCATION=true`.
+- [ ] CI verte sur la branche (`check` + `test` + migrations-coherence + `build` ; `e2e` si secrets posés).
 - [ ] `npm run build` vert · `npm run typecheck` vert.
-- [ ] `GET /api/health` → 200, `db:up` sur le domaine prod.
+- [ ] `GET /api/health` → 200, `db:up` sur le domaine prod ; en-têtes de sécurité présents (§5ter :
+      `curl -sI https://real-estate-agent.vercel.app/ | grep -i 'strict-transport\|content-security\|x-content-type'`).
 - [ ] Migrations appliquées sur gpu1 + `SIGUSR1` reload PostgREST.
 - [ ] `pg_dump` récent disponible.
 - [ ] Observabilité : Sentry/Langfuse/PostHog actifs si clés posées (sinon dégradé assumé).

@@ -6,10 +6,33 @@
  * `observation` sont en français. Toute erreur DB → { ok:false }.
  */
 
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database } from "@/lib/gpu1/database.types";
 import type { AgentTool, ToolResult } from "@/lib/agent/types";
 
 type LeadUpdate = Database["public"]["Tables"]["leads"]["Update"];
+
+/**
+ * Formes des projections avec relation embarquée PostgREST `properties(title, city)`.
+ * Le client GPU1 n'infère pas la chaîne de select (relations embarquées) — on
+ * annonce donc explicitement la forme via `from<T>()`, comme le permet supabase-js
+ * pour les projections. `properties` revient en objet (relation to-one) ou null.
+ */
+type EmbeddedProperty = { title: string | null; city: string | null } | null;
+interface VisitWithProperty {
+  id: string;
+  scheduled_at: string;
+  status: string;
+  lead_id: string | null;
+  property_id: string | null;
+  properties: EmbeddedProperty;
+}
+interface MandateWithProperty {
+  id: string;
+  reference: string | null;
+  status: string;
+  asking_price: number | null;
+  properties: EmbeddedProperty;
+}
 
 // ─── Constantes (pas de magic number nu) ───────────────────────────────────────
 
@@ -433,7 +456,7 @@ const listVisits: AgentTool = {
   async execute(args, ctx): Promise<ToolResult> {
     const limit = clampLimit(args.limit);
     const { data, error } = await ctx.sb
-      .from("visits")
+      .from<VisitWithProperty>("visits")
       .select("id, scheduled_at, status, lead_id, property_id, properties(title, city)")
       .eq("user_id", ctx.userId)
       .eq("tenant_id", ctx.tenant)
@@ -520,7 +543,7 @@ const listMandates: AgentTool = {
   async execute(args, ctx): Promise<ToolResult> {
     const limit = clampLimit(args.limit);
     const { data, error } = await ctx.sb
-      .from("mandates")
+      .from<MandateWithProperty>("mandates")
       .select("id, reference, status, asking_price, properties(title, city)")
       .eq("user_id", ctx.userId)
       .eq("tenant_id", ctx.tenant)

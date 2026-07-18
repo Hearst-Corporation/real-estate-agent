@@ -10,7 +10,7 @@ import { filterSeed } from "@/lib/crm/demo-filter";
 import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import PropertyFormModal from "./_components/PropertyForm";
 
@@ -30,7 +30,7 @@ type Property = {
 export default async function PropertiesPage() {
   const t = UI.properties;
   const claims = await getSession();
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
 
   let properties: Property[] = [];
   let total = 0;
@@ -107,7 +107,7 @@ export default async function PropertiesPage() {
         ]}
       />
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
         <Card title={t.charts.pipeline} variant="chart">
           <BarList items={pipeline} emptyLabel={UI.viz.empty} />
         </Card>
@@ -116,7 +116,7 @@ export default async function PropertiesPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
         <Card title={t.charts.byType} variant="chart">
           <BarList items={byType} emptyLabel={UI.viz.empty} />
         </Card>

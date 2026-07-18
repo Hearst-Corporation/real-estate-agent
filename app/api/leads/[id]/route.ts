@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { LEAD_STATUSES } from "@/lib/crm/format";
-import type { TablesUpdate } from "@/lib/supabase/database.types";
+import {
+  FinancementFieldSchema,
+  normalizeFinancement,
+} from "@/lib/crm/financement";
+import type { TablesUpdate } from "@/lib/gpu1/database.types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,8 +21,8 @@ export async function GET(
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await params;
 
@@ -46,8 +50,8 @@ export async function PATCH(
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await params;
 
@@ -59,7 +63,7 @@ export async function PATCH(
   }
 
   // Champs patchables — full_name ne peut pas être mis à vide
-  const allowed = ["full_name", "kind", "type_personne", "email", "phone", "source", "budget_min", "budget_max", "status", "notes", "property_id"] as const;
+  const allowed = ["full_name", "kind", "type_personne", "email", "phone", "source", "budget_min", "budget_max", "status", "notes", "property_id", "financement"] as const;
   const patch: TablesUpdate<"leads"> = {};
   for (const key of allowed) {
     if (key in body) {
@@ -75,6 +79,13 @@ export async function PATCH(
           return NextResponse.json({ error: "invalid_status" }, { status: 400 });
         }
         (patch as Record<string, unknown>)[key] = val;
+      } else if (key === "financement") {
+        // jsonb → validé par Zod ; null efface, objet normalisé, sinon 400.
+        const parsed = FinancementFieldSchema.safeParse(body[key]);
+        if (!parsed.success) {
+          return NextResponse.json({ error: "invalid_financement" }, { status: 400 });
+        }
+        (patch as Record<string, unknown>)[key] = normalizeFinancement(parsed.data);
       } else {
         (patch as Record<string, unknown>)[key] = body[key];
       }
@@ -111,8 +122,8 @@ export async function DELETE(
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const { id } = await params;
 

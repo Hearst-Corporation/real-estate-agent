@@ -36,7 +36,7 @@ export function ScrapeCustomModal({
 
   return (
     <>
-      <Button color="indigo" onClick={() => setOpen(true)}>
+      <Button color="indigo" className="!text-zinc-950" onClick={() => setOpen(true)}>
         {t.scrapeBtn}
       </Button>
       <Dialog open={open} onClose={setOpen} size="xl">
@@ -139,7 +139,7 @@ function ScrapeCustomForm({
           </div>
         </DialogBody>
         <DialogActions>
-          <Button color="indigo" onClick={onClose}>
+          <Button color="indigo" className="!text-zinc-950" onClick={onClose}>
             {t.scrapeCancel}
           </Button>
         </DialogActions>
@@ -218,7 +218,7 @@ function ScrapeCustomForm({
         <Button plain onClick={onClose}>
           {t.scrapeCancel}
         </Button>
-        <Button type="submit" color="indigo" disabled={loading}>
+        <Button type="submit" color="indigo" className="!text-zinc-950" disabled={loading}>
           {loading ? t.scrapeSubmitting : t.scrapeSubmit}
         </Button>
       </DialogActions>

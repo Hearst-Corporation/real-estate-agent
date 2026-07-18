@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const getSession = vi.fn();
-const getSupabaseAdmin = vi.fn();
+const getGpu1Admin = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({ getSession: () => getSession() }));
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getSupabaseAdmin() }));
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 
 import { POST } from "@/app/api/prospection/annonces/[id]/link-crm/route";
 
@@ -90,7 +90,7 @@ const annonceRow = (over: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   getSession.mockReset();
-  getSupabaseAdmin.mockReset();
+  getGpu1Admin.mockReset();
 });
 
 describe("POST link-crm — auth & validation", () => {
@@ -101,20 +101,20 @@ describe("POST link-crm — auth & validation", () => {
 
   it("400 si body vide (aucune action)", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     expect((await POST(postReq({}), ctx)).status).toBe(400);
   });
 
   it("400 si createLead ET leadId (mutuellement exclusifs)", async () => {
     getSession.mockResolvedValue(CLAIMS);
-    getSupabaseAdmin.mockReturnValue({});
+    getGpu1Admin.mockReturnValue({});
     expect((await POST(postReq({ createLead: true, leadId: LEAD_UUID }), ctx)).status).toBe(400);
   });
 
   it("404 si annonce absente du tenant", async () => {
     getSession.mockResolvedValue(CLAIMS);
     const { db } = makeDb({ prosp_annonces: { select: { data: [], error: null } } });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
     expect((await POST(postReq({ createLead: true }), ctx)).status).toBe(404);
   });
 });
@@ -126,7 +126,7 @@ describe("POST link-crm — création lead + bien", () => {
       prosp_annonces: annonceRow(),
       leads: { insert: { data: { id: LEAD_UUID }, error: null } },
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq({ createLead: true }), ctx);
     expect(res.status).toBe(200);
@@ -148,7 +148,7 @@ describe("POST link-crm — création lead + bien", () => {
       leads: { insert: { data: { id: LEAD_UUID }, error: null } },
       properties: { insert: { data: { id: PROP_UUID }, error: null } },
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq({ createLead: true, createProperty: true }), ctx);
     expect(res.status).toBe(200);
@@ -163,7 +163,7 @@ describe("POST link-crm — idempotence (anti-doublon)", () => {
     const { db, calls } = makeDb({
       prosp_annonces: annonceRow({ lead_id: LEAD_UUID, property_id: PROP_UUID }),
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq({ createLead: true, createProperty: true }), ctx);
     expect(res.status).toBe(200);
@@ -181,7 +181,7 @@ describe("POST link-crm — rattachement existant (ownership)", () => {
       prosp_annonces: annonceRow(),
       leads: { select: { data: { id: LEAD_UUID }, error: null } },
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq({ leadId: LEAD_UUID }), ctx);
     expect(res.status).toBe(200);
@@ -197,7 +197,7 @@ describe("POST link-crm — rattachement existant (ownership)", () => {
       prosp_annonces: annonceRow(),
       leads: { select: { data: null, error: null } },
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq({ leadId: LEAD_UUID }), ctx);
     expect(res.status).toBe(404);
@@ -210,7 +210,7 @@ describe("POST link-crm — rattachement existant (ownership)", () => {
       prosp_annonces: annonceRow(),
       properties: { select: { data: null, error: null } },
     });
-    getSupabaseAdmin.mockReturnValue(db);
+    getGpu1Admin.mockReturnValue(db);
 
     const res = await POST(postReq({ propertyId: PROP_UUID }), ctx);
     expect(res.status).toBe(404);

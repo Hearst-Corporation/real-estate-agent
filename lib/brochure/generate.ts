@@ -6,8 +6,8 @@
  * Clé R2 timestampée ; validité = pdf_generated_at >= updated_at (inchangé).
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Gpu1Client } from "@/lib/gpu1";
+import type { Database } from "@/lib/gpu1/database.types";
 import { r2IsConfigured, putObject, publicUrl } from "@/lib/storage/r2";
 import type {
   Estimation,
@@ -16,8 +16,16 @@ import type {
   MarketAnalysis,
   Valuation,
 } from "@/lib/estimation/types";
+import { parseProvenance } from "@/lib/estimation/provenance";
 
 type EstimationRow = Database["public"]["Tables"]["estimations"]["Row"];
+
+/** Extrait la provenance honnête depuis sources_snapshot.provenance (défensif). */
+function provenanceFromRow(row: EstimationRow) {
+  const snap = row.sources_snapshot;
+  if (!snap || typeof snap !== "object" || Array.isArray(snap)) return null;
+  return parseProvenance((snap as Record<string, unknown>).provenance);
+}
 
 function rowToEstimation(row: EstimationRow): Estimation {
   return {
@@ -31,6 +39,7 @@ function rowToEstimation(row: EstimationRow): Estimation {
     valuation: row.valuation as Valuation,
     saleStrategies: Array.isArray(row.sale_strategies) ? (row.sale_strategies as string[]) : null,
     branding: (row.branding ?? null) as Record<string, unknown> | null,
+    provenance: provenanceFromRow(row),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -42,7 +51,7 @@ function rowToEstimation(row: EstimationRow): Estimation {
  * Retourne le buffer PDF.
  */
 export async function renderAndCacheEstimationPdf(
-  sb: SupabaseClient<Database>,
+  sb: Gpu1Client<Database>,
   row: EstimationRow,
 ): Promise<Buffer> {
   const estimation = rowToEstimation(row);

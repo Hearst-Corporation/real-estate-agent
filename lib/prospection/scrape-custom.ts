@@ -10,8 +10,8 @@
  * Aucun nouveau provider : Apify uniquement (clé `APIFY_TOKEN` déjà présente).
  * Mode dégradé : si aucun provider → l'appelant renvoie 503 (voir la route).
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Json } from "@/lib/supabase/database.types";
+import type { Gpu1Client } from "@/lib/gpu1";
+import type { Database, Json } from "@/lib/gpu1/database.types";
 import type { MoteurImmoListing } from "@/lib/providers/moteurimmo";
 import { searchListingsApify } from "@/lib/prospection/apify-source";
 import { upsertAnnonces } from "@/lib/prospection/ingest";
@@ -122,7 +122,7 @@ export function filterListings(
  * annonce sont comptées dans `errors` sans casser le run.
  */
 export async function scrapeCustomAndMatch(
-  db: SupabaseClient<Database>,
+  db: Gpu1Client<Database>,
   tenantId: string,
   params: ScrapeCustomParams,
 ): Promise<ScrapeCustomResult> {

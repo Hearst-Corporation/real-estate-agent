@@ -11,7 +11,7 @@
  */
 
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import { rateLimit } from "@/lib/ratelimit";
@@ -26,8 +26,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const claims = await getSession();
   if (!claims) return Response.json({ error: "unauthorized" }, { status: 401 });
 
-  const sb = getSupabaseAdmin();
-  if (!sb) return Response.json({ error: "supabase_not_configured" }, { status: 503 });
+  const sb = getGpu1Admin();
+  if (!sb) return Response.json({ error: "database_not_configured" }, { status: 503 });
 
   const userId = claims.sub;
   const tenant = tenantOf(claims);

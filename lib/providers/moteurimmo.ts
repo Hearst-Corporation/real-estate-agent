@@ -77,7 +77,13 @@ export async function searchListings(params: SearchParams): Promise<MoteurImmoLi
   return result.ok ? result.data : [];
 }
 
-function normalizeMoteurImmo(raw: unknown): MoteurImmoListing {
+/**
+ * Normalise un item BRUT de l'API MoteurImmo vers `MoteurImmoListing`. PURE et
+ * déterministe (aucun IO, aucune horloge). Exportée pour être RÉUTILISÉE par
+ * l'interface gateway `listings.normalize` — la même fonction qui alimente
+ * `searchListings` ci-dessus (donc l'ingestion réelle), pas une copie divergente.
+ */
+export function normalizeMoteurImmo(raw: unknown): MoteurImmoListing {
   const r = raw as Record<string, unknown>;
   return {
     id: String(r.id ?? r.reference ?? ""),

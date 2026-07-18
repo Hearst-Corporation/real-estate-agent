@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { WizardStepper } from "./WizardStepper";
+import { AccentButton } from "./AccentButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -396,14 +397,13 @@ export function EstimationWizard({
             </div>
             <p className="font-titre text-lg font-semibold text-zinc-950">{UI.estimations.interviewTitle}</p>
             <Text className="max-w-sm">{UI.estimations.interviewSub}</Text>
-            <Button
-              color="indigo"
+            <AccentButton
               className="mt-2"
               disabled={busy}
               onClick={() => send("Bonjour, commençons l'entretien.")}
             >
               Démarrer l&apos;entretien
-            </Button>
+            </AccentButton>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -520,14 +520,13 @@ export function EstimationWizard({
                 }}
               />
             </div>
-            <Button
-              color="indigo"
+            <AccentButton
               disabled={busy || !input.trim()}
               onClick={() => send()}
               aria-label="Envoyer"
             >
               →
-            </Button>
+            </AccentButton>
           </div>
 
           {generateError && (
@@ -538,9 +537,9 @@ export function EstimationWizard({
           )}
 
           {canGenerate && (
-            <Button color="indigo" onClick={onGenerate}>
+            <AccentButton onClick={onGenerate}>
               {UI.estimations.generate}
-            </Button>
+            </AccentButton>
           )}
         </div>
       )}

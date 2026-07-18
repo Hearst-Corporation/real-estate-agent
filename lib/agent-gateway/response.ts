@@ -40,11 +40,24 @@ export function gatewayResponse<TData extends Record<string, unknown> = Record<s
   );
 }
 
-/** Réponse 401/403 avant tout accès DB — token absent/invalide (fail-closed). */
+/** Réponse 401 avant tout accès DB — token absent/invalide (fail-closed). */
 export function deniedAuthResponse(kind: string, requestId: string, reason: string): NextResponse {
   return NextResponse.json(
     { kind, status: "DENIED" as const, request_id: requestId, reason },
     { status: 401 },
+  );
+}
+
+/**
+ * Réponse 403 — appelant authentifié (token valide) mais NON AUTORISÉ : tenant
+ * mismatch, agent hors allowlist, scope refusé, acteur non vérifié/non délégué.
+ * Distincte du 401 (auth) : ici l'identité de transport est valide, la frontière
+ * de confiance refuse l'action. `reason` courte, sans PII.
+ */
+export function deniedAuthzResponse(kind: string, requestId: string, reason: string): NextResponse {
+  return NextResponse.json(
+    { kind, status: "DENIED" as const, request_id: requestId, reason },
+    { status: 403 },
   );
 }
 

@@ -14,7 +14,7 @@
  * Le LLM doit afficher une preview et attendre l'accord avant d'appeler le 2e tool.
  */
 
-import type { Database, Json } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/gpu1/database.types";
 import type { PropertyData } from "@/lib/estimation/types";
 import type { AgentTool, ToolResult } from "@/lib/agent/types";
 import { connectionStatus, fetchEmails } from "@/lib/providers/composio";

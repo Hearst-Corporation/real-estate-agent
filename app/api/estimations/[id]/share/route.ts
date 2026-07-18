@@ -17,7 +17,7 @@
 import { z } from "zod";
 import { Resend } from "resend";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import { signShareToken } from "@/lib/estimation/share";
@@ -42,9 +42,9 @@ export async function POST(
   }
 
   // ── Supabase ──────────────────────────────────────────────────────────────
-  const sb = getSupabaseAdmin();
+  const sb = getGpu1Admin();
   if (!sb) {
-    return Response.json({ error: "supabase_not_configured" }, { status: 503 });
+    return Response.json({ error: "database_not_configured" }, { status: 503 });
   }
 
   const userId = claims.sub;
