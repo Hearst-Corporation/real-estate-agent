@@ -10,15 +10,18 @@
  *   - IDs générés côté serveur via crypto.randomUUID().
  *   - Erreurs : log serveur, réponse générique { error: 'internal_error' } 500.
  *
- * rea_tasks est absente de database.types.ts (migration 0043 non re-typée) → on
- * accède via un client casté, comme les routes prospection voisines.
+ * rea_tasks est typée dans database.types.ts (migration 0043) → client typé. Seul
+ * le contrôle d'appartenance d'une entité rattachée interroge une table dont le nom
+ * est dynamique (ENTITY_TABLE) → cast local minimal à ce point de contact.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
+import type { Database } from "@/lib/supabase/database.types";
 import { tenantOf } from "@/lib/tenant";
 
 export const runtime = "nodejs";
@@ -69,16 +72,14 @@ const CreateSchema = z.object({
   notes: z.string().trim().max(2000).nullable().optional(),
 });
 
-// database.types.ts ne connaît pas rea_tasks (migration 0043) → client casté.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyClient = any;
+type Db = SupabaseClient<Database>;
 
 /**
  * Vérifie qu'une entité rattachée appartient bien à user+tenant.
  * general (ou pas d'entity_id) ⇒ rien à vérifier.
  */
 async function entityBelongsToUser(
-  sb: AnyClient,
+  sb: Db,
   entityType: string,
   entityId: string | null | undefined,
   userId: string,
@@ -89,7 +90,13 @@ async function entityBelongsToUser(
   if (!table) return true;
   // prosp_annonces n'a pas de user_id (tenant-scopé) — on vérifie le tenant seul.
   const scopeByUser = table !== "prosp_annonces";
-  let q = sb.from(table).select("id").eq("id", entityId).eq("tenant_id", tenantId);
+  // Nom de table dynamique (issu d'ENTITY_TABLE, allowlist constante) : le client
+  // typé exige un littéral → cast local minimal sur ce seul `.from(table)`.
+  let q = (sb as SupabaseClient)
+    .from(table)
+    .select("id")
+    .eq("id", entityId)
+    .eq("tenant_id", tenantId);
   if (scopeByUser) q = q.eq("user_id", userId);
   const { data, error } = await q.maybeSingle();
   if (error) {
@@ -102,7 +109,7 @@ async function entityBelongsToUser(
 export async function GET(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const sb = getSupabaseAdmin() as AnyClient;
+  const sb = getSupabaseAdmin();
   if (!sb) return NextResponse.json({ error: "no_db" }, { status: 503 });
 
   const userId = claims.sub;
@@ -137,7 +144,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const sb = getSupabaseAdmin() as AnyClient;
+  const sb = getSupabaseAdmin();
   if (!sb) return NextResponse.json({ error: "no_db" }, { status: 503 });
 
   const raw = await req.json().catch(() => null);

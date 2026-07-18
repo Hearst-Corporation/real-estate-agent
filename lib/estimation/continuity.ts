@@ -8,14 +8,13 @@
  * Ne touche PAS au moteur de valorisation (`valuation.ts`). Ici : uniquement des
  * champs de suivi (0043) — owner_lead_id, decision, next_action, manual_adjustments.
  *
- * ⚠️ Les colonnes 0043 (owner_lead_id, decision, next_action, manual_adjustments)
- * ne sont PAS encore reflétées dans `database.types.ts` (types générés en retard).
- * On les lit/écrit via des casts NARROW au point de contact DB — les valeurs sont
- * validées par Zod dans les routes avant d'arriver ici. Aucune donnée inventée.
+ * Ces colonnes 0043 sont désormais reflétées dans `database.types.ts` : lecture et
+ * écriture typées directement. Les valeurs sont validées par Zod dans les routes
+ * avant d'arriver ici. Aucune donnée inventée.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database, Json, TablesUpdate } from "@/lib/supabase/database.types";
 
 // ─── Enums (miroir des CHECK DB de la migration 0043) ───────────────────────────
 
@@ -129,10 +128,12 @@ export async function loadContinuity(
   tenant: string
 ): Promise<ContinuityState | null> {
   // Colonnes 0043 (owner_lead_id, decision, next_action, manual_adjustments)
-  // absentes des types générés → select "*" puis lecture narrow via `unknown`.
+  // typées sur la Row estimations → lecture directe.
   const { data, error } = await sb
     .from("estimations")
-    .select("*")
+    .select(
+      "owner_lead_id, decision, next_action, manual_adjustments, property_id"
+    )
     .eq("id", estimationId)
     .eq("user_id", userId)
     .eq("tenant_id", tenant)
@@ -140,13 +141,7 @@ export async function loadContinuity(
 
   if (error || !data) return null;
 
-  const row = data as unknown as {
-    owner_lead_id: string | null;
-    decision: unknown;
-    next_action: string | null;
-    manual_adjustments: unknown;
-    property_id: string | null;
-  };
+  const row = data;
 
   // Owner lead (si rattaché) — re-owner-check.
   let owner: OwnerLead | null = null;
@@ -202,11 +197,18 @@ export async function updateContinuityColumns(
     manual_adjustments?: ManualAdjustment[];
   }
 ): Promise<boolean> {
-  const payload: Record<string, unknown> = { ...patch };
+  // Colonnes 0043 typées sur estimations.Update ; manual_adjustments (jsonb) reçoit
+  // la liste validée sérialisée en Json.
+  const payload: TablesUpdate<"estimations"> = {};
+  if ("owner_lead_id" in patch) payload.owner_lead_id = patch.owner_lead_id;
+  if ("decision" in patch) payload.decision = patch.decision;
+  if ("next_action" in patch) payload.next_action = patch.next_action;
+  if ("manual_adjustments" in patch) {
+    payload.manual_adjustments = patch.manual_adjustments as unknown as Json;
+  }
   const { error } = await sb
     .from("estimations")
-    // colonnes 0043 non typées → cast local scellé.
-    .update(payload as never)
+    .update(payload)
     .eq("id", estimationId)
     .eq("user_id", userId)
     .eq("tenant_id", tenant);

@@ -13,8 +13,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
+import type { Database, TablesUpdate } from "@/lib/supabase/database.types";
 import { tenantOf } from "@/lib/tenant";
 
 export const runtime = "nodejs";
@@ -30,11 +32,10 @@ const PatchSchema = z
     path: ["snoozed_until"],
   });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyClient = any;
+type Db = SupabaseClient<Database>;
 
 async function ownsTask(
-  sb: AnyClient,
+  sb: Db,
   id: string,
   userId: string,
   tenantId: string,
@@ -56,7 +57,7 @@ async function ownsTask(
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const sb = getSupabaseAdmin() as AnyClient;
+  const sb = getSupabaseAdmin();
   if (!sb) return NextResponse.json({ error: "no_db" }, { status: 503 });
 
   const { id } = await ctx.params;
@@ -85,7 +86,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     return NextResponse.json({ error: "snooze_in_past" }, { status: 400 });
   }
 
-  const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  const patch: TablesUpdate<"rea_tasks"> = { updated_at: new Date().toISOString() };
   if (body.action === "done") {
     patch.status = "done";
   } else if (body.action === "snooze") {
@@ -115,7 +116,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const sb = getSupabaseAdmin() as AnyClient;
+  const sb = getSupabaseAdmin();
   if (!sb) return NextResponse.json({ error: "no_db" }, { status: 503 });
 
   const { id } = await ctx.params;

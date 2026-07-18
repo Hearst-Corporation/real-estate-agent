@@ -200,12 +200,16 @@ export type Database = {
           confirmed_blocks: Json
           created_at: string
           data_status: string | null
+          decision: string | null
           engine_version: string | null
           field_status: Json
           id: string
           insee_code: string | null
+          manual_adjustments: Json
           market: Json | null
           market_value: number | null
+          next_action: string | null
+          owner_lead_id: string | null
           pdf_generated_at: string | null
           pdf_key: string | null
           pdf_status: string | null
@@ -236,12 +240,16 @@ export type Database = {
           confirmed_blocks?: Json
           created_at?: string
           data_status?: string | null
+          decision?: string | null
           engine_version?: string | null
           field_status?: Json
           id?: string
           insee_code?: string | null
+          manual_adjustments?: Json
           market?: Json | null
           market_value?: number | null
+          next_action?: string | null
+          owner_lead_id?: string | null
           pdf_generated_at?: string | null
           pdf_key?: string | null
           pdf_status?: string | null
@@ -272,12 +280,16 @@ export type Database = {
           confirmed_blocks?: Json
           created_at?: string
           data_status?: string | null
+          decision?: string | null
           engine_version?: string | null
           field_status?: Json
           id?: string
           insee_code?: string | null
+          manual_adjustments?: Json
           market?: Json | null
           market_value?: number | null
+          next_action?: string | null
+          owner_lead_id?: string | null
           pdf_generated_at?: string | null
           pdf_key?: string | null
           pdf_status?: string | null
@@ -301,7 +313,15 @@ export type Database = {
           valued_at?: string | null
           vue_perenne?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "estimations_owner_lead_id_fkey"
+            columns: ["owner_lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inv_approvals: {
         Row: {
@@ -2704,6 +2724,7 @@ export type Database = {
           enriched_at: string | null
           enriched_data: Json | null
           enriched_source: string | null
+          financement: Json | null
           full_name: string
           id: string
           kind: string
@@ -2715,6 +2736,7 @@ export type Database = {
           tenant_id: string
           type_personne: string
           updated_at: string
+          urgence: string | null
           user_id: string | null
         }
         Insert: {
@@ -2727,6 +2749,7 @@ export type Database = {
           enriched_at?: string | null
           enriched_data?: Json | null
           enriched_source?: string | null
+          financement?: Json | null
           full_name: string
           id?: string
           kind?: string
@@ -2738,6 +2761,7 @@ export type Database = {
           tenant_id?: string
           type_personne?: string
           updated_at?: string
+          urgence?: string | null
           user_id?: string | null
         }
         Update: {
@@ -2750,6 +2774,7 @@ export type Database = {
           enriched_at?: string | null
           enriched_data?: Json | null
           enriched_source?: string | null
+          financement?: Json | null
           full_name?: string
           id?: string
           kind?: string
@@ -2761,6 +2786,7 @@ export type Database = {
           tenant_id?: string
           type_personne?: string
           updated_at?: string
+          urgence?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -3393,12 +3419,15 @@ export type Database = {
         Row: {
           actif: boolean
           alerte_email: boolean
+          alerte_frequence: string
           alerte_whatsapp: boolean
           ascenseur: string
           budget_max: number | null
           budget_min: number | null
           created_at: string
+          criteres_secondaires: Json
           dpe_max: string | null
+          exclusions: Json
           id: string
           jardin: string
           lead_id: string | null
@@ -3414,18 +3443,22 @@ export type Database = {
           terrasse: string
           type_bien: string[] | null
           updated_at: string
+          urgence: string | null
           user_id: string
           zones: Json
         }
         Insert: {
           actif?: boolean
           alerte_email?: boolean
+          alerte_frequence?: string
           alerte_whatsapp?: boolean
           ascenseur?: string
           budget_max?: number | null
           budget_min?: number | null
           created_at?: string
+          criteres_secondaires?: Json
           dpe_max?: string | null
+          exclusions?: Json
           id?: string
           jardin?: string
           lead_id?: string | null
@@ -3441,18 +3474,22 @@ export type Database = {
           terrasse?: string
           type_bien?: string[] | null
           updated_at?: string
+          urgence?: string | null
           user_id: string
           zones?: Json
         }
         Update: {
           actif?: boolean
           alerte_email?: boolean
+          alerte_frequence?: string
           alerte_whatsapp?: boolean
           ascenseur?: string
           budget_max?: number | null
           budget_min?: number | null
           created_at?: string
+          criteres_secondaires?: Json
           dpe_max?: string | null
+          exclusions?: Json
           id?: string
           jardin?: string
           lead_id?: string | null
@@ -3468,6 +3505,7 @@ export type Database = {
           terrasse?: string
           type_bien?: string[] | null
           updated_at?: string
+          urgence?: string | null
           user_id?: string
           zones?: Json
         }
@@ -4012,6 +4050,57 @@ export type Database = {
           last_run_at?: string | null
           tenant_id?: string
           type_bien?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rea_tasks: {
+        Row: {
+          created_at: string
+          due_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          kind: string
+          notes: string | null
+          priority: string
+          snoozed_until: string | null
+          status: string
+          tenant_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          priority?: string
+          snoozed_until?: string | null
+          status?: string
+          tenant_id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          due_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          priority?: string
+          snoozed_until?: string | null
+          status?: string
+          tenant_id?: string
+          title?: string
           updated_at?: string
           user_id?: string
         }

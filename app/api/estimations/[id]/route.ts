@@ -140,10 +140,8 @@ export async function PATCH(
     if (!ok) return NextResponse.json({ error: "Internal error" }, { status: 500 });
   } else if (input.action === "add_adjustment") {
     // Read-modify-write : on relit la liste possédée avant d'ajouter.
-    // `manual_adjustments` (colonne 0043) absent des types générés → accès narrow.
-    const current = parseManualAdjustments(
-      (estimation as { manual_adjustments?: unknown }).manual_adjustments
-    );
+    // `manual_adjustments` (colonne 0043) typée sur la Row estimations.
+    const current = parseManualAdjustments(estimation.manual_adjustments);
     if (current.length >= MANUAL_ADJ_MAX) {
       return NextResponse.json({ error: "too_many_adjustments" }, { status: 409 });
     }
@@ -163,9 +161,7 @@ export async function PATCH(
     if (!ok) return NextResponse.json({ error: "Internal error" }, { status: 500 });
   } else {
     // remove_adjustment
-    const current = parseManualAdjustments(
-      (estimation as { manual_adjustments?: unknown }).manual_adjustments
-    );
+    const current = parseManualAdjustments(estimation.manual_adjustments);
     const filtered = current.filter((a) => a.id !== input.adjustment_id);
     const ok = await updateContinuityColumns(sb, id, userId, tenant, {
       manual_adjustments: filtered,

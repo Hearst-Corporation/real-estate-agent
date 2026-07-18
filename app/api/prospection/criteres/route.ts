@@ -5,11 +5,10 @@ import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/supabase/database.types";
 
-// database.types.ts est désynchronisé du schéma gpu1 : les colonnes 0043
-// (alerte_frequence/urgence/exclusions/criteres_secondaires) sont LIVE en base
-// mais absentes des types générés. On construit la ligne en objet libre puis on
-// la cast via unknown vers le type d'insert/update (le runtime envoie toutes les
-// clés, y compris 0043).
+// Les colonnes 0043 (alerte_frequence/urgence/exclusions/criteres_secondaires)
+// sont désormais reflétées dans database.types.ts : l'objet d'insert est vérifié
+// via `satisfies`. Le patch PATCH reste un objet dynamique (construit par boucle)
+// → cast simple vers CritereUpdate au point de contact.
 type CritereInsert = TablesInsert<"prosp_criteres_acquereur">;
 type CritereUpdate = TablesUpdate<"prosp_criteres_acquereur">;
 
@@ -255,8 +254,8 @@ export async function POST(req: NextRequest) {
   const c = parsed.data;
   const typeBien = c.type_bien == null ? null : Array.isArray(c.type_bien) ? c.type_bien : [c.type_bien];
 
-  // Colonnes 0043 (LIVE) incluses ; cast unknown→CritereInsert car absentes des
-  // types générés (elles sont bien envoyées au runtime).
+  // Colonnes 0043 (LIVE) incluses ; l'objet est vérifié `satisfies CritereInsert`
+  // (les types reflètent maintenant ces colonnes).
   const insertRow = {
     tenant_id:            tenantId,
     user_id:              claims.sub,
@@ -288,7 +287,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await db
     .from("prosp_criteres_acquereur")
-    .insert(insertRow as unknown as CritereInsert)
+    .insert(insertRow satisfies CritereInsert)
     .select("*")
     .single();
 
@@ -332,7 +331,7 @@ export async function PATCH(req: NextRequest) {
   // Owner-check applicatif : user_id (= sub) ET tenant_id.
   const { data, error } = await db
     .from("prosp_criteres_acquereur")
-    .update(patch as unknown as CritereUpdate)
+    .update(patch as CritereUpdate)
     .eq("id", id)
     .eq("tenant_id", tenantId)
     .eq("user_id", claims.sub)

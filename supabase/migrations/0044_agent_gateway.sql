@@ -29,6 +29,9 @@ create table if not exists public.agent_gateway_idempotency_keys (
 create unique index if not exists uq_agent_gateway_idem
   on public.agent_gateway_idempotency_keys (tenant_id, interface, idem_key);
 
+-- Trigger idempotent (create trigger n'accepte pas IF NOT EXISTS → drop d'abord,
+-- même pattern que 0043 pour trg_rea_tasks_updated_at). Un 2e passage ne casse pas.
+drop trigger if exists trg_agent_gateway_idem_updated_at on public.agent_gateway_idempotency_keys;
 create trigger trg_agent_gateway_idem_updated_at
   before update on public.agent_gateway_idempotency_keys
   for each row execute function public.set_updated_at();
