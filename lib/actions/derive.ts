@@ -457,6 +457,29 @@ export const CATEGORY_ORDER: ActionCategory[] = [
   "match",
 ];
 
+// ─── Regroupement TEMPOREL (hiérarchie « urgent → aujourd'hui → ensuite ») ─────
+//
+// La liste plate d'ActionItem noie l'information : 18 lignes quasi identiques ne
+// disent pas « ce qui brûle vs ce qui peut attendre ». On projette chaque
+// catégorie sur 3 bandes lisibles, une seule chose dominante par bande :
+//   urgent  → ce qui est EN RETARD (échéance passée)
+//   today   → ce qui se joue AUJOURD'HUI (tâches du jour, RDV du jour, validations)
+//   next    → tout le reste (à faire ENSUITE, sans urgence datée)
+// Purement dérivé de la catégorie (déjà calculée en amont) — aucune donnée créée.
+
+/** Bande temporelle d'affichage du centre d'actions. */
+export type TemporalBucket = "urgent" | "today" | "next";
+
+/** Ordre des bandes (le plus urgent en premier). */
+export const BUCKET_ORDER: TemporalBucket[] = ["urgent", "today", "next"];
+
+/** Projette une catégorie d'action sur sa bande temporelle. */
+export function bucketOf(category: ActionCategory): TemporalBucket {
+  if (category === "overdue") return "urgent";
+  if (category === "today" || category === "validation") return "today";
+  return "next";
+}
+
 const PRIORITY_RANK: Record<ActionItem["priority"], number> = { haute: 0, normale: 1, basse: 2 };
 
 /**
@@ -504,7 +527,14 @@ export function buildActionCenter(
     return true;
   });
 
+  // Tri hiérarchique : bande temporelle D'ABORD (urgent → aujourd'hui → ensuite),
+  // puis priorité, puis échéance. Sans le tri par bande, une estimation « haute »
+  // (bande « ensuite ») remontait AU-DESSUS d'un RDV du jour « normale » (bande
+  // « aujourd'hui ») → la hiérarchie temporelle était diluée. On la rétablit.
+  const bucketRank: Record<TemporalBucket, number> = { urgent: 0, today: 1, next: 2 };
   deduped.sort((a, b) => {
+    const bk = bucketRank[bucketOf(a.category)] - bucketRank[bucketOf(b.category)];
+    if (bk !== 0) return bk;
     const p = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
     if (p !== 0) return p;
     const aw = a.when ? new Date(a.when).getTime() : Number.MAX_SAFE_INTEGER;

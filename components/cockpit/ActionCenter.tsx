@@ -27,7 +27,13 @@ import { Icon, type IconName } from "@/components/cockpit/Icon";
 import { UI } from "@/lib/ui-strings";
 import { dateTimeFr, timeFr } from "@/lib/crm/format";
 import type { ActionCategory, ActionItem, QuickAction } from "@/lib/actions/types";
-import { CATEGORY_ORDER } from "@/lib/actions/derive";
+import { BUCKET_ORDER, CATEGORY_ORDER, bucketOf, type TemporalBucket } from "@/lib/actions/derive";
+
+/**
+ * Libellés des bandes temporelles (urgent → aujourd'hui → ensuite), injectés par
+ * l'appelant depuis UI.* (aucun texte en dur ici). Réutilise des clés existantes.
+ */
+export type BucketLabels = Record<TemporalBucket, string>;
 
 // ─── Métadonnées de catégorie (libellés via UI.*, icône mono-accent) ──────────
 
@@ -284,11 +290,31 @@ function ActionRow({
   );
 }
 
+/** En-tête d'une bande temporelle — repère discret, compte à droite. */
+function BucketHeader({ label, count }: { label: string; count: number }) {
+  return (
+    <div className="mt-4 mb-1.5 flex items-center gap-2.5 first:mt-0">
+      <span aria-hidden="true" className="h-px w-4 shrink-0 bg-accent-500/50" />
+      <span className="text-xs font-semibold uppercase tracking-wider text-accent-700">
+        {label}
+      </span>
+      <span className="tabular-nums text-xs font-medium text-zinc-400">{count}</span>
+      <span aria-hidden="true" className="h-px flex-1 bg-zinc-950/5" />
+    </div>
+  );
+}
+
 // ─── Composant principal ──────────────────────────────────────────────────────
 
 const SNOOZE_HOURS = 24; // report par défaut : +24 h
 
-export function ActionCenter({ items: initialItems }: { items: ActionItem[] }) {
+export function ActionCenter({
+  items: initialItems,
+  bucketLabels,
+}: {
+  items: ActionItem[];
+  bucketLabels: BucketLabels;
+}) {
   const t = UI.dashboard.center;
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -318,6 +344,19 @@ export function ActionCenter({ items: initialItems }: { items: ActionItem[] }) {
     () => CATEGORY_ORDER.filter((c) => (counts.get(c) ?? 0) > 0),
     [counts],
   );
+
+  // Regroupement temporel de la vue « Tout » : urgent → aujourd'hui → ensuite.
+  // Les items arrivent DÉJÀ triés bande-first (buildActionCenter) → on ne fait
+  // que partitionner, l'ordre interne est préservé. Filtre catégorie actif →
+  // liste plate (l'utilisateur a explicitement restreint : pas de sur-découpage).
+  const buckets = useMemo(() => {
+    const map = new Map<TemporalBucket, ActionItem[]>();
+    for (const b of BUCKET_ORDER) map.set(b, []);
+    for (const i of visible) map.get(bucketOf(i.category))?.push(i);
+    return BUCKET_ORDER.map((b) => ({ bucket: b, items: map.get(b) ?? [] })).filter(
+      (g) => g.items.length > 0,
+    );
+  }, [visible]);
 
   async function handleQuick(item: ActionItem, action: QuickAction) {
     setBusyId(item.id);
@@ -445,7 +484,22 @@ export function ActionCenter({ items: initialItems }: { items: ActionItem[] }) {
           <p className="text-sm font-medium text-zinc-700">{t.empty}</p>
           <p className="text-xs text-zinc-500">{t.emptyHint}</p>
         </div>
+      ) : filter === "all" ? (
+        // Vue « Tout » : bandes temporelles (urgent → aujourd'hui → ensuite).
+        <div className="flex flex-col">
+          {buckets.map((g) => (
+            <section key={g.bucket} aria-label={bucketLabels[g.bucket]}>
+              <BucketHeader label={bucketLabels[g.bucket]} count={g.items.length} />
+              <ul className="flex flex-col gap-2">
+                {g.items.map((item) => (
+                  <ActionRow key={item.id} item={item} onQuick={handleQuick} busyId={busyId} />
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
       ) : (
+        // Filtre catégorie actif : liste plate (intention déjà restreinte).
         <ul className="flex flex-col gap-2">
           {visible.map((item) => (
             <ActionRow key={item.id} item={item} onQuick={handleQuick} busyId={busyId} />
