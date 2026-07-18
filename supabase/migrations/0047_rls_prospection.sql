@@ -141,15 +141,24 @@ create policy "tenant prosp_annonces read" on public.prosp_annonces
   for select to authenticated
   using (tenant_id = (select public.current_tenant_id()));
 
--- 3b. prosp_config (tenant_id). 0015 avait select/insert/update séparés ; on les
---     remplace par une policy `for all` tenant-scopée (couvre aussi delete).
+-- 3b. prosp_config (tenant_id). 0015 avait select/insert/update séparés ; on
+--     conserve exactement ces droits, tenant-scopés. DELETE reste refusé.
 alter table public.prosp_config enable row level security;
 drop policy if exists "tenant_select" on public.prosp_config;
 drop policy if exists "tenant_insert" on public.prosp_config;
 drop policy if exists "tenant_update" on public.prosp_config;
 drop policy if exists "tenant prosp_config" on public.prosp_config;
-create policy "tenant prosp_config" on public.prosp_config
-  for all to authenticated
+drop policy if exists "tenant prosp_config read" on public.prosp_config;
+drop policy if exists "tenant prosp_config insert" on public.prosp_config;
+drop policy if exists "tenant prosp_config update" on public.prosp_config;
+create policy "tenant prosp_config read" on public.prosp_config
+  for select to authenticated
+  using (tenant_id = (select public.current_tenant_id()));
+create policy "tenant prosp_config insert" on public.prosp_config
+  for insert to authenticated
+  with check (tenant_id = (select public.current_tenant_id()));
+create policy "tenant prosp_config update" on public.prosp_config
+  for update to authenticated
   using      (tenant_id = (select public.current_tenant_id()))
   with check (tenant_id = (select public.current_tenant_id()));
 
@@ -190,6 +199,9 @@ commit;
 --   -- Tables 0015 : restaure les policies select/insert/update d'origine.
 --   drop policy if exists "tenant prosp_annonces read"       on public.prosp_annonces;
 --   drop policy if exists "tenant prosp_config"              on public.prosp_config;
+--   drop policy if exists "tenant prosp_config read"         on public.prosp_config;
+--   drop policy if exists "tenant prosp_config insert"       on public.prosp_config;
+--   drop policy if exists "tenant prosp_config update"       on public.prosp_config;
 --   drop policy if exists "tenant prosp_ingestion_runs read" on public.prosp_ingestion_runs;
 --   create policy "tenant_select" on public.prosp_annonces       for select using (tenant_id = current_setting('app.tenant_id', true));
 --   create policy "tenant_select" on public.prosp_config         for select using (tenant_id = current_setting('app.tenant_id', true));

@@ -176,25 +176,14 @@ test("PATCH /api/properties statut invalide → 400", async () => {
 
   const res = await api.patch(`/api/properties/${id}`, { data: { status: "nope" } });
 
-  // CE QUI COMPTE : le statut invalide est REJETÉ et n'est jamais persisté.
-  // La contrainte CHECK `properties.status` (0008_crm.sql) l'arrête en base.
-  expect(res.ok()).toBe(false);
+  expect(res.status()).toBe(400);
   const body = await res.json();
-  expect(body).not.toHaveProperty("id"); // aucune mise à jour appliquée
+  expect(body).toEqual({ error: "invalid_status" });
 
-  // Le statut reste inchangé côté lecture — preuve que rien n'a été écrit.
+  // Le statut reste inchangé côté lecture — preuve que le refus applicatif est atomique.
   const after = await api.get(`/api/properties/${id}`);
   expect(after.status()).toBe(200);
-  expect((await after.json()).status).not.toBe("nope");
-
-  // DÉFAUT PRODUIT SIGNALÉ (non corrigé ici — hors ownership QA) :
-  // `PATCH /api/properties/[id]` ne valide PAS l'enum `status` côté applicatif.
-  // La valeur part en base, la CHECK la rejette, et la route mappe l'erreur en
-  // 500 `update_failed`. Contrat attendu : 400 `invalid_status` (validation Zod
-  // miroir de la CHECK). L'intégrité est sauve, mais le code HTTP ment : une
-  // faute d'entrée client est rapportée comme une panne serveur.
-  expect(res.status()).toBe(500);
-  expect(body).toMatchObject({ error: "update_failed" });
+  expect((await after.json()).item.status).toBe("prospect");
 });
 
 // ── Leads ─────────────────────────────────────────────────────────────────────

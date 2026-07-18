@@ -2,12 +2,12 @@
 // scripts/db-diagnose.mjs — Diagnostic du DB privé (Supabase self-hosté gpu1).
 //
 // Zéro dépendance : lit .env.local, interroge PostgREST via fetch avec la clé
-// service-role, compare le schéma réel aux tables attendues des migrations
-// 0018→0037, sonde la RPC verify_login, GoTrue et le comportement RLS anon vs
+// service-role, compare le schéma réel aux tables créées par toutes les migrations
+// versionnées jusqu'à 0048, sonde la RPC verify_login, GoTrue et le comportement RLS anon vs
 // service-role. Ne masque RIEN des résultats mais N'IMPRIME AUCUN secret.
 //
 // Usage : node scripts/db-diagnose.mjs
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -16,11 +16,7 @@ const ROOT = resolve(__dirname, "..");
 
 // ── Chargement .env.local (repo racine, gitignored) ──────────────────────────
 function loadEnv() {
-  // Le worktree isolé n'a pas de .env.local → fallback repo principal.
-  const candidates = [
-    resolve(ROOT, ".env.local"),
-    "/Users/adrienbeyondcrypto/Dev/Projects/Real estate Agent/.env.local",
-  ];
+  const candidates = [process.env.REA_ENV_FILE, resolve(ROOT, ".env.local")].filter(Boolean);
   for (const path of candidates) {
     try {
       const raw = readFileSync(path, "utf8");
@@ -33,11 +29,12 @@ function loadEnv() {
           v = v.slice(1, -1);
         env[m[1]] = v;
       }
-      return { env, path };
+      return { env: { ...env, ...process.env }, path };
     } catch {
       /* try next */
     }
   }
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) return { env: process.env, path: "process.env" };
   throw new Error("Aucun .env.local trouvé");
 }
 
@@ -46,10 +43,24 @@ const URL_BASE = (env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || "").replac
 const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || "";
 const ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-const EXPECTED =
-  `auth_audit_log auth_credentials cockpit_chats cockpit_messages estimation_messages estimations inv_approvals inv_audit_log inv_bond_register inv_bond_tranches inv_bondholder_mass inv_cap_table_entries inv_chain_events inv_deal_closing_conditions inv_deal_milestones inv_deals inv_deep_inscriptions inv_distribution_payouts inv_distributions inv_documents inv_escrow_movements inv_failed_operations inv_idempotency_keys inv_investor_assessments inv_investor_profiles inv_kiis_documents inv_kiis_versions inv_kyc_cases inv_operators inv_reconciliation_runs inv_regulatory_reports inv_reports inv_secondary_orders inv_signature_envelopes inv_spvs inv_subscriptions inv_tenants inv_token_mints inv_travel_rule_records inv_webhook_events leads mandates missions properties property_photos prosp_annonces prosp_config prosp_criteres_acquereur prosp_ingestion_runs prosp_match_feedback prosp_matchs prosp_prospects revoked_sessions sessions swarm_runs tenant_memory user_mfa users visits`
-    .trim()
-    .split(/\s+/);
+function expectedTablesFromMigrations() {
+  const directory = resolve(ROOT, "supabase", "migrations");
+  const tables = new Set();
+  for (const file of readdirSync(directory).filter((name) => name.endsWith(".sql")).sort()) {
+    const sql = readFileSync(resolve(directory, file), "utf8")
+      .split("\n")
+      .map((line) => line.replace(/--.*$/, ""))
+      .join("\n");
+    for (const match of sql.matchAll(
+      /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:(?:public|auth)\.)?"?([a-z_][a-z0-9_]*)"?/gi,
+    )) {
+      tables.add(match[1].toLowerCase());
+    }
+  }
+  return [...tables].sort();
+}
+
+const EXPECTED = expectedTablesFromMigrations();
 
 const CRITICAL = [
   "users",
@@ -61,8 +72,18 @@ const CRITICAL = [
   "revoked_sessions",
   "user_mfa",
   "auth_audit_log",
-  "swarm_runs",
   "tenant_memory",
+  "rea_tasks",
+  "agent_gateway_idempotency_keys",
+  "agent_gateway_audit_log",
+  "agent_alert_approvals",
+];
+
+const RELEASE_OBJECTS = [
+  "rea_tasks",
+  "agent_gateway_idempotency_keys",
+  "agent_gateway_audit_log",
+  "agent_alert_approvals",
 ];
 
 function mask(s) {
@@ -120,7 +141,7 @@ async function main() {
   console.log("");
 
   // ── 2. Comparaison attendu vs présent ──────────────────────────────────────
-  console.log("── 2. Attendu (migrations 0018→0037) vs présent ───────────────");
+  console.log("── 2. Attendu (toutes migrations versionnées → 0048) vs présent ─");
   const presentSet = new Set(presentTables);
   const missing = EXPECTED.filter((t) => !presentSet.has(t));
   const extra = presentTables.filter(
@@ -173,9 +194,9 @@ async function main() {
   console.log(`GET /realtime/v1/  →  HTTP ${rt.status}`);
   console.log("");
 
-  // ── 7. RLS : anon vs service-role sur users & leads ─────────────────────────
-  console.log("── 7. RLS anon vs service-role (users, leads) ─────────────────");
-  for (const t of ["users", "leads"]) {
+  // ── 7. RLS : anon vs service-role sans afficher aucune ligne ────────────────
+  console.log("── 7. RLS anon vs service-role (objets critiques/release) ─────");
+  for (const t of ["users", "leads", ...RELEASE_OBJECTS]) {
     const anon = await http(`/rest/v1/${t}?select=id&limit=1`, { key: ANON_KEY });
     const svc = await http(`/rest/v1/${t}?select=id&limit=1`, { key: SERVICE_KEY });
     let anonRows = "?";
@@ -196,6 +217,13 @@ async function main() {
     if (anon.status < 400 && anonRows !== "0" && anonRows !== "n/a")
       console.log(`    ⚠ anon lit des lignes de ${t} → RLS potentiellement TROP OUVERTE`);
   }
+  console.log("");
+
+  console.log("── 8. Ledger release 0043→0048 (présence PostgREST) ───────────");
+  for (const table of RELEASE_OBJECTS) {
+    console.log(`  ${table.padEnd(38)} ${presentSet.has(table) ? "PRÉSENTE" : "ABSENTE / NON PROUVÉE"}`);
+  }
+  console.log("  Note : indexes, triggers et policies exigent l'introspection psql read-only documentée dans docs/DEPLOYMENT.md.");
   console.log("");
   console.log("═══════════════════════════════════════════════════════════════");
   console.log(" FIN DIAGNOSTIC");

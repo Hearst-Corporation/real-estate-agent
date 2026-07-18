@@ -157,13 +157,41 @@ describe("OWNER-CHECK — tables owner-scopées exigent user_id = auth.uid()", (
 
 describe("WITH CHECK — les policies `for all` ont un with check (pas d'écriture cross-tenant)", () => {
   // Tables `for all` = doivent border l'écriture (with check), pas seulement la lecture.
-  const FOR_ALL = [...OWNER_SCOPED, "prosp_annonce_versions", "prosp_optout", "prosp_idempotency_keys", "prosp_config", CONTACT_ATTEMPTS];
+  const FOR_ALL = [...OWNER_SCOPED, "prosp_annonce_versions", "prosp_optout", "prosp_idempotency_keys", CONTACT_ATTEMPTS];
   it.each(FOR_ALL)("%s : policy `for all` bordée par with check", (table) => {
     const block = policyBlock(table);
     expect(block, `bloc policy manquant pour ${table}`).toBeTruthy();
     if (/for\s+all\b/i.test(block as string)) {
       expect(block as string).toMatch(/with\s+check\s*\(/i);
     }
+  });
+});
+
+describe("PRIVILÈGES prosp_config — aucun DELETE implicite", () => {
+  const blocks = (): string[] => {
+    const re = /create\s+policy\s+"[^"]+"\s+on\s+public\.prosp_config\b[\s\S]*?;/gi;
+    return [...SQL.matchAll(re)].map((m) => m[0]);
+  };
+
+  it("conserve exactement SELECT, INSERT et UPDATE", () => {
+    const policies = blocks();
+    expect(policies).toHaveLength(3);
+    expect(policies.some((p) => /for\s+select\b/i.test(p))).toBe(true);
+    expect(policies.some((p) => /for\s+insert\b/i.test(p) && /with\s+check\s*\(/i.test(p))).toBe(true);
+    expect(
+      policies.some(
+        (p) =>
+          /for\s+update\b/i.test(p) &&
+          /using\s*\(/i.test(p) &&
+          /with\s+check\s*\(/i.test(p),
+      ),
+    ).toBe(true);
+  });
+
+  it("ne crée aucune policy FOR ALL ou FOR DELETE", () => {
+    const sql = blocks().join("\n");
+    expect(sql).not.toMatch(/for\s+all\b/i);
+    expect(sql).not.toMatch(/for\s+delete\b/i);
   });
 });
 

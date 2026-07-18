@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
+import { PROPERTY_STATUSES } from "@/lib/crm/format";
 import type { TablesUpdate } from "@/lib/supabase/database.types";
+import { z } from "zod";
+
+const PropertyStatusSchema = z.enum(PROPERTY_STATUSES);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -91,7 +95,17 @@ export async function PATCH(
   ];
   const patch: TablesUpdate<"properties"> = {};
   for (const key of allowed) {
-    if (key in body) (patch as Record<string, unknown>)[key] = body[key];
+    if (key in body) {
+      if (key === "status") {
+        const parsed = PropertyStatusSchema.safeParse(body[key]);
+        if (!parsed.success) {
+          return NextResponse.json({ error: "invalid_status" }, { status: 400 });
+        }
+        patch.status = parsed.data;
+      } else {
+        (patch as Record<string, unknown>)[key] = body[key];
+      }
+    }
   }
 
   if (Object.keys(patch).length === 0) {
