@@ -3,6 +3,10 @@ import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { captureServer } from "@/lib/providers/posthog";
+import {
+  FinancementFieldSchema,
+  normalizeFinancement,
+} from "@/lib/crm/financement";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +24,7 @@ export async function GET() {
 
   const { data, error } = await sb
     .from("leads")
-    .select("id, full_name, email, phone, status, kind, type_personne, source, budget_min, budget_max, property_id, notes, created_at, updated_at")
+    .select("id, full_name, email, phone, status, kind, type_personne, source, budget_min, budget_max, financement, property_id, notes, created_at, updated_at")
     .eq("user_id", claims.sub)
     .eq("tenant_id", tenantOf(claims))
     .order("updated_at", { ascending: false })
@@ -66,6 +70,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 
+  // Financement (jsonb) — validé par Zod si présent ; absent = non renseigné.
+  let financement: ReturnType<typeof normalizeFinancement> | undefined;
+  if ("financement" in body) {
+    const parsed = FinancementFieldSchema.safeParse(body.financement);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "invalid_financement" }, { status: 400 });
+    }
+    financement = normalizeFinancement(parsed.data);
+  }
+
   const { data, error } = await sb
     .from("leads")
     .insert({
@@ -80,6 +94,7 @@ export async function POST(req: Request) {
       budget_min: budget_min ?? null,
       budget_max: budget_max ?? null,
       status: status ?? "nouveau",
+      ...(financement !== undefined ? { financement } : {}),
     })
     .select("id")
     .single();
