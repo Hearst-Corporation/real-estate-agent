@@ -6,7 +6,15 @@ on:
   pull_request:
     branches: [main]
 
+# Annule les runs obsolètes d'une même ref (économie de minutes CI).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # ── Qualité statique + tests unitaires + build + cohérence migrations ─────────
+  # Aucun secret requis : tout est statique/hermétique. Le build reçoit des
+  # placeholders NEXT_PUBLIC_* (jamais de vrais secrets) pour l'inlining client.
   check:
     runs-on: ubuntu-latest
     steps:
@@ -27,8 +35,80 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check (lint + typecheck)
+      - name: Check (lint + typecheck + catalyst + strings + nav + secrets)
         run: pnpm run check
 
-      - name: Test
+      - name: Unit tests (vitest)
         run: pnpm run test
+
+      - name: Migrations coherence (static, no DB)
+        run: node scripts/test-migrations-coherence.mjs
+
+      - name: Build (next build)
+        # Placeholders NON secrets : suffisent au build client. Le boot runtime
+        # revalide l'environnement réel (instrumentation → assertBootEnv).
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.example.invalid
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key-not-a-secret
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: pnpm run build
+
+  # ── E2E Playwright (smoke) ────────────────────────────────────────────────────
+  # Exige une DB réelle (verify_login) → ne s'exécute QUE si les secrets DB sont
+  # configurés sur le repo. Sur un fork / repo non configuré, le job se skippe
+  # proprement (pas d'échec rouge trompeur). Aucun secret n'est imprimé.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: check
+    # Ne lance le job que si le secret DB est présent (évalué en amont).
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify E2E secrets present
+        id: guard
+        env:
+          SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JWT: ${{ secrets.JWT_SECRET }}
+        run: |
+          if [ -n "$SERVICE_ROLE" ] && [ -n "$JWT" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Secrets DB (SUPABASE_SERVICE_ROLE_KEY / JWT_SECRET) absents — E2E ignoré."
+          fi
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.enabled == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.0
+
+      - name: Setup Node
+        if: steps.guard.outputs.enabled == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        if: steps.guard.outputs.enabled == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        if: steps.guard.outputs.enabled == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E smoke (Playwright)
+        if: steps.guard.outputs.enabled == 'true'
+        # `test:e2e` démarre lui-même le serveur (playwright.config.ts → webServer)
+        # et attend http://localhost:3002. Les secrets ne sont exposés qu'au runtime,
+        # jamais imprimés.
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: pnpm run test:e2e
