@@ -104,17 +104,12 @@ jobs:
         if: steps.guard.outputs.enabled == 'true'
         # `test:e2e` démarre lui-même le serveur (playwright.config.ts → webServer)
         # et attend http://localhost:3002. Les secrets ne sont exposés qu'au runtime,
-        # jamais imprimés. DB = PostgREST gpu1 (serveur-only). Les variables legacy
-        # NEXT_PUBLIC_SUPABASE_* / SUPABASE_* restent passées tant que les specs E2E
-        # (hors périmètre de cette migration) ne sont pas migrées.
+        # jamais imprimés. DB = PostgREST gpu1 (serveur-only). Migration terminée :
+        # plus aucune variable Supabase (les specs E2E ne les consomment plus).
         env:
           GPU1_POSTGREST_URL: ${{ secrets.GPU1_POSTGREST_URL }}
           GPU1_POSTGREST_ADMIN_TOKEN: ${{ secrets.GPU1_POSTGREST_ADMIN_TOKEN }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm run test:e2e
 
   electron-smoke:

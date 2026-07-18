@@ -33,18 +33,28 @@ async function pingDb(): Promise<{ status: DbState; latencyMs: number }> {
   if (!db) return { status: "unconfigured", latencyMs: 0 };
 
   const startedAt = Date.now();
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), DB_PING_TIMEOUT_MS);
+
+  // Le client `getGpu1Admin` porte son propre timeout interne (~15 s), trop
+  // large pour un health : sa requête ne borne PAS le budget local. On enveloppe
+  // donc la lecture dans un `Promise.race` avec un timer local — au-delà de
+  // DB_PING_TIMEOUT_MS, on considère la DB `down` sans attendre le client.
+  // Le builder gpu1 n'expose pas de `.abortSignal()` : la course locale EST la
+  // borne effective (la requête sous-jacente finira par se résoudre côté client
+  // et sera ignorée). Aucune URL/token/fournisseur exposé : uniquement l'état.
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<{ error: unknown }>((resolve) => {
+    timer = setTimeout(() => resolve({ error: new Error("db_ping_timeout") }), DB_PING_TIMEOUT_MS);
+  });
   try {
     // Lecture bornée, une seule colonne, une seule ligne max : coût minimal.
-    const { error } = await db.from("leads").select("id").limit(1);
+    const { error } = await Promise.race([db.from("leads").select("id").limit(1), timeout]);
     const latencyMs = Date.now() - startedAt;
-    // Toute erreur PostgREST (réseau, timeout, tunnel coupé) = DB injoignable.
+    // Toute erreur (réseau, timeout local, tunnel coupé) = DB injoignable.
     return { status: error ? "down" : "up", latencyMs };
   } catch {
     return { status: "down", latencyMs: Date.now() - startedAt };
   } finally {
-    clearTimeout(timer);
+    if (timer) clearTimeout(timer);
   }
 }
 
