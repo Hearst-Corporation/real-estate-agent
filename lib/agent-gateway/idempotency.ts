@@ -1,9 +1,13 @@
 /**
  * lib/agent-gateway/idempotency.ts — idempotence applicative des écritures
- * gateway. Miroir exact du pattern lib/prospection/ingest.ts
- * (lookupIdempotent/reserveIdempotent/completeIdempotent) sur la table dédiée
+ * gateway. Miroir du pattern lib/prospection/ingest.ts sur la table dédiée
  * agent_gateway_idempotency_keys (migration 0044) : un rejeu avec la même clé
- * (tenant, interface, idem_key) ne produit jamais un second effet (§2).
+ * (tenant, interface, idem_key) ne produit jamais un second effet.
+ *
+ * Durcissement A2 : on stocke le HASH du payload et on le compare au rejeu. Une
+ * même clé réutilisée avec un payload DIFFÉRENT est un CONFLIT (DENIED), pas un
+ * rejeu silencieux — sinon un appelant pourrait masquer une écriture divergente
+ * derrière une clé déjà vue.
  */
 import "server-only";
 import { createHash } from "node:crypto";
@@ -16,36 +20,46 @@ export function bodyHash(payload: unknown): string {
     .digest("hex");
 }
 
+export interface IdempotencyRecord {
+  status: "running" | "completed" | string;
+  bodyHash: string | null;
+  response: Json | null;
+}
+
 /**
- * Réponse déjà mémorisée pour (tenant, interface, idemKey) → l'appelant DOIT
- * court-circuiter l'écriture et renvoyer cette réponse. Sinon null.
+ * Enregistrement existant pour (tenant, interface, idemKey), ou null si aucun.
+ * Retourne status + hash + réponse mémorisée — l'appelant décide (rejeu vs conflit).
  */
-export async function lookupGatewayIdempotent(
+export async function lookupGatewayRecord(
   tenantId: string,
   interfaceName: string,
   idemKey: string,
-): Promise<Json | null> {
+): Promise<IdempotencyRecord | null> {
   const db = getSupabaseAdmin();
   if (!db) return null;
   try {
     const { data } = await db
       .from("agent_gateway_idempotency_keys")
-      .select("response, status")
+      .select("response, status, body_hash")
       .eq("tenant_id", tenantId)
       .eq("interface", interfaceName)
       .eq("idem_key", idemKey)
       .maybeSingle();
-    if (data && data.status === "completed") return data.response;
-    return null;
+    if (!data) return null;
+    return {
+      status: data.status,
+      bodyHash: data.body_hash ?? null,
+      response: data.response ?? null,
+    };
   } catch {
     return null;
   }
 }
 
 /**
- * Pose un verrou `running` (insert atomique sur l'unique tenant/interface/clé).
- * false ⇒ clé déjà réservée (course / rejeu concurrent) → l'appelant NE réécrit
- * PAS une seconde fois.
+ * Pose un verrou `running` (insert atomique sur l'unique tenant/interface/clé),
+ * en mémorisant le hash du payload. false ⇒ clé déjà réservée (course / rejeu
+ * concurrent) → l'appelant NE réécrit PAS une seconde fois.
  */
 export async function reserveGatewayIdempotent(
   tenantId: string,
