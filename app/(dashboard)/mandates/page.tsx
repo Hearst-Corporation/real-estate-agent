@@ -108,7 +108,7 @@ export default async function MandatesPage() {
       </div>
 
       {/* Viz métier — cards TW+ layout/cards (thème clair) */}
-      <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 @2xl:grid-cols-2">
         <section className="surface p-5">
           <div className="font-titre mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
             {t.charts.pipeline}

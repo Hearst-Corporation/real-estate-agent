@@ -100,7 +100,7 @@ export default async function LeadsPage() {
       </dl>
 
       {/* Charts — cartes surface, viz métier conservée */}
-      <div className="grid grid-cols-1 gap-6 @2xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 @2xl:grid-cols-2">
         <section className="surface p-5">
           <Subheading className="font-titre mb-3">{t.charts.pipeline}</Subheading>
           <Funnel steps={pipeline} emptyLabel={UI.viz.empty} />

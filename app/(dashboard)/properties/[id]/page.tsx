@@ -2,7 +2,7 @@ import { Fragment, Suspense, type ReactNode } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { PageHeader, Card } from "@/components/cockpit/primitives";
+import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
 import { DescriptionList, DescriptionTerm, DescriptionDetails } from "@/components/ui/description-list";
 import { UI } from "@/lib/ui-strings";
 import { eur, sqm, dateFr, daysSince } from "@/lib/crm/format";
@@ -200,7 +200,7 @@ export default async function PropertyDetailPage({
       : null;
 
   return (
-    <>
+    <PageStack>
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <PageHeader
         kicker={t.eyebrow}
@@ -431,6 +431,6 @@ export default async function PropertyDetailPage({
           tenantId={tenantId}
         />
       </Suspense>
-    </>
+    </PageStack>
   );
 }
