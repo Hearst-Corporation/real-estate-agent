@@ -5,20 +5,30 @@
   "baseRef": "feature/rea-release-005",
   "baseHead": "044ebd2ddc74fef8907d765b657ce65d0dc935ea",
   "coordinationBranch": "orchestration/REA-GPU1-006-20260718-01",
-  "status": "READY",
+  "integrationBranch": "feature/rea-gpu1-native-006",
+  "integrationHead": "8add003",
+  "status": "integrated",
+  "mode": "QUICK (execution-first, validation globale unique — demande owner)",
   "updatedAt": "2026-07-18T00:00:00Z",
   "authorizations": {"commit":true,"pushWorkerBranches":true,"integrationRc":true,"mergeToReleaseOrMain":false,"deploy":false,"applyMigrations":false,"restartServices":false},
   "workers": [
-    {"index":1,"missionId":"REA-GPU1-006-M01","branch":"work/rea-gpu1-006-m01-core","status":"READY","head":null,"report":null},
-    {"index":2,"missionId":"REA-GPU1-006-M02","branch":"work/rea-gpu1-006-m02-auth-admin","status":"READY","head":null,"report":null},
-    {"index":3,"missionId":"REA-GPU1-006-M03","branch":"work/rea-gpu1-006-m03-crm","status":"READY","head":null,"report":null},
-    {"index":4,"missionId":"REA-GPU1-006-M04","branch":"work/rea-gpu1-006-m04-estimation","status":"READY","head":null,"report":null},
-    {"index":5,"missionId":"REA-GPU1-006-M05","branch":"work/rea-gpu1-006-m05-prospection","status":"READY","head":null,"report":null},
-    {"index":6,"missionId":"REA-GPU1-006-M06","branch":"work/rea-gpu1-006-m06-gateway","status":"READY","head":null,"report":null},
-    {"index":7,"missionId":"REA-GPU1-006-M07","branch":"work/rea-gpu1-006-m07-shell","status":"READY","head":null,"report":null},
-    {"index":8,"missionId":"REA-GPU1-006-M08","branch":"work/rea-gpu1-006-m08-tooling","status":"READY","head":null,"report":null},
-    {"index":9,"missionId":"REA-GPU1-006-M09","branch":"work/rea-gpu1-006-m09-convergence","status":"READY","head":null,"report":null},
-    {"index":10,"missionId":"REA-GPU1-006-M10","branch":"work/rea-gpu1-006-m10-qa","status":"READY","head":null,"report":null}
+    {"index":1,"missionId":"REA-GPU1-006-M01","branch":"work/rea-gpu1-006-m01-core","status":"integrated","head":"b7dcb4d","note":"socle lib/gpu1/** client PostgREST natif + env GPU1_POSTGREST_* + retrait @supabase runtime + shims transitoires"},
+    {"index":2,"missionId":"REA-GPU1-006-M02","branch":"work/rea-gpu1-006-m02-auth-admin","status":"integrated","head":"6493887","note":"auth/admin/audit/MFA — untypedAdmin -> Gpu1Client<unknown>, owner-checks preserves"},
+    {"index":3,"missionId":"REA-GPU1-006-M03","branch":"work/rea-gpu1-006-m03-crm","status":"integrated","head":"b6c7144","note":"CRM leads/properties/visits/mandates, selects embarques as unknown as"},
+    {"index":4,"missionId":"REA-GPU1-006-M04","branch":"work/rea-gpu1-006-m04-estimation","status":"integrated","head":"a7a59fa","note":"estimation + brochure, tokens de partage preserves"},
+    {"index":5,"missionId":"REA-GPU1-006-M05","branch":"work/rea-gpu1-006-m05-prospection","status":"integrated","head":"24fbc7a","note":"prospection, criteres/route.ts recable (plus de var publique DB), guard fail-closed contact"},
+    {"index":6,"missionId":"REA-GPU1-006-M06","branch":"work/rea-gpu1-006-m06-gateway","status":"integrated","head":"37a0828","note":"gateway/agents/jobs, frontiere de confiance + HITL + idempotence preserves"},
+    {"index":7,"missionId":"REA-GPU1-006-M07","branch":"work/rea-gpu1-006-m07-shell","status":"integrated","head":"2212e16","note":"dashboard/tasks/health/chat, health recable GPU1 sans fuite"},
+    {"index":8,"missionId":"REA-GPU1-006-M08","branch":"work/rea-gpu1-006-m08-tooling","status":"integrated","head":"c382da3","note":"scripts/e2e/docs migres GPU1 ; migrations SQL inchangees non appliquees"},
+    {"index":9,"missionId":"REA-GPU1-006-M09","branch":"work/rea-gpu1-006-m09-convergence","status":"integrated","head":"8add003","note":"retrait shims + cle UI database_not_configured + check-no-supabase.mjs anti-retour dans npm run check"},
+    {"index":10,"missionId":"REA-GPU1-006-M10","branch":"work/rea-gpu1-006-m10-qa","status":"skipped","head":null,"note":"QA finale retiree en MODE QUICK sur demande explicite de l'owner (arret des verifications). Validation faite : serveur local boot OK (/ 200, /api/health 200, /auth/login 200) sur client GPU1 natif."}
   ],
-  "verdict": null
+  "localRun": {
+    "command": "cd <worktree feature/rea-gpu1-native-006> && AUTH_DEV_BYPASS=true node_modules/.bin/next dev --webpack -p 3002",
+    "envRequired": ["GPU1_POSTGREST_URL", "GPU1_POSTGREST_ADMIN_TOKEN", "JWT_SECRET"],
+    "observed": {"/": 200, "/api/health": 200, "/auth/login": 200},
+    "note": "next dev --webpack obligatoire (node_modules symlinke -> Turbopack panique). .env.local recu les 2 vars GPU1 canoniques (gitignored, non committe)."
+  },
+  "guardrailsRespected": {"noMergeToReleaseOrMain":true,"noDeploy":true,"noApplyMigrations":true,"noRestartServices":true,"pr16Untouched":true,"noForcePush":true,"noGitForWorkers":true,"noSecretCommitted":true},
+  "verdict": "RC integre et bootable en local sur client GPU1 natif ; verifications exhaustives (M10) volontairement non executees (MODE QUICK owner)."
 }
