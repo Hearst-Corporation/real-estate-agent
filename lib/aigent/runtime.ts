@@ -2,8 +2,6 @@ import "server-only";
 
 import {
   RUNTIME_PROJECT_KEY,
-  type ListAgentsResponse,
-  type ListRunEventsResponse,
   type PublishedAgent,
   type RuntimeAvailability,
   type RuntimeResult,
@@ -11,6 +9,13 @@ import {
   type RuntimeRun,
   type RuntimeRunEvent,
 } from "@/lib/aigent/runtime-types";
+import {
+  type ParseOutcome,
+  parseAgent,
+  parseAgentList,
+  parseEventList,
+  parseRun,
+} from "@/lib/aigent/runtime-schema";
 
 /**
  * Client du REGISTRE RUNTIME Aigent — server-only, feature-détecté (OUTBOUND).
@@ -69,11 +74,23 @@ function newRequestId(): string {
 }
 
 /**
- * Exécute un appel authentifié vers le registre runtime, avec timeout et parsing
- * JSON défensif. Ne renvoie JAMAIS `err.message` d'une dépendance interne — les
- * détails restent en `console.error` serveur (contrat §10).
+ * Sentinelle interne : un corps de réponse `null` (JSON illisible) est distinct
+ * d'un `null` métier légitime. On parse toujours via un schéma strict, donc cette
+ * valeur ne sort jamais du module — elle force le chemin `invalid_response`.
+ */
+const UNPARSEABLE = Symbol("aigent_runtime_unparseable");
+
+/**
+ * Exécute un appel authentifié vers le registre runtime, avec timeout et
+ * VALIDATION STRICTE du corps 200. Ne renvoie JAMAIS `err.message` d'une
+ * dépendance interne — les détails restent en `console.error` serveur (§10).
  *
- * `expectOk` : liste des codes traités comme succès (défaut 200/201).
+ * Invariant de contrat consommateur (MISSION REA-M04-04) : un HTTP 200 dont le
+ * corps ne valide PAS le schéma (`parse` échoue) produit un état `error`
+ * explicite (`invalid_response`) — JAMAIS une liste vide, un run factice ni un
+ * faux succès. `parse` reçoit le JSON brut et renvoie un `ParseOutcome<T>` :
+ *   - `{ ok:true, value }`  → succès réel, `{ ok:true, data:value }`
+ *   - `{ ok:false }`        → 200 malformé, `{ ok:false, error:"invalid_response" }`
  */
 async function call<T>(
   path: string,
@@ -83,7 +100,7 @@ async function call<T>(
     headers?: Record<string, string>;
     requestId?: string;
   } = {},
-  map?: (json: unknown) => T,
+  parse: (json: unknown) => ParseOutcome<T> = (json) => ({ ok: true, value: json as T }),
 ): Promise<RuntimeResult<T>> {
   const avail = runtimeAvailability();
   if (!avail.available) return { ok: false, unavailable: avail };
@@ -131,9 +148,16 @@ async function call<T>(
       return { ok: false, error: "runtime_error" };
     }
 
-    const json: unknown = await res.json().catch(() => null);
-    const data = map ? map(json) : (json as T);
-    return { ok: true, data };
+    // JSON illisible (corps vide, HTML, tronqué) → sentinelle → invalid_response.
+    const json: unknown = await res.json().catch(() => UNPARSEABLE);
+    const outcome = json === UNPARSEABLE ? ({ ok: false } as const) : parse(json);
+    if (!outcome.ok) {
+      // 200 au CORPS malformé = bug producteur, PAS un résultat vide. On refuse
+      // de fabriquer une liste vide / un run factice : état error honnête.
+      console.error("aigent_runtime_invalid_response", { path, status: res.status, requestId });
+      return { ok: false, error: "invalid_response" };
+    }
+    return { ok: true, data: outcome.value };
   } catch (e) {
     const aborted = e instanceof Error && e.name === "AbortError";
     console.error("aigent_runtime_call_failed", { path, requestId, aborted });
@@ -149,7 +173,8 @@ async function call<T>(
 
 /**
  * `GET /projects/:projectKey/agents` — liste des agents publiés du projet.
- * État réel actuel du registre : `{ ok:true, agents:[] }` (vide, honnête).
+ * `{ ok:true, agents:[] }` (registre vide) = VALIDE, reste `data:[]`. Un 200 dont
+ * un agent est malformé → `invalid_response` (jamais une liste vide inventée).
  */
 export async function listAgents(
   projectKey: string = RUNTIME_PROJECT_KEY,
@@ -158,11 +183,7 @@ export async function listAgents(
   return call<PublishedAgent[]>(
     `/api/runtime/v1/projects/${encodeURIComponent(projectKey)}/agents`,
     { requestId },
-    (json) => {
-      const body = json as Partial<ListAgentsResponse> | null;
-      // Ne fabrique rien : si le registre ne renvoie pas de tableau, c'est vide.
-      return Array.isArray(body?.agents) ? body!.agents : [];
-    },
+    parseAgentList,
   );
 }
 
@@ -174,12 +195,7 @@ export async function getAgent(
   return call<PublishedAgent>(
     `/api/runtime/v1/agents/${encodeURIComponent(agentId)}`,
     { requestId },
-    (json) => {
-      const body = json as { agent?: PublishedAgent } | PublishedAgent | null;
-      // Contrat §10 : succès = `{ ok:true, ...ressource }`. On accepte les deux
-      // formes (`{agent}` ou l'agent à plat) sans jamais inventer de champ.
-      return (body && "agent" in body ? body.agent : (body as PublishedAgent)) ?? ({} as PublishedAgent);
-    },
+    parseAgent,
   );
 }
 
@@ -201,7 +217,7 @@ export async function createRun(
       headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {},
       requestId,
     },
-    (json) => extractRun(json),
+    parseRun,
   );
 }
 
@@ -213,7 +229,7 @@ export async function getRun(
   return call<RuntimeRun>(
     `/api/runtime/v1/runs/${encodeURIComponent(runId)}`,
     { requestId },
-    (json) => extractRun(json),
+    parseRun,
   );
 }
 
@@ -230,10 +246,7 @@ export async function getRunEvents(
   return call<RuntimeRunEvent[]>(
     `/api/runtime/v1/runs/${encodeURIComponent(runId)}/events${q}`,
     { requestId },
-    (json) => {
-      const body = json as Partial<ListRunEventsResponse> | null;
-      return Array.isArray(body?.events) ? body!.events : [];
-    },
+    parseEventList,
   );
 }
 
@@ -249,17 +262,6 @@ export async function resumeRun(
   return call<RuntimeRun>(
     `/api/runtime/v1/runs/${encodeURIComponent(runId)}/resume`,
     { method: "POST", body: { decision }, requestId },
-    (json) => extractRun(json),
+    parseRun,
   );
-}
-
-/**
- * Extrait un `RuntimeRun` d'une réponse contrat `{ ok:true, run:{…} }` ou d'un run
- * à plat. Ne fabrique aucun champ — retourne un objet minimal si la forme est
- * inattendue (jamais un faux run « fonctionnel »).
- */
-function extractRun(json: unknown): RuntimeRun {
-  const body = json as { run?: RuntimeRun } | RuntimeRun | null;
-  const run = body && typeof body === "object" && "run" in body ? body.run : (body as RuntimeRun);
-  return (run ?? {}) as RuntimeRun;
 }
