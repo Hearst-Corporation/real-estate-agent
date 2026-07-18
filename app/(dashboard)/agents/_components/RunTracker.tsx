@@ -18,7 +18,7 @@ const t = UI.agentsPage;
 const POLL_MS = 2000;
 
 /** Statuts terminaux : plus rien à poller. */
-const TERMINAL: RuntimeRunStatus[] = ["completed", "failed"];
+const TERMINAL: RuntimeRunStatus[] = ["completed", "failed", "cancelled"];
 
 /** Couleur de badge par statut de run (sémantique). */
 function runColor(status: RuntimeRunStatus): "lime" | "amber" | "red" | "zinc" {
@@ -32,6 +32,8 @@ function runColor(status: RuntimeRunStatus): "lime" | "amber" | "red" | "zinc" {
       return "amber";
     case "failed":
       return "red";
+    case "cancelled":
+      return "zinc";
     default:
       return "zinc";
   }

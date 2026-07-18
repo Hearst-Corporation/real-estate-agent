@@ -1,18 +1,21 @@
 /**
  * lib/approvals/db.ts — accès data de la BOÎTE D'APPROBATION humaine (HITL).
  *
- * La table `agent_alert_approvals` (migration 0045, statuts étendus par 0049)
- * n'est PAS dans les types générés `database.types` — elle n'est pas déployée sur
- * gpu1 (interdit par le brief). Comme `lib/agent-gateway/approval.ts`, on l'atteint
- * via un cast local documenté, jamais exposé hors de ce module. Le reste du client
- * gpu1 reste typé.
+ * La table `agent_alert_approvals` (migration 0045, statuts étendus par 0049) est
+ * DÉPLOYÉE et LIVE sur gpu1 (vérifié via PostgREST : colonnes id, tenant_id,
+ * agent_id, actor_user_id, match_id, channel, content_hash, status, approved_by,
+ * consumed_at, expires_at, created_at, updated_at, decided_by, decided_at).
+ * Elle n'est simplement pas dans les types générés `database.types` : comme
+ * `lib/agent-gateway/approval.ts`, on l'atteint via un cast local documenté,
+ * jamais exposé hors de ce module. Le reste du client gpu1 reste typé.
  *
  * Ce module ne fait QUE lire les approbations en attente et PERSISTER la décision
  * humaine (pending → approved/rejected) de façon atomique (usage unique, pas de
  * double-décision). Il n'EXÉCUTE JAMAIS l'action approuvée — c'est la gateway qui
- * consomme ('approved' → 'consumed') plus tard. Fail-closed / dégradé honnête : si
- * la table/colonnes ne sont pas déployées, les lectures renvoient UNAVAILABLE et la
- * décision échoue proprement (aucune fausse donnée, aucun faux « envoyé »).
+ * consomme ('approved' → 'consumed') plus tard. Fail-closed / dégradé honnête : la
+ * table est live, mais toute indisponibilité DB (réseau, permissions) fait renvoyer
+ * UNAVAILABLE aux lectures et échouer proprement la décision — aucune fausse
+ * donnée, aucun faux « envoyé ».
  */
 import "server-only";
 import type { Gpu1Client } from "@/lib/gpu1";

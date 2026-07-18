@@ -50,6 +50,9 @@ export const RuntimeRunStatusSchema = z.enum([
   "waiting_on_input",
   "completed",
   "failed",
+  // Statut terminal réel du producteur (runtime-api-types.ts côté Aigent).
+  // Sans lui, un run annulé ferait échouer le parse → faux `invalid_response`.
+  "cancelled",
 ]);
 
 /** Corps d'erreur structuré d'un run échoué (`RuntimeErrorBody`, contrat §10). */

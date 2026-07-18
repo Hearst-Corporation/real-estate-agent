@@ -46,7 +46,9 @@ export type RuntimeRunStatus =
   | "running"
   | "waiting_on_input"
   | "completed"
-  | "failed";
+  | "failed"
+  /** Run interrompu (refus HITL / annulation). Terminal, comme completed/failed. */
+  | "cancelled";
 
 /** Corps d'erreur structuré d'un run échoué (`RuntimeRun.error`, contrat §10). */
 export interface RuntimeErrorBody {

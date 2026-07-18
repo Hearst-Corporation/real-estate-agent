@@ -105,3 +105,34 @@ describe("parseAgent", () => {
     expect(parseAgent({})).toEqual({ ok: false });
   });
 });
+
+/**
+ * Alignement sur le producteur réel (dépôt adrien-debug/Aigent,
+ * `src/lib/agent-mission-control/runtime-api-types.ts`) : `RuntimeRunStatus`
+ * y inclut `cancelled`. Sans lui, un run annulé ferait échouer le parse et
+ * remonterait un faux `invalid_response` — le run deviendrait illisible dans
+ * l'UI alors que le registre a répondu correctement.
+ */
+describe("parseRun — statuts du contrat producteur", () => {
+  it("accepte `cancelled` (statut terminal réel du producteur)", () => {
+    const cancelled = { ...RUN, status: "cancelled" as const };
+    expect(parseRun(cancelled)).toEqual({ ok: true, value: cancelled });
+  });
+
+  it("accepte tous les statuts du contrat", () => {
+    for (const status of [
+      "queued",
+      "running",
+      "waiting_on_input",
+      "completed",
+      "failed",
+      "cancelled",
+    ]) {
+      expect(parseRun({ ...RUN, status }).ok).toBe(true);
+    }
+  });
+
+  it("REFUSE toujours un statut inconnu (pas de fourre-tout)", () => {
+    expect(parseRun({ ...RUN, status: "half_done" })).toEqual({ ok: false });
+  });
+});

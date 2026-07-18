@@ -1517,7 +1517,7 @@ export const UI = {
     unavailableTitle: "Aigent non connecté",
     unavailableReasons: {
       not_configured:
-        "Aucune configuration Aigent détectée sur ce serveur. Les agents publiés apparaîtront ici dès que la liaison sera établie.",
+        "Aucune configuration Aigent détectée sur ce serveur : les variables AIGENT_RUNTIME_BASE_URL et AIGENT_RUNTIME_TOKEN sont absentes. Renseignez-les côté serveur (jamais dans le navigateur) — les agents publiés apparaîtront ici dès que la liaison sera établie.",
       unreachable:
         "Aigent ne répond pas pour le moment. Aucune donnée n'est chargée tant que la liaison n'est pas rétablie.",
       unauthorized:
@@ -1558,6 +1558,7 @@ export const UI = {
       waiting_on_input: "Attente de validation",
       completed: "Terminé",
       failed: "Échec",
+      cancelled: "Annulé",
     } as Record<string, string>,
     eventsTitle: "Événements",
     eventsEmpty: "Aucun événement.",
