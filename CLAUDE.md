@@ -1,14 +1,28 @@
 # Real estate Agent
 
-> Projet créé via `/setup-adrien`. Stack : Next.js 16 (App Router) + Electron. DB : Postgres self-hosté GPU1 (PostgREST).
+> Stack : Next.js 16 (App Router) + Electron. **Backend unique : Postgres self-hosté GPU1 derrière PostgREST** — Supabase est définitivement retiré du produit.
 
 ## Langue & mode
 - Toutes les réponses en **français**.
 - Mode **autonomie totale** : tu exécutes, tu ne demandes pas confirmation pour chaque étape.
 
+## 🚀 État production (vérifié le 2026-07-18)
+
+| Fait | Valeur |
+|---|---|
+| URL production | **https://real-estate-agent-iota-nine.vercel.app** |
+| Commit déployé | `main @ 210f572a27703899e8992a6a70edb3000adc905e` |
+| Health | `GET /api/health` → **200**, `db: "up"` |
+| Migrations appliquées sur GPU1 | **jusqu'à `0058`** (voir [docs/gpu1-activation-009.md](docs/gpu1-activation-009.md)) |
+
+⚠️ Le domaine `real-estate-agent.vercel.app` **n'héberge pas cette app** (répond une autre
+application). Ne pas l'utiliser comme URL de prod. `electron/main.ts` pointe encore dessus
+(`prod`) — divergence connue, à corriger côté code.
+
 ## Stack
-- **Web** : Next.js 16.2 (App Router, Turbopack) sur port `3002` — hébergé sur **Vercel** (`https://real-estate-agent.vercel.app`).
-- **DB** : **Postgres self-hosté gpu1** derrière **PostgREST + Caddy** (`https://real-estate-agent-db.hearst.app`, tunnel Cloudflare `hearst-prod`). ⚠️ **PostgREST-only** : GoTrue (Auth), Storage et Realtime Supabase sont **absents** — l'auth est recâblée en RPC Postgres (`verify_login`, migration 0037), le stockage passe par **Cloudflare R2** (`lib/storage/r2.ts`). L'ancien Supabase Cloud (`pyxhhkdjirqambhlpuqz`) est **supprimé**.
+- **Web** : Next.js 16.2 (App Router) sur port `3002` — hébergé sur **Vercel**.
+- **DB** : **Postgres self-hosté gpu1** derrière **PostgREST + Caddy** (`https://real-estate-agent-db.hearst.app`, tunnel Cloudflare `hearst-prod`). Client unique : **`getGpu1Admin()` de `@/lib/gpu1`**. ⚠️ **PostgREST-only** : ni GoTrue (Auth), ni Storage, ni Realtime — l'auth est recâblée en RPC Postgres (`verify_login`, migration 0037), le stockage passe par **Cloudflare R2** (`lib/storage/r2.ts`).
+- **Supabase : RETIRÉ** — aucun SDK `@supabase/*`, aucun helper `getSupabaseAdmin`, aucune var `SUPABASE_*`/`NEXT_PUBLIC_SUPABASE_*` dans le runtime. La gate `npm run check:no-supabase` (`scripts/check-no-supabase.mjs`) casse le build si l'un d'eux réapparaît. Le dossier `supabase/migrations/` ne garde ce nom que par **convention de chemin historique** : c'est du SQL Postgres standard rejoué sur GPU1.
 - **Cache/Queue** : Redis (Railway `redis.railway.internal:6379` ou Upstash REST en runtime)
 - **Hosting** : Vercel (app Next) + gpu1 (DB) + Railway (redis). Doc complète : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 - **Desktop** : Electron (splash sélecteur d'env local/prod, build signé/notarisé)
@@ -16,17 +30,20 @@
 
 ## ⚡ Opérations DB — gpu1 self-host (PostgREST)
 
-Le MCP Supabase **ne s'applique plus** (Cloud supprimé). La DB est un Postgres self-hosté gpu1 exposé par PostgREST.
+Aucun outil Supabase (CLI, MCP, Management API) ne s'applique : la DB est un Postgres
+self-hosté gpu1 exposé par PostgREST.
 
-- **Diagnostic schéma** : `node scripts/db-diagnose.mjs` (compare 59 tables attendues au réel, teste `verify_login`, RLS anon/service-role, et confirme le montage PostgREST-only). Lit `.env.local`, masque les secrets.
-- **Appliquer une migration** : SQL versionné dans `supabase/migrations/NNNN_nom.sql`, puis appliqué sur gpu1 :
+- **État des migrations** : `supabase/migrations/` contient `0001`→`0058`. **Toutes appliquées sur GPU1** — `0043` et `0047` l'étaient déjà, les 14 restantes (`0044 0045 0046 0048 0049`→`0058`) ont été appliquées le **2026-07-18**, données métier inchangées. Détail : [docs/gpu1-activation-009.md](docs/gpu1-activation-009.md).
+- **Diagnostic schéma** : `node scripts/db-diagnose.mjs` (compare les tables attendues au réel, teste `verify_login`, RLS anon/service-role). Lit `.env.local`, masque les secrets.
+- **Appliquer une nouvelle migration** (`0059`+) :
   ```bash
-  ssh gpu1 'docker exec -i nexus-postgres psql -U postgres -d real-estate-agent' < supabase/migrations/00NN_nom.sql
+  ssh gpu1 'docker exec -i nexus-postgres psql -U postgres -d real-estate-agent -v ON_ERROR_STOP=1' < supabase/migrations/00NN_nom.sql
   ssh gpu1 'docker kill -s SIGUSR1 real-estate-agent-postgrest'   # reload cache PostgREST (obligatoire après DDL)
   ```
+  `pg_dump` **avant** toute migration non additive (procédure : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §7).
 - **Lectures / data fixes** : PostgREST REST (`/rest/v1/…`, service-role côté serveur uniquement).
-- JAMAIS `supabase db push` (interactif). Toujours versionner en parallèle dans `supabase/migrations/`.
-- Détail complet : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §Migrations.
+- Cohérence statique des migrations (sans DB, en CI) : `npm run test:migrations`.
+- Détail complet : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §4.
 
 ## 🔐 Auth & multi-tenant
 
@@ -69,13 +86,29 @@ Le MCP Supabase **ne s'applique plus** (Cloud supprimé). La DB est un Postgres 
 
 Tunnel SSH si besoin GPU : `ssh -L 8188:localhost:8188 gpu2-remote -N &`. Doc : `docs/api-config/SERVICES.md`.
 
+## 🔌 État réel des intégrations externes (2026-07-18)
+
+Un état `CONFIG` = **capacité conservée mais non branchée** (variables absentes). Le code
+dégrade honnêtement (jamais de faux envoi, jamais de faux résultat) — **ne jamais supprimer
+une capacité au motif qu'elle est en `CONFIG`**.
+
+| Intégration | Variables | État |
+|---|---|---|
+| **Resend** (email) | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | **CONFIGURÉ en production** (clé + expéditeur présents) mais **NON TESTÉ** — aucun envoi réel n'a été effectué à ce jour. |
+| **Aigent** (copilotes) | `AIGENT_RUNTIME_BASE_URL`, `AIGENT_RUNTIME_TOKEN` | **CONFIG** — variables **absentes**. Note honnête : même configuré, le registre côté producteur est un **skeleton** (liste d'agents vide, `run` → 404). |
+| **Twilio** (SMS / WhatsApp) | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM` | **CONFIG** — variables **absentes**. |
+
 ## Commandes
-- `npm run dev` — Next sur `http://localhost:3002`
+- `npm run dev` — Next sur `http://localhost:3002` (Turbopack).
+  - **En worktree** (`node_modules` symliké → Turbopack panique) : `AUTH_DEV_BYPASS=true node_modules/.bin/next dev --webpack -p 3002`. `AUTH_DEV_BYPASS` est **strictement local** — posé avec `NODE_ENV=production`, le boot throw.
+  - **Jamais `pnpm <script>` dans un worktree** (purge les `node_modules` partagés) → binaires directs `node_modules/.bin/*`.
+- `npm run check` — gate complète (secrets, eslint, nav, strings, manifest cockpit, typecheck, biome, catalyst, **no-supabase**)
+- `npm test` — vitest · `npm run test:migrations` — cohérence statique des migrations
 - `npm run build` / `npm run lint`
 - `npm run electron:dev` — app desktop (Next + Electron)
 - `npm run electron:build` — `.dmg` signé/notarisé (release : `/release-mac`)
 - `npm run test:e2e` — smoke Playwright
-- `/dev-adrien` · `/audit-adrien` · `/ship-adrien` · `/brief-adrien` · `/ready-adrien` (stubs locaux)
+- `/dev-adrien` · `/audit-adrien` · `/ship-adrien` · `/brief-adrien` · `/ready-adrien` (stubs locaux ; leurs descriptions mentionnent encore Supabase — obsolète, la DB est GPU1)
 
 ## Design system — copie locale éditable
 Le DS Cockpit vit dans ce repo (`components/cockpit/` + `components/ui/` + `app/globals.css`, utilities Tailwind v4 natives — voir [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md), **source de vérité unique du DS**). C'est LA copie de ce repo, éditable librement : composants, tokens, classes se modifient directement. Pas de source centrale, pas de resync, pas de lint bloquant sur le design. Seule règle : garder la cohérence visuelle interne. Compose les primitives existantes (`components/cockpit/primitives.tsx`, `components/ui/*`) avant d'en créer.
@@ -87,6 +120,9 @@ Le DS Cockpit vit dans ce repo (`components/cockpit/` + `components/ui/` + `app/
 - Secrets dans `.env.local` (gitignored) + `docs/api-config/SERVICES.md` (gitignored).
 
 ## Référentiels
+- Déploiement / migrations / health : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) · état DB réel : [docs/gpu1-activation-009.md](docs/gpu1-activation-009.md)
+- Preuves QA (captures + manifests) : [docs/qa/](docs/qa/)
+- **Archive** (rapports de vagues, docs dépassées — *ne font pas foi*) : [docs/archive/](docs/archive/)
 - Services & API keys : [docs/api-config/SERVICES.md](docs/api-config/SERVICES.md) *(gitignored)*
 - Variables locales : [.env.local](.env.local) *(gitignored)*
 - Design system (source de vérité DS de CE repo) : [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) · `components/cockpit/` + `components/ui/` + `app/globals.css`

@@ -1,7 +1,12 @@
 # Déploiement — Real Estate Agent
 
-> Topologie **réelle** au 2026-07-13. Source de vérité DB : [gpu1-selfhost.md](gpu1-selfhost.md).
+> Topologie **réelle** au 2026-07-18. Source de vérité DB : [gpu1-selfhost.md](gpu1-selfhost.md)
+> (montage) + [gpu1-activation-009.md](gpu1-activation-009.md) (état des migrations).
 > Ce document décrit le déploiement de bout en bout (app, DB, stockage, jobs, observabilité, health, rollback, backup).
+
+**Production en cours** : https://real-estate-agent-iota-nine.vercel.app —
+déployée depuis `main @ 210f572a27703899e8992a6a70edb3000adc905e`.
+`GET /api/health` → **200**, `db: "up"` (vérifié le 2026-07-18).
 
 ---
 
@@ -9,7 +14,7 @@
 
 | Composant | Où | Détail |
 |---|---|---|
-| **App web (Next.js 16.2)** | **Vercel** — `hearst-corporation/real-estate-agent` | `https://real-estate-agent.vercel.app`. C'est aussi l'URL prod chargée par l'app Electron (`electron/main.ts` → `prod`). |
+| **App web (Next.js 16.2)** | **Vercel** — `hearst-corporation/real-estate-agent` | `https://real-estate-agent-iota-nine.vercel.app`. ⚠️ `real-estate-agent.vercel.app` **n'est pas** cette app (autre application sur ce domaine) ; `electron/main.ts` (`prod`) pointe encore dessus — divergence connue à corriger côté code. |
 | **DB (Postgres + PostgREST)** | **gpu1 self-host** | `https://real-estate-agent-db.hearst.app` — Caddy `:8101` + PostgREST, derrière tunnel Cloudflare `hearst-prod` (remotely-managed). **PostgREST-only** : pas de GoTrue/Storage/Realtime. Voir [gpu1-selfhost.md](gpu1-selfhost.md). |
 | **Auth** | Applicatif | RPC `verify_login` (migration 0037, bcrypt/pgcrypto) → JWT jose custom (`JWT_SECRET`) → cookie `real_estate_agent_token`. Garde = `proxy.ts` (Next 16, **pas** `middleware.ts`). |
 | **Stockage photos/docs** | **Cloudflare R2** | `lib/storage/r2.ts` (S3-compatible, aws4fetch). Pas Supabase Storage. |
@@ -70,8 +75,13 @@ npm run electron:build           # .dmg signé/notarisé (voir /release-mac)
 Les migrations vivent dans `supabase/migrations/NNNN_nom.sql` (**62 fichiers, `0001`→`0058`** ; dernières :
 `0056_share_events`, `0057_value_snapshots`, `0058_learning_signals`).
 Le nom du dossier `supabase/` est une **convention de chemin historique**, pas une dépendance runtime :
-le SQL est du Postgres standard rejoué sur gpu1 (aucun outil ni projet Supabase — voir
-[`supabase/migrations/README.md`](../supabase/migrations/README.md)).
+le SQL est du Postgres standard rejoué sur gpu1 (aucun outil Supabase Cloud).
+
+**État réel sur GPU1 (2026-07-18) : toutes appliquées jusqu'à `0058`.** `0043` et `0047`
+l'étaient déjà ; les 14 restantes (`0044 0045 0046 0048 0049`→`0058`) ont été appliquées le
+2026-07-18 après sauvegarde `pg_dump`, **données métier inchangées** (comptes avant/après
+identiques). Rapport d'exécution + rollback ciblé : [gpu1-activation-009.md](gpu1-activation-009.md) ;
+procédure détaillée par migration (historique) : [gpu1-activation-008.md](gpu1-activation-008.md).
 La base gpu1 a été **montée en reconstruisant le schéma depuis ces migrations** (via `/cloud-adrien`, mode `install`). Il n'y a **pas** de `supabase db push` (interactif, banni). Deux scripts reproductibles existent :
 `scripts/db-diagnose.mjs` (diagnostic DB **live** — voir §Diagnostic ci-dessous) et
 `scripts/test-migrations-coherence.mjs` (**cohérence STATIQUE des migrations**, aucune connexion DB — exécuté en CI).
@@ -86,11 +96,10 @@ ssh gpu1 'docker exec -i nexus-postgres psql -U postgres -d real-estate-agent' <
 ssh gpu1 'docker kill -s SIGUSR1 real-estate-agent-postgrest'
 ```
 
-> ⚠️ Note historique : d'anciennes traces (mémoire projet, vieux rapports) décrivent une
-> application de DDL via une Management API Cloud. **Ce chemin n'existe plus** — le projet
-> Cloud a été supprimé. Le SEUL mécanisme est celui ci-dessus (psql sur gpu1).
+> C'est le **seul** chemin d'application de DDL. Tout chemin historique passant par un outil
+> Supabase (CLI `db push`, MCP, Management API) est **caduc** : le Cloud est supprimé.
 
-**Diagnostic schéma** — script reproductible qui compare les 59 tables attendues (migrations) au schéma réel, teste la RPC `verify_login`, confirme le montage PostgREST-only, et vérifie le RLS anon vs service-role :
+**Diagnostic schéma** — script reproductible qui compare les 59 tables attendues (migrations) au schéma réel, teste la RPC `verify_login`, GoTrue/Storage/Realtime, et le RLS anon vs service-role :
 ```bash
 node scripts/db-diagnose.mjs        # lit .env.local, masque les secrets, sortie lisible
 ```
@@ -111,9 +120,10 @@ Endpoint public (route ouverte du proxy) : **`GET /api/health`**.
 - Ne renvoie **aucun secret**. Le détail `providers` (config des intégrations) n'apparaît qu'avec une session authentifiée.
 
 ```bash
-curl -s https://real-estate-agent.vercel.app/api/health | jq
+curl -s https://real-estate-agent-iota-nine.vercel.app/api/health | jq
+# réponse réelle du 2026-07-18 :
 # { "ok": true, "service": "real-estate-agent",
-#   "checks": { "app":"up","db":"up","dbLatencyMs":120,"auth":"up","storage":"up","jobs":"up" } }
+#   "checks": { "app":"up","db":"up","dbLatencyMs":802,"auth":"up","storage":"up","jobs":"up" } }
 ```
 
 Brancher ce endpoint sur le monitoring Vercel / uptime externe → alerte sur 503 ou `db:down`.
@@ -200,7 +210,7 @@ Recommandé : cron gpu1 (dump quotidien vers R2 ou disque local), sur le modèle
 - [ ] CI verte sur la branche (`check` + `test` + migrations-coherence + `build` ; `e2e` si secrets posés).
 - [ ] `npm run build` vert · `npm run typecheck` vert.
 - [ ] `GET /api/health` → 200, `db:up` sur le domaine prod ; en-têtes de sécurité présents (§5ter :
-      `curl -sI https://real-estate-agent.vercel.app/ | grep -i 'strict-transport\|content-security\|x-content-type'`).
-- [ ] Migrations appliquées sur gpu1 + `SIGUSR1` reload PostgREST.
+      `curl -sI https://real-estate-agent-iota-nine.vercel.app/ | grep -i 'strict-transport\|content-security\|x-content-type'`).
+- [ ] Migrations appliquées sur gpu1 + `SIGUSR1` reload PostgREST (**état actuel : jusqu'à `0058`**).
 - [ ] `pg_dump` récent disponible.
 - [ ] Observabilité : Sentry/Langfuse/PostHog actifs si clés posées (sinon dégradé assumé).

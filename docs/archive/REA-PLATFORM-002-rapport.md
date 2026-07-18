@@ -1,13 +1,23 @@
-# LAST_REPORT — REA-PLATFORM-002 · Cockpit immobilier augmenté, CRM & automatisations
+# ARCHIVE — rapport de vague REA-PLATFORM-002 (état figé, NE FAIT PLUS FOI)
 
-> Orchestrateur. Squad parallèle A1/A2/A3 + A4. Règle de vérité respectée (LIVE/SNAPSHOT/DEMO/CONFIG/UNAVAILABLE).
+> ⚠️ **Document historique.** Il décrit l'état du produit à la fin de la vague
+> REA-PLATFORM-002, sur la branche `feature/rea-platform-augmented-002`. **Plusieurs points
+> sont dépassés** — se référer à [`../../CLAUDE.md`](../../CLAUDE.md),
+> [`../DEPLOYMENT.md`](../DEPLOYMENT.md) et [`../gpu1-activation-009.md`](../gpu1-activation-009.md)
+> pour l'état réel.
+>
+> Ce qui a changé depuis :
+> - **Supabase est entièrement retiré** — les mentions de `SUPABASE_*`,
+>   `supabase_not_configured` et de la preview « data-limitée » (§11) décrivent un backend
+>   **mort**. Le backend unique est GPU1/PostgREST (`getGpu1Admin()`), gate `check:no-supabase`.
+> - **Migrations** : `0043` n'est plus la dernière ; le schéma GPU1 est appliqué **jusqu'à `0058`**.
+> - **Production** : l'app est déployée sur https://real-estate-agent-iota-nine.vercel.app
+>   (`main @ 210f572a`), `/api/health` → 200 `db:"up"`. L'URL de preview citée §11 est caduque.
+> - Les états `UNAVAILABLE` décrits (alertes, Aigent) ont pu évoluer — voir `CLAUDE.md`.
+>
+> Conservé pour la traçabilité (décisions, preuves QA, chronologie), pas comme documentation.
 
-> **⚠️ ARCHIVE — état figé au moment de la passe REA-PLATFORM-002, PAS l'état courant.**
-> Les mentions `SUPABASE_*` / `supabase_not_configured` / `lib/supabase/*` ci-dessous
-> décrivent une configuration **révolue** : elles ont été supprimées depuis (DB = Postgres
-> self-hosté GPU1 via PostgREST, `getGpu1Admin()` de `@/lib/gpu1`, gate
-> `scripts/check-no-supabase.mjs`). Conservé tel quel comme trace de la passe — ne rien
-> en déduire sur la configuration actuelle.
+Orchestrateur. Squad parallèle A1/A2/A3 + A4. Règle de vérité respectée (LIVE/SNAPSHOT/DEMO/CONFIG/UNAVAILABLE).
 
 ## 1. Verdict
 **RÉUSSI**. Parcours métier réellement augmentés et **persistés LIVE** (migration additive 0043 appliquée gpu1) : acquéreurs multi-profils + matching expliqué + alertes honnêtes ; estimation → propriétaire → mandat ; centre d'actions dérivé + tâches. Intégration Aigent = **frontière propre en état UNAVAILABLE** (Aigent non connecté — jamais de faux agent). **Gate définitive verte** (check + 312 tests + build), branche poussée, **12 captures WebP anonymisées** + captures PII publiques remplacées. **Non « production ready »** (build vert ≠ prod ready ; réserves §12 — auth à durcir, preview data-limitée, alertes/messages sans transport).
