@@ -34,9 +34,12 @@ export async function GET(
   const { token } = await ctx.params;
 
   // ── Vérifier le token signé ───────────────────────────────────────────────
+  // Anti-énumération : token invalide, expiré OU secret non configuré → 404
+  // GÉNÉRIQUE, identique au cas « estimation inexistante ». Un 401 distinct
+  // révélerait que la ressource existe (ou non) selon le code renvoyé.
   const verified = await verifyShareToken(token);
   if (!verified) {
-    return Response.json({ error: "invalid_or_expired_token" }, { status: 401 });
+    return Response.json({ error: "not_found" }, { status: 404 });
   }
   const { estimationId } = verified;
 
@@ -52,7 +55,11 @@ export async function GET(
     .eq("id", estimationId)
     .maybeSingle();
 
-  if (error) throw error;
+  // Erreur DB : log serveur, réponse générique (jamais `error.message` au client).
+  if (error) {
+    console.error("[brochure/pdf] estimation read failed", { code: error.code });
+    return Response.json({ error: "internal_error" }, { status: 500 });
+  }
   if (!row || row.status !== "ready" || !row.valuation) {
     return Response.json({ error: "not_found" }, { status: 404 });
   }

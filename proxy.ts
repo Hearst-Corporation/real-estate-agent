@@ -27,6 +27,15 @@ function isOpen(pathname: string): boolean {
   if (pathname.startsWith("/auth/")) return true; // /auth/login & co
   if (pathname.startsWith("/brochure/")) return true; // partage signé — token = autorisation
   if (pathname.startsWith("/api/brochure/")) return true; // PDF brochure public signé
+  // Sélection off-market partagée : le token signé EST l'autorisation (même
+  // patron que /brochure/). Sans ça, la page publique redirige vers /auth/login
+  // et le POST feedback renvoie 401 avant même d'atteindre sa vérif de token —
+  // la capacité de partage acquéreur est alors totalement inaccessible.
+  if (pathname.startsWith("/offmarket/")) return true;
+  // Côté API, on n'ouvre QUE le feedback par token (/api/offmarket/<token>/feedback).
+  // Le préfixe nu resterait trop large : /api/offmarket (liste/création) et toute
+  // future sous-route doivent rester derrière la session.
+  if (/^\/api\/offmarket\/[^/]+\/feedback$/.test(pathname)) return true;
   return OPEN_ROUTES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
