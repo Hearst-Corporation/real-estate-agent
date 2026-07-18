@@ -130,6 +130,7 @@ const STATE_COLOR_OK = [
   /^app\/\(dashboard\)\/outbox\/_components\/OutboxBoard\.tsx$/,
   /^app\/\(dashboard\)\/properties\/\[id\]\/owner-report\/page\.tsx$/,
   /^components\/timeline\/Timeline\.tsx$/,
+  /^components\/value-evolution\/ValueSparkline\.tsx$/,
 ];
 function stateColorAllowed(relPath) {
   return STATE_COLOR_OK.some((re) => re.test(relPath));
