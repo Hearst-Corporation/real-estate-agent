@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { FakeDb, type Row } from "./test-helpers";
 
 const getAdmin = vi.fn();
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getAdmin() }));
+vi.mock("@/lib/gpu1", async (importActual) => ({ ...(await importActual<object>()), getGpu1Admin: () => getAdmin() }));
 
 import { POST } from "@/app/api/agent-gateway/v1/buyers/list/route";
 

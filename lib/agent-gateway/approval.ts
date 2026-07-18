@@ -19,8 +19,8 @@
  */
 import "server-only";
 import { createHash } from "node:crypto";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Gpu1Client } from "@/lib/gpu1";
+import type { Database } from "@/lib/gpu1/database.types";
 
 /** Nom de la table d'approbation (migration 0045, hors types générés A1). */
 const APPROVALS_TABLE = "agent_alert_approvals";
@@ -38,7 +38,7 @@ type UntypedTable = {
   gt: (col: string, val: unknown) => UntypedTable;
   maybeSingle: () => Promise<{ data: Record<string, unknown> | null; error: unknown }>;
 };
-function approvalsTable(db: SupabaseClient<Database>): UntypedTable {
+function approvalsTable(db: Gpu1Client<Database>): UntypedTable {
   return (db as unknown as { from: (t: string) => UntypedTable }).from(APPROVALS_TABLE);
 }
 
@@ -66,7 +66,7 @@ export interface ApprovalContext {
  * n'émet que si ok:true. La consommation est atomique (claim conditionnel).
  */
 export async function consumeAlertApproval(
-  db: SupabaseClient<Database>,
+  db: Gpu1Client<Database>,
   ctx: ApprovalContext,
 ): Promise<ApprovalResult> {
   const hash = contentHash(ctx.channel, ctx.content);

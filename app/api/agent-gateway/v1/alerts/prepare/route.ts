@@ -11,7 +11,7 @@
  */
 import "server-only";
 import { z } from "zod";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { GatewayEnvelopeSchema } from "@/lib/agent-gateway/contracts";
 import { defineGatewayRoute } from "@/lib/agent-gateway/handler";
 import { formatAlertContent } from "@/lib/agent-gateway/alert-content";
@@ -25,16 +25,37 @@ const BodySchema = GatewayEnvelopeSchema.extend({
   match_id: z.string().uuid(),
 }).strict();
 
+/**
+ * Forme de la projection avec relations embarquées PostgREST. Le client GPU1
+ * n'infère pas la chaîne de select (relations embarquées) — on annonce donc
+ * explicitement la forme via `from<T>()`, comme le permet supabase-js. Les
+ * relations reviennent en objet OU tableau selon la cardinalité → le handler
+ * normalise (`Array.isArray`).
+ */
+type CritereEmbedded =
+  | { alerte_email: boolean | null; alerte_whatsapp: boolean | null; telephone: string | null }
+  | Array<{ alerte_email: boolean | null; alerte_whatsapp: boolean | null; telephone: string | null }>
+  | null;
+interface MatchWithContext {
+  id: string;
+  score_match: number;
+  alerte_envoyee: boolean;
+  critere_id: string;
+  annonce_id: string;
+  prosp_annonces: Record<string, unknown> | Record<string, unknown>[] | null;
+  prosp_criteres_acquereur: CritereEmbedded;
+}
+
 export const POST = defineGatewayRoute({
   interfaceName: "alerts.prepare",
   schema: BodySchema,
   timeoutMs: 8_000,
   handler: async (input) => {
-    const db = getSupabaseAdmin();
+    const db = getGpu1Admin();
     if (!db) return { status: "UNAVAILABLE", reason: "db_not_configured" };
 
     const { data: match, error: matchError } = await db
-      .from("prosp_matchs")
+      .from<MatchWithContext>("prosp_matchs")
       .select(
         "id, score_match, alerte_envoyee, critere_id, annonce_id, prosp_annonces(*), prosp_criteres_acquereur(alerte_email, alerte_whatsapp, telephone)",
       )

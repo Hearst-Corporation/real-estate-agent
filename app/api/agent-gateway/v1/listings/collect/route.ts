@@ -12,7 +12,7 @@
  */
 import "server-only";
 import { z } from "zod";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { GatewayEnvelopeSchema, IdempotencyKeySchema } from "@/lib/agent-gateway/contracts";
 import { defineGatewayRoute } from "@/lib/agent-gateway/handler";
 import { runIdempotentWrite } from "@/lib/agent-gateway/idempotent-write";
@@ -36,7 +36,7 @@ export const POST = defineGatewayRoute({
   schema: BodySchema,
   timeoutMs: 90_000, // opération de collecte par lot — budget long, distinct des lectures unitaires
   handler: async (input) => {
-    const db = getSupabaseAdmin();
+    const db = getGpu1Admin();
     if (!db) return { status: "UNAVAILABLE", reason: "db_not_configured" };
 
     const useMoteurImmo = moteurImmoIsConfigured();

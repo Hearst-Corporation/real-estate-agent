@@ -11,8 +11,8 @@
 import { describe, it, expect } from "vitest";
 import { consumeAlertApproval, contentHash } from "./approval";
 import { FakeDb } from "./test-helpers";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Gpu1Client } from "@/lib/gpu1";
+import type { Database } from "@/lib/gpu1/database.types";
 
 const TENANT = "real-estate-agent";
 const AGENT = "agent-alpha";
@@ -51,7 +51,7 @@ function validApprovalRow(over: Record<string, unknown> = {}) {
 // ── (5) Aucune approbation → DENIED, aucun envoi ─────────────────────────────
 describe("consumeAlertApproval — fail-closed sans preuve (preuve 5)", () => {
   it("table d'approbation VIDE (0045 non déployée) → DENIED approval_required", async () => {
-    const db = new FakeDb({ agent_alert_approvals: [] }) as unknown as SupabaseClient<Database>;
+    const db = new FakeDb({ agent_alert_approvals: [] }) as unknown as Gpu1Client<Database>;
     const res = await consumeAlertApproval(db, ctx());
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.reason).toBe("approval_required");
@@ -61,7 +61,7 @@ describe("consumeAlertApproval — fail-closed sans preuve (preuve 5)", () => {
     // Approbation existe mais pour un AUTRE match → ne correspond pas.
     const db = new FakeDb({
       agent_alert_approvals: [validApprovalRow({ match_id: "44444444-4444-4444-8444-444444444444" })],
-    }) as unknown as SupabaseClient<Database>;
+    }) as unknown as Gpu1Client<Database>;
     const res = await consumeAlertApproval(db, ctx());
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.reason).toBe("approval_required");
@@ -70,7 +70,7 @@ describe("consumeAlertApproval — fail-closed sans preuve (preuve 5)", () => {
   it("hash de contenu DIVERGENT (message substitué) → DENIED approval_required", async () => {
     const db = new FakeDb({
       agent_alert_approvals: [validApprovalRow({ content_hash: contentHash("whatsapp", "autre contenu") })],
-    }) as unknown as SupabaseClient<Database>;
+    }) as unknown as Gpu1Client<Database>;
     const res = await consumeAlertApproval(db, ctx());
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.reason).toBe("approval_required");
@@ -79,7 +79,7 @@ describe("consumeAlertApproval — fail-closed sans preuve (preuve 5)", () => {
   it("approbation EXPIRÉE → DENIED approval_required", async () => {
     const db = new FakeDb({
       agent_alert_approvals: [validApprovalRow({ expires_at: new Date(Date.now() - 1000).toISOString() })],
-    }) as unknown as SupabaseClient<Database>;
+    }) as unknown as Gpu1Client<Database>;
     const res = await consumeAlertApproval(db, ctx());
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.reason).toBe("approval_required");
@@ -88,7 +88,7 @@ describe("consumeAlertApproval — fail-closed sans preuve (preuve 5)", () => {
   it("approbation pour un AUTRE agent → DENIED (jamais transférable)", async () => {
     const db = new FakeDb({
       agent_alert_approvals: [validApprovalRow({ agent_id: "agent-autre" })],
-    }) as unknown as SupabaseClient<Database>;
+    }) as unknown as Gpu1Client<Database>;
     const res = await consumeAlertApproval(db, ctx());
     expect(res.ok).toBe(false);
   });
@@ -99,7 +99,7 @@ describe("consumeAlertApproval — usage unique (preuve 6)", () => {
   it("approbation valide → ok une fois, puis rejeu → DENIED already_consumed", async () => {
     const db = new FakeDb({
       agent_alert_approvals: [validApprovalRow()],
-    }) as unknown as SupabaseClient<Database>;
+    }) as unknown as Gpu1Client<Database>;
 
     const first = await consumeAlertApproval(db, ctx());
     expect(first.ok).toBe(true);
@@ -114,7 +114,7 @@ describe("consumeAlertApproval — usage unique (preuve 6)", () => {
   it("consommation pose status='consumed' + consumed_at (traçabilité)", async () => {
     const rows = [validApprovalRow()];
     const db = new FakeDb({ agent_alert_approvals: rows });
-    await consumeAlertApproval(db as unknown as SupabaseClient<Database>, ctx());
+    await consumeAlertApproval(db as unknown as Gpu1Client<Database>, ctx());
     expect(rows[0].status).toBe("consumed");
     expect(rows[0].consumed_at).toBeTruthy();
   });

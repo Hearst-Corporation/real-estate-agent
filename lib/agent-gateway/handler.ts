@@ -21,7 +21,7 @@ import { NextResponse } from "next/server";
 import type { ZodType } from "zod";
 import { checkGatewayAuth } from "./auth";
 import { applyAuthz } from "./authz";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { newRequestId, recordGatewayAudit } from "./audit";
 import { deniedAuthResponse, deniedAuthzResponse, invalidBodyResponse, gatewayResponse } from "./response";
 import type { TruthStatusT } from "./contracts";
@@ -143,7 +143,7 @@ export function defineGatewayRoute<
 
     // 4. AUTORISATION — frontière de confiance (tenant/projet/agent/scope/acteur).
     //    Nécessite la DB pour l'owner-check acteur ; sans DB configurée → close.
-    const db = getSupabaseAdmin();
+    const db = getGpu1Admin();
     if (!db) {
       await recordGatewayAudit({
         interface: interfaceName,

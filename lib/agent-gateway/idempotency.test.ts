@@ -10,7 +10,7 @@ import { FakeDb } from "./test-helpers";
 
 // Mock du client admin AVANT l'import des modules testés (hoisting vi.mock).
 const getAdmin = vi.fn();
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getAdmin() }));
+vi.mock("@/lib/gpu1", async (importActual) => ({ ...(await importActual<object>()), getGpu1Admin: () => getAdmin() }));
 
 import { runIdempotentWrite } from "./idempotent-write";
 import type { GatewayHandlerResult } from "./handler";

@@ -15,18 +15,18 @@ import { applyAuthz } from "./authz";
 import { checkGatewayAuth } from "./auth";
 import { signDelegation } from "./delegation";
 import { FakeDb } from "./test-helpers";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Gpu1Client } from "@/lib/gpu1";
+import type { Database } from "@/lib/gpu1/database.types";
 
 const TENANT = "real-estate-agent";
 const AGENT = "agent-alpha";
 const ACTOR = "11111111-1111-4111-8111-111111111111"; // UUID présent dans users
 const OTHER_ACTOR = "22222222-2222-4222-8222-222222222222"; // absent de users
 
-function dbWithUser(): SupabaseClient<Database> {
+function dbWithUser(): Gpu1Client<Database> {
   return new FakeDb({
     users: [{ id: ACTOR, tenant_id: TENANT, email: "a@demo-agent.local" }],
-  }) as unknown as SupabaseClient<Database>;
+  }) as unknown as Gpu1Client<Database>;
 }
 
 // Snapshot / restauration des vars d'env (déterminisme, pas de fuite entre tests).

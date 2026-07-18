@@ -20,7 +20,7 @@
  * réessai. La garantie "aucun second effet" est préservée : seul le succès est scellé.
  */
 import "server-only";
-import type { Json } from "@/lib/supabase/database.types";
+import type { Json } from "@/lib/gpu1/database.types";
 import {
   bodyHash,
   lookupGatewayRecord,

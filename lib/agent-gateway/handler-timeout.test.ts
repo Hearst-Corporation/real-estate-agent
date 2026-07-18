@@ -16,7 +16,7 @@ import { z } from "zod";
 import { FakeDb } from "./test-helpers";
 
 const getAdmin = vi.fn();
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getAdmin() }));
+vi.mock("@/lib/gpu1", async (importActual) => ({ ...(await importActual<object>()), getGpu1Admin: () => getAdmin() }));
 
 import { defineGatewayRoute } from "./handler";
 import { GatewayEnvelopeSchema } from "./contracts";

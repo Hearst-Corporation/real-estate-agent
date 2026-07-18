@@ -14,14 +14,14 @@
  */
 import "server-only";
 import { z } from "zod";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { GatewayEnvelopeSchema, IdempotencyKeySchema } from "@/lib/agent-gateway/contracts";
 import { defineGatewayRoute } from "@/lib/agent-gateway/handler";
 import { runIdempotentWrite } from "@/lib/agent-gateway/idempotent-write";
 import { loadOwnedEstimation } from "@/lib/estimation/owned";
 import { BLOCKS } from "@/lib/estimation/spec";
 import type { PropertyData, FieldStatusMap } from "@/lib/estimation/types";
-import type { Json } from "@/lib/supabase/database.types";
+import type { Json } from "@/lib/gpu1/database.types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,7 +50,7 @@ export const POST = defineGatewayRoute({
   schema: BodySchema,
   timeoutMs: 10_000,
   handler: async (input) => {
-    const db = getSupabaseAdmin();
+    const db = getGpu1Admin();
     if (!db) return { status: "UNAVAILABLE", reason: "db_not_configured" };
 
     // Rejet des champs hors référentiel fermé (jamais de texte libre non

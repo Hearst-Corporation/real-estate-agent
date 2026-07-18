@@ -23,8 +23,8 @@
  * défaut, allowlist vide). Aucun secret n'est loggé ni renvoyé.
  */
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Gpu1Client } from "@/lib/gpu1";
+import type { Database } from "@/lib/gpu1/database.types";
 import { requiredScope, type Scope } from "./scopes";
 import { verifyDelegation, type DelegationClaim } from "./delegation";
 
@@ -84,7 +84,7 @@ export function loadGatewayConfig(): GatewayConfig {
  * doit passer par une délégation signée explicite (voir applyAuthz).
  */
 async function actorBelongsToTenant(
-  db: SupabaseClient<Database>,
+  db: Gpu1Client<Database>,
   actorUserId: string,
   tenantId: string,
 ): Promise<boolean> {
@@ -107,7 +107,7 @@ async function actorBelongsToTenant(
  * (tenant/acteur/agent), qui priment ensuite sur le payload.
  */
 export async function applyAuthz(
-  db: SupabaseClient<Database>,
+  db: Gpu1Client<Database>,
   interfaceName: string,
   input: AuthzInput,
 ): Promise<AuthzDecision> {

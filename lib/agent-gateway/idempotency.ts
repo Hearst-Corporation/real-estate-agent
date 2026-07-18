@@ -11,8 +11,8 @@
  */
 import "server-only";
 import { createHash } from "node:crypto";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
-import type { Json } from "@/lib/supabase/database.types";
+import { getGpu1Admin } from "@/lib/gpu1";
+import type { Json } from "@/lib/gpu1/database.types";
 
 export function bodyHash(payload: unknown): string {
   return createHash("sha256")
@@ -35,7 +35,7 @@ export async function lookupGatewayRecord(
   interfaceName: string,
   idemKey: string,
 ): Promise<IdempotencyRecord | null> {
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return null;
   try {
     const { data } = await db
@@ -67,7 +67,7 @@ export async function reserveGatewayIdempotent(
   idemKey: string,
   bodyHashValue: string,
 ): Promise<boolean> {
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return true; // pas de DB → pas de garde possible, l'appelant reste seul juge
   try {
     const { error } = await db.from("agent_gateway_idempotency_keys").insert({
@@ -91,7 +91,7 @@ export async function completeGatewayIdempotent(
   idemKey: string,
   response: Json,
 ): Promise<void> {
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return;
   try {
     await db
@@ -121,7 +121,7 @@ export async function releaseGatewayIdempotent(
   interfaceName: string,
   idemKey: string,
 ): Promise<void> {
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return;
   try {
     await db

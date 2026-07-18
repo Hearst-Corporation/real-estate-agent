@@ -11,11 +11,11 @@
  */
 import "server-only";
 import { z } from "zod";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { GatewayEnvelopeSchema, IdempotencyKeySchema } from "@/lib/agent-gateway/contracts";
 import { defineGatewayRoute } from "@/lib/agent-gateway/handler";
 import { runIdempotentWrite } from "@/lib/agent-gateway/idempotent-write";
-import type { Json } from "@/lib/supabase/database.types";
+import type { Json } from "@/lib/gpu1/database.types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ export const POST = defineGatewayRoute({
   schema: BodySchema,
   timeoutMs: 10_000,
   handler: async (input) => {
-    const db = getSupabaseAdmin();
+    const db = getGpu1Admin();
     if (!db) return { status: "UNAVAILABLE", reason: "db_not_configured" };
 
     // Ownership : le critère doit appartenir à l'acteur+tenant (owner-check
