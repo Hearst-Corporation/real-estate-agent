@@ -27,6 +27,7 @@ import {
   DescriptionDetails,
 } from "@/components/ui/description-list";
 import { LeadEnrichButton } from "../_components/LeadEnrichButton";
+import { Timeline } from "@/components/timeline/Timeline";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -604,6 +605,11 @@ export default async function LeadDetailPage({
         }
         return null;
       })()}
+
+      {/* Timeline unifiée — historique chronologique réel de ce client */}
+      <DetailCard title="Historique">
+        <Timeline type="lead" id={lead.id} />
+      </DetailCard>
     </div>
   );
 }

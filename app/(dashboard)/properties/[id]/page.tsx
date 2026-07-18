@@ -14,6 +14,7 @@ import { DpeBadge } from "./_components/DpeBadge";
 import PropertyFormModal from "../_components/PropertyForm";
 import { PropertyPhotosSection } from "./_components/PropertyPhotosSection";
 import { PropertyRelatedSection } from "./_components/PropertyRelatedSection";
+import { Timeline } from "@/components/timeline/Timeline";
 
 /** Type étendu property — inclut les colonnes enrichissement (migration agent A). */
 type PropertyRow = {
@@ -431,6 +432,11 @@ export default async function PropertyDetailPage({
           tenantId={tenantId}
         />
       </Suspense>
+
+      {/* Timeline unifiée — historique chronologique réel de ce bien */}
+      <Card title="Historique" titleAs="section">
+        <Timeline type="property" id={property.id} />
+      </Card>
     </PageStack>
   );
 }
