@@ -12,8 +12,24 @@ import {
 import { getUserMfa } from "@/lib/server/mfa-store";
 import { DEFAULT_TENANT } from "@/lib/tenant";
 import { recordAuthEvent } from "@/lib/server/audit-log";
+import { rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
+
+// Anti-brute-force du 1er facteur (mot de passe).
+// Barrière IP (large — plusieurs users derrière un même NAT) : 20 tentatives / 60 s.
+const LOGIN_RATE_LIMIT_IP = 20;
+const LOGIN_RATE_WINDOW_IP_S = 60;
+// Barrière par email ciblé (serrée — protège UN compte du bruteforce distribué) : 8 / 60 s.
+const LOGIN_RATE_LIMIT_EMAIL = 8;
+const LOGIN_RATE_WINDOW_EMAIL_S = 60;
+
+/** Première IP de la chaîne x-forwarded-for, ou "noip". */
+function clientIp(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  const first = xff?.split(",")[0]?.trim();
+  return first || "noip";
+}
 
 const LoginSchema = z.object({
   email: z.string().email(),
@@ -22,8 +38,23 @@ const LoginSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  // 1) Rate-limit par IP AVANT parse/DB — plafonne le volume brut par source.
+  const ip = clientIp(req);
+  const ipAllowed = await rateLimit(`login:ip:${ip}`, LOGIN_RATE_LIMIT_IP, LOGIN_RATE_WINDOW_IP_S);
+  if (!ipAllowed) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+
   const body = LoginSchema.safeParse(await req.json().catch(() => null));
   if (!body.success) return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+
+  // 2) Rate-limit par email ciblé — empêche un botnet (IP tournantes) de bruteforcer UN compte.
+  // Clé normalisée (lowercase) pour ne pas être contournée par la casse.
+  const emailKey = body.data.email.toLowerCase();
+  const emailAllowed = await rateLimit(
+    `login:email:${emailKey}`,
+    LOGIN_RATE_LIMIT_EMAIL,
+    LOGIN_RATE_WINDOW_EMAIL_S,
+  );
+  if (!emailAllowed) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
 
   const sb = getSupabaseAdmin();
   if (!sb) return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
