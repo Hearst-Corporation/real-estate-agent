@@ -123,6 +123,8 @@ const STATE_COLOR_OK = [
   /^components\/cockpit\/ChatKimi\.tsx$/,
   /^app\/\(dashboard\)\/properties\/_components\/PropertiesViewToggle\.tsx$/,
   /^app\/\(dashboard\)\/properties\/\[id\]\/_components\/PhotoGallery\.tsx$/,
+  /^app\/\(dashboard\)\/offmarket\/page\.tsx$/,
+  /^app\/\(dashboard\)\/offmarket\/_components\/OffmarketExplorer\.tsx$/,
 ];
 function stateColorAllowed(relPath) {
   return STATE_COLOR_OK.some((re) => re.test(relPath));
