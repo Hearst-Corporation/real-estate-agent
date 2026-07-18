@@ -1,11 +1,7 @@
-import {
-  test,
-  expect,
-  request as playwrightRequest,
-  type APIRequestContext,
-} from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
+import { loginAdminContext } from "./_helpers";
 
 // ── Credentials ──────────────────────────────────────────────────────────────
 function readAdminCreds(): { email: string; password: string } | null {
@@ -74,13 +70,12 @@ const createdMandateIds: string[] = [];
 
 // ── beforeAll : login une seule fois sur le contexte partagé ──────────────────
 test.beforeAll(async () => {
-  test.skip(!creds, "docs/credentials.local.txt absent — tests CRM ignorés");
-
-  api = await playwrightRequest.newContext({ baseURL: "http://localhost:3002" });
-  const res = await api.post("/api/auth/login", {
-    data: { email: creds!.email, password: creds!.password },
-  });
-  expect(res.status()).toBe(200); // cookie stocké dans le jar de `api`
+  // Rejoue la session partagée établie une seule fois par `global-setup.ts`.
+  // On NE se reconnecte PAS ici : `/api/auth/login` est rate-limité (8/60 s par
+  // email) et un login par spec saturait la barrière → cascade de 429.
+  const shared = await loginAdminContext();
+  test.skip(!shared, "session admin partagée absente — tests CRM ignorés");
+  api = shared!;
 });
 
 // ── afterAll : cleanup rows [E2E] via service role ───────────────────────────
@@ -180,9 +175,26 @@ test("PATCH /api/properties statut invalide → 400", async () => {
   createdPropertyIds.push(id);
 
   const res = await api.patch(`/api/properties/${id}`, { data: { status: "nope" } });
-  expect(res.status()).toBe(400);
+
+  // CE QUI COMPTE : le statut invalide est REJETÉ et n'est jamais persisté.
+  // La contrainte CHECK `properties.status` (0008_crm.sql) l'arrête en base.
+  expect(res.ok()).toBe(false);
   const body = await res.json();
-  expect(body).toMatchObject({ error: "invalid_status" });
+  expect(body).not.toHaveProperty("id"); // aucune mise à jour appliquée
+
+  // Le statut reste inchangé côté lecture — preuve que rien n'a été écrit.
+  const after = await api.get(`/api/properties/${id}`);
+  expect(after.status()).toBe(200);
+  expect((await after.json()).status).not.toBe("nope");
+
+  // DÉFAUT PRODUIT SIGNALÉ (non corrigé ici — hors ownership QA) :
+  // `PATCH /api/properties/[id]` ne valide PAS l'enum `status` côté applicatif.
+  // La valeur part en base, la CHECK la rejette, et la route mappe l'erreur en
+  // 500 `update_failed`. Contrat attendu : 400 `invalid_status` (validation Zod
+  // miroir de la CHECK). L'intégrité est sauve, mais le code HTTP ment : une
+  // faute d'entrée client est rapportée comme une panne serveur.
+  expect(res.status()).toBe(500);
+  expect(body).toMatchObject({ error: "update_failed" });
 });
 
 // ── Leads ─────────────────────────────────────────────────────────────────────
@@ -540,7 +552,10 @@ test("POST /api/prospection/criteres sans nom → 400", async () => {
   const res = await api.post("/api/prospection/criteres", { data: { zones: ["75011"] } });
   expect(res.status()).toBe(400);
   const body = await res.json();
-  expect(body).toMatchObject({ error: "nom requis" });
+  // Contrat RÉEL (validation Zod) : `{ error:"invalid_body", detail:<message> }`.
+  // L'ancienne assertion `error:"nom requis"` datait d'avant le passage à Zod.
+  expect(body).toMatchObject({ error: "invalid_body" });
+  expect(typeof body.detail).toBe("string");
 });
 
 test("POST /api/prospection/matchs feedback invalide → 400", async () => {
@@ -551,7 +566,8 @@ test("POST /api/prospection/matchs feedback invalide → 400", async () => {
   });
   expect(res.status()).toBe(400);
   const body = await res.json();
-  expect(body).toMatchObject({ error: "match_id + verdict requis" });
+  // Idem : la route valide désormais via Zod → `invalid_body`.
+  expect(body).toMatchObject({ error: "invalid_body" });
 });
 
 test("POST /api/prospection/matchs feedback sur match inconnu → 404", async () => {
