@@ -141,11 +141,14 @@ jobs:
       - name: Electron smoke
         env:
           AUTH_DEV_BYPASS: 'true'
+          SUPABASE_URL: https://ci.example.invalid
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role-key-not-secret
+          JWT_SECRET: ci-placeholder-jwt-secret-not-secret
           NEXT_PUBLIC_SUPABASE_URL: https://ci.example.invalid
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key-not-a-secret
         run: |
           pnpm run dev > /tmp/rea-next.log 2>&1 &
           SERVER_PID=$!
-          trap 'kill "$SERVER_PID"' EXIT
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
           pnpm exec wait-on tcp:3002 --timeout 120000
           xvfb-run -a pnpm run electron:test
