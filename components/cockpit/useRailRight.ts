@@ -9,10 +9,14 @@ const CHANGE_EVENT = "cockpit:rail-right-open-change";
 
 function readUserOpenPreference() {
   if (typeof window === "undefined") return true;
-  if (window.innerWidth <= BREAKPOINT_COLLAPSE_PX) return false;
+  // Un CHOIX EXPLICITE de l'utilisateur prime à toute largeur : sans ça, sur un
+  // écran ≤1024 (laptop, tablette paysage) le garde-fou de largeur re-fermait le
+  // chat à chaque render → impossible de l'ouvrir. Le garde-fou ne fixe donc plus
+  // qu'un DÉFAUT (quand aucun choix n'est stocké), il ne verrouille plus.
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved !== null) return saved === "true";
-  return true;
+  // Aucun choix stocké → défaut responsive : replié sous le seuil, ouvert au-dessus.
+  return window.innerWidth > BREAKPOINT_COLLAPSE_PX;
 }
 
 function subscribeToUserOpenPreference(onStoreChange: () => void) {
