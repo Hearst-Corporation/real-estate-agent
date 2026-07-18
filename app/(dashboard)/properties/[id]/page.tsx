@@ -211,6 +211,9 @@ export default async function PropertyDetailPage({
             <Button href={`/estimations/new?property=${id}`}>
               {t.estimateThisProperty}
             </Button>
+            <Button plain href={`/properties/${id}/owner-report`}>
+              Tableau propriétaire
+            </Button>
             <PropertyStatusControl
               id={id}
               currentStatus={property.status}
