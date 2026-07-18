@@ -139,4 +139,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Electron smoke
-        run: xvfb-run -a pnpm run electron:test
+        env:
+          AUTH_DEV_BYPASS: 'true'
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.example.invalid
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key-not-a-secret
+        run: |
+          pnpm run dev > /tmp/rea-next.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          pnpm exec wait-on tcp:3002 --timeout 120000
+          xvfb-run -a pnpm run electron:test
