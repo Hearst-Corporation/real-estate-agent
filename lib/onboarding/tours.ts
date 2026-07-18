@@ -112,9 +112,11 @@ export const coreCockpitTour: TourDefinition = defineTour({
       body: core.steps.nav.body,
       placement: "right",
     },
-    /* ── Accueil (LOT 5A) : les quatre repères de l'écran d'arrivée, dans
-       l'ordre de lecture de la page (action principale → chiffres → priorités
-       → portefeuille). Aucune de ces étapes ne déclenche l'action montrée. ── */
+    /* ── Accueil (LOT 5A) : les repères de l'écran d'arrivée, dans l'ordre de
+       lecture (action principale → chiffres → priorités). Consolidé à 8 étapes :
+       le portefeuille récent est couvert par le tour `crm`, et le centre d'actions
+       est expliqué une seule fois (ancre de l'accueil). Aucune étape ne déclenche
+       l'action montrée. ── */
     {
       id: "dashboardNewEstimation",
       anchor: DASHBOARD_ANCHORS.newEstimation,
@@ -133,28 +135,12 @@ export const coreCockpitTour: TourDefinition = defineTour({
       placement: "bottom",
     },
     {
-      id: "dashboardActionCenter",
+      id: "actionCenter",
       anchor: DASHBOARD_ANCHORS.actionCenter,
       route: "/",
       title: core.steps.dashboardActionCenter.title,
       body: core.steps.dashboardActionCenter.body,
       consequence: core.steps.dashboardActionCenter.consequence,
-      placement: "auto",
-    },
-    {
-      id: "dashboardRecentProperties",
-      anchor: DASHBOARD_ANCHORS.recentProperties,
-      route: "/",
-      title: core.steps.dashboardRecentProperties.title,
-      body: core.steps.dashboardRecentProperties.body,
-      placement: "auto",
-    },
-    {
-      id: "actionCenter",
-      anchor: CORE_ANCHORS.actionCenter,
-      route: "/",
-      title: core.steps.actionCenter.title,
-      body: core.steps.actionCenter.body,
       placement: "auto",
     },
     {

@@ -107,19 +107,18 @@ describe("tour estimations", () => {
 describe("tour core-cockpit — volet Accueil (LOT 5A)", () => {
   const core = getTour("core-cockpit") as TourDefinition;
 
-  it("ajoute les 4 étapes d'accueil, ancrées sur la page d'accueil", () => {
+  it("couvre les repères d'accueil et pose toutes les ancres dashboard", () => {
+    // core-cockpit est consolidé à 8 étapes (contrainte mission) : les repères
+    // Accueil essentiels sont des étapes, le portefeuille récent est couvert par
+    // le tour `crm`. Chaque ancre DASHBOARD_ANCHORS reste posée sur la page.
     const ids = core.steps.map((s) => s.id);
-    for (const id of [
-      "dashboardNewEstimation",
-      "dashboardKpis",
-      "dashboardActionCenter",
-      "dashboardRecentProperties",
-    ]) {
+    for (const id of ["dashboardNewEstimation", "dashboardKpis", "actionCenter"]) {
       expect(ids).toContain(id);
       const step = core.steps.find((s) => s.id === id);
       expect(step?.route).toBe("/");
       expect(step?.anchor).toBeTruthy();
     }
+    expect(core.steps.length).toBeLessThanOrEqual(8);
     for (const key of Object.keys(DASHBOARD_ANCHORS)) {
       expect(anchorIsPosed(key), `ancre ${key} jamais posée`).toBe(true);
     }
