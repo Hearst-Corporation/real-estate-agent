@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, shell, type WebContents } from "electron";
 import { autoUpdater } from "electron-updater";
 import Store from "electron-store";
 import path from "node:path";
@@ -15,8 +15,43 @@ const ENV_URLS = {
 
 type AppEnv = keyof typeof ENV_URLS;
 
+/**
+ * Origines de confiance vers lesquelles le renderer a le droit de naviguer
+ * dans la fenêtre principale. Toute autre origine est refusée (fail-closed) et,
+ * si c'est du http(s), ouverte dans le navigateur système.
+ */
+const TRUSTED_ORIGINS = new Set(Object.values(ENV_URLS).map((u) => new URL(u).origin));
+
+/** Préférences de sécurité communes à toutes les fenêtres (fail-closed). */
+const SECURE_WEB_PREFERENCES = {
+  preload: path.join(__dirname, "preload.cjs"),
+  contextIsolation: true,
+  nodeIntegration: false,
+  nodeIntegrationInWorker: false,
+  nodeIntegrationInSubFrames: false,
+  sandbox: true,
+  webSecurity: true,
+  allowRunningInsecureContent: false,
+  experimentalFeatures: false,
+  webviewTag: false,
+} as const;
+
 let mainWindow: BrowserWindow | null = null;
 let splashWindow: BrowserWindow | null = null;
+
+function isAppEnv(value: unknown): value is AppEnv {
+  return value === "local" || value === "prod";
+}
+
+/** Ouvre une URL http(s) dans le navigateur système ; ignore tout autre schéma. */
+function openExternalIfHttp(rawUrl: string) {
+  try {
+    const u = new URL(rawUrl);
+    if (u.protocol === "http:" || u.protocol === "https:") void shell.openExternal(rawUrl);
+  } catch {
+    /* URL invalide → ignore */
+  }
+}
 
 function createSplash() {
   splashWindow = new BrowserWindow({
@@ -26,16 +61,12 @@ function createSplash() {
     transparent: true,
     alwaysOnTop: true,
     resizable: false,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.cjs"),
-      contextIsolation: true,
-    },
+    webPreferences: SECURE_WEB_PREFERENCES,
   });
   splashWindow.loadFile(path.join(__dirname, "splash.html"));
-}
-
-function isAppEnv(value: unknown): value is AppEnv {
-  return value === "local" || value === "prod";
+  splashWindow.on("closed", () => {
+    splashWindow = null;
+  });
 }
 
 function createMainWindow(env: AppEnv) {
@@ -49,24 +80,30 @@ function createMainWindow(env: AppEnv) {
     minHeight: 720,
     titleBarStyle: "hiddenInset",
     backgroundColor: WINDOW_BG,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.cjs"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      webSecurity: true,
-    },
+    webPreferences: SECURE_WEB_PREFERENCES,
   });
 
-  mainWindow.loadURL(url);
+  void mainWindow.loadURL(url);
 
-  // Liens externes → navigateur système, uniquement http(s).
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+  // Navigation restreinte : le renderer ne peut naviguer que vers une origine
+  // de confiance (env local/prod). Tout le reste est refusé ; http(s) part vers
+  // le navigateur système, le reste est simplement bloqué.
+  mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
+    let origin: string | null = null;
     try {
-      const u = new URL(url);
-      if (u.protocol === "http:" || u.protocol === "https:") shell.openExternal(url);
+      origin = new URL(navigationUrl).origin;
     } catch {
-      /* URL invalide → ignore */
+      origin = null;
     }
+    if (origin && TRUSTED_ORIGINS.has(origin)) return;
+    event.preventDefault();
+    openExternalIfHttp(navigationUrl);
+  });
+
+  // Liens externes → navigateur système, uniquement http(s) ; jamais de nouvelle
+  // fenêtre Electron ouverte par le contenu web.
+  mainWindow.webContents.setWindowOpenHandler(({ url: openUrl }) => {
+    openExternalIfHttp(openUrl);
     return { action: "deny" };
   });
 
@@ -98,6 +135,38 @@ function createMainWindow(env: AppEnv) {
   Menu.setApplicationMenu(menu);
 }
 
+/**
+ * Garde-fou global : pour TOUT WebContents créé (y compris frames/embeds
+ * inattendus), on refuse l'attachement de <webview> et l'ouverture de fenêtres,
+ * et on bloque toute navigation hors origines de confiance.
+ */
+function hardenWebContents(contents: WebContents) {
+  contents.setWindowOpenHandler(({ url }) => {
+    openExternalIfHttp(url);
+    return { action: "deny" };
+  });
+  contents.on("will-attach-webview", (event) => {
+    event.preventDefault();
+  });
+  contents.on("will-navigate", (event, navigationUrl) => {
+    let origin: string | null = null;
+    try {
+      origin = new URL(navigationUrl).origin;
+    } catch {
+      origin = null;
+    }
+    // Autorise le fichier splash local et les origines de confiance ; refuse le reste.
+    if (navigationUrl.startsWith("file:")) return;
+    if (origin && TRUSTED_ORIGINS.has(origin)) return;
+    event.preventDefault();
+    openExternalIfHttp(navigationUrl);
+  });
+}
+
+app.on("web-contents-created", (_event, contents) => {
+  hardenWebContents(contents);
+});
+
 ipcMain.handle("select-env", (_event, env: unknown) => {
   if (!isAppEnv(env)) {
     throw new Error("invalid_env");
@@ -110,7 +179,7 @@ ipcMain.handle("get-last-env", () => store.get("env", "local"));
 
 app.whenReady().then(() => {
   createSplash();
-  if (app.isPackaged) autoUpdater.checkForUpdatesAndNotify();
+  if (app.isPackaged) void autoUpdater.checkForUpdatesAndNotify();
 });
 
 app.on("window-all-closed", () => {
