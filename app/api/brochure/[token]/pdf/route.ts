@@ -5,7 +5,7 @@
  * Aucune session requise.
  *
  * - 401 si token invalide / expiré
- * - 503 si Supabase non configuré
+ * - 503 si la base GPU1 n'est pas configurée
  * - 404 si estimation absente ou pas "ready"
  * - Sert le PDF depuis R2 si disponible, sinon re-rend.
  */
@@ -43,7 +43,7 @@ export async function GET(
   }
   const { estimationId } = verified;
 
-  // ── Supabase (service-role — pas de filtre user) ──────────────────────────
+  // ── Base GPU1 (service-role — pas de filtre user) ─────────────────────────
   const sb = getGpu1Admin();
   if (!sb) {
     return Response.json({ error: "database_not_configured" }, { status: 503 });

@@ -4,7 +4,7 @@ import { getGpu1Admin } from "@/lib/gpu1";
 import { captureFatal } from "@/lib/server/observe";
 
 // Throttle captureFatal pour le check de révocation : en prod, ce code tourne
-// à chaque requête authentifiée. Si Supabase a un incident, émettre un event
+// à chaque requête authentifiée. Si la base a un incident, émettre un event
 // Sentry par requête déclencherait un flood + surcoût. On limite à 1 event/60s.
 let _lastRevocationCapture = 0;
 const REVOCATION_CAPTURE_THROTTLE_MS = 60_000;
@@ -68,7 +68,7 @@ export async function verifyJwt(
 
   // Check révocation : seulement si demandé ET si le token porte un jti.
   // Tokens legacy (sans jti) → check sauté → restent acceptés (rétro-compat).
-  // FAIL-OPEN : toute erreur de lookup (réseau/Supabase non configuré) laisse
+  // FAIL-OPEN : toute erreur de lookup (réseau / base non configurée) laisse
   // passer le token — un blip DB ne doit jamais verrouiller tous les users.
   if (opts?.checkRevocation && claims.jti) {
     try {
@@ -86,7 +86,7 @@ export async function verifyJwt(
     } catch (err) {
       // fail-open : un blip DB ne doit jamais verrouiller les users.
       // Throttle anti-flood : on n'émet qu'un event Sentry toutes les 60s
-      // pour éviter de saturer le quota sur un incident Supabase en prod.
+      // pour éviter de saturer le quota sur un incident DB en prod.
       const now = Date.now();
       if (now - _lastRevocationCapture > REVOCATION_CAPTURE_THROTTLE_MS) {
         _lastRevocationCapture = now;

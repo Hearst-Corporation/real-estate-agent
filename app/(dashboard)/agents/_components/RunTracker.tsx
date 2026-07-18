@@ -6,6 +6,8 @@ import { Icon } from "@/components/cockpit/Icon";
 import { Text, Strong } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AGENTS_ANCHORS } from "@/lib/onboarding/tours/agents";
+import { blockDuringTour } from "@/lib/onboarding/tour-guard";
 import type {
   RuntimeRun,
   RuntimeRunEvent,
@@ -58,7 +60,16 @@ type EventsResponse =
  * affiche exactement ce que le registre renvoie. Un run introuvable (404) est
  * signalé honnêtement (aucun run store branché à l'état actuel du registre).
  */
-export function RunTracker({ runId, onClose }: { runId: string; onClose: () => void }) {
+export function RunTracker({
+  runId,
+  onClose,
+  tourActive,
+}: {
+  runId: string;
+  onClose: () => void;
+  /** LOT 10 — visite en cours : la décision HITL est expliquée, jamais envoyée. */
+  tourActive: boolean;
+}) {
   const [run, setRun] = useState<RuntimeRun | null>(null);
   const [events, setEvents] = useState<RuntimeRunEvent[]>([]);
   const [phase, setPhase] = useState<"loading" | "ready" | "notfound" | "error">("loading");
@@ -158,7 +169,9 @@ export function RunTracker({ runId, onClose }: { runId: string; onClose: () => v
       {phase === "ready" && run && (
         <>
           {/* Validation HITL — seule surface qui débloque une action à effet réel */}
-          {run.status === "waiting_on_input" && <HitlPanel runId={runId} onResolved={poll} />}
+          {run.status === "waiting_on_input" && (
+            <HitlPanel runId={runId} onResolved={poll} tourActive={tourActive} />
+          )}
 
           {/* Résultat sourcé (uniquement si terminé avec succès) */}
           {run.status === "completed" && <RunResult run={run} />}
@@ -179,11 +192,20 @@ export function RunTracker({ runId, onClose }: { runId: string; onClose: () => v
 }
 
 /** Panneau de décision humaine (HITL) : approuver / refuser. */
-function HitlPanel({ runId, onResolved }: { runId: string; onResolved: () => void }) {
+function HitlPanel({
+  runId,
+  onResolved,
+  tourActive,
+}: {
+  runId: string;
+  onResolved: () => void;
+  tourActive: boolean;
+}) {
   const [busy, setBusy] = useState<"approve" | "reject" | null>(null);
   const [note, setNote] = useState<{ tone: "ok" | "err"; msg: string } | null>(null);
 
   async function decide(action: "approve" | "reject") {
+    if (blockDuringTour(tourActive, "agents-hitl-decision")) return;
     setBusy(action);
     setNote(null);
     try {
@@ -215,14 +237,25 @@ function HitlPanel({ runId, onResolved }: { runId: string; onResolved: () => voi
   }
 
   return (
-    <div className="rounded-xl border border-accent-500/30 bg-accent-500/[0.06] p-4">
+    <div
+      data-tour-id={AGENTS_ANCHORS.hitl}
+      className="rounded-xl border border-accent-500/30 bg-accent-500/[0.06] p-4"
+    >
       <Strong className="text-sm">{t.hitlTitle}</Strong>
       <Text className="mt-1 text-sm">{t.hitlBody}</Text>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button color="indigo" onClick={() => decide("approve")} disabled={busy !== null}>
+        <Button
+          color="indigo"
+          onClick={() => decide("approve")}
+          disabled={busy !== null || tourActive}
+        >
           {busy === "approve" ? t.deciding : t.approve}
         </Button>
-        <Button color="light" onClick={() => decide("reject")} disabled={busy !== null}>
+        <Button
+          color="light"
+          onClick={() => decide("reject")}
+          disabled={busy !== null || tourActive}
+        >
           {busy === "reject" ? t.deciding : t.reject}
         </Button>
       </div>

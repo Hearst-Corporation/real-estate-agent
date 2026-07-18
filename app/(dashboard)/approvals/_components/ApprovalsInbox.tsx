@@ -6,6 +6,10 @@ import { Heading } from "@/components/ui/heading";
 import { Text, Strong } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { UI } from "@/lib/ui-strings";
+import { useTourActive } from "@/components/onboarding";
+import { COMMUNICATIONS_ANCHORS } from "@/lib/onboarding/tours/communications-hitl";
+import { blockDuringTour } from "@/lib/onboarding/tour-guard";
 import type { ApprovalRow, ViewableStatus } from "@/lib/approvals/db";
 
 /** Libellés (ui-strings est partagé → labels locaux à cette feature). */
@@ -69,6 +73,8 @@ export function ApprovalsInbox({ initial }: { initial: ApprovalsInitial }) {
   const [view, setView] = useState<View>(initial);
   const [refreshing, setRefreshing] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+  // LOT 10 — aucune décision réelle ne peut être enregistrée pendant une visite.
+  const tourActive = useTourActive();
 
   const load = useCallback(async (status: ViewableStatus) => {
     setRefreshing(true);
@@ -104,6 +110,7 @@ export function ApprovalsInbox({ initial }: { initial: ApprovalsInitial }) {
 
   const onDecision = useCallback(
     async (id: string, decision: "approve" | "reject") => {
+      if (blockDuringTour(tourActive, "approvals-decision")) return;
       setBanner(null);
       const res = await fetch(`/api/approvals/${id}`, {
         method: "POST",
@@ -126,7 +133,7 @@ export function ApprovalsInbox({ initial }: { initial: ApprovalsInitial }) {
       }
       setBanner(T.decisionFailed);
     },
-    [filter, load],
+    [filter, load, tourActive],
   );
 
   const rows = view.kind === "loaded" ? view.rows : [];
@@ -180,22 +187,34 @@ export function ApprovalsInbox({ initial }: { initial: ApprovalsInitial }) {
         </div>
       )}
 
-      {view.kind === "unavailable" && <UnavailableState />}
-      {view.kind === "error" && <ErrorState onRetry={() => load(filter)} retrying={refreshing} />}
-      {view.kind === "loaded" && rows.length === 0 && <EmptyState label={emptyLabel} />}
-
-      {view.kind === "loaded" && rows.length > 0 && (
-        <ul className="flex flex-col gap-3">
-          {rows.map((row) => (
-            <ApprovalItem
-              key={row.id}
-              row={row}
-              decidable={filter === "pending"}
-              onDecision={onDecision}
-            />
-          ))}
-        </ul>
+      {tourActive && (
+        <p role="status" className="surface border-l-4 border-accent-500 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+          {UI.onboarding.guard.notice}
+        </p>
       )}
+
+      {/* Ancre de visite : la file d'actions proposées, quel que soit son état
+          (chargée, vide, indisponible) — l'explication reste toujours pointable. */}
+      <section data-tour-id={COMMUNICATIONS_ANCHORS.pending} className="flex flex-col gap-3">
+        {view.kind === "unavailable" && <UnavailableState />}
+        {view.kind === "error" && <ErrorState onRetry={() => load(filter)} retrying={refreshing} />}
+        {view.kind === "loaded" && rows.length === 0 && <EmptyState label={emptyLabel} />}
+
+        {view.kind === "loaded" && rows.length > 0 && (
+          <ul className="flex flex-col gap-3">
+            {rows.map((row, index) => (
+              <ApprovalItem
+                key={row.id}
+                row={row}
+                decidable={filter === "pending"}
+                onDecision={onDecision}
+                tourActive={tourActive}
+                anchorDecision={index === 0}
+              />
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
@@ -256,15 +275,22 @@ function ApprovalItem({
   row,
   decidable,
   onDecision,
+  tourActive,
+  anchorDecision,
 }: {
   row: ApprovalRow;
   decidable: boolean;
   onDecision: (id: string, decision: "approve" | "reject") => Promise<void>;
+  /** LOT 10 — visite en cours : la décision est expliquée, jamais enregistrée. */
+  tourActive: boolean;
+  /** Ancre `approvals-decision` posée sur la 1re ligne uniquement. */
+  anchorDecision: boolean;
 }) {
   const [busy, setBusy] = useState<null | "approve" | "reject">(null);
 
   const decide = useCallback(
     async (decision: "approve" | "reject") => {
+      if (blockDuringTour(tourActive, "approvals-decision")) return;
       setBusy(decision);
       try {
         await onDecision(row.id, decision);
@@ -272,7 +298,7 @@ function ApprovalItem({
         setBusy(null);
       }
     },
-    [onDecision, row.id],
+    [onDecision, row.id, tourActive],
   );
 
   return (
@@ -296,18 +322,21 @@ function ApprovalItem({
       </div>
 
       {decidable && (
-        <div className="flex shrink-0 items-center gap-2">
+        <div
+          data-tour-id={anchorDecision ? COMMUNICATIONS_ANCHORS.decision : undefined}
+          className="flex shrink-0 items-center gap-2"
+        >
           <Button
             color="light"
             onClick={() => decide("reject")}
-            disabled={busy !== null}
+            disabled={busy !== null || tourActive}
           >
             {busy === "reject" ? T.deciding : T.reject}
           </Button>
           <Button
             color="indigo"
             onClick={() => decide("approve")}
-            disabled={busy !== null}
+            disabled={busy !== null || tourActive}
           >
             {busy === "approve" ? T.deciding : T.approve}
           </Button>

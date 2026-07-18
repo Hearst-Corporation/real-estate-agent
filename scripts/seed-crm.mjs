@@ -3,7 +3,7 @@
 // Usage : node scripts/seed-crm.mjs
 // Requiert : .env.local à la racine du projet
 //
-// DB = Postgres self-hosté gpu1 exposé par PostgREST (aucun SDK Supabase).
+// DB = Postgres self-hosté gpu1 exposé par PostgREST (aucun SDK tiers).
 // Variables canoniques :
 //   GPU1_POSTGREST_URL         base PostgREST (…/rest/v1)  [REQUIS]
 //   GPU1_POSTGREST_ADMIN_TOKEN JWT service-role (bypass RLS) [REQUIS]
@@ -62,7 +62,7 @@ if (!PGRST_BASE || !ADMIN_TOKEN) {
 }
 
 // ── Mini-client PostgREST (fetch, Bearer service-role) ───────────────────────
-// Reproduit la surface supabase-js utilisée ici : from().select/insert
+// Reproduit la surface du client GPU1 utilisée ici : from().select/insert
 // (+ like/eq/limit, count exact head). Aucune dépendance externe.
 function pgrst(base, token) {
   async function req(path, { method = "GET", body, count } = {}) {

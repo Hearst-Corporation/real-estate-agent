@@ -1,5 +1,9 @@
 # Self-hosting gpu1 — Real Estate Agent
 
+> **Ce document décrit le MONTAGE initial (2026-07-13).** L'état courant du schéma vit dans
+> [gpu1-activation-009.md](gpu1-activation-009.md) : **migrations appliquées jusqu'à `0058`**
+> (2026-07-18) et la base **contient des données métier** (elle n'est plus vide).
+
 > Migré de Supabase Cloud vers gpu1 le **2026-07-13** via `/cloud-adrien`.
 > Le projet Cloud `pyxhhkdjirqambhlpuqz` **avait été supprimé** côté Supabase
 > (DNS `db.pyxhhkdjirqambhlpuqz.supabase.co` mort, ref absent de `list_projects`)
@@ -67,8 +71,10 @@ claims JWT PostgREST), schéma `extensions` (pgcrypto, uuid-ossp), rôle `supaba
   Pas de magic link, OAuth providers, reset email natifs Supabase.
 - **Edge Functions** Cloud non migrées.
 - **Realtime** non repris.
-- **Storage** non posé (0 bucket) — à ajouter via `/cloud-adrien` si des buckets apparaissent.
-- Base **sans données** (le Cloud était supprimé) : schéma complet, tables vides.
+- **Storage** non posé (0 bucket) — le stockage applicatif passe par Cloudflare R2 (`lib/storage/r2.ts`).
+- **Au montage**, la base était sans données (le Cloud était supprimé) : schéma seul, tables
+  vides. **Ce n'est plus le cas** — la base porte des données métier (leads, biens, mandats,
+  visites, estimations, tâches) : toute opération destructive exige un `pg_dump` préalable.
 
 ## Diag / réparation
 

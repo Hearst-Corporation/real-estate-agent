@@ -1,0 +1,184 @@
+/**
+ * Product tour — REGISTRE TYPÉ VERSIONNÉ (REA-ONBOARDING-011, LOT 11).
+ * =================================================================
+ *
+ * CONTRAT POUR LES WORKERS DE TOURS
+ * ---------------------------------------------------------------
+ * 1. Crée `lib/onboarding/tours/<ta-clé>.ts` et exporte ta définition :
+ *
+ *      import { defineTour } from "../tours";
+ *      import { UI } from "@/lib/ui-strings";
+ *      const t = UI.onboarding.tours.prospection;   // TES textes, ajoutés par toi
+ *
+ *      export const prospectionTour = defineTour({
+ *        key: "prospection",
+ *        version: 1,
+ *        title: t.title,
+ *        description: t.description,
+ *        entryRoute: "/prospection",
+ *        steps: [
+ *          {
+ *            id: "criteres",
+ *            anchor: "prospection-criteres",   // = data-tour-id sur le VRAI composant
+ *            route: "/prospection",
+ *            title: t.steps.criteres.title,
+ *            body: t.steps.criteres.body,
+ *            consequence: t.steps.criteres.consequence,
+ *            placement: "auto",     // défaut
+ *            onMissing: "center",   // défaut ; "skip" pour sauter si absent
+ *            waitMs: 4000,          // défaut (élément chargé en asynchrone)
+ *          },
+ *        ],
+ *      });
+ *
+ * 2. Branche-la dans TOUR_REGISTRY ci-dessous (remplace `null` par ton import).
+ * 3. Tes textes vont dans `UI.onboarding.tours.<ta-clé>` (lib/ui-strings.ts).
+ *
+ * RÈGLES NON NÉGOCIABLES
+ *   - Ancrage par `data-tour-id` UNIQUEMENT (jamais de classe CSS ni nth-child),
+ *     posé sur le composant RESPONSABLE de l'action, pas sur un wrapper.
+ *   - Une étape MONTRE et EXPLIQUE. Elle ne déclenche rien : le moteur ne clique
+ *     pas la cible et ne mute aucune donnée métier (LOT 10).
+ *   - Bumper `version` invalide les reprises stockées → la visite repart à 1.
+ */
+
+import { UI } from "@/lib/ui-strings";
+import { defineTour } from "./define";
+import type { TourDefinition, TourKey, TourRegistry } from "./types";
+import { prospectionTour } from "./tours/prospection";
+import { radarTour } from "./tours/radar";
+import { offmarketTour } from "./tours/offmarket";
+import { crmTour } from "./tours/crm";
+import { estimationsTour } from "./tours/estimations";
+import { communicationsHitlTour } from "./tours/communications-hitl";
+import { agentsTour } from "./tours/agents";
+
+/* ------------------------------------------------------------------ */
+/* core-cockpit v1 — la visite socle                                    */
+/* ------------------------------------------------------------------ */
+
+const core = UI.onboarding.tours["core-cockpit"];
+
+/**
+ * Ancres attendues sur le shell (`data-tour-id="…"`). Tant qu'elles ne sont pas
+ * posées, l'étape s'affiche au centre avec son explication : jamais de blocage.
+ */
+export const CORE_ANCHORS = {
+  nav: "cockpit-nav",
+  actionCenter: "cockpit-action-center",
+  assistant: "cockpit-assistant",
+  profile: "cockpit-profile",
+} as const;
+
+export const DASHBOARD_ANCHORS = {
+  newEstimation: "dashboard-new-estimation",
+  kpis: "dashboard-kpis",
+  actionCenter: "dashboard-action-center",
+  recentProperties: "dashboard-recent-properties",
+} as const;
+
+export const coreCockpitTour: TourDefinition = defineTour({
+  key: "core-cockpit",
+  version: 1,
+  title: core.title,
+  description: core.description,
+  entryRoute: "/",
+  steps: [
+    {
+      id: "welcome",
+      title: core.steps.welcome.title,
+      body: core.steps.welcome.body,
+      consequence: core.steps.welcome.consequence,
+      placement: "center",
+    },
+    {
+      id: "nav",
+      anchor: CORE_ANCHORS.nav,
+      route: "/",
+      title: core.steps.nav.title,
+      body: core.steps.nav.body,
+      placement: "right",
+    },
+    /* ── Accueil (LOT 5A) : les repères de l'écran d'arrivée, dans l'ordre de
+       lecture (action principale → chiffres → priorités). Consolidé à 8 étapes :
+       le portefeuille récent est couvert par le tour `crm`, et le centre d'actions
+       est expliqué une seule fois (ancre de l'accueil). Aucune étape ne déclenche
+       l'action montrée. ── */
+    {
+      id: "dashboardNewEstimation",
+      anchor: DASHBOARD_ANCHORS.newEstimation,
+      route: "/",
+      title: core.steps.dashboardNewEstimation.title,
+      body: core.steps.dashboardNewEstimation.body,
+      consequence: core.steps.dashboardNewEstimation.consequence,
+      placement: "bottom",
+    },
+    {
+      id: "dashboardKpis",
+      anchor: DASHBOARD_ANCHORS.kpis,
+      route: "/",
+      title: core.steps.dashboardKpis.title,
+      body: core.steps.dashboardKpis.body,
+      placement: "bottom",
+    },
+    {
+      id: "actionCenter",
+      anchor: DASHBOARD_ANCHORS.actionCenter,
+      route: "/",
+      title: core.steps.dashboardActionCenter.title,
+      body: core.steps.dashboardActionCenter.body,
+      consequence: core.steps.dashboardActionCenter.consequence,
+      placement: "auto",
+    },
+    {
+      id: "assistant",
+      anchor: CORE_ANCHORS.assistant,
+      title: core.steps.assistant.title,
+      body: core.steps.assistant.body,
+      consequence: core.steps.assistant.consequence,
+      placement: "left",
+    },
+    {
+      id: "profile",
+      anchor: CORE_ANCHORS.profile,
+      title: core.steps.profile.title,
+      body: core.steps.profile.body,
+      placement: "auto",
+    },
+    {
+      id: "wrapup",
+      title: core.steps.wrapup.title,
+      body: core.steps.wrapup.body,
+      placement: "center",
+    },
+  ],
+});
+
+/* ------------------------------------------------------------------ */
+/* Registre — un slot par clé du LOT 11                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * `null` = tour pas encore livré par son worker. Le moteur ignore les slots
+ * vides : aucun lanceur cassé, aucune visite fantôme.
+ */
+export const TOUR_REGISTRY: TourRegistry = {
+  "core-cockpit": coreCockpitTour,
+  prospection: prospectionTour, // W4 → lib/onboarding/tours/prospection.ts
+  crm: crmTour, // W3 → lib/onboarding/tours/crm.ts
+  estimations: estimationsTour, // W3 → lib/onboarding/tours/estimations.ts
+  offmarket: offmarketTour, // W4 → lib/onboarding/tours/offmarket.ts
+  "communications-hitl": communicationsHitlTour, // W5 → lib/onboarding/tours/communications-hitl.ts
+  agents: agentsTour, // W5 → lib/onboarding/tours/agents.ts
+  radar: radarTour, // W4 → lib/onboarding/tours/radar.ts
+};
+
+/** Définition d'une visite, ou `null` si le slot n'est pas encore rempli. */
+export function getTour(key: TourKey): TourDefinition | null {
+  return TOUR_REGISTRY[key] ?? null;
+}
+
+/** Visites réellement livrées, dans l'ordre du registre. */
+export function listTours(): TourDefinition[] {
+  return Object.values(TOUR_REGISTRY).filter((t): t is TourDefinition => t !== null);
+}

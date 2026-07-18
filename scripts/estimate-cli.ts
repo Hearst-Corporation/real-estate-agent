@@ -1,6 +1,6 @@
 /**
  * CLI d'estimation standalone — exécute le VRAI pipeline de valorisation
- * (le même que app/api/estimations/[id]/value/route.ts) sans Supabase/auth.
+ * (le même que app/api/estimations/[id]/value/route.ts) sans DB ni auth.
  *
  *   scrape (DVF Etalab + BAN + cadastre IGN + ADEME) → comparables → report → prix
  *

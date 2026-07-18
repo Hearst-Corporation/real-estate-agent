@@ -43,7 +43,7 @@ const BodySchema = GatewayEnvelopeSchema.extend({
  * Forme de la projection avec relations embarquées PostgREST (`prosp_annonces(*)`,
  * `prosp_criteres_acquereur(*)`). Le client GPU1 n'infère pas la chaîne de select
  * (relations embarquées) — on annonce donc explicitement la forme via `from<T>()`,
- * comme le permet supabase-js pour les projections. Les relations reviennent en
+ * que le client GPU1 accepte pour les projections. Les relations reviennent en
  * objet OU tableau selon la cardinalité → le handler normalise (`Array.isArray`).
  */
 type EmbeddedRow = Record<string, unknown> | Record<string, unknown>[] | null;

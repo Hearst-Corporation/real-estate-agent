@@ -28,6 +28,7 @@ import { UI } from "@/lib/ui-strings";
 import { dateTimeFr, timeFr } from "@/lib/crm/format";
 import type { ActionCategory, ActionItem, QuickAction } from "@/lib/actions/types";
 import { BUCKET_ORDER, CATEGORY_ORDER, bucketOf, type TemporalBucket } from "@/lib/actions/derive";
+import { DASHBOARD_ANCHORS } from "@/lib/onboarding/tours";
 
 /**
  * Libellés des bandes temporelles (urgent → aujourd'hui → ensuite), injectés par
@@ -425,6 +426,9 @@ export function ActionCenter({
   return (
     <section
       aria-label={t.title}
+      // Ancre de visite guidée (REA-ONBOARDING-011). Ce bloc n'est monté que par
+      // l'écran d'accueil : l'ancre y est donc unique dans le DOM.
+      data-tour-id={DASHBOARD_ANCHORS.actionCenter}
       className="surface @container border-t-2 border-t-accent-500/50 bg-gradient-to-br from-accent-500/8 via-white to-white p-6 shadow-[var(--shadow-hero)] @2xl:p-7"
     >
       {/* En-tête */}

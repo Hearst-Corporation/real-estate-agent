@@ -66,7 +66,7 @@ export async function POST(
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  // ── Supabase ────────────────────────────────────────────────────────────
+  // ── Base GPU1 ───────────────────────────────────────────────────────────
   const sb = getGpu1Admin();
   if (!sb) {
     return NextResponse.json({ error: 'database_not_configured' }, { status: 503 });

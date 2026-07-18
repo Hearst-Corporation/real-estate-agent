@@ -15,7 +15,7 @@ import {
 } from "./ingest";
 import type { MoteurImmoListing } from "@/lib/providers/moteurimmo";
 
-// ── Fake Supabase in-memory (juste ce que le module utilise) ─────────────────
+// ── Faux client GPU1 in-memory (juste ce que le module utilise) ──────────────
 
 type Row = Record<string, unknown>;
 
@@ -140,9 +140,9 @@ class FakeQuery {
     const { data, error } = this.runWrite();
     return { data: data[0] ?? null, error };
   }
-  // Terminal thenable pour `await query` (le PostgrestBuilder réel de
-  // supabase-js est lui-même thenable : le mock reproduit ce contrat).
-  // biome-ignore lint/suspicious/noThenProperty: mock supabase — thenable volontaire, jamais du code produit.
+  // Terminal thenable pour `await query` (le builder PostgREST réel du
+  // client GPU1 est lui-même thenable : le mock reproduit ce contrat).
+  // biome-ignore lint/suspicious/noThenProperty: mock du client GPU1 — thenable volontaire, jamais du code produit.
   then(resolve: (v: { data: Row[]; error: unknown }) => unknown) {
     return Promise.resolve(this.runWrite()).then(resolve);
   }

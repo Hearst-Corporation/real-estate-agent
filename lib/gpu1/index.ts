@@ -1,9 +1,8 @@
 // lib/gpu1/index.ts — Usine du client PostgREST gpu1 (service-role), serveur-only.
 //
-// Point d'entrée unique consommé par les routes/libs métier. Remplace
-// `getSupabaseAdmin()` par `getGpu1Admin()` avec une API de query aussi proche
-// que possible (mêmes méthodes chaînables, même forme `{ data, error, count }`),
-// pour minimiser le diff des consommateurs.
+// Point d'entrée unique consommé par les routes/libs métier : `getGpu1Admin()`
+// est LE seul accès DB de l'application (méthodes chaînables, forme de résultat
+// uniforme `{ data, error, count }`).
 //
 // Le token admin bypass RLS → le code appelant DOIT continuer à filtrer
 // explicitement par user_id + tenant_id. Ce module ne relâche aucun contrôle.
@@ -25,9 +24,8 @@ export type {
 export { Gpu1PostgrestClient, Gpu1QueryBuilder, Gpu1SingleBuilder } from "@/lib/gpu1/postgrest";
 
 /**
- * Alias de compatibilité de signature : les consommateurs qui typaient leurs
- * paramètres en `SupabaseClient<Database>` migrent vers ce type sans autre
- * changement de forme. `getGpu1Admin()` en renvoie une instance.
+ * Type public du client DB : c'est ce que les consommateurs annotent sur leurs
+ * paramètres. `getGpu1Admin()` en renvoie une instance.
  */
 export type Gpu1Client<Db = Database> = Gpu1PostgrestClient<Db>;
 

@@ -59,8 +59,8 @@ export async function POST(req: Request) {
   const sb = getGpu1Admin();
   if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
-  // Auth locale (self-hosté gpu1) : GoTrue n'est pas repris par le montage
-  // PostgREST → on vérifie le password via la RPC `verify_login` (bcrypt/pgcrypto,
+  // Auth locale (self-hosté gpu1) : le montage PostgREST n'expose aucun service
+  // d'auth → on vérifie le password via la RPC `verify_login` (bcrypt/pgcrypto,
   // migration 0037). Bon password → 1 ligne {user_id, tenant_id, role} ; sinon [].
   const { data: rows, error } = await sb.rpc("verify_login", {
     p_email: body.data.email,

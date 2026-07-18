@@ -13,7 +13,7 @@
  *   - Mode dégradé OBLIGATOIRE : provider dry-run → statut reste `draft`, jamais `sent`.
  *   - PII : on ne logue jamais un email/téléphone complet, uniquement un hash tronqué.
  *
- * La logique DB est injectable (client Supabase admin passé en paramètre) pour être
+ * La logique DB est injectable (client GPU1 admin passé en paramètre) pour être
  * testable sans réseau. Les fonctions pures (hash, template, normalisation) sont
  * exportées séparément.
  */

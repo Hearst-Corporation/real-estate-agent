@@ -1,10 +1,19 @@
-# Contrat de densité — Cockpit "Dense / Pro" (Linear-like)
+# ARCHIVE — Contrat de densité legacy (NE FAIT PLUS FOI)
 
-> Source de vérité visuelle pour TOUS les modules. Tout agent qui propose une
-> refonte d'UI doit s'y conformer. Densité cible : **Linear / Notion** — beaucoup
-> d'info à l'écran, zéro espace mort, hiérarchie typo nette.
+> ⚠️ **Document obsolète, conservé pour ses principes de densité uniquement.**
+> Il s'appuie sur l'ancien design system CSS (`app/cockpit/*.css`, tokens `--ct-*`,
+> `app/cockpit/00-tokens.css`) qui a été **purgé du repo** — ce chemin n'existe plus.
 >
-> RÈGLE ABSOLUE : aucune valeur en dur. Tout via tokens `--ct-*` (cf. `app/cockpit/00-tokens.css`).
+> **Source de vérité visuelle actuelle : [`../../DESIGN-SYSTEM.md`](../../DESIGN-SYSTEM.md)**
+> (+ `app/globals.css`, `components/cockpit/`, `components/ui/`), utilities Tailwind v4.
+> Ne pas appliquer les tokens ni les chemins cités ci-dessous.
+
+*Contenu historique ci-dessous.*
+
+## Intention d'origine
+
+Densité cible : **Linear / Notion** — beaucoup d'info à l'écran, zéro espace mort,
+hiérarchie typo nette. Aucune valeur en dur (à l'époque : tokens `--ct-*`).
 
 ## 1. Principes (non négociables)
 

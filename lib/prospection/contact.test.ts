@@ -12,7 +12,7 @@ import {
   type DbLike,
 } from "./contact";
 
-// ── Faux client Supabase (jamais de réseau) ────────────────────────────────────
+// ── Faux client GPU1 (jamais de réseau) ───────────────────────────────────────
 // Un builder minimal qui capte les filtres et renvoie une réponse programmée.
 
 interface Programmed {

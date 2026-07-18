@@ -119,7 +119,7 @@ export function loadEnv(): Record<string, string> {
 /**
  * Supprime des lignes par id via PostgREST (Postgres self-hosté gpu1), best-effort.
  *
- * DB = PostgREST + token admin service-role (bypass RLS) — AUCUN SDK Supabase.
+ * DB = PostgREST + token admin service-role (bypass RLS) — aucun SDK tiers.
  * Variables canoniques : `GPU1_POSTGREST_URL` (…/rest/v1) + `GPU1_POSTGREST_ADMIN_TOKEN`.
  * Utilisé UNIQUEMENT dans les `afterAll` de cleanup : jamais bloquant, ne fait
  * pas échouer la suite si prérequis absents ou suppression partielle.

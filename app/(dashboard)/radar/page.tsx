@@ -19,6 +19,7 @@ import type {
   MandateExpirySignal,
 } from "@/lib/radar/signals";
 import type { RadarResponse, RadarSection } from "@/app/api/radar/route";
+import { RADAR_ANCHORS } from "@/lib/onboarding/tours/radar";
 
 // ─── Chargement ────────────────────────────────────────────────────────────────
 
@@ -46,15 +47,18 @@ function SectionShell({
   icon: Icon,
   title,
   count,
+  tourId,
   children,
 }: {
   icon: typeof ClockIcon;
   title: string;
   count: number | null;
+  /** Ancre de visite guidée (`data-tour-id`) portée par la vraie section. */
+  tourId: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="surface rounded-xl p-4 sm:p-6">
+    <section data-tour-id={tourId} className="surface rounded-xl p-4 sm:p-6">
       <header className="mb-4 flex items-center gap-3">
         <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent-500/10 text-accent-600 dark:text-accent-400">
           <Icon className="size-5" aria-hidden />
@@ -285,6 +289,7 @@ export default function RadarPage() {
           <SectionShell
             icon={ArrowTrendingDownIcon}
             title="Baisses de prix"
+            tourId={RADAR_ANCHORS.priceDrops}
             count={state.data.price_drops.status === "ok" ? state.data.price_drops.items.length : null}
           >
             <PriceDropList section={state.data.price_drops} />
@@ -293,6 +298,7 @@ export default function RadarPage() {
           <SectionShell
             icon={ClockIcon}
             title="Annonces dormantes"
+            tourId={RADAR_ANCHORS.dormant}
             count={state.data.dormant.status === "ok" ? state.data.dormant.items.length : null}
           >
             <DormantList section={state.data.dormant} />
@@ -301,6 +307,7 @@ export default function RadarPage() {
           <SectionShell
             icon={CalendarDaysIcon}
             title="Mandats expirants"
+            tourId={RADAR_ANCHORS.mandates}
             count={
               state.data.mandate_expiries.status === "ok"
                 ? state.data.mandate_expiries.items.length

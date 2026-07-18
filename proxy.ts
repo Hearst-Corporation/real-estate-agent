@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(TOKEN_COOKIE)?.value;
   // Check révocation GATÉ par env (défaut OFF → pas de coût latence sur chaque
-  // requête). Quand activé, fail-open en interne : un blip Supabase laisse passer
+  // requête). Quand activé, fail-open en interne : un blip DB laisse passer
   // plutôt que de verrouiller tous les users. Tokens legacy sans jti = ignorés.
   const claims = await verifyJwt(token, {
     checkRevocation: process.env.AUTH_CHECK_REVOCATION === "true",

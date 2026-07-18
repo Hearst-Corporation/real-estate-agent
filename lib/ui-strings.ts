@@ -21,7 +21,6 @@ export const UI = {
     prospection: "Prospection",
     portefeuille: "Portefeuille",
     clients: "Clients",
-    crm: "CRM",
     agents: "Agents",
     radar: "Radar",
     approvals: "Approbations",
@@ -34,6 +33,8 @@ export const UI = {
     assistant: "Assistant",
     profile: "Profil",
     admin: "Admin",
+    /** Libellé accessible de la sous-nav de groupe (SubNav). */
+    sections: "Sections",
   },
   admin: {
     eyebrow: "Interne",
@@ -1610,6 +1611,430 @@ export const UI = {
     userAvatar: "VO",
     assistantAvatar: "IA",
     errorPrefix: "Erreur",
+  },
+  /**
+   * Visite guidée du produit (REA-ONBOARDING-011).
+   * ---------------------------------------------------------------
+   * `chrome`  = textes du moteur (boutons, statut, repli cible absente).
+   * `tours.*` = textes métier d'UNE visite. Chaque worker de tour ajoute SA
+   *             clé sous `tours` (prospection, crm, estimations, offmarket,
+   *             communications-hitl, agents, radar) sur ce modèle :
+   *             { title, description, steps: { <stepId>: { title, body, consequence? } } }
+   * Règle : jamais « Cliquez ici pour continuer », jamais de faux statut LIVE.
+   */
+  onboarding: {
+    chrome: {
+      dialogLabel: "Visite guidée",
+      stepLabel: (current: number, total: number) => `Étape ${current} sur ${total}`,
+      next: "Suivant",
+      prev: "Précédent",
+      finish: "Terminer",
+      skip: "Passer la visite",
+      close: "Fermer la visite",
+      /** Affiché quand l'élément pointé n'existe pas sur l'écran courant. */
+      targetMissing: "Cet élément n'est pas affiché sur cet écran. L'explication reste valable.",
+      /** Rappel permanent : la visite ne fait rien à la place de l'utilisateur. */
+      readOnly: "La visite montre et explique. Elle n'exécute aucune action à ta place.",
+      loading: "Recherche de l'élément…",
+    },
+    /**
+     * Écran d'accueil du PREMIER accès authentifié (W6, LOT 4).
+     * Introduction courte, jamais bloquante : « Plus tard » referme sans rien
+     * marquer comme fait, et une visite quittée reprend à sa dernière étape.
+     */
+    welcome: {
+      title: "Bienvenue dans votre cockpit immobilier",
+      promise:
+        "Identifiez les opportunités, priorisez vos actions et gardez le contrôle sur chaque automatisation.",
+      note: "La visite montre et explique. Tu peux l'arrêter à tout moment : elle reprendra où tu l'as laissée.",
+      start: "Commencer la visite",
+      later: "Plus tard",
+      dialogLabel: "Bienvenue",
+    },
+    /**
+     * Checklist de démarrage (W6, LOT 6). La complétion est DÉRIVÉE des données
+     * réelles du compte — jamais d'une case cochée à la main. Trois états :
+     * fait / à faire / indéterminé (table absente sur cet environnement).
+     */
+    checklist: {
+      title: "Prise en main",
+      description: "Sept repères pour rendre le cockpit utile sur ton activité.",
+      progress: (done: number, total: number) => `${done} sur ${total}`,
+      open: "Ouvrir la prise en main",
+      collapse: "Réduire la prise en main",
+      hide: "Masquer",
+      done: "Fait",
+      todo: "À faire",
+      unknown: "Indéterminé",
+      /** État honnête : la donnée n'est pas lisible ici, donc on ne conclut pas. */
+      unknownHint:
+        "Cette donnée n'est pas disponible sur cet environnement : impossible de dire si c'est fait.",
+      completedTitle: "Prise en main terminée",
+      completedBody: "Tu retrouves cette liste quand tu veux depuis l'aide.",
+      items: {
+        "first-lead": {
+          label: "Créer un premier client",
+          hint: "Un contact acheteur ou vendeur dans le CRM.",
+        },
+        "first-property": {
+          label: "Ajouter un premier bien",
+          hint: "Un bien de ton portefeuille, même incomplet.",
+        },
+        "first-estimation": {
+          label: "Créer une estimation",
+          hint: "Un avis de valeur à partir d'une adresse.",
+        },
+        "buyer-criteria": {
+          label: "Définir un critère acquéreur",
+          hint: "Budget, secteur, surface : la base du matching.",
+        },
+        "first-match": {
+          label: "Consulter un matching",
+          hint: "Les annonces qui correspondent à un critère.",
+        },
+        "first-draft": {
+          label: "Préparer un brouillon",
+          hint: "Un message prêt à relire avant tout envoi.",
+        },
+        "action-center": {
+          label: "Consulter le Centre d'actions",
+          hint: "Tes priorités du jour, sur le tableau de bord.",
+        },
+      } as Record<string, { label: string; hint: string }>,
+    },
+    /**
+     * Panneau « Aide et visites guidées » (W6, LOT 7). Chaque visite est
+     * relançable manuellement, même terminée.
+     */
+    help: {
+      entry: "Aide et visites guidées",
+      title: "Aide et visites guidées",
+      description: "Chaque visite pointe des composants réels et explique quoi en faire.",
+      close: "Fermer l'aide",
+      start: "Commencer",
+      resume: "Reprendre",
+      replay: "Rejouer",
+      unavailable: "Bientôt disponible",
+      resetting: "Réinitialisation…",
+      /** Libellés des visites listées dans le panneau, dans l'ordre d'apprentissage. */
+      entries: {
+        "core-cockpit": "Découvrir le cockpit",
+        prospection: "Prospection et matching",
+        crm: "Clients et portefeuille",
+        estimations: "Estimations",
+        offmarket: "Off-market",
+        "communications-hitl": "Communications et approbations",
+        agents: "Agents",
+      } as Record<string, string>,
+      status: {
+        idle: "Jamais lancée",
+        running: "En cours",
+        completed: "Terminée",
+        skipped: "Interrompue",
+      } as Record<string, string>,
+      /** Action secondaire discrète posée sur les pages prioritaires. */
+      pageTour: "Découvrir cette page",
+    },
+    tours: {
+      "core-cockpit": {
+        title: "Prendre en main le cockpit",
+        description:
+          "Les repères de base : navigation, priorités du jour, assistant et compte.",
+        steps: {
+          welcome: {
+            title: "Bienvenue dans le cockpit",
+            body: "En quelques étapes, tu vois où se trouvent la navigation, tes priorités du jour et l'assistant.",
+            consequence: "Rien n'est modifié pendant la visite : tu peux l'arrêter à tout moment avec Échap.",
+          },
+          nav: {
+            title: "La navigation",
+            body: "Le rail de gauche regroupe tous les modules : CRM, estimations, prospection, off-market, agents.",
+          },
+          actionCenter: {
+            title: "Tes priorités du jour",
+            body: "Le centre d'actions classe ce qui mérite ton attention : relances en retard, mandats à renouveler, visites à débriefer.",
+          },
+          assistant: {
+            title: "L'assistant",
+            body: "Le panneau de droite répond en langage naturel et sait lire tes données : « quels leads sans relance depuis 15 jours ? ».",
+            consequence: "Il demande confirmation avant toute action irréversible, comme la suppression d'un lead.",
+          },
+          profile: {
+            title: "Ton compte",
+            body: "Le profil regroupe tes informations et la déconnexion.",
+          },
+          wrapup: {
+            title: "Tu as les repères",
+            body: "Chaque module a sa propre visite, lançable quand tu en as besoin.",
+          },
+          dashboardNewEstimation: {
+            title: "Démarrer une estimation",
+            body: "L'action principale de l'accueil ouvre l'entretien d'estimation : adresse, surface, état du bien, puis la valeur argumentée.",
+            consequence: "Le bouton ouvre l'entretien. Rien n'est enregistré tant que tu ne l'as pas lancé toi-même.",
+          },
+          dashboardKpis: {
+            title: "Tes quatre chiffres",
+            body: "Biens au portefeuille, clients actifs, visites à venir et mandats en cours. Recalculés à chaque chargement, sur tes seules données.",
+          },
+          dashboardActionCenter: {
+            title: "Le bloc des priorités",
+            body: "Chaque ligne est rattachée à une vraie fiche et dit pourquoi elle remonte : relance en retard, rendez-vous du jour, estimation à reprendre.",
+            consequence: "« Traité » et « Reporter » modifient la tâche. La visite te les montre, elle ne les déclenche pas.",
+          },
+          dashboardRecentProperties: {
+            title: "Ton portefeuille récent",
+            body: "Les derniers biens modifiés, avec statut, type et ville. Une ligne ouvre la fiche complète du bien.",
+          },
+        },
+      },
+
+      /* ── W4 — prospection / radar / off-market ─────────────────────── */
+
+      prospection: {
+        title: "Faire tourner la prospection",
+        description:
+          "Des critères acquéreur aux annonces rapprochées, avec le score réel et ses raisons.",
+        steps: {
+          onglets: {
+            title: "Les cinq onglets",
+            body: "Acquéreurs, matching, annonces, historique et alertes : chaque onglet est une étape du flux de prospection.",
+          },
+          criteres: {
+            title: "Les critères acquéreur",
+            body: "Un profil décrit ce que cherche un acquéreur : secteur, budget, surface, pièces. C'est la base de tout rapprochement.",
+            consequence:
+              "La visite ne modifie aucun critère : le formulaire refuse d'enregistrer tant qu'elle est ouverte.",
+          },
+          annonces: {
+            title: "Les annonces collectées",
+            body: "L'onglet Annonces liste les biens remontés par la collecte : prix, prix au m², DPE, ancienneté et vendeur particulier ou professionnel.",
+          },
+          matching: {
+            title: "Le matching et son score",
+            body: "Chaque rapprochement affiche un score calculé par le moteur de prospection, jamais estimé à l'œil. Sous chaque ligne, les critères satisfaits, tolérés et bloquants expliquent le chiffre.",
+            consequence:
+              "Score et raisons viennent de tes données réelles ; la visite ne relance aucun calcul.",
+          },
+          feedback: {
+            title: "Ton retour et les alertes",
+            body: "Les pouces sur chaque rapprochement apprennent tes préférences et repondèrent les critères suivants. L'onglet Alertes prévient au-delà d'un score que tu choisis.",
+            consequence:
+              "Pendant la visite, les pouces n'enregistrent rien : aucun signal n'est envoyé au moteur.",
+          },
+        },
+      },
+
+      radar: {
+        title: "Lire le radar vendeurs",
+        description:
+          "Les trois signaux d'opportunité et comment ouvrir l'annonce ou le mandat derrière chacun.",
+        steps: {
+          baisses: {
+            title: "Les baisses de prix",
+            body: "Chaque ligne compare l'ancien et le nouveau prix d'une annonce suivie, avec l'écart en euros, en pourcentage et la date du relevé.",
+            consequence:
+              "« Voir l'annonce » ouvre l'annonce d'origine dans un nouvel onglet, pour vérifier avant d'appeler.",
+          },
+          dormantes: {
+            title: "Les annonces dormantes",
+            body: "Un bien en ligne depuis longtemps sans mise à jour signale souvent un vendeur prêt à discuter d'un nouveau mandat.",
+            consequence:
+              "« Voir l'annonce » ouvre l'annonce d'origine pour confirmer qu'elle est toujours active.",
+          },
+          mandats: {
+            title: "Les mandats qui expirent",
+            body: "Tes propres mandats classés par jours restants. Passée l'échéance, le bien redevient disponible pour un confrère.",
+            consequence:
+              "« Ouvrir » t'emmène sur la liste des mandats, d'où tu lances le renouvellement.",
+          },
+        },
+      },
+
+      offmarket: {
+        title: "Rapprocher un bien de tes acquéreurs",
+        description:
+          "Du bien du portefeuille au lien partageable, en comprenant chaque score.",
+        steps: {
+          bien: {
+            title: "Choisis un bien réel",
+            body: "La colonne de gauche liste les biens de ton portefeuille. Cliquer sur un bien interroge le moteur de matching pour trouver les acquéreurs de ta base qui lui correspondent.",
+          },
+          inclure: {
+            title: "Coche les biens à inclure",
+            body: "La case devant chaque bien décide de ce qui figurera dans la sélection envoyée à l'acquéreur. Tu peux en cocher plusieurs.",
+          },
+          acquereurs: {
+            title: "Les acquéreurs correspondants",
+            body: "Chaque ligne est un profil de recherche de ta base, avec sa recommandation : priorité haute, à revoir, priorité basse ou rejeté.",
+          },
+          score: {
+            title: "Le score et ses raisons",
+            body: "Le score vient du moteur de matching de la prospection, jamais d'un calcul local. La ligne sous le nom détaille les critères satisfaits et les écarts qui restent.",
+            consequence:
+              "« Cibler » désigne l'acquéreur destinataire de la sélection, sans rien envoyer.",
+          },
+          lien: {
+            title: "Le lien partageable",
+            body: "Une fois un acquéreur ciblé, « Générer le lien partageable » crée une page publique où il note chaque bien du lot et te renvoie son avis.",
+            consequence:
+              "La visite explique ce bouton sans l'actionner : aucun lien public n'est créé pendant la visite.",
+          },
+        },
+      },
+      crm: {
+        title: "Clients et portefeuille",
+        description:
+          "Enregistrer un client, suivre son avancement, ajouter un bien et lire l'état du portefeuille.",
+        steps: {
+          leadCreate: {
+            title: "Créer un client",
+            body: "L'action d'en-tête ouvre la fiche de création : nom, coordonnées, budget et mode de financement.",
+            consequence: "Le client n'existe qu'après ta validation dans le formulaire.",
+          },
+          leadKinds: {
+            title: "Acquéreur ou propriétaire",
+            body: "Chaque client porte un type : l'acquéreur cherche un bien, le propriétaire en confie un. Les zones les séparent pour que tu saches quoi faire de chacun.",
+          },
+          leadPipeline: {
+            title: "L'avancement",
+            body: "L'entonnoir situe tes clients : nouveau, contacté, qualifié, visite, offre, gagné ou perdu. Le statut se change dans la vue liste.",
+          },
+          leadOpen: {
+            title: "Ouvrir une fiche",
+            body: "L'activité récente mène à la fiche du client. Elle réunit ses coordonnées et son historique : appels, visites, estimations, mandats.",
+          },
+          propertyCreate: {
+            title: "Ajouter un bien",
+            body: "Même principe côté portefeuille : l'action d'en-tête ouvre la saisie du bien — adresse, surface, prix, diagnostics.",
+            consequence: "Le bien n'est enregistré qu'après ta validation dans le formulaire.",
+          },
+          propertyIndicators: {
+            title: "L'état du portefeuille",
+            body: "Les biens sont répartis par situation : en commercialisation, à compléter, entrés récemment, clos. Un bien à compléter est un bien qui se vend mal.",
+          },
+          propertyViews: {
+            title: "Trois lectures du même stock",
+            body: "Cockpit pour l'état métier, kanban pour glisser un bien d'une étape à l'autre, liste pour comparer prix et surfaces.",
+          },
+          propertyOpen: {
+            title: "Ouvrir un bien",
+            body: "La fiche du bien réunit photos, caractéristiques, mandat, visites et clients rattachés.",
+          },
+        },
+      },
+      estimations: {
+        title: "Estimer un bien",
+        description:
+          "Lancer une estimation, suivre son avancement, la reprendre et exploiter son résultat.",
+        steps: {
+          create: {
+            title: "Lancer une estimation",
+            body: "L'entretien te pose les questions dans l'ordre : localisation, surface, état, atouts et défauts du bien.",
+            consequence: "Tu peux interrompre l'entretien à tout moment : l'estimation reste en brouillon.",
+          },
+          pipeline: {
+            title: "Où en sont tes estimations",
+            body: "Une estimation passe par brouillon, entretien, récapitulatif, calcul, puis prête. Ce bloc compte celles présentes à chaque étape.",
+          },
+          resume: {
+            title: "Reprendre une estimation",
+            body: "La liste rassemble toutes tes estimations. Une ligne encore en cours propose de reprendre l'entretien là où il s'est arrêté.",
+          },
+          result: {
+            title: "Ce que tu obtiens",
+            body: "Une estimation prête donne une valeur de marché, une fourchette, les biens comparables retenus et le raisonnement associé.",
+            consequence:
+              "Depuis le résultat, tu crées le propriétaire et le mandat sans ressaisir le bien. L'envoi au client reste une action explicite de ta part.",
+          },
+        },
+      },
+      "communications-hitl": {
+        title: "Envoyer un message et valider une action",
+        description:
+          "Où passent les messages avant de partir, et comment se tranche une action proposée par un agent.",
+        steps: {
+          transports: {
+            title: "L'état réel de tes canaux",
+            body: "Chaque canal affiche son état vrai : LIVE = envoi réel possible, CONFIG = variable manquante, donc aucun envoi.",
+            consequence:
+              "Aujourd'hui SMS et WhatsApp sont en CONFIG (Twilio non renseigné). L'email est configuré côté Resend mais aucun envoi réel n'a encore été effectué depuis ce dashboard.",
+          },
+          tabs: {
+            title: "Le parcours d'un message",
+            body: "Un message traverse quatre statuts : Brouillon, Validé, Envoyé, Échec. Les onglets filtrent la liste sur l'un d'eux.",
+            consequence:
+              "Un message n'arrive dans « Envoyé » que si le fournisseur a renvoyé une référence réelle. Sinon il reste en Échec avec la raison.",
+          },
+          edit: {
+            title: "Corriger avant de valider",
+            body: "Tant qu'un message est en brouillon ou validé, tu peux réécrire l'objet et le corps. C'est ton dernier mot sur le contenu.",
+          },
+          validate: {
+            title: "La validation humaine",
+            body: "« Valider » fait passer le brouillon en Validé. C'est toi qui décides qu'un message est prêt — jamais l'agent qui l'a rédigé.",
+            consequence: "Valider ne fait rien partir : le message attend encore un envoi explicite.",
+          },
+          send: {
+            title: "L'envoi, en dernier",
+            body: "« Envoyer » n'apparaît que sur un message déjà validé, et reste inactif si le canal est en CONFIG.",
+            consequence:
+              "Un message n'est marqué « Envoyé » qu'avec une référence fournisseur réelle. Sans référence, il reste en Échec — jamais de faux envoi.",
+          },
+          proposal: {
+            title: "Une action proposée par un agent",
+            body: "Cette file liste les actions qu'un agent veut réaliser : le canal visé, l'agent demandeur et la date de la demande.",
+            consequence: "Tant que tu n'as pas tranché, l'action reste en attente et ne s'exécute pas.",
+          },
+          justification: {
+            title: "Sur quoi tu décides",
+            body: "Chaque ligne porte sa justification : l'agent à l'origine, la cible concernée et l'empreinte du contenu proposé.",
+            consequence: "L'empreinte garantit que le contenu approuvé est exactement celui qui sera utilisé.",
+          },
+          decision: {
+            title: "Approuver ou refuser",
+            body: "Deux boutons, deux issues : approuver autorise l'agent à réaliser l'action, refuser l'annule définitivement.",
+            consequence:
+              "Votre décision est enregistrée. Cette page n'exécute jamais silencieusement l'action.",
+          },
+        },
+      },
+      agents: {
+        title: "Exploiter les agents",
+        description:
+          "Ce que ce cockpit fait des agents publiés : les lire, les lancer, suivre leur run et trancher leurs étapes de validation.",
+        steps: {
+          registry: {
+            title: "Un registre, pas un atelier",
+            body: "Cette page lit le registre Aigent et affiche exactement ce qu'il renvoie : ni agent inventé, ni run simulé.",
+            consequence:
+              "Les agents ne sont pas créés dans ce dashboard. Ils sont publiés par Aigent puis exploités ici.",
+          },
+          capabilities: {
+            title: "Capacités et disponibilité",
+            body: "Chaque agent publié annonce sa version, ses capacités et son statut. Seul un agent en production est exécutable.",
+            consequence:
+              "Le runtime Aigent n'est pas connecté sur cet environnement : les variables d'accès sont absentes et le registre ne renvoie donc aucun agent. L'écran l'affiche tel quel, sans en fabriquer un.",
+          },
+          run: {
+            title: "Lancer et suivre un run",
+            body: "Le bouton « Lancer » démarre un run sur le runtime, puis un suivi affiche son statut réel, ses événements et son résultat sourcé.",
+            consequence:
+              "Ce bouton n'apparaît qu'avec un agent en production dans le registre. Tant qu'Aigent n'est pas connecté, il n'y a rien à lancer.",
+          },
+          hitl: {
+            title: "Les étapes de validation",
+            body: "Quand un agent atteint une étape à effet réel, son run s'arrête et attend ta décision : approuver ou refuser.",
+            consequence:
+              "Le run reste bloqué tant que tu n'as pas tranché. Aucun agent ne franchit seul une étape sensible.",
+          },
+        },
+      },
+    },
+    guard: {
+      notice:
+        "Visite guidée en cours : les envois, les décisions et les lancements sont désactivés. Termine ou passe la visite pour agir.",
+      blockedTitle: "Action désactivée pendant la visite guidée",
+    },
   },
   common: {
     yes: "Oui",

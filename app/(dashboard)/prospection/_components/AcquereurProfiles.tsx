@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Subheading } from "@/components/ui/heading";
 import { Text, Strong } from "@/components/ui/text";
 import { CritereForm } from "./CritereForm";
+import { PROSPECTION_ANCHORS } from "@/lib/onboarding/tours/prospection";
 import type { Critere } from "./types";
 import {
   zonesLabel,
@@ -102,7 +103,10 @@ export function AcquereurProfiles({ criteres, onChanged }: { criteres: Critere[]
 
   if (criteres.length === 0) {
     return (
-      <div className="surface flex flex-col items-center gap-3 px-6 py-12 text-center">
+      <div
+        data-tour-id={PROSPECTION_ANCHORS.criteria}
+        className="surface flex flex-col items-center gap-3 px-6 py-12 text-center"
+      >
         <UsersIcon aria-hidden="true" className="size-10 text-zinc-400 dark:text-zinc-500" />
         <Strong>{t.emptyCriteresTitle}</Strong>
         <Text className="max-w-md">{t.emptyCriteresText}</Text>
@@ -111,7 +115,7 @@ export function AcquereurProfiles({ criteres, onChanged }: { criteres: Critere[]
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div data-tour-id={PROSPECTION_ANCHORS.criteria} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <Subheading>{t.acquereurProfilsTitle}</Subheading>
         <Text className="text-sm">{t.acquereurProfilsHint}</Text>

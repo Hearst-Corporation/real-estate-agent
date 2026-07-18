@@ -1,6 +1,6 @@
 /**
  * GET /api/admin — vue d'oversight admin (providers + volumétrie), lecture seule.
- * - 401 non authentifié · 403 si role !== 'admin' · 503 si Supabase absent (dégradé)
+ * - 401 non authentifié · 403 si role !== 'admin' · 503 si base GPU1 absente (dégradé)
  */
 
 import { NextResponse } from "next/server";

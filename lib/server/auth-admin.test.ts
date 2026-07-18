@@ -57,7 +57,7 @@ describe("isSameTenant — borne de tenant sur action admin", () => {
     expect(await isSameTenant(TENANT_A, "99999999-9999-4999-8999-999999999999")).toBe(false);
   });
 
-  it("Supabase non configuré (client null) → false (FAIL-CLOSED, pas d'autorisation par défaut)", async () => {
+  it("base GPU1 non configurée (client null) → false (FAIL-CLOSED, pas d'autorisation par défaut)", async () => {
     fakeDb = null;
     expect(await isSameTenant(TENANT_A, USER_A2)).toBe(false);
   });

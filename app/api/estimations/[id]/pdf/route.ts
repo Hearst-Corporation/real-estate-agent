@@ -3,7 +3,7 @@
  *
  * Génère (ou sert depuis le cache R2) le PDF A4 de la brochure en inline.
  * - 401 si non authentifié
- * - 503 si Supabase non configuré
+ * - 503 si la base GPU1 n'est pas configurée
  * - 404 si estimation non trouvée / n'appartient pas à l'utilisateur
  * - 409 si estimation pas encore à l'état "ready" (pas de valuation)
  * - 500 si erreur de rendu PDF
@@ -74,7 +74,7 @@ export async function GET(
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  // ── Supabase ──────────────────────────────────────────────────────────────
+  // ── Base GPU1 ─────────────────────────────────────────────────────────────
   const sb = getGpu1Admin();
   if (!sb) {
     return Response.json({ error: "database_not_configured" }, { status: 503 });

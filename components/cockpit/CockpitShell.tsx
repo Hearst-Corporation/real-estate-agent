@@ -6,6 +6,8 @@ import { CenterPanel } from "./CenterPanel";
 import { RailRight } from "./RailRight";
 import { MobileAssistant } from "./MobileAssistant";
 import { useRailRight } from "./useRailRight";
+// Onboarding non intrusif (W6) : dock flottant, hors du flux du shell.
+import { OnboardingLauncher } from "@/components/onboarding/OnboardingLauncher";
 
 /**
  * Shell 3 colonnes calqué sur le bloc Tailwind Plus
@@ -32,6 +34,7 @@ export function CockpitShell({
       <CenterPanel chatOpen={open}>{children}</CenterPanel>
       <RailRight open={open} toggle={toggle} />
       <MobileAssistant />
+      <OnboardingLauncher />
     </div>
   );
 }

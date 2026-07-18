@@ -1,5 +1,5 @@
 /**
- * lib/prospection/mappers.ts — convertit une ligne DB Supabase (snake_case,
+ * lib/prospection/mappers.ts — convertit une ligne DB PostgREST (snake_case,
  * colonnes nullables) vers les types métier `Annonce` / `CritereAcquereur`.
  *
  * Source unique partagée par le cron `prospScoring` (lib/jobs/inngest) ET le

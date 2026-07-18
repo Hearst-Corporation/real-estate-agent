@@ -2,7 +2,7 @@
  * POST /api/estimations/[id]/market-context
  *
  * Contexte marché/quartier (lecture seule, HORS calcul de prix) via recherche web.
- * - 401 si non authentifié · 503 si Supabase non configuré · 404 si non possédée
+ * - 401 si non authentifié · 503 si la base GPU1 n'est pas configurée · 404 si non possédée
  * - Réponse : { summary: string | null, citations: {title,url}[], provider, reason? }
  *
  * Garde-fous coût (cf lib/providers/cost-guard) :

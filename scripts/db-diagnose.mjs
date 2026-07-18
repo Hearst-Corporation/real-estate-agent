@@ -4,8 +4,8 @@
 // Zéro dépendance : lit .env.local, interroge PostgREST via fetch avec le token
 // admin (service-role, bypass RLS), compare le schéma réel aux tables créées par
 // toutes les migrations versionnées jusqu'à 0048, sonde la RPC verify_login,
-// vérifie l'absence de GoTrue/Storage/Realtime (montage PostgREST-only) et le
-// comportement RLS anon vs service-role. Ne masque RIEN des résultats mais
+// vérifie que le montage est bien PostgREST-only (aucun service d'auth/storage/
+// realtime exposé) et le comportement RLS anon vs service-role. Ne masque RIEN mais
 // N'IMPRIME AUCUN secret.
 //
 // Variables canoniques (post-migration GPU1) :
@@ -48,7 +48,7 @@ function loadEnv() {
 const { env, path: envPath } = loadEnv();
 // GPU1_POSTGREST_URL inclut déjà `/rest/v1` (cf. .env.example). On dérive :
 //   PGRST_BASE : racine PostgREST (…/rest/v1) — tables + RPC
-//   HOST_BASE  : racine du domaine — probes GoTrue/Storage/Realtime (attendus ABSENTS)
+//   HOST_BASE  : racine du domaine — probes auth/storage/realtime (attendus ABSENTS)
 const PGRST_BASE = (env.GPU1_POSTGREST_URL || "").replace(/\/$/, "");
 const HOST_BASE = PGRST_BASE.replace(/\/rest\/v1$/, "");
 const SERVICE_KEY = env.GPU1_POSTGREST_ADMIN_TOKEN || "";
@@ -102,9 +102,9 @@ function mask(s) {
   return `${s.slice(0, 4)}…[len ${s.length}]`;
 }
 
-// PostgREST self-host gpu1 : authentification par Bearer uniquement (pas d'entête
-// `apikey`, propre à la passerelle Supabase Cloud absente ici). `base` permet de
-// viser la racine PostgREST (défaut) ou la racine du domaine (probes GoTrue/etc.).
+// PostgREST self-host gpu1 : authentification par Bearer uniquement (aucune entête
+// `apikey` — ce montage n'a pas de passerelle BaaS devant). `base` permet de viser
+// la racine PostgREST (défaut) ou la racine du domaine (probes d'absence).
 async function http(path, { key, method = "GET", body, headers = {}, base = PGRST_BASE } = {}) {
   const h = { ...headers };
   if (key) {
@@ -191,12 +191,14 @@ async function main() {
   console.log(`  → verify_login ${rpcExists ? "PRÉSENTE" : "ABSENTE / introuvable"}`);
   console.log("");
 
-  // ── 5. GoTrue présent ? (attendu ABSENT sur montage PostgREST-only) ─────────
-  console.log("── 5. GoTrue / Auth natif (attendu ABSENT — auth = verify_login) ─");
-  const gotrue = await http("/auth/v1/health", { base: HOST_BASE });
-  console.log(`GET /auth/v1/health  →  HTTP ${gotrue.status}`);
-  console.log(`  réponse : ${gotrue.text.slice(0, 120)}`);
-  console.log(`  → GoTrue ${gotrue.status === 200 ? "PRÉSENT (inattendu)" : "ABSENT (attendu)"}`);
+  // ── 5. Service d’auth exposé ? (attendu ABSENT sur montage PostgREST-only) ──
+  // Garde-fou de régression : le montage gpu1 ne doit exposer AUCUN service
+  // d’auth hébergé — l’auth passe exclusivement par la RPC `verify_login`.
+  console.log("── 5. Service d’auth exposé (attendu ABSENT — auth = verify_login) ─");
+  const authProbe = await http("/auth/v1/health", { base: HOST_BASE });
+  console.log(`GET /auth/v1/health  →  HTTP ${authProbe.status}`);
+  console.log(`  réponse : ${authProbe.text.slice(0, 120)}`);
+  console.log(`  → service d’auth ${authProbe.status === 200 ? "PRÉSENT (inattendu)" : "ABSENT (attendu)"}`);
   console.log("");
 
   // ── 6. Storage / Realtime (attendus ABSENTS — storage = Cloudflare R2) ──────

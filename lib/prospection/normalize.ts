@@ -17,7 +17,7 @@
  *   - `hash_dedup` est calculé par `hashDedup` (idem ingestion) → l'empreinte de
  *     déduplication d'un bien normalisé ici est identique à celle qu'il aurait en
  *     base. Déterministe : `nowIso` est injecté (aucune horloge implicite).
- *   - AUCUN accès DB, AUCUN client Supabase, AUCUN réseau. On retourne l'objet
+ *   - AUCUN accès DB, AUCUN client GPU1, AUCUN réseau. On retourne l'objet
  *     ligne + le hash ; on n'écrit jamais. `tenant_id` est intégré à la ligne
  *     mais aucune donnée d'un tenant n'est lue/écrite.
  *

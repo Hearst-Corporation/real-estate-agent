@@ -31,7 +31,8 @@ innerWidth` (0 scroll horizontal), scan `[SEED]`/PII.
 | 12 | `12-estimation-continuite-mobile.webp` | `/estimations/[id]` | 390×844 | continuité responsive | 0 err | non | **LIVE/SNAPSHOT** |
 
 **Résumé QA** : 12/12 — **0 erreur console**, **0 scroll horizontal** (desktop 1440 ET mobile 390).
-A4 a aussi validé 768×1024 sur toutes les routes (matrice dans LAST_REPORT). Suite Playwright
+A4 a aussi validé 768×1024 sur toutes les routes (matrice dans le rapport de vague archivé,
+`docs/archive/REA-PLATFORM-002-rapport.md`). Suite Playwright
 exhaustive non commitée (temporaire supprimée du repo).
 
 **Confidentialité** : les captures publiques `docs/screenshots/03-clients.png` et `07-prospection.png`

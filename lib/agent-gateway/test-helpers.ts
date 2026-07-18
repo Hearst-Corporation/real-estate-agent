@@ -1,5 +1,5 @@
 /**
- * lib/agent-gateway/test-helpers.ts — faux client Supabase in-memory pour les
+ * lib/agent-gateway/test-helpers.ts — faux client GPU1 in-memory pour les
  * tests unitaires de la gateway. Déterministe, aucun réseau, aucune vraie DB.
  *
  * Ce module N'EST PAS du code produit (importé uniquement par *.test.ts). Il
@@ -129,7 +129,7 @@ export class FakeQuery {
 
   private matchOr(r: Row): boolean {
     if (!this.orRaw) return true;
-    // Format supabase: "col.eq.val,col2.eq.val2" → OR entre clauses.
+    // Format PostgREST : "col.eq.val,col2.eq.val2" → OR entre clauses.
     const clauses = this.orRaw.split(",");
     for (const c of clauses) {
       const m = /^([a-z_]+)\.eq\.(.+)$/.exec(c.trim());
@@ -200,7 +200,7 @@ export class FakeQuery {
     }
     if (this.op === "delete") {
       // Supprime en place les lignes filtrées du tableau partagé (mute la même
-      // référence que le seed), renvoie les lignes supprimées (comme Supabase).
+      // référence que le seed), renvoie les lignes supprimées (comme PostgREST).
       const removed: Row[] = [];
       for (let i = this.rows.length - 1; i >= 0; i--) {
         if (this.match(this.rows[i])) removed.push(...this.rows.splice(i, 1));
@@ -226,7 +226,7 @@ export class FakeQuery {
     return { data: data[0] ?? null, error };
   }
   // Terminal thenable pour `await query` (le PostgrestBuilder réel est thenable).
-  // biome-ignore lint/suspicious/noThenProperty: mock supabase — thenable volontaire.
+  // biome-ignore lint/suspicious/noThenProperty: mock du client GPU1 — thenable volontaire.
   then(resolve: (v: { data: Row[]; error: unknown; count?: number | null }) => unknown) {
     return Promise.resolve(this.runWrite()).then(resolve);
   }

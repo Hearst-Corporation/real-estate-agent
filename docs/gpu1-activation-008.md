@@ -1,5 +1,12 @@
 # Activation GPU1 — vague REA-PRODUCT-007/008 (migrations 0049→0058)
 
+> ✅ **DÉJÀ EXÉCUTÉ — document historique.** Les migrations `0049`→`0058` (ainsi que
+> `0044 0045 0046 0048`) **ont été appliquées sur GPU1 le 2026-07-18**, données métier
+> inchangées. État réel et preuves : [gpu1-activation-009.md](gpu1-activation-009.md).
+> Ce document est conservé pour sa **procédure de référence** (§1-§4, réutilisable pour une
+> future vague) et son **rollback ciblé** (§5). Ne pas le lire comme un travail à faire :
+> aucune migration n'est en attente.
+
 Procédure d'application **manuelle** des migrations `0049`→`0058` sur la base
 Postgres self-hostée gpu1, avec vérification post-application et rollback par
 migration.

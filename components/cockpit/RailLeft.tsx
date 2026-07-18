@@ -7,6 +7,7 @@ import { Logo } from "./Logo";
 import { UI } from "@/lib/ui-strings";
 import { Icon } from "./Icon";
 import { navRail } from "@/config/nav";
+import { CORE_ANCHORS } from "@/lib/onboarding/tours";
 
 const INITIALS_LEN = 2;
 
@@ -62,6 +63,7 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
 
   return (
     <nav
+      data-tour-id={CORE_ANCHORS.nav}
       className="fixed inset-y-0 left-0 z-20 flex w-rail-left flex-col items-center border-r border-zinc-950/10 bg-white/60 py-6 backdrop-blur-xl max-sm:hidden"
       aria-label={UI.nav.home}
     >
@@ -137,6 +139,7 @@ export function RailLeft({ userEmail }: { userEmail?: string }) {
       <div className="pt-4">
         <Link
           href="/profile"
+          data-tour-id={CORE_ANCHORS.profile}
           className={`flex size-10 items-center justify-center rounded-full bg-zinc-950/5 text-sm font-semibold text-zinc-900 transition-colors hover:bg-accent-500/30 ${
             pathname.startsWith("/profile") || pathname.startsWith("/admin") ? "ring-2 ring-accent-400" : ""
           }`}

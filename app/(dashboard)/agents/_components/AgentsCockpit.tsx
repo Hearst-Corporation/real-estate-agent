@@ -7,6 +7,8 @@ import { Heading } from "@/components/ui/heading";
 import { Text, Strong } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTourActive } from "@/components/onboarding";
+import { AGENTS_ANCHORS } from "@/lib/onboarding/tours/agents";
 import type {
   PublishedAgent,
   PublishedAgentStatus,
@@ -52,6 +54,8 @@ export function AgentsCockpit({ initial }: { initial: AgentsInitial }) {
   const [view, setView] = useState<View>(initial);
   const [refreshing, setRefreshing] = useState(false);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  // LOT 10 — aucun run ne peut être lancé pendant une visite guidée.
+  const tourActive = useTourActive();
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -87,27 +91,45 @@ export function AgentsCockpit({ initial }: { initial: AgentsInitial }) {
         refreshing={refreshing}
       />
 
-      {view.kind === "unavailable" && <UnavailableState reason={view.reason} />}
-      {view.kind === "error" && <ErrorState onRetry={refresh} retrying={refreshing} />}
-      {view.kind === "loaded" && agents.length === 0 && <EmptyState />}
-
-      {view.kind === "loaded" && agents.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 @3xl:grid-cols-2">
-          {agents.map((agent) => (
-            <AgentCard
-              key={agent.id}
-              agent={agent}
-              runnable={isRunnable(agent.status)}
-              onRunStarted={(runId) => setActiveRunId(runId)}
-            />
-          ))}
-        </div>
+      {tourActive && (
+        <p role="status" className="surface border-l-4 border-accent-500 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+          {UI.onboarding.guard.notice}
+        </p>
       )}
+
+      {/* Ancre de visite : le registre RÉEL, dans l'état où Aigent le renvoie
+          (agents publiés, registre vide, ou runtime non connecté). Rien n'est
+          simulé ici : quand le runtime est en CONFIG, l'état est rendu tel quel. */}
+      <section data-tour-id={AGENTS_ANCHORS.registry} className="flex flex-col gap-4">
+        {view.kind === "unavailable" && <UnavailableState reason={view.reason} />}
+        {view.kind === "error" && <ErrorState onRetry={refresh} retrying={refreshing} />}
+        {view.kind === "loaded" && agents.length === 0 && <EmptyState />}
+
+        {view.kind === "loaded" && agents.length > 0 && (
+          <div className="grid grid-cols-1 gap-4 @3xl:grid-cols-2">
+            {agents.map((agent, index) => (
+              <AgentCard
+                key={agent.id}
+                agent={agent}
+                runnable={isRunnable(agent.status)}
+                onRunStarted={(runId) => setActiveRunId(runId)}
+                tourActive={tourActive}
+                anchorRun={index === 0}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Suivi du run actif (état réel + événements + HITL). `key` = remount
           propre à chaque nouveau run → aucun reset d'état manuel dans l'effet. */}
       {activeRunId && (
-        <RunTracker key={activeRunId} runId={activeRunId} onClose={() => setActiveRunId(null)} />
+        <RunTracker
+          key={activeRunId}
+          runId={activeRunId}
+          onClose={() => setActiveRunId(null)}
+          tourActive={tourActive}
+        />
       )}
 
       {/* Frontière : cette page exploite, elle ne construit pas. */}
