@@ -9,12 +9,19 @@
  *   - 401 non authentifié · 403 si role !== 'admin' (un non-admin ne peut JAMAIS
  *     réinitialiser le MFA d'autrui) · 400 body invalide · 503 si l'opération DB échoue.
  *
+ * ISOLATION MULTI-TENANT (fail-closed) : le client service-role bypass la RLS, donc le
+ * seul check de rôle ne borne PAS le tenant. On vérifie que le user cible appartient AU
+ * MÊME tenant que l'admin (isSameTenant, source `auth_credentials`) AVANT toute écriture.
+ * User d'un autre tenant, introuvable, ou DB indisponible → 403 (jamais d'action). Un admin
+ * du tenant A ne peut donc jamais reset le MFA d'un compte du tenant B.
+ *
  * Body: { userId: string }  (uuid)
  */
 
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { disableMfa } from "@/lib/server/mfa-store";
+import { isSameTenant } from "@/lib/server/auth-admin";
 import { captureServer } from "@/lib/providers/posthog";
 import { recordAuthEvent } from "@/lib/server/audit-log";
 
@@ -41,6 +48,11 @@ export async function POST(req: Request) {
   if (typeof userId !== "string" || !UUID_RE.test(userId)) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
+
+  // Isolation multi-tenant FAIL-CLOSED — AVANT toute écriture DB. Le tenant vient du JWT
+  // vérifié (claims.tenant_id), jamais du body. Cible hors tenant / introuvable / DB KO → 403.
+  const sameTenant = await isSameTenant(claims.tenant_id, userId);
+  if (!sameTenant) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   // Réutilise le store MFA (pas de requête DB inline dupliquée). Fail-soft : false sur erreur DB.
   const ok = await disableMfa(userId);
