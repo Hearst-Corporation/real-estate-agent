@@ -52,6 +52,7 @@ const WAVE = [
   { n: "0056", file: "0056_share_events.sql", creates: ["share_events"] },
   { n: "0057", file: "0057_value_snapshots.sql", creates: ["value_snapshots"] },
   { n: "0058", file: "0058_learning_signals.sql", creates: ["learning_signals"] },
+  { n: "0059", file: "0059_product_tour_progress.sql", creates: ["user_product_tour_progress"] },
 ];
 
 // Tables préexistantes connues (créées avant la vague ou hors périmètre migrations).
