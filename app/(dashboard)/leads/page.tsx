@@ -1,4 +1,3 @@
-import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { Donut } from "@/components/cockpit/Donut";
 import { Heading, Subheading } from "@/components/ui/heading";
@@ -7,7 +6,6 @@ import { countByStatus } from "@/lib/crm/aggregate";
 import { LEAD_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
 import { filterSeed } from "@/lib/crm/demo-filter";
-import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getGpu1Admin } from "@/lib/gpu1";
@@ -83,9 +81,6 @@ export default async function LeadsPage() {
             <LeadFormModal cta={t.newCta} />
           </div>
         </div>
-        <nav aria-label="Tabs" className="-mb-px flex flex-wrap items-center gap-1">
-          <PageNavTabs tabs={TAB_GROUPS.clients} />
-        </nav>
       </div>
 
       {/* KPI — cartes surface, chiffre grand */}

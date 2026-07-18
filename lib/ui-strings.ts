@@ -21,7 +21,6 @@ export const UI = {
     prospection: "Prospection",
     portefeuille: "Portefeuille",
     clients: "Clients",
-    crm: "CRM",
     agents: "Agents",
     radar: "Radar",
     approvals: "Approbations",
@@ -34,6 +33,8 @@ export const UI = {
     assistant: "Assistant",
     profile: "Profil",
     admin: "Admin",
+    /** Libellé accessible de la sous-nav de groupe (SubNav). */
+    sections: "Sections",
   },
   admin: {
     eyebrow: "Interne",

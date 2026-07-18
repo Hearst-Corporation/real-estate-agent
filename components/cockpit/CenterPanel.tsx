@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { BottomBar } from "./BottomBar";
+import { SubNav } from "./SubNav";
 
 /**
  * Zone principale (`<main>`) du bloc `02-full-width-secondary-column-on-right` :
@@ -24,6 +25,8 @@ export function CenterPanel({
     >
       <div className="ct-page-area scrollbar-thin flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
         <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-4 pt-6 pb-24 @container sm:px-8 sm:py-8">
+          {/* Sous-nav du groupe de travail courant (dérivée de config/nav.ts). */}
+          <SubNav />
           {children}
         </div>
       </div>

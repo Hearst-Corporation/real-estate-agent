@@ -7,7 +7,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { BarList } from "@/components/cockpit/BarList";
 import { StatusSelect } from "@/components/cockpit/StatusSelect";
@@ -15,7 +14,6 @@ import { DeleteButton } from "@/components/cockpit/DeleteButton";
 import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
 import { eur, dateFr, MANDATE_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
-import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getGpu1Admin } from "@/lib/gpu1";
@@ -90,9 +88,6 @@ export default async function MandatesPage() {
           </div>
         </div>
 
-        <nav className="flex flex-wrap items-center gap-1 border-b border-zinc-950/10 pb-2">
-          <PageNavTabs tabs={TAB_GROUPS.portefeuille} />
-        </nav>
 
         {/* KPI stats — TW+ data-display/stats (thème clair) */}
         <dl className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @lg:grid-cols-4">

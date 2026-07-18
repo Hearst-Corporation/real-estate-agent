@@ -1,4 +1,3 @@
-import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { Funnel } from "@/components/cockpit/Funnel";
 import { Donut } from "@/components/cockpit/Donut";
 import { StatusSelect } from "@/components/cockpit/StatusSelect";
@@ -15,7 +14,6 @@ import {
 import { countByStatus, ratio } from "@/lib/crm/aggregate";
 import { dateTimeFr, VISIT_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
-import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getGpu1Admin } from "@/lib/gpu1";
@@ -103,9 +101,6 @@ export default async function VisitsPage() {
             <VisitForm cta={t.newCta} />
           </div>
         </div>
-        <nav aria-label="Tabs" className="-mb-px flex flex-wrap items-center gap-1">
-          <PageNavTabs tabs={TAB_GROUPS.clients} />
-        </nav>
       </div>
 
       {/* KPI — grille zinc + primitives */}

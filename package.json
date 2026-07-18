@@ -28,14 +28,15 @@
     "verify:release": "pnpm run check && pnpm run test && pnpm run test:migrations && pnpm run build",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
+    "electron:compile": "tsc -p electron && cp electron/splash.html dist-electron/splash.html",
     "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:3002 && npm run electron:start\"",
-    "electron:start": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron .",
-    "electron:build": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron-builder",
-    "electron:test": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && playwright test --config electron/playwright.electron.config.ts",
+    "electron:start": "npm run electron:compile && electron .",
+    "electron:build": "npm run electron:compile && electron-builder",
+    "electron:build:release": "npm run electron:compile && electron-builder --publish never",
+    "electron:publish": "npm run electron:compile && electron-builder --publish always",
+    "electron:test": "npm run electron:compile && playwright test --config electron/playwright.electron.config.ts",
     "seed": "node scripts/seed-crm.mjs",
-    "test:e2e": "playwright test e2e",
-    "electron:build:release": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron-builder --publish never",
-    "electron:publish": "tsc -p electron && cp electron/splash.html dist-electron/splash.html && electron-builder --publish always"
+    "test:e2e": "playwright test e2e"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

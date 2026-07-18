@@ -1,5 +1,4 @@
 import { PageHeader, Card, PageStack } from "@/components/cockpit/primitives";
-import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { BarList } from "@/components/cockpit/BarList";
 import { Donut } from "@/components/cockpit/Donut";
 import { PropertiesViewToggle } from "./_components/PropertiesViewToggle";
@@ -7,7 +6,6 @@ import { barsByStatus, topByCategory, distributeByBand, autoBands, ratio } from 
 import { eur, PROPERTY_STATUSES } from "@/lib/crm/format";
 import { statusTone } from "@/lib/crm/statusTone";
 import { filterSeed } from "@/lib/crm/demo-filter";
-import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getGpu1Admin } from "@/lib/gpu1";
@@ -97,7 +95,6 @@ export default async function PropertiesPage() {
       <PageHeader
         kicker={t.eyebrow}
         title={t.title}
-        nav={<PageNavTabs tabs={TAB_GROUPS.portefeuille} />}
         action={<PropertyFormModal />}
         kpis={[
           { label: t.kpis.total, value: String(total), icon: "properties" },

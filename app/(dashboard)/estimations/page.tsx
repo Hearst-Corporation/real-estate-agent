@@ -1,4 +1,3 @@
-import { PageNavTabs } from "@/components/cockpit/PageNavTabs";
 import { AccentButton } from "./_components/AccentButton";
 import { Badge } from "@/components/ui/badge";
 import { Heading, Subheading } from "@/components/ui/heading";
@@ -14,7 +13,6 @@ import {
 import { countByStatus, topByCategory, average } from "@/lib/crm/aggregate";
 import { eur, dateFr } from "@/lib/crm/format";
 import { statusTone, type StatusTone } from "@/lib/crm/statusTone";
-import { TAB_GROUPS } from "@/config/nav";
 import { UI } from "@/lib/ui-strings";
 import { getSession } from "@/lib/server/session";
 import { getGpu1Admin } from "@/lib/gpu1";
@@ -90,9 +88,6 @@ export default async function EstimationsPage() {
             <AccentButton href="/estimations/new">{t.newCta}</AccentButton>
           </div>
         </div>
-        <nav className="flex flex-wrap items-center gap-1 border-b border-zinc-950/10 pb-2 dark:border-white/10">
-          <PageNavTabs tabs={TAB_GROUPS.portefeuille} />
-        </nav>
       </div>
 
       {/* Stats — bandeau inline (KPI non encagés, séparateurs plutôt que cartes) */}
