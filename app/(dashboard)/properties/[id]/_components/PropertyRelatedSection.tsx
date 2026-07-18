@@ -45,7 +45,7 @@ export async function PropertyRelatedSection({ propertyId, userId, tenantId }: P
   ]);
 
   return (
-    <>
+    <div className="grid grid-cols-1 items-start gap-4 @2xl:grid-cols-3">
       {/* ── Leads ────────────────────────────────────────────────────────── */}
       <Card title={td.cardLeads}>
         {leads && leads.length > 0 ? (
@@ -126,6 +126,6 @@ export async function PropertyRelatedSection({ propertyId, userId, tenantId }: P
           <p className="py-4 text-sm text-zinc-500">{td.mandatesEmpty}</p>
         )}
       </Card>
-    </>
+    </div>
   );
 }
