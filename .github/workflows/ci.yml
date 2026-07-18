@@ -45,11 +45,10 @@ jobs:
         run: pnpm run test:migrations
 
       - name: Build (next build)
-        # Placeholders NON secrets : suffisent au build client. Le boot runtime
-        # revalide l'environnement réel (instrumentation → assertBootEnv).
+        # Placeholders NON secrets : suffisent au build. Le boot runtime revalide
+        # l'environnement réel (instrumentation → assertBootEnv). La DB est un
+        # PostgREST gpu1 serveur-only ; aucun secret DB n'est exposé au build.
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://ci.example.invalid
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key-not-a-secret
           NEXT_TELEMETRY_DISABLED: '1'
         run: pnpm run build
 
@@ -69,13 +68,11 @@ jobs:
       - name: Verify E2E secrets present
         id: guard
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          POSTGREST_URL: ${{ secrets.GPU1_POSTGREST_URL }}
+          ADMIN_TOKEN: ${{ secrets.GPU1_POSTGREST_ADMIN_TOKEN }}
           JWT: ${{ secrets.JWT_SECRET }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
-          if [ -n "$SUPABASE_URL" ] && [ -n "$SERVICE_ROLE" ] && [ -n "$JWT" ] && [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+          if [ -n "$POSTGREST_URL" ] && [ -n "$ADMIN_TOKEN" ] && [ -n "$JWT" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
@@ -107,11 +104,15 @@ jobs:
         if: steps.guard.outputs.enabled == 'true'
         # `test:e2e` démarre lui-même le serveur (playwright.config.ts → webServer)
         # et attend http://localhost:3002. Les secrets ne sont exposés qu'au runtime,
-        # jamais imprimés.
+        # jamais imprimés. DB = PostgREST gpu1 (serveur-only). Les variables legacy
+        # NEXT_PUBLIC_SUPABASE_* / SUPABASE_* restent passées tant que les specs E2E
+        # (hors périmètre de cette migration) ne sont pas migrées.
         env:
+          GPU1_POSTGREST_URL: ${{ secrets.GPU1_POSTGREST_URL }}
+          GPU1_POSTGREST_ADMIN_TOKEN: ${{ secrets.GPU1_POSTGREST_ADMIN_TOKEN }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm run test:e2e
@@ -139,13 +140,14 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Electron smoke
+        # Placeholders NON secrets : satisfont assertBootEnv() au démarrage runtime
+        # (DB PostgREST gpu1 serveur-only). AUTH_DEV_BYPASS=true → aucune requête DB
+        # réelle n'est nécessaire pour le smoke.
         env:
           AUTH_DEV_BYPASS: 'true'
-          SUPABASE_URL: https://ci.example.invalid
-          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role-key-not-secret
+          GPU1_POSTGREST_URL: https://ci.example.invalid
+          GPU1_POSTGREST_ADMIN_TOKEN: ci-placeholder-admin-token-not-a-secret
           JWT_SECRET: ci-placeholder-jwt-secret-not-secret
-          NEXT_PUBLIC_SUPABASE_URL: https://ci.example.invalid
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key-not-a-secret
         run: |
           pnpm run dev > /tmp/rea-next.log 2>&1 &
           SERVER_PID=$!

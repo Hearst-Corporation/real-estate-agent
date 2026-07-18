@@ -11,8 +11,7 @@ import type { NextConfig } from "next";
 // `frame-ancestors 'self'`) sont AUSSI reprises dans l'en-tête enforçant plus bas.
 const CSP_CONNECT = [
   "'self'",
-  "https://*.hearst.app", // DB PostgREST gpu1 + tunnels
-  "https://*.supabase.co", // fallback URL publique historique
+  "https://*.hearst.app", // tunnels applicatifs (la DB PostgREST gpu1 est serveur-only)
   "https://*.ingest.sentry.io",
   "https://*.ingest.de.sentry.io",
   "https://*.posthog.com",

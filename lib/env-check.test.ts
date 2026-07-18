@@ -5,6 +5,9 @@
 //   - passe quand le socle requis est présent ;
 //   - refuse AUTH_DEV_BYPASS=true en production ;
 //   - ne throw PAS pendant `next build` (NEXT_PHASE=phase-production-build).
+//
+// Migration GPU1/PostgREST : le socle DB requis est GPU1_POSTGREST_URL +
+// GPU1_POSTGREST_ADMIN_TOKEN (aucune variable DB publique).
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { assertBootEnv } from "./env-check";
@@ -19,11 +22,9 @@ function setNodeEnv(v: string | undefined) {
 }
 
 const KEYS = [
-  "SUPABASE_SERVICE_ROLE_KEY",
+  "GPU1_POSTGREST_URL",
+  "GPU1_POSTGREST_ADMIN_TOKEN",
   "JWT_SECRET",
-  "SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "AUTH_DEV_BYPASS",
   "NODE_ENV",
   "NEXT_PHASE",
@@ -49,17 +50,15 @@ afterEach(() => {
 });
 
 function setValidBaseline() {
-  process.env.SUPABASE_SERVICE_ROLE_KEY = "x".repeat(40);
+  process.env.GPU1_POSTGREST_URL = "https://db.example.test/rest/v1";
+  process.env.GPU1_POSTGREST_ADMIN_TOKEN = "x".repeat(40);
   process.env.JWT_SECRET = "y".repeat(32);
-  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://db.example.test";
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "z".repeat(40);
 }
 
 describe("assertBootEnv", () => {
-  it("throw quand SUPABASE_SERVICE_ROLE_KEY et JWT_SECRET manquent, en listant les NOMS", () => {
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://db.example.test";
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "z".repeat(40);
-    // SERVICE_ROLE + JWT absents
+  it("throw quand GPU1_POSTGREST_ADMIN_TOKEN et JWT_SECRET manquent, en listant les NOMS", () => {
+    process.env.GPU1_POSTGREST_URL = "https://db.example.test/rest/v1";
+    // ADMIN_TOKEN + JWT absents
     let err: Error | null = null;
     try {
       assertBootEnv();
@@ -67,18 +66,17 @@ describe("assertBootEnv", () => {
       err = e as Error;
     }
     expect(err).toBeInstanceOf(Error);
-    expect(err!.message).toContain("SUPABASE_SERVICE_ROLE_KEY");
+    expect(err!.message).toContain("GPU1_POSTGREST_ADMIN_TOKEN");
     expect(err!.message).toContain("JWT_SECRET");
     expect(err!.message).toContain("ne peut pas démarrer");
   });
 
   it("ne fuite JAMAIS de valeur de secret dans le message d'erreur", () => {
-    // Service-role valide (≥20) mais dont la valeur ne doit jamais apparaître.
-    process.env.SUPABASE_SERVICE_ROLE_KEY = "SUPER_SECRET_VALUE_123456789012345";
+    // Token valide (≥20) mais dont la valeur ne doit jamais apparaître.
+    process.env.GPU1_POSTGREST_URL = "https://db.example.test/rest/v1";
+    process.env.GPU1_POSTGREST_ADMIN_TOKEN = "SUPER_SECRET_VALUE_123456789012345";
     // JWT_SECRET trop court (<16) → déclenche l'échec ; sa valeur ne doit pas fuiter.
     process.env.JWT_SECRET = "leak-me";
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://db.example.test";
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "z".repeat(40);
     let err: Error | null = null;
     try {
       assertBootEnv();
@@ -90,6 +88,20 @@ describe("assertBootEnv", () => {
     expect(err!.message).toContain("JWT_SECRET");
     expect(err!.message).not.toContain("leak-me");
     expect(err!.message).not.toContain("SUPER_SECRET_VALUE_123456789012345");
+  });
+
+  it("throw quand GPU1_POSTGREST_URL manque ou n'est pas une URL", () => {
+    process.env.GPU1_POSTGREST_ADMIN_TOKEN = "x".repeat(40);
+    process.env.JWT_SECRET = "y".repeat(32);
+    // URL absente
+    let err: Error | null = null;
+    try {
+      assertBootEnv();
+    } catch (e) {
+      err = e as Error;
+    }
+    expect(err).toBeInstanceOf(Error);
+    expect(err!.message).toContain("GPU1_POSTGREST_URL");
   });
 
   it("passe (ne throw pas) quand le socle requis est présent", () => {
