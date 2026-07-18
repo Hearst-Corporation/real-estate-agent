@@ -125,6 +125,11 @@ const STATE_COLOR_OK = [
   /^app\/\(dashboard\)\/properties\/\[id\]\/_components\/PhotoGallery\.tsx$/,
   /^app\/\(dashboard\)\/offmarket\/page\.tsx$/,
   /^app\/\(dashboard\)\/offmarket\/_components\/OffmarketExplorer\.tsx$/,
+  // Couleurs sémantiques d'état (statut brouillon/envoyé/échec, urgence, en attente) — REA-PRODUCT-007
+  /^app\/\(dashboard\)\/approvals\/_components\/ApprovalsInbox\.tsx$/,
+  /^app\/\(dashboard\)\/outbox\/_components\/OutboxBoard\.tsx$/,
+  /^app\/\(dashboard\)\/properties\/\[id\]\/owner-report\/page\.tsx$/,
+  /^components\/timeline\/Timeline\.tsx$/,
 ];
 function stateColorAllowed(relPath) {
   return STATE_COLOR_OK.some((re) => re.test(relPath));
