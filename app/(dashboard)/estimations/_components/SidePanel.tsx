@@ -297,43 +297,49 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
               </p>
             )}
             {sectorMap && (
-              <figure
-                className="relative mb-4 overflow-hidden rounded-xl border border-zinc-950/10"
-                style={{ width: sectorMap.width, height: sectorMap.height }}
-                aria-label={UI.estimations.sectorMapTitle}
-              >
-                <div className="absolute inset-0">
-                  {sectorMap.tiles.map((t, i) => (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
+              // La carte est composée en pixels fixes (tuiles + marqueurs positionnés
+              // en absolu) → sur mobile elle dépasse la largeur du cadre. On la place
+              // dans un conteneur à défilement horizontal (même pattern que les tables
+              // comparables ci-dessous) : la géométrie reste intacte, rien n'est rogné.
+              <div className="scrollbar-thin mb-4 max-w-full overflow-x-auto">
+                <figure
+                  className="relative overflow-hidden rounded-xl border border-zinc-950/10"
+                  style={{ width: sectorMap.width, height: sectorMap.height }}
+                  aria-label={UI.estimations.sectorMapTitle}
+                >
+                  <div className="absolute inset-0">
+                    {sectorMap.tiles.map((t, i) => (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        key={i}
+                        src={t.url}
+                        alt=""
+                        width={256}
+                        height={256}
+                        style={{ position: "absolute", left: t.left, top: t.top }}
+                      />
+                    ))}
+                  </div>
+                  {sectorMap.listings.map((m, i) => (
+                    <span
                       key={i}
-                      src={t.url}
-                      alt=""
-                      width={256}
-                      height={256}
-                      style={{ position: "absolute", left: t.left, top: t.top }}
-                    />
+                      className="absolute flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent-500 text-[10px] font-bold text-white shadow"
+                      style={{ left: m.left, top: m.top }}
+                    >
+                      {i + 1}
+                    </span>
                   ))}
-                </div>
-                {sectorMap.listings.map((m, i) => (
-                  <span
-                    key={i}
-                    className="absolute flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent-500 text-[10px] font-bold text-white shadow"
-                    style={{ left: m.left, top: m.top }}
-                  >
-                    {i + 1}
-                  </span>
-                ))}
-                {sectorMap.subject && (
-                  <span
-                    className="absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent-400 bg-white shadow"
-                    style={{ left: sectorMap.subject.left, top: sectorMap.subject.top }}
-                  />
-                )}
-                <figcaption className="absolute bottom-0 right-0 bg-black/60 px-1.5 py-0.5 text-[10px] text-zinc-300">
-                  {UI.estimations.sectorMapAttribution}
-                </figcaption>
-              </figure>
+                  {sectorMap.subject && (
+                    <span
+                      className="absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent-400 bg-white shadow"
+                      style={{ left: sectorMap.subject.left, top: sectorMap.subject.top }}
+                    />
+                  )}
+                  <figcaption className="absolute bottom-0 right-0 bg-black/60 px-1.5 py-0.5 text-[10px] text-zinc-300">
+                    {UI.estimations.sectorMapAttribution}
+                  </figcaption>
+                </figure>
+              </div>
             )}
             {listings.length === 0 ? (
               <Text className="py-4">{UI.estimations.listingComparablesEmpty}</Text>
