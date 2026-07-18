@@ -18,6 +18,7 @@ import { z } from "zod";
 import { getGpu1Admin } from "@/lib/gpu1";
 import { verifySelectionToken } from "@/lib/offmarket/share";
 import { upsertFeedback } from "@/lib/offmarket/db";
+import { recordShareEvent } from "@/lib/share-tracking";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -63,6 +64,32 @@ export async function POST(
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
     return NextResponse.json({ error: "internal_error" }, { status: 500 });
+  }
+
+  // ── Suivi des partages (ADDITIF, best-effort) ─────────────────────────────
+  // Retour acquéreur RÉEL : le verdict vient d'être persisté sur un item de la
+  // sélection portée par le token. On enregistre 'share_feedback' borné à la
+  // ressource (tenant résolu depuis la sélection vérifiée), sans changer la
+  // réponse. Dégrade en silence si la table 0056 est absente.
+  {
+    const { data: owner } = await sb
+      .from("offmarket_selections")
+      .select("tenant_id")
+      .eq("id", verified.selectionId)
+      .maybeSingle();
+    const tenantId = (owner as { tenant_id?: string } | null)?.tenant_id ?? null;
+    if (tenantId) {
+      const ip =
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        req.headers.get("x-real-ip") ||
+        null;
+      await recordShareEvent(sb, {
+        resource: { type: "offmarket", id: verified.selectionId, tenantId },
+        kind: "share_feedback",
+        token,
+        ip,
+      });
+    }
   }
 
   return NextResponse.json({ ok: true, verdict: parsed.data.verdict });

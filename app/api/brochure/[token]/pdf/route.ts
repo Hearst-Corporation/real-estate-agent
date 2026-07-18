@@ -11,6 +11,7 @@
  */
 
 import { verifyShareToken } from "@/lib/estimation/share";
+import { recordShareEvent } from "@/lib/share-tracking";
 import { getGpu1Admin } from "@/lib/gpu1";
 import { r2IsConfigured, getObject } from "@/lib/storage/r2";
 import type {
@@ -27,7 +28,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ token: string }> }
 ) {
   const { token } = await ctx.params;
@@ -54,6 +55,26 @@ export async function GET(
   if (error) throw error;
   if (!row || row.status !== "ready" || !row.valuation) {
     return Response.json({ error: "not_found" }, { status: 404 });
+  }
+
+  // ── Suivi des partages (ADDITIF, best-effort) ─────────────────────────────
+  // Consultation RÉELLE : token vérifié + estimation existante et servie. On
+  // enregistre l'événement 'share_open' sans jamais bloquer la livraison du PDF
+  // (dégrade en silence si la table 0056 est absente). Aucun « ouvert » inventé.
+  {
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      null;
+    const rec = await recordShareEvent(sb, {
+      resource: { type: "brochure", id: estimationId, tenantId: row.tenant_id },
+      kind: "share_open",
+      token,
+      ip,
+    });
+    if (!rec.ok && rec.reason === "error") {
+      console.warn("[brochure/pdf] share-tracking record failed");
+    }
   }
 
   // ── R2 cache hit ──────────────────────────────────────────────────────────

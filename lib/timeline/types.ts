@@ -14,7 +14,9 @@ export type TimelineKind =
   | "estimation_message" // table estimation_messages
   | "mandate" // table mandates (statut / signature)
   | "prosp_envoi" // table prosp_envois (envoi prospection sortant)
-  | "contact_attempt"; // table prosp_contact_attempts (tentative de contact)
+  | "contact_attempt" // table prosp_contact_attempts (tentative de contact)
+  | "share_open" // table share_events (consultation d'un lien partagé — REA-PRODUCT-008-W5)
+  | "share_feedback"; // table share_events (retour acquéreur sur un lien partagé)
 
 /** Référence vers l'entité concrète d'où sort l'événement (navigation). */
 export type TimelineEntityRef = {

@@ -15,6 +15,7 @@ import {
   DocumentTextIcon,
   PaperAirplaneIcon,
   PhoneArrowUpRightIcon,
+  EyeIcon,
   ExclamationTriangleIcon,
   ArrowPathIcon,
 } from "@heroicons/react/20/solid";
@@ -42,6 +43,8 @@ const KIND_META: Record<
   mandate: { icon: DocumentTextIcon, label: "Mandat" },
   prosp_envoi: { icon: PaperAirplaneIcon, label: "Envoi" },
   contact_attempt: { icon: PhoneArrowUpRightIcon, label: "Contact" },
+  share_open: { icon: EyeIcon, label: "Lien consulté" },
+  share_feedback: { icon: ChatBubbleLeftRightIcon, label: "Retour partage" },
 };
 
 function EventRow({ event }: { event: TimelineEvent }) {

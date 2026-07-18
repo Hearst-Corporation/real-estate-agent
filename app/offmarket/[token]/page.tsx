@@ -10,9 +10,11 @@
  */
 
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { verifySelectionToken } from "@/lib/offmarket/share";
 import { getGpu1Admin } from "@/lib/gpu1";
 import { loadPublicSelection } from "@/lib/offmarket/db";
+import { recordShareEvent } from "@/lib/share-tracking";
 import { FeedbackButtons } from "./_components/FeedbackButtons";
 
 interface Props {
@@ -37,6 +39,32 @@ export default async function OffmarketSelectionPage({ params }: Props) {
   if (!result.ok) notFound(); // unavailable / not_found → 404 uniforme
 
   const { titre, items } = result.data;
+
+  // ── Suivi des partages (ADDITIF, best-effort) ─────────────────────────────
+  // Consultation RÉELLE : token vérifié + sélection active chargée. On enregistre
+  // 'share_open' borné à la ressource (tenant résolu depuis la sélection), sans
+  // bloquer le rendu ni changer le contrat de la page. Aucun « ouvert » inventé.
+  {
+    const { data: owner } = await sb
+      .from("offmarket_selections")
+      .select("tenant_id")
+      .eq("id", verified.selectionId)
+      .maybeSingle();
+    const tenantId = (owner as { tenant_id?: string } | null)?.tenant_id ?? null;
+    if (tenantId) {
+      const hdrs = await headers();
+      const ip =
+        hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        hdrs.get("x-real-ip") ||
+        null;
+      await recordShareEvent(sb, {
+        resource: { type: "offmarket", id: verified.selectionId, tenantId },
+        kind: "share_open",
+        token,
+        ip,
+      });
+    }
+  }
 
   return (
     <html lang="fr" className="om-host">
