@@ -130,7 +130,6 @@ const STATE_COLOR_OK = [
   /^app\/\(dashboard\)\/outbox\/_components\/OutboxBoard\.tsx$/,
   /^app\/\(dashboard\)\/properties\/\[id\]\/owner-report\/page\.tsx$/,
   /^components\/timeline\/Timeline\.tsx$/,
-  /^components\/value-evolution\/ValueSparkline\.tsx$/,
   // Couleurs sémantiques d'état (proposition mandat, issue de visite) — REA-PRODUCT-008
   /^app\/\(dashboard\)\/mandate-renewal\/page\.tsx$/,
   /^app\/\(dashboard\)\/visits\/_components\/PostVisitLoop\.tsx$/,
