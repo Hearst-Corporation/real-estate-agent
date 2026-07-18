@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_gateway_audit_log: {
+        Row: {
+          agent_id: string | null
+          created_at: string
+          duration_ms: number | null
+          id: string
+          interface: string
+          reason: string | null
+          request_id: string
+          status: string
+          tenant_id: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          interface: string
+          reason?: string | null
+          request_id: string
+          status: string
+          tenant_id: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          interface?: string
+          reason?: string | null
+          request_id?: string
+          status?: string
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      agent_gateway_idempotency_keys: {
+        Row: {
+          body_hash: string | null
+          created_at: string
+          id: string
+          idem_key: string
+          interface: string
+          response: Json | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          body_hash?: string | null
+          created_at?: string
+          id?: string
+          idem_key: string
+          interface: string
+          response?: Json | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          body_hash?: string | null
+          created_at?: string
+          id?: string
+          idem_key?: string
+          interface?: string
+          response?: Json | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cockpit_chats: {
         Row: {
           created_at: string | null
