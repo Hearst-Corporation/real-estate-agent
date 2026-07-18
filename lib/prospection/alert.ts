@@ -1,5 +1,4 @@
 import { sendWhatsApp } from "@/lib/providers/twilio";
-import { sendEmail } from "@/lib/providers/resend-email";
 import { rateLimit } from "@/lib/ratelimit";
 import type { Annonce, CritereAcquereur } from "./types";
 
@@ -50,17 +49,6 @@ export async function sendMatchAlerte(
   return { sent: false, reason: "no_channel" };
 }
 
-export async function sendMatchAlerteEmail(
-  to: string,
-  annonce: Annonce,
-  score: number,
-  critereNom: string,
-): Promise<{ id?: string; dry?: boolean }> {
-  const subject = `Nouveau match ${score}/100 — ${annonce.titre ?? annonce.typeBien} ${annonce.codePostal ?? ""}`;
-  const html = formatAlerteHtml(annonce, score, critereNom);
-  return sendEmail({ to, subject, html });
-}
-
 function formatAlerte(a: Annonce, score: number): string {
   const prix = a.prix ? `${Math.round(a.prix / 1000)}k€` : "Prix NC";
   const surface = a.surface ? `${a.surface}m²` : "";
@@ -71,17 +59,4 @@ function formatAlerte(a: Annonce, score: number): string {
     `📍 ${a.ville ?? a.codePostal ?? ""}`,
     a.url ? `🔗 ${a.url}` : "",
   ].filter(Boolean).join("\n");
-}
-
-function formatAlerteHtml(a: Annonce, score: number, critereNom: string): string {
-  const prix = a.prix ? `${a.prix.toLocaleString("fr-FR")} €` : "Prix NC";
-  return `
-<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-  <h2 style="color:#8A1538">Nouveau match ${score}/100</h2>
-  <p><strong>Critère :</strong> ${critereNom}</p>
-  <h3>${a.titre ?? a.typeBien}</h3>
-  <p>${a.surface ?? "?"}m² · ${a.pieces ?? "?"}p · <strong>${prix}</strong></p>
-  <p>📍 ${a.ville ?? ""} ${a.codePostal ?? ""}</p>
-  ${a.url ? `<p><a href="${a.url}" style="color:#8A1538">Voir l'annonce</a></p>` : ""}
-</div>`;
 }

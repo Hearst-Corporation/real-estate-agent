@@ -45,10 +45,6 @@ export function myswarmsIsConfigured(): boolean {
   return Boolean(MYSWARMS_BASE && MYSWARMS_TOKEN);
 }
 
-export function listingsIsConfigured(): boolean {
-  return apifyIsConfigured() || myswarmsIsConfigured();
-}
-
 /**
  * Point d'entrée unique consommé par /value. Apify en priorité, MySwarms en
  * secours, [] sinon. Jamais throw. Retourne metadata de source pour affichage.

@@ -87,8 +87,6 @@ export const VISIT_STATUSES = [
   "no_show",
 ] as const;
 
-export type VisitStatus = (typeof VISIT_STATUSES)[number];
-
 export const MANDATE_STATUSES = [
   "brouillon",
   "actif",

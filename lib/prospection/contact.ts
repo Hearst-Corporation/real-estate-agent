@@ -29,14 +29,6 @@ import type { Database } from "@/lib/supabase/database.types";
 export type Canal = "sms" | "whatsapp" | "email" | "phone";
 export const CANAUX: readonly Canal[] = ["sms", "whatsapp", "email", "phone"] as const;
 
-export type ContactStatut =
-  | "draft"
-  | "approved"
-  | "sent"
-  | "failed"
-  | "replied"
-  | "opted_out";
-
 /**
  * Client DB requis : le sous-ensemble `from()` de SupabaseClient<Database>.
  * Le vrai client admin le satisfait directement ; le faux client de test se

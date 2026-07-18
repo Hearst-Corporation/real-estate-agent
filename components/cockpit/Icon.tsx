@@ -7,6 +7,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardDocumentCheckIcon,
+  CpuChipIcon,
   HomeIcon,
   MagnifyingGlassIcon,
   MapPinIcon,
@@ -25,6 +26,7 @@ export type IconName =
   | "visits"
   | "mandates"
   | "agenda"
+  | "agents"
   | "home"
   | "user"
   | "plus"
@@ -40,6 +42,7 @@ const ICONS: Record<IconName, ComponentType<SVGProps<SVGSVGElement>>> = {
   visits: MapPinIcon,
   mandates: ClipboardDocumentCheckIcon,
   agenda: CalendarIcon,
+  agents: CpuChipIcon,
   home: HomeIcon,
   user: UserCircleIcon,
   plus: PlusIcon,

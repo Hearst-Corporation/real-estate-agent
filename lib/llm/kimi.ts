@@ -9,8 +9,6 @@ import OpenAI from "openai";
  * `delta.reasoning_content` (champ séparé), la réponse dans `delta.content`.
  * Côté route, on ne stream que `delta.content`.
  */
-export const KIMI_MODEL = process.env.KIMI_MODEL || "kimi-k2.6";
-
 export function kimiIsConfigured(): boolean {
   return Boolean(process.env.MOONSHOT_API_KEY || process.env.HYPERCLI_API_KEY);
 }

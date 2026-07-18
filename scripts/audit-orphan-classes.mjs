@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { globSync } from 'fs';
 
 const ROOT = '/Users/adrienbeyondcrypto/Dev/Projects/Real estate Agent';
 
@@ -62,9 +61,6 @@ const classAttrRe = /className=(?:"([^"]*?)"|`([^`]*?)`|\{`([^`]*?)`\})/g;
 
 // Regex pour détecter les interpolations dynamiques (à exclure)
 const dynamicRe = /\$\{[^}]+\}/;
-
-// Regex pour extraire chaque token de classe d'une chaîne statique
-const tokenRe = /([a-zA-Z][\w-]*)/g;
 
 // classes utilisées → Map<classe, Set<fichier>>
 const usedClassFiles = new Map();

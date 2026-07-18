@@ -18,6 +18,7 @@ export const UI = {
     visits: "Visites",
     mandates: "Mandats",
     agenda: "Agenda",
+    agents: "Agents",
     prospection: "Prospection",
     portefeuille: "Portefeuille",
     clients: "Clients",
@@ -1118,6 +1119,21 @@ export const UI = {
       toConfirm: "À confirmer",
     },
     locationSeparator: " — ",
+  },
+  agents: {
+    eyebrow: "IA",
+    title: "Agents",
+    sub: "Les copilotes IA développés pour ce produit — spécifiés puis mis en service séparément (Aigent).",
+    empty: "Aucun agent pour le moment.",
+    kpis: {
+      total: "Agents",
+      live: "En service",
+    },
+    statusLabels: {
+      spec: "En spécification",
+      draft: "Brouillon",
+      live: "En service",
+    } as Record<string, string>,
   },
   profile: {
     eyebrow: "Compte",

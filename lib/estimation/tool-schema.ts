@@ -261,5 +261,3 @@ export const recordPropertyDataTool = {
     additionalProperties: false,
   },
 } as const;
-
-export type RecordPropertyDataTool = typeof recordPropertyDataTool;
