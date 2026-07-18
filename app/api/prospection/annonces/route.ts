@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 
 export const runtime = "nodejs";
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
 
   const { searchParams } = new URL(req.url);

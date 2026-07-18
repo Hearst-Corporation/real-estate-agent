@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock du client admin AVANT l'import du module testé (hoisting vi.mock).
-const getSupabaseAdmin = vi.fn();
-vi.mock("@/lib/server/supabase", () => ({ getSupabaseAdmin: () => getSupabaseAdmin() }));
+const getGpu1Admin = vi.fn();
+vi.mock("@/lib/gpu1", () => ({ getGpu1Admin: () => getGpu1Admin() }));
 
 import {
   upsertAnnonces,
@@ -165,7 +165,7 @@ let db: FakeDb;
 beforeEach(() => {
   db = new FakeDb();
   idSeq = 0;
-  getSupabaseAdmin.mockReturnValue(db);
+  getGpu1Admin.mockReturnValue(db);
 });
 
 describe("upsertAnnonces — idempotence de l'upsert", () => {

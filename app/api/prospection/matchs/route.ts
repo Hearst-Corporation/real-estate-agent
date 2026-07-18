@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
 import { normalizeSignal } from "@/lib/prospection/feedback";
 import { buildExplanation } from "@/lib/prospection/explain";
 import { recoFromScore } from "@/app/(dashboard)/prospection/_components/reco";
-import type { TablesInsert } from "@/lib/supabase/database.types";
+import type { TablesInsert } from "@/lib/gpu1/database.types";
 
 // database.types.ts est désynchronisé du schéma gpu1 : la table
 // prosp_match_feedback a la colonne `signal` (pas `verdict`).
@@ -68,7 +68,7 @@ function mapAnnonce(annonce: RawAnnonce) {
 export async function GET(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 
@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 

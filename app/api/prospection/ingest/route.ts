@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin } from "@/lib/gpu1";
 import { DEFAULT_TENANT } from "@/lib/tenant";
 import { searchListings, moteurImmoIsConfigured } from "@/lib/providers/moteurimmo";
 import {
@@ -17,7 +17,7 @@ import {
   completeIdempotent,
 } from "@/lib/prospection/ingest";
 import type { IngestStats } from "@/lib/prospection/types";
-import type { Json } from "@/lib/supabase/database.types";
+import type { Json } from "@/lib/gpu1/database.types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) {
     return NextResponse.json({ error: "db_unavailable" }, { status: 503 });
   }

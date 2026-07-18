@@ -18,7 +18,7 @@
  * la gateway via l'identité DÉRIVÉE DE L'AUTH + le framework d'idempotence).
  */
 import { z } from "zod";
-import type { TablesUpdate } from "@/lib/supabase/database.types";
+import type { TablesUpdate } from "@/lib/gpu1/database.types";
 
 export type CritereUpdate = TablesUpdate<"prosp_criteres_acquereur">;
 

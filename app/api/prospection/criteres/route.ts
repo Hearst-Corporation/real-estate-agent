@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/server/session";
-import { getSupabaseAdmin } from "@/lib/server/supabase";
+import { getGpu1Admin, type Gpu1Client } from "@/lib/gpu1";
 import { tenantOf } from "@/lib/tenant";
-import type { Tables, TablesInsert } from "@/lib/supabase/database.types";
+import type { Tables, TablesInsert } from "@/lib/gpu1/database.types";
 import {
   CreateCritereSchema,
   UpdateCritereSchema,
@@ -26,41 +26,34 @@ type AcquereurCritere = Tables<"prosp_criteres_acquereur">;
 const UUID = z.string().uuid();
 
 async function fetchCriteresRest({
+  db,
   tenantId,
   userId,
   includeAllTenantUsers,
 }: {
+  db: Gpu1Client;
   tenantId: string;
   userId: string;
   includeAllTenantUsers: boolean;
 }): Promise<{ data: AcquereurCritere[] | null; error: string | null }> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return { data: null, error: "supabase_not_configured" };
+  // Filtrage explicite tenant/user conservé (le client admin bypass RLS).
+  let query = db
+    .from("prosp_criteres_acquereur")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .eq("actif", true)
+    .order("created_at", { ascending: false });
+  if (!includeAllTenantUsers) query = query.eq("user_id", userId);
 
-  const qs = new URLSearchParams({
-    select: "*",
-    tenant_id: `eq.${tenantId}`,
-    actif: "eq.true",
-    order: "created_at.desc",
-  });
-  if (!includeAllTenantUsers) qs.set("user_id", `eq.${userId}`);
-
-  const res = await fetch(`${url}/rest/v1/prosp_criteres_acquereur?${qs}`, {
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) return { data: null, error: `rest_fetch_failed_${res.status}` };
-  return { data: await res.json(), error: null };
+  const { data, error } = await query;
+  if (error) return { data: null, error: error.code ?? "rest_fetch_failed" };
+  return { data: (data as AcquereurCritere[] | null), error: null };
 }
 
 export async function GET() {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 
@@ -81,7 +74,7 @@ export async function GET() {
 
   if ((data?.length ?? 0) > 0 || claims.role !== "admin") {
     if ((data?.length ?? 0) > 0) return NextResponse.json({ data });
-    const rest = await fetchCriteresRest({ tenantId, userId: claims.sub, includeAllTenantUsers: false });
+    const rest = await fetchCriteresRest({ db, tenantId, userId: claims.sub, includeAllTenantUsers: false });
     if (rest.error) {
       console.error("prospection_criteres_rest_fetch_failed", { tenantId, userId: claims.sub, error: rest.error });
       return NextResponse.json({ data });
@@ -97,7 +90,7 @@ export async function GET() {
   }
   if ((tenantData?.length ?? 0) > 0) return NextResponse.json({ data: tenantData });
 
-  const rest = await fetchCriteresRest({ tenantId, userId: claims.sub, includeAllTenantUsers: true });
+  const rest = await fetchCriteresRest({ db, tenantId, userId: claims.sub, includeAllTenantUsers: true });
   if (rest.error) {
     console.error("prospection_criteres_tenant_rest_fetch_failed", { tenantId, userId: claims.sub, error: rest.error });
     return NextResponse.json({ data: tenantData ?? [] });
@@ -108,7 +101,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 
@@ -168,7 +161,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 
@@ -207,7 +200,7 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const claims = await getSession();
   if (!claims) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getSupabaseAdmin();
+  const db = getGpu1Admin();
   if (!db) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const tenantId = tenantOf(claims);
 

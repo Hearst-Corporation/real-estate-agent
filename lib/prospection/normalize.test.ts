@@ -206,7 +206,7 @@ describe("normalizeListings — fail-closed", () => {
 describe("normalize.ts — aucune persistance", () => {
   it("le module n'importe AUCUN client DB / Supabase", () => {
     const src = readFileSync(join(__dirname, "normalize.ts"), "utf8");
-    expect(src).not.toMatch(/getSupabaseAdmin|@supabase\/supabase-js|\.from\(/);
+    expect(src).not.toMatch(/getGpu1Admin|@\/lib\/gpu1|\.from\(/);
     // Aucune écriture DB : pas d'insert/upsert/update dans le module.
     expect(src).not.toMatch(/\.(insert|upsert|update)\(/);
   });

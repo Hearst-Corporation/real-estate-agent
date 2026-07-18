@@ -16,7 +16,7 @@
  */
 import { createHash } from "node:crypto";
 import type { MoteurImmoListing } from "@/lib/providers/moteurimmo";
-import type { TablesInsert } from "@/lib/supabase/database.types";
+import type { TablesInsert } from "@/lib/gpu1/database.types";
 import type { Annonce, CritereAcquereur } from "./types";
 
 export type AnnonceInsert = TablesInsert<"prosp_annonces">;
