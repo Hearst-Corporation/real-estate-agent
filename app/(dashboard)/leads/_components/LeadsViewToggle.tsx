@@ -11,6 +11,12 @@ import { Text } from "@/components/ui/text";
 import { LeadRowActions } from "@/app/(dashboard)/leads/_components/LeadRowActions";
 import { LeadsCockpit } from "@/app/(dashboard)/leads/_components/LeadsCockpit";
 import { eur, LEAD_STATUSES } from "@/lib/crm/format";
+import {
+  financementSummary,
+  financementTone,
+  parseFinancement,
+  FINANCEMENT_UI,
+} from "@/lib/crm/financement";
 import { UI } from "@/lib/ui-strings";
 
 function budgetRange(min: number | null, max: number | null): string {
@@ -31,6 +37,7 @@ type Lead = {
   source: string | null;
   budget_min: number | null;
   budget_max: number | null;
+  financement: Record<string, unknown> | null;
   property_id: string | null;
   notes: string | null;
   created_at: string;
@@ -90,6 +97,7 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
               <TableHeader>{t.table.kind}</TableHeader>
               <TableHeader>{t.table.status}</TableHeader>
               <TableHeader className="text-right">{t.table.budget}</TableHeader>
+              <TableHeader>{FINANCEMENT_UI.cardTitle}</TableHeader>
               <TableHeader>{t.table.source}</TableHeader>
               <TableHeader className="text-right">{t.table.action}</TableHeader>
             </TableRow>
@@ -120,6 +128,23 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
                 <TableCell className="text-right tabular-nums">
                   {budgetRange(l.budget_min, l.budget_max)}
                 </TableCell>
+                <TableCell>
+                  {(() => {
+                    const fin = parseFinancement(l.financement);
+                    if (!fin) {
+                      return (
+                        <span className="text-zinc-400 dark:text-zinc-500">
+                          {FINANCEMENT_UI.notProvided}
+                        </span>
+                      );
+                    }
+                    return (
+                      <Badge color={financementTone(fin.mode)}>
+                        {financementSummary(l.financement)}
+                      </Badge>
+                    );
+                  })()}
+                </TableCell>
                 <TableCell className="text-zinc-500 dark:text-zinc-400">
                   {l.source ?? "—"}
                 </TableCell>
@@ -137,6 +162,7 @@ export function LeadsViewToggle({ leads }: { leads: Lead[] }) {
                       budget_min: l.budget_min,
                       budget_max: l.budget_max,
                       status: l.status,
+                      financement: l.financement,
                     }}
                   />
                 </TableCell>

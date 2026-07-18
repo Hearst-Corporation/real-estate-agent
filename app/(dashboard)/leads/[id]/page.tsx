@@ -11,6 +11,12 @@ import { getSession } from "@/lib/server/session";
 import { getSupabaseAdmin } from "@/lib/server/supabase";
 import { tenantOf } from "@/lib/tenant";
 import { isEnrichable } from "@/lib/crm/enrichable";
+import {
+  parseFinancement,
+  financementModeLabel,
+  financementTone,
+  FINANCEMENT_UI,
+} from "@/lib/crm/financement";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
@@ -36,6 +42,7 @@ type LeadRow = {
   source: string | null;
   budget_min: number | null;
   budget_max: number | null;
+  financement: Record<string, unknown> | null;
   property_id: string | null;
   notes: string | null;
   type_personne: string | null;
@@ -320,6 +327,61 @@ export default async function LeadDetailPage({
           <Text>{td.emptyBudget}</Text>
         )}
       </DetailCard>
+
+      {/* ── Financement acquéreur ── */}
+      {(() => {
+        const fin = parseFinancement(lead.financement);
+        return (
+          <DetailCard title={FINANCEMENT_UI.cardTitle}>
+            {fin ? (
+              <>
+                <div className="mb-4">
+                  <Badge color={financementTone(fin.mode)}>
+                    {financementModeLabel(fin.mode)}
+                  </Badge>
+                </div>
+                {fin.apport != null ||
+                fin.montant_pret != null ||
+                fin.organisme ||
+                fin.notes ? (
+                  <DescriptionList>
+                    {fin.apport != null && (
+                      <>
+                        <DescriptionTerm>{FINANCEMENT_UI.fieldApport}</DescriptionTerm>
+                        <DescriptionDetails className="font-semibold tabular-nums">
+                          {eur(fin.apport)}
+                        </DescriptionDetails>
+                      </>
+                    )}
+                    {fin.montant_pret != null && (
+                      <>
+                        <DescriptionTerm>{FINANCEMENT_UI.fieldMontantPret}</DescriptionTerm>
+                        <DescriptionDetails className="font-semibold tabular-nums">
+                          {eur(fin.montant_pret)}
+                        </DescriptionDetails>
+                      </>
+                    )}
+                    {fin.organisme && (
+                      <>
+                        <DescriptionTerm>{FINANCEMENT_UI.fieldOrganisme}</DescriptionTerm>
+                        <DescriptionDetails>{fin.organisme}</DescriptionDetails>
+                      </>
+                    )}
+                    {fin.notes && (
+                      <>
+                        <DescriptionTerm>{FINANCEMENT_UI.fieldNotes}</DescriptionTerm>
+                        <DescriptionDetails>{fin.notes}</DescriptionDetails>
+                      </>
+                    )}
+                  </DescriptionList>
+                ) : null}
+              </>
+            ) : (
+              <Text>{FINANCEMENT_UI.empty}</Text>
+            )}
+          </DetailCard>
+        );
+      })()}
 
       {/* ── Critères de recherche ── */}
       <DetailCard title={td.cardCriteres}>
