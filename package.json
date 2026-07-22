@@ -23,7 +23,7 @@
     "cockpit:manifest": "node scripts/gen-cockpit-manifest.mjs",
     "new:feature": "node scripts/new-feature.mjs",
     "typecheck": "tsc --noEmit",
-    "check": "echo \"check gate disabled \u2014 see git history for prior definition\"",
+    "check": "npm run lint:secrets && npm run lint && npm run lint:nav && npm run lint:strings && npm run typecheck && npm run lint:biome && npm run check:catalyst && npm run check:no-supabase && npm run check:onboarding && npm run check:badges",
     "prepare": "husky",
     "test": "vitest run",
     "test:migrations": "node scripts/test-migrations-coherence.mjs",

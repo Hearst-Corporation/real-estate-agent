@@ -113,10 +113,12 @@ une capacité au motif qu'elle est en `CONFIG`**.
 - `npm run dev` — Next sur `http://localhost:3002` (Turbopack).
   - **En worktree** (`node_modules` symliké → Turbopack panique) : `AUTH_DEV_BYPASS=true node_modules/.bin/next dev --webpack -p 3002`. `AUTH_DEV_BYPASS` est **strictement local** — posé avec `NODE_ENV=production`, le boot throw.
   - **Jamais `pnpm <script>` dans un worktree** (purge les `node_modules` partagés) → binaires directs `node_modules/.bin/*`.
-- `npm run check` — **DÉSACTIVÉE depuis le 20/07** (`echo "check gate disabled"`). Les
-  sous-scripts existent et se lancent individuellement (secrets, eslint, nav, strings,
-  manifest cockpit, typecheck, biome, catalyst, **no-supabase**) — ne jamais la présenter
-  comme une preuve tant qu'elle n'est pas restaurée.
+- `npm run check` — **RESTAURÉE le 22/07 en version rapide sans build** (~11 s) :
+  lint:secrets + eslint + lint:nav + lint:strings + typecheck + biome + check:catalyst +
+  **check:no-supabase** + check:onboarding + check:badges. Due une fois en fin de mission.
+  ⚠️ **État au 22/07 : ROUGE** — 2 erreurs eslint réelles (`react-hooks/set-state-in-effect`,
+  `components/onboarding/ProductTourProvider.tsx`) héritées de la refonte onboarding faite
+  pendant que la gate était morte. À corriger dans une passe produit ; ne pas contourner.
 - `npm test` — vitest · `npm run test:migrations` — cohérence statique des migrations
 - `npm run build` / `npm run lint`
 - `npm run electron:dev` — app desktop (Next + Electron)
