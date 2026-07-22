@@ -128,7 +128,7 @@ export async function POST(req: Request) {
       .eq("tenant_id", tenant)
       .maybeSingle();
     if (error) return NextResponse.json({ error: "chat_lookup_failed" }, { status: 500 });
-    if (!data || !data.title?.startsWith(chatScope)) chatId = undefined;
+    if (!data?.title?.startsWith(chatScope)) chatId = undefined;
   }
   if (!chatId) {
     const { data, error } = await sb

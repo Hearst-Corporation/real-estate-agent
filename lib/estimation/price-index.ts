@@ -49,7 +49,7 @@ export const NATIONAL_INDEX: { quarter: string; value: number }[] = [
 function isoToQuarter(iso: string): string {
   try {
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return '';
+    if (Number.isNaN(d.getTime())) return '';
     const year = d.getUTCFullYear();
     const month = d.getUTCMonth(); // 0-based
     const q = Math.floor(month / 3) + 1;

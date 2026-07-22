@@ -54,8 +54,8 @@ function extractEmailSummary(raw: unknown): string {
     ) {
       const data = raw.data as Record<string, unknown>;
       const messages =
-        (data["messages"] as unknown[]) ??
-        (data["emails"] as unknown[]) ??
+        (data.messages as unknown[]) ??
+        (data.emails as unknown[]) ??
         [];
       if (Array.isArray(messages) && messages.length > 0) {
         const lines = messages
@@ -63,13 +63,13 @@ function extractEmailSummary(raw: unknown): string {
           .map((m) => {
             if (m === null || typeof m !== "object") return null;
             const msg = m as Record<string, unknown>;
-            const from = String(msg["from"] ?? msg["sender"] ?? "—");
+            const from = String(msg.from ?? msg.sender ?? "—");
             const subject = String(
-              msg["subject"] ?? msg["Subject"] ?? "(sans objet)",
+              msg.subject ?? msg.Subject ?? "(sans objet)",
             );
-            const date = String(msg["date"] ?? msg["Date"] ?? "—");
+            const date = String(msg.date ?? msg.Date ?? "—");
             const snippet = String(
-              msg["snippet"] ?? msg["body_snippet"] ?? "",
+              msg.snippet ?? msg.body_snippet ?? "",
             ).slice(0, 120);
             return `• [${date}] De : ${from} | Sujet : ${subject}${snippet ? ` | Aperçu : ${snippet}` : ""}`;
           })
@@ -97,8 +97,8 @@ function extractEventSummary(raw: unknown): string {
     ) {
       const data = raw.data as Record<string, unknown>;
       const events =
-        (data["items"] as unknown[]) ??
-        (data["events"] as unknown[]) ??
+        (data.items as unknown[]) ??
+        (data.events as unknown[]) ??
         [];
       if (Array.isArray(events) && events.length > 0) {
         const lines = events
@@ -107,10 +107,10 @@ function extractEventSummary(raw: unknown): string {
             if (e === null || typeof e !== "object") return null;
             const ev = e as Record<string, unknown>;
             const title = String(
-              ev["summary"] ?? ev["title"] ?? "(sans titre)",
+              ev.summary ?? ev.title ?? "(sans titre)",
             );
-            const start = extractDateTime(ev["start"]);
-            const end = extractDateTime(ev["end"]);
+            const start = extractDateTime(ev.start);
+            const end = extractDateTime(ev.end);
             return `• ${title} — Début : ${start} | Fin : ${end}`;
           })
           .filter(Boolean);
@@ -130,7 +130,7 @@ function extractDateTime(dt: unknown): string {
   if (typeof dt === "string") return dt;
   if (typeof dt === "object") {
     const obj = dt as Record<string, unknown>;
-    return String(obj["dateTime"] ?? obj["date"] ?? "—");
+    return String(obj.dateTime ?? obj.date ?? "—");
   }
   return String(dt);
 }

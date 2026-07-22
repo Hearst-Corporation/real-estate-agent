@@ -171,6 +171,12 @@ export function ProductTourProvider({ children }: { children: React.ReactNode })
   const activeStep: TourStep | null =
     running && activeTour ? stepAt(activeTour, stepIndex) : null;
 
+  /** En transit vers la route de l'étape : l'affichage retombe sur « resolving » sans
+   *  setState (état dérivé — la résolution mémorisée peut pointer l'ancre de l'étape
+   *  précédente pendant la navigation). */
+  const awaitingRoute = Boolean(running && activeStep?.route && pathname !== activeStep.route);
+  const shownResolution: Resolution = awaitingRoute ? { phase: "resolving" } : resolution;
+
   /* ---------------- persistance ---------------- */
 
   const commit = useCallback((next: TourProgress) => {
@@ -183,29 +189,34 @@ export function ProductTourProvider({ children }: { children: React.ReactNode })
   const restoreFocus = useCallback(() => {
     const origin = focusOrigin.current;
     focusOrigin.current = null;
-    if (origin && origin.isConnected) origin.focus();
+    if (origin?.isConnected) origin.focus();
   }, []);
 
   /* ---------------- statuts connus + reprise après rechargement ---------------- */
 
   useEffect(() => {
-    const known: Partial<Record<TourKey, TourStatus>> = {};
-    let resumable: TourProgress | null = null;
-    for (const key of TOUR_KEYS) {
-      const def = getTour(key);
-      if (!def) continue;
-      const stored = readStored(key);
-      known[key] = statusFromStored(def, stored);
-      if (!resumable) {
-        const candidate = resumeProgress(def, stored);
-        if (candidate) resumable = candidate;
+    // Hydratation depuis localStorage dans un callback rAF : le serveur n'a pas accès au
+    // stockage (d'où l'effet), et le setState différé évite le rendu en cascade synchrone.
+    const frame = window.requestAnimationFrame(() => {
+      const known: Partial<Record<TourKey, TourStatus>> = {};
+      let resumable: TourProgress | null = null;
+      for (const key of TOUR_KEYS) {
+        const def = getTour(key);
+        if (!def) continue;
+        const stored = readStored(key);
+        known[key] = statusFromStored(def, stored);
+        if (!resumable) {
+          const candidate = resumeProgress(def, stored);
+          if (candidate) resumable = candidate;
+        }
       }
-    }
-    setStatuses(known);
-    if (resumable) {
-      focusOrigin.current = null; // rechargement : pas d'origine de focus à rendre
-      setProgress(resumable);
-    }
+      setStatuses(known);
+      if (resumable) {
+        focusOrigin.current = null; // rechargement : pas d'origine de focus à rendre
+        setProgress(resumable);
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   /* ---------------- commandes ---------------- */
@@ -270,7 +281,7 @@ export function ProductTourProvider({ children }: { children: React.ReactNode })
   /* ---------------- changement de route piloté par l'étape ---------------- */
 
   useEffect(() => {
-    if (!running || !activeStep || !activeStep.route) return;
+    if (!running || !activeStep?.route) return;
     if (pathname === activeStep.route) return;
     router.push(activeStep.route);
   }, [activeStep, pathname, router, running]);
@@ -281,19 +292,12 @@ export function ProductTourProvider({ children }: { children: React.ReactNode })
     const current = progress;
     if (!running || !activeTour || !activeStep || !current) return;
     // On attend d'être sur la bonne route avant de chercher l'ancre.
-    if (activeStep.route && pathname !== activeStep.route) {
-      setResolution({ phase: "resolving" });
-      return;
-    }
+    // (L'affichage « resolving » pendant le transit est dérivé au rendu — pas de setState ici.)
+    if (activeStep.route && pathname !== activeStep.route) return;
 
-    // Étape purement explicative : pas de cible, affichage centré immédiat.
-    if (!activeStep.anchor) {
-      setResolution({ phase: "ready", el: null, rect: null, missing: false });
-      return;
-    }
-
-    const anchor = activeStep.anchor;
     let cancelled = false;
+    let observer: MutationObserver | null = null;
+    let timer = 0;
 
     const settle = (el: HTMLElement) => {
       if (cancelled) return;
@@ -328,30 +332,44 @@ export function ProductTourProvider({ children }: { children: React.ReactNode })
       setResolution({ phase: "ready", el: null, rect: null, missing: true });
     };
 
-    const immediate = findAnchor(anchor);
-    if (immediate) {
-      settle(immediate);
-      return;
-    }
+    // Toute la résolution (mesure de layout comprise) part dans un callback rAF :
+    // lecture du DOM après paint, et aucun setState synchrone dans le corps de l'effet.
+    const frame = window.requestAnimationFrame(() => {
+      if (cancelled) return;
 
-    // Élément chargé en asynchrone : on observe le DOM jusqu'à l'échéance.
-    setResolution({ phase: "resolving" });
-    const observer = new MutationObserver(() => {
-      const el = findAnchor(anchor);
-      if (!el) return;
-      observer.disconnect();
-      window.clearTimeout(timer);
-      settle(el);
+      // Étape purement explicative : pas de cible, affichage centré.
+      if (!activeStep.anchor) {
+        setResolution({ phase: "ready", el: null, rect: null, missing: false });
+        return;
+      }
+
+      const anchor = activeStep.anchor;
+      const immediate = findAnchor(anchor);
+      if (immediate) {
+        settle(immediate);
+        return;
+      }
+
+      // Élément chargé en asynchrone : on observe le DOM jusqu'à l'échéance.
+      setResolution({ phase: "resolving" });
+      observer = new MutationObserver(() => {
+        const el = findAnchor(anchor);
+        if (!el) return;
+        observer?.disconnect();
+        window.clearTimeout(timer);
+        settle(el);
+      });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+      timer = window.setTimeout(() => {
+        observer?.disconnect();
+        giveUp();
+      }, anchorWaitMs(activeStep));
     });
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
-    const timer = window.setTimeout(() => {
-      observer.disconnect();
-      giveUp();
-    }, anchorWaitMs(activeStep));
 
     return () => {
       cancelled = true;
-      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+      observer?.disconnect();
       window.clearTimeout(timer);
     };
     // `progress` est volontairement hors deps : seules la clé, l'étape et la
@@ -361,7 +379,7 @@ export function ProductTourProvider({ children }: { children: React.ReactNode })
 
   /* ---------------- suivi du rectangle : resize, orientation, scroll ---------------- */
 
-  const trackedEl = resolution.phase === "ready" ? resolution.el : null;
+  const trackedEl = shownResolution.phase === "ready" ? shownResolution.el : null;
 
   useEffect(() => {
     if (!trackedEl) return;
@@ -477,9 +495,9 @@ export function ProductTourProvider({ children }: { children: React.ReactNode })
       {running && activeTour && activeStep ? (
         <TourOverlay
           step={activeStep}
-          rect={resolution.phase === "ready" ? resolution.rect : null}
-          missing={resolution.phase === "ready" ? resolution.missing : false}
-          resolving={resolution.phase === "resolving"}
+          rect={shownResolution.phase === "ready" ? shownResolution.rect : null}
+          missing={shownResolution.phase === "ready" ? shownResolution.missing : false}
+          resolving={shownResolution.phase === "resolving"}
           stepIndex={stepIndex}
           stepCount={activeTour.steps.length}
           isFirst={isFirstStep(stepIndex)}

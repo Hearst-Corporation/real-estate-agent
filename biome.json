@@ -120,6 +120,7 @@
       },
       "suspicious": {
         "recommended": true,
+        "noThenProperty": "off",
         "noExplicitAny": "off",
         "noConsole": "off",
         "noAssignInExpressions": "off",

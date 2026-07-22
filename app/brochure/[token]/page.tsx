@@ -32,7 +32,7 @@ export default async function BrochurePage({ params }: Props) {
     .eq("id", verified.estimationId)
     .maybeSingle();
 
-  if (!row || row.status !== "ready") notFound();
+  if (row?.status !== "ready") notFound();
 
   const pdfSrc = `/api/brochure/${encodeURIComponent(token)}/pdf`;
 

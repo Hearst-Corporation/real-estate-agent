@@ -71,7 +71,7 @@ function pgrst(base, token) {
     const prefer = [];
     if (method === "POST") prefer.push("return=representation");
     if (count === "exact") prefer.push("count=exact");
-    if (prefer.length) headers["Prefer"] = prefer.join(",");
+    if (prefer.length) headers.Prefer = prefer.join(",");
     const res = await fetch(`${base}${path}`, {
       method,
       headers,

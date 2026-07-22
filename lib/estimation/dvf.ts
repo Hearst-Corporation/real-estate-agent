@@ -19,9 +19,9 @@ function isValidNumber(v: unknown): v is number {
   if (typeof v === 'string') {
     if (v === 'nan' || v.trim() === '') return false;
     const n = Number(v);
-    return !isNaN(n) && n > 0;
+    return !Number.isNaN(n) && n > 0;
   }
-  if (typeof v === 'number') return !isNaN(v) && v > 0;
+  if (typeof v === 'number') return !Number.isNaN(v) && v > 0;
   return false;
 }
 
@@ -34,7 +34,7 @@ function coerceNullableNumber(v: unknown): number | null {
   if (v === null || v === undefined) return null;
   if (typeof v === 'string' && (v === 'nan' || v.trim() === '')) return null;
   const n = Number(v);
-  return isNaN(n) ? null : n;
+  return Number.isNaN(n) ? null : n;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

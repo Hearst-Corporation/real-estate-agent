@@ -103,18 +103,18 @@ function normalizeEmails(raw: unknown): NormalizedEmail[] {
         ? (top.data as Record<string, unknown>)
         : top;
     const messages =
-      (data["messages"] as unknown[]) ?? (data["emails"] as unknown[]) ?? [];
+      (data.messages as unknown[]) ?? (data.emails as unknown[]) ?? [];
     if (!Array.isArray(messages)) return out;
     for (const m of messages) {
       if (m === null || typeof m !== "object") continue;
       const msg = m as Record<string, unknown>;
       out.push({
-        messageId: String(msg["messageId"] ?? msg["id"] ?? msg["message_id"] ?? ""),
-        from: String(msg["sender"] ?? msg["from"] ?? "—"),
-        subject: String(msg["subject"] ?? msg["Subject"] ?? "(sans objet)"),
-        date: String(msg["messageTimestamp"] ?? msg["date"] ?? msg["Date"] ?? "—"),
-        snippet: String(msg["preview"] ?? msg["snippet"] ?? msg["body_snippet"] ?? "").slice(0, 300),
-        body: String(msg["messageText"] ?? msg["body"] ?? msg["preview"] ?? "").slice(0, 2000),
+        messageId: String(msg.messageId ?? msg.id ?? msg.message_id ?? ""),
+        from: String(msg.sender ?? msg.from ?? "—"),
+        subject: String(msg.subject ?? msg.Subject ?? "(sans objet)"),
+        date: String(msg.messageTimestamp ?? msg.date ?? msg.Date ?? "—"),
+        snippet: String(msg.preview ?? msg.snippet ?? msg.body_snippet ?? "").slice(0, 300),
+        body: String(msg.messageText ?? msg.body ?? msg.preview ?? "").slice(0, 2000),
       });
     }
   } catch {
@@ -175,7 +175,7 @@ export function extractHints(email: EmailText): {
   const text = `${email.subject}\n${email.body}`;
 
   // Téléphone FR : 0X XX XX XX XX (espaces/points/tirets tolérés) ou +33…
-  const phoneMatch = text.match(/(?:(?:\+33|0033)\s?|0)[1-9](?:[\s.\-]?\d{2}){4}/);
+  const phoneMatch = text.match(/(?:(?:\+33|0033)\s?|0)[1-9](?:[\s.-]?\d{2}){4}/);
   const phone = phoneMatch ? phoneMatch[0].trim() : null;
 
   // Code postal FR : 5 chiffres (évite de capter une année/un montant via bornes \b).

@@ -126,7 +126,7 @@ export async function GET(
             "Cache-Control": "private, max-age=300",
             "X-Cache": "HIT",
           };
-          if (etag) headers["ETag"] = etag;
+          if (etag) headers.ETag = etag;
           return new Response(cached as unknown as BodyInit, { headers });
         }
         // Cache miss (object deleted from R2) → fall through to re-render
@@ -157,7 +157,7 @@ export async function GET(
       "Cache-Control": "private, max-age=300",
       "X-Cache": "MISS",
     };
-    if (etag) headers["ETag"] = etag;
+    if (etag) headers.ETag = etag;
     return new Response(pdfBuffer as unknown as BodyInit, { headers });
   } catch (err) {
     console.error("[pdf/route] render error:", err);

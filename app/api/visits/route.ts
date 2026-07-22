@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   if (!sb) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
 
   const body = await req.json().catch(() => null);
-  if (!body || !body.property_id || !body.scheduled_at) {
+  if (!body?.property_id || !body.scheduled_at) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 

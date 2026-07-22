@@ -60,7 +60,7 @@ export async function GET(
     console.error("[brochure/pdf] estimation read failed", { code: error.code });
     return Response.json({ error: "internal_error" }, { status: 500 });
   }
-  if (!row || row.status !== "ready" || !row.valuation) {
+  if (row?.status !== "ready" || !row.valuation) {
     return Response.json({ error: "not_found" }, { status: 404 });
   }
 

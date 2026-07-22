@@ -135,7 +135,7 @@ function ChatKimiSession({ pathname }: { pathname: string }) {
       setError(e instanceof Error ? e.message : "Erreur");
       setMessages((m) => {
         const last = m[m.length - 1];
-        if (!last || last.role !== "assistant") return m;
+        if (last?.role !== "assistant") return m;
         // Bulle vide sans outils → on la retire.
         if (last.content === "" && !last.tools?.length) return m.slice(0, -1);
         // Sinon, on débloque les chips d'outils restés en "running".

@@ -180,7 +180,7 @@ export function formatDeltaEur(eur: number): string {
  */
 export function relanceFromSeries(series: ValueSeries): RelanceOpportunity | null {
   const v = series.variation;
-  if (!v || !v.significant) return null;
+  if (!v?.significant) return null;
 
   const first = series.points[0];
   const last = series.points[series.points.length - 1];

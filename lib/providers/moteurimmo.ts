@@ -119,11 +119,11 @@ export function normalizeMoteurImmo(raw: unknown): MoteurImmoListing {
 
 function toNum(v: unknown): number | undefined {
   const n = Number(v);
-  return isNaN(n) || v == null ? undefined : n;
+  return Number.isNaN(n) || v == null ? undefined : n;
 }
 function toInt(v: unknown): number | undefined {
   const n = parseInt(String(v), 10);
-  return isNaN(n) ? undefined : n;
+  return Number.isNaN(n) ? undefined : n;
 }
 function toBool(v: unknown): boolean | undefined {
   if (v == null) return undefined;

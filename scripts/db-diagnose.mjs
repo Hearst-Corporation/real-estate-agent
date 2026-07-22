@@ -108,7 +108,7 @@ function mask(s) {
 async function http(path, { key, method = "GET", body, headers = {}, base = PGRST_BASE } = {}) {
   const h = { ...headers };
   if (key) {
-    h["Authorization"] = `Bearer ${key}`;
+    h.Authorization = `Bearer ${key}`;
   }
   if (body) h["Content-Type"] = "application/json";
   try {

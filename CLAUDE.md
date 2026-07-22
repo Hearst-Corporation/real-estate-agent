@@ -132,6 +132,10 @@ Le DS Cockpit vit dans ce repo (`components/cockpit/` + `components/ui/` + `app/
 
 ## Conventions
 - Pas de magic numbers. Tout via `.env.local` ou `config/`.
+- **Le client PostgREST (`lib/gpu1/postgrest.ts`) est un builder AWAITABLE volontaire**
+  (propriété `then` — même ergonomie que le client Supabase qu'il remplace ; les mocks de
+  test la miment). La règle biome `noThenProperty` est désactivée dans `biome.json` pour ça —
+  ne pas la réactiver sans refondre l'API du client.
 - RLS activée sur toutes les tables — toute nouvelle table DOIT avoir une policy + index sur chaque FK.
 - Secrets dans `.env.local` (gitignored) + `docs/api-config/SERVICES.md` (gitignored).
 

@@ -64,10 +64,10 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
   const rawLimit = parseInt(searchParams.get("limit") ?? "50", 10);
-  const limit = Math.min(Math.max(isNaN(rawLimit) ? 50 : rawLimit, 1), MAX_LIMIT);
+  const limit = Math.min(Math.max(Number.isNaN(rawLimit) ? 50 : rawLimit, 1), MAX_LIMIT);
 
   const rawOffset = parseInt(searchParams.get("offset") ?? "0", 10);
-  const offset = Math.max(isNaN(rawOffset) ? 0 : rawOffset, 0);
+  const offset = Math.max(Number.isNaN(rawOffset) ? 0 : rawOffset, 0);
 
   const event = searchParams.get("event") ?? undefined;
 

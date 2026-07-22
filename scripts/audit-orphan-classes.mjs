@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { globSync } from 'fs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { globSync } from 'node:fs';
 
 const ROOT = '/Users/adrienbeyondcrypto/Dev/Projects/Real estate Agent';
 

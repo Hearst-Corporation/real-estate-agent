@@ -9,7 +9,7 @@
  *     Ce ne sont JAMAIS des photos réelles du bien.
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { AgentTool, ToolResult } from "@/lib/agent/types";
 import { falIsConfigured, generateImage } from "@/lib/providers/fal";
 import { r2IsConfigured, putObject, publicUrl } from "@/lib/storage/r2";

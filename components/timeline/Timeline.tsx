@@ -187,7 +187,7 @@ function TimelineInner({
   }
 
   return (
-    <ul role="list">
+    <ul >
       {state.items.map((event) => (
         <EventRow key={`${event.entityRef.table}:${event.entityRef.id}`} event={event} />
       ))}

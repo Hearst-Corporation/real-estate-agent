@@ -73,7 +73,7 @@ export function zoneMatches(zone: string, annonce: Annonce): boolean {
   if (!z) return false;
   const cp = (annonce.codePostal ?? "").trim().toLowerCase();
   const commune = (annonce.ville ?? "").trim().toLowerCase();
-  if (cp && cp.startsWith(z)) return true;
+  if (cp?.startsWith(z)) return true;
   if (commune && commune === z) return true;
   return false;
 }

@@ -12,7 +12,7 @@
  * déjà parsé) ; cost-guard (cap quotidien + flag) sur l'appel payant réel.
  */
 
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import { getSession } from "@/lib/server/session";
 import { rateLimit } from "@/lib/ratelimit";
 import { paidCall } from "@/lib/providers/cost-guard";

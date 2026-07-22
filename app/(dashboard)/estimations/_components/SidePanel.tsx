@@ -291,7 +291,7 @@ export function SidePanel({ id, valuation, market: marketProp, property, fieldSt
                 {UI.estimations.listingFetchSourcePrefix}{" "}
                 <strong className="font-semibold text-zinc-700">
                   {listingFallbackUsed
-                    ? UI.estimations.listingFetchSourceLabels["myswarms"]
+                    ? UI.estimations.listingFetchSourceLabels.myswarms
                     : (UI.estimations.listingFetchSourceLabels[listingFetchSource] ?? listingFetchSource)}
                 </strong>
               </p>

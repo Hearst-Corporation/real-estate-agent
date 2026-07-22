@@ -83,9 +83,7 @@ function installEnv() {
   // scrollIntoView absent de jsdom : on capture ses options.
   Element.prototype.scrollIntoView = scrollSpy as unknown as typeof Element.prototype.scrollIntoView;
   // getBoundingClientRect renvoie un rectangle plausible pour le calcul de position.
-  Element.prototype.getBoundingClientRect = function () {
-    return { top: 100, left: 100, width: 200, height: 60, right: 300, bottom: 160, x: 100, y: 100, toJSON() {} };
-  } as unknown as typeof Element.prototype.getBoundingClientRect;
+  Element.prototype.getBoundingClientRect = (() => ({ top: 100, left: 100, width: 200, height: 60, right: 300, bottom: 160, x: 100, y: 100, toJSON() {} })) as unknown as typeof Element.prototype.getBoundingClientRect;
 }
 
 /* Harnais : un bouton qui LANCE la visite (source de focus), + un champ. */

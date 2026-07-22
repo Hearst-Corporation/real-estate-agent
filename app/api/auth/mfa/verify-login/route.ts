@@ -80,7 +80,7 @@ export async function POST(req: Request) {
   if (!allowedSub) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
 
   const mfa = await getUserMfa(userId);
-  if (!mfa || !mfa.enabled) {
+  if (!mfa?.enabled) {
     // État incohérent (MFA désactivé entre les deux étapes, ou table indisponible).
     return NextResponse.json({ error: "mfa_pending_expired" }, { status: 401 });
   }

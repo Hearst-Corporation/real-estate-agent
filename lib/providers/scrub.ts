@@ -10,10 +10,10 @@
 // Champs sensibles courants en JSON ou query : on garde le nom, on masque la valeur.
 const KV =
   /(["']?(?:api[_-]?key|apikey|access[_-]?token|token|secret|password|authorization|x[_-]?api[_-]?key)["']?\s*[=:]\s*)(["']?)[^"'`,&\s}]+\2/gi;
-const BEARER = /Bearer\s+[A-Za-z0-9._\-]+/gi;
-const EMAIL = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/g;
+const BEARER = /Bearer\s+[A-Za-z0-9._-]+/gi;
+const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 // Préfixes de clés connus (Anthropic, Hypercli, GitHub, Resend, OpenAI...).
-const KNOWN_PREFIX = /\b(?:sk-[A-Za-z0-9._\-]{6,}|hyper_[A-Za-z0-9._\-]{6,}|ghp_[A-Za-z0-9]{6,}|re_[A-Za-z0-9._\-]{6,}|xaat-[A-Za-z0-9._\-]{6,})\b/g;
+const KNOWN_PREFIX = /\b(?:sk-[A-Za-z0-9._-]{6,}|hyper_[A-Za-z0-9._-]{6,}|ghp_[A-Za-z0-9]{6,}|re_[A-Za-z0-9._-]{6,}|xaat-[A-Za-z0-9._-]{6,})\b/g;
 // Coordonnées GPS : lat/lon avec decimaux (ex: lat=48.8566, lon=2.3522 ou lat:48.8566).
 const GPS_KV = /\b(?:lat(?:itude)?|lon(?:gitude)?)\s*[=:]\s*-?\d{1,3}\.\d+/gi;
 // Adresses de rue conservatrices (rue/avenue/bd/boulevard/allée/impasse suivis de texte).

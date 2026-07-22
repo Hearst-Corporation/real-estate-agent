@@ -24,7 +24,7 @@ export default async function AdminPage() {
   // Garde stricte : tout role !== 'admin' (y compris undefined) → 404.
   // Le proxy ne vérifie que la validité du JWT, pas le rôle.
   const claims = await getSession();
-  if (!claims || claims.role !== "admin") notFound();
+  if (claims?.role !== "admin") notFound();
 
   const sb = getGpu1Admin();
   const { providers, counts } = await buildAdminOverview(sb, claims.tenant_id);

@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
   const mfa = await getUserMfa(claims.sub);
   // Pas de MFA actif (ou table absente) → rien à désactiver, réponse idempotente.
-  if (!mfa || !mfa.enabled) return NextResponse.json({ enabled: false });
+  if (!mfa?.enabled) return NextResponse.json({ enabled: false });
 
   const body = (await req.json().catch(() => null)) as { code?: unknown } | null;
   const code = typeof body?.code === "string" ? body.code.trim() : "";

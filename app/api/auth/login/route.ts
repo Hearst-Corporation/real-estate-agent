@@ -79,7 +79,7 @@ export async function POST(req: Request) {
   const email = user.email ?? undefined;
 
   const candidate = body.data.next;
-  const next = candidate && candidate.startsWith("/") && !candidate.startsWith("//") ? candidate : "/";
+  const next = candidate?.startsWith("/") && !candidate.startsWith("//") ? candidate : "/";
 
   // ── 2e facteur MFA — OPT-IN, ZÉRO LOCKOUT ──────────────────────────────────
   // getUserMfa est fail-soft (null si table 0035 absente / erreur DB). On ne pose

@@ -310,7 +310,7 @@ export async function createCalendarEvent(
     };
 
     if (params.description) {
-      body["description"] = params.description;
+      body.description = params.description;
     }
 
     // Composio attend des emails (strings), pas des objets {email}.
@@ -318,7 +318,7 @@ export async function createCalendarEvent(
       const emails = params.attendees.filter(
         (e): e is string => typeof e === "string" && e.trim().length > 0,
       );
-      if (emails.length > 0) body["attendees"] = emails;
+      if (emails.length > 0) body.attendees = emails;
     }
 
     const result = await composioFetch(
