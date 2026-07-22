@@ -1,3 +1,11 @@
+<!-- BEGIN:deploy-policy -->
+PROD_AUTODEPLOY: unknown
+
+App hébergée sur Vercel, mais la prod affichait un commit en retard sur `main` (le push ne
+semble pas auto-déployer — non prouvé). Vérification courte avant push (intégration Git
+Vercel, hooks) ; si un auto-deploy est démontré → passer à `true` et STOP avant push.
+<!-- END:deploy-policy -->
+
 # Real estate Agent
 
 > Stack : Next.js 16 (App Router) + Electron. **Backend unique : Postgres self-hosté GPU1 derrière PostgREST** — Supabase est définitivement retiré du produit.
@@ -6,14 +14,14 @@
 - Toutes les réponses en **français**.
 - Mode **autonomie totale** : tu exécutes, tu ne demandes pas confirmation pour chaque étape.
 
-## 🚀 État production (vérifié le 2026-07-18)
+## 🚀 Production
 
-| Fait | Valeur |
-|---|---|
-| URL production | **https://real-estate-agent-iota-nine.vercel.app** |
-| Commit déployé | `main @ 210f572a27703899e8992a6a70edb3000adc905e` |
-| Health | `GET /api/health` → **200**, `db: "up"` |
-| Migrations appliquées sur GPU1 | **jusqu'à `0058`** (voir [docs/gpu1-activation-009.md](docs/gpu1-activation-009.md)) |
+- URL production : **https://real-estate-agent-iota-nine.vercel.app** (health : `GET /api/health`).
+- Le commit réellement déployé et l'état exact des migrations GPU1 se vérifient au moment
+  voulu (dashboard Vercel + [docs/gpu1-activation-009.md](docs/gpu1-activation-009.md)) —
+  ne jamais se fier à un SHA épinglé dans ce fichier. Dernier état documenté (18/07) :
+  migrations appliquées jusqu'à `0058` ; **`0059` existe dans le repo, statut GPU1
+  indéterminé — vérifier avant tout déploiement.**
 
 ⚠️ Le domaine `real-estate-agent.vercel.app` **n'héberge pas cette app** (répond une autre
 application). Ne pas l'utiliser comme URL de prod. `electron/main.ts` pointe encore dessus
@@ -21,7 +29,7 @@ application). Ne pas l'utiliser comme URL de prod. `electron/main.ts` pointe enc
 
 ## Stack
 - **Web** : Next.js 16.2 (App Router) sur port `3002` — hébergé sur **Vercel**.
-- **DB** : **Postgres self-hosté gpu1** derrière **PostgREST + Caddy** (`https://real-estate-agent-db.hearst.app`, tunnel Cloudflare `hearst-prod`). Client unique : **`getGpu1Admin()` de `@/lib/gpu1`**. ⚠️ **PostgREST-only** : ni GoTrue (Auth), ni Storage, ni Realtime — l'auth est recâblée en RPC Postgres (`verify_login`, migration 0037), le stockage passe par **Cloudflare R2** (`lib/storage/r2.ts`).
+- **DB** : **Postgres self-hosté gpu1** derrière **PostgREST + Caddy** (`https://real-estate-agent-db.hearst.app`, tunnel Cloudflare `hearst-prod`). Client unique : **`getGpu1Admin()` du module `lib/gpu1/`** (répertoire, pas un fichier). ⚠️ **PostgREST-only** : ni GoTrue (Auth), ni Storage, ni Realtime — l'auth est recâblée en RPC Postgres (`verify_login`, migration 0037), le stockage passe par **Cloudflare R2** (`lib/storage/r2.ts`).
 - **Supabase : RETIRÉ** — aucun SDK `@supabase/*`, aucun helper `getSupabaseAdmin`, aucune var `SUPABASE_*`/`NEXT_PUBLIC_SUPABASE_*` dans le runtime. La gate `npm run check:no-supabase` (`scripts/check-no-supabase.mjs`) casse le build si l'un d'eux réapparaît. Le dossier `supabase/migrations/` ne garde ce nom que par **convention de chemin historique** : c'est du SQL Postgres standard rejoué sur GPU1.
 - **Cache/Queue** : Redis (Railway `redis.railway.internal:6379` ou Upstash REST en runtime)
 - **Hosting** : Vercel (app Next) + gpu1 (DB) + Railway (redis). Doc complète : [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
@@ -33,7 +41,10 @@ application). Ne pas l'utiliser comme URL de prod. `electron/main.ts` pointe enc
 Aucun outil Supabase (CLI, MCP, Management API) ne s'applique : la DB est un Postgres
 self-hosté gpu1 exposé par PostgREST.
 
-- **État des migrations** : `supabase/migrations/` contient `0001`→`0058`. **Toutes appliquées sur GPU1** — `0043` et `0047` l'étaient déjà, les 14 restantes (`0044 0045 0046 0048 0049`→`0058`) ont été appliquées le **2026-07-18**, données métier inchangées. Détail : [docs/gpu1-activation-009.md](docs/gpu1-activation-009.md).
+- **État des migrations** : `supabase/migrations/` contient `0001`→`0059`. Appliquées sur
+  GPU1 jusqu'à `0058` (passe du 2026-07-18, détail : [docs/gpu1-activation-009.md](docs/gpu1-activation-009.md)) ;
+  **`0059_product_tour_progress.sql` à statut GPU1 indéterminé — vérifier avec
+  `node scripts/db-diagnose.mjs` avant de s'y fier.**
 - **Diagnostic schéma** : `node scripts/db-diagnose.mjs` (compare les tables attendues au réel, teste `verify_login`, RLS anon/service-role). Lit `.env.local`, masque les secrets.
 - **Appliquer une nouvelle migration** (`0059`+) :
   ```bash
@@ -66,7 +77,7 @@ self-hosté gpu1 exposé par PostgREST.
 
 - Le chat Cockpit (`app/api/cockpit-chat/route.ts`) utilise **OpenAI** via `lib/llm/openai.ts` + `lib/agent/run.ts` (function-calling natif, streaming NDJSON). Modèle par défaut `gpt-5.4`, fallback `gpt-5.4-mini` — **vérifier la dispo réelle sur le compte** avant de figer un modèle, ne pas en supposer un.
 - **Mode dégradé** : `OPENAI_API_KEY` absente → la route chat renvoie 503 (assistant non configuré), le reste de l'app fonctionne. Jamais de fausse réponse.
-- **Tools** (25, `lib/agent/tools/`) : lecture directe, toutes mutations owner-check user+tenant systématique. **Confirmation humaine obligatoire uniquement sur les mutations destructives/irréversibles** — `delete_lead` (`crm.ts`) et `send_estimation` (`estimation.ts`) : garde-fou dur, param `confirmed:boolean` requis dans le schema, `execute()` refuse et redemande tant qu'il est absent. Les mutations simples (create_lead, create_property, create_visit, create_mandate, create_estimation, create_calendar_event, etc.) s'exécutent **sans confirmation**, c'est le comportement voulu — pas un oubli. Aucun tool `execute_sql`/`call_any_route`/`run_code`. Le modèle ne reçoit jamais le service-role. Données métier (notes/annonces) = non fiables (protection prompt injection). Vérifié en vrai (Playwright) le 2026-07-16 : create_lead écrit en DB, delete_lead bloque sans confirmation puis exécute après "oui".
+- **Tools** (`lib/agent/tools/`, 11 fichiers / ~28 définitions) : lecture directe, toutes mutations owner-check user+tenant systématique. **Confirmation humaine obligatoire uniquement sur les mutations destructives/irréversibles** — `delete_lead` (`crm.ts`) et `send_estimation` (`estimation.ts`) : garde-fou dur, param `confirmed:boolean` requis dans le schema, `execute()` refuse et redemande tant qu'il est absent. Les mutations simples (create_lead, create_property, create_visit, create_mandate, create_estimation, create_calendar_event, etc.) s'exécutent **sans confirmation**, c'est le comportement voulu — pas un oubli. Aucun tool `execute_sql`/`call_any_route`/`run_code`. Le modèle ne reçoit jamais le service-role. Données métier (notes/annonces) = non fiables (protection prompt injection). Vérifié en vrai (Playwright) le 2026-07-16 : create_lead écrit en DB, delete_lead bloque sans confirmation puis exécute après "oui".
 - **Kimi** (`lib/llm/kimi.ts`) : conservé UNIQUEMENT pour l'entretien d'estimation (`lib/ai/interview.ts`), pas pour le Cockpit.
 - Runtime `nodejs` + `dynamic = "force-dynamic"` sur la route chat.
 - JAMAIS hardcoder une clé — toujours `process.env.X`, **serveur uniquement** (jamais `NEXT_PUBLIC_*`, jamais dans le renderer Electron). JAMAIS de client LLM hors `lib/llm/`.
@@ -102,7 +113,10 @@ une capacité au motif qu'elle est en `CONFIG`**.
 - `npm run dev` — Next sur `http://localhost:3002` (Turbopack).
   - **En worktree** (`node_modules` symliké → Turbopack panique) : `AUTH_DEV_BYPASS=true node_modules/.bin/next dev --webpack -p 3002`. `AUTH_DEV_BYPASS` est **strictement local** — posé avec `NODE_ENV=production`, le boot throw.
   - **Jamais `pnpm <script>` dans un worktree** (purge les `node_modules` partagés) → binaires directs `node_modules/.bin/*`.
-- `npm run check` — gate complète (secrets, eslint, nav, strings, manifest cockpit, typecheck, biome, catalyst, **no-supabase**)
+- `npm run check` — **DÉSACTIVÉE depuis le 20/07** (`echo "check gate disabled"`). Les
+  sous-scripts existent et se lancent individuellement (secrets, eslint, nav, strings,
+  manifest cockpit, typecheck, biome, catalyst, **no-supabase**) — ne jamais la présenter
+  comme une preuve tant qu'elle n'est pas restaurée.
 - `npm test` — vitest · `npm run test:migrations` — cohérence statique des migrations
 - `npm run build` / `npm run lint`
 - `npm run electron:dev` — app desktop (Next + Electron)
